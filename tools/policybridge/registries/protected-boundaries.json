@@ -1,0 +1,24 @@
+{
+  "project": "PolicyBridge",
+  "version": 1,
+  "currentPhase": "foundation-tooling-docs",
+  "allowedNow": [
+    "docs",
+    "registries",
+    "workflow definitions",
+    "AI role descriptions",
+    "architecture maps",
+    "public explanation templates"
+  ],
+  "doNotTouch": [
+    "Stripe",
+    "Auth",
+    "Firestore rules",
+    "onboarding",
+    "payment flow",
+    "live_user_profiles",
+    "production task engine",
+    "deployment pipelines"
+  ]
+}
+

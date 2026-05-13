@@ -1,0 +1,50 @@
+{
+  "project": "PolicyBridge",
+  "version": 1,
+  "status": "foundation-only",
+  "modules": [
+    {
+      "id": "policy-intake",
+      "owner": "future intake layer",
+      "status": "concept",
+      "owns": ["raw input metadata", "source labels", "jurisdiction tags"],
+      "mustNotOwn": ["auth", "payments", "public conclusions"]
+    },
+    {
+      "id": "policy-analysis",
+      "owner": "future analysis layer",
+      "status": "concept",
+      "owns": ["policy breakdown", "tradeoffs", "risk notes", "assumptions"],
+      "mustNotOwn": ["absolute truth", "hidden party ranking"]
+    },
+    {
+      "id": "scenario-simulation",
+      "owner": "future simulation layer",
+      "status": "concept",
+      "owns": ["scenario concepts", "timeline feasibility", "impact summaries"],
+      "mustNotOwn": ["guaranteed predictions"]
+    },
+    {
+      "id": "compromise-engine",
+      "owner": "future compromise layer",
+      "status": "concept",
+      "owns": ["overlap detection", "conflict mapping", "compromise candidates"],
+      "mustNotOwn": ["forced consensus"]
+    },
+    {
+      "id": "public-explanation",
+      "owner": "future public communication layer",
+      "status": "concept",
+      "owns": ["plain-language summaries", "templates", "uncertainty labels"],
+      "mustNotOwn": ["propaganda", "hidden persuasion"]
+    },
+    {
+      "id": "governance-layer",
+      "owner": "future governance layer",
+      "status": "concept",
+      "owns": ["neutrality rules", "implementation gates", "protected boundaries"],
+      "mustNotOwn": ["opaque political filtering"]
+    }
+  ]
+}
+

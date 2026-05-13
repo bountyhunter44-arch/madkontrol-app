@@ -1,0 +1,33 @@
+{
+  "project": "PolicyBridge AI Podcast Station",
+  "version": 1,
+  "currentPhase": "docs-only",
+  "hardNoTouch": [
+    "Stripe",
+    "Auth",
+    "Firestore rules",
+    "onboarding",
+    "payment flow",
+    "live_user_profiles",
+    "production task engine",
+    "Cloud Functions deployment",
+    "hosting deployment configuration"
+  ],
+  "requiresFutureApproval": [
+    "database schema",
+    "episode persistence",
+    "voice capture",
+    "identity and consent",
+    "public publishing pipeline",
+    "moderation enforcement automation",
+    "model provider integration"
+  ],
+  "allowedNow": [
+    "planning docs",
+    "JSON registries",
+    "workflow docs",
+    "AI profile definitions",
+    "trust and transparency principles"
+  ]
+}
+

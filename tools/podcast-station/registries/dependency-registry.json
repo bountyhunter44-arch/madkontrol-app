@@ -1,0 +1,57 @@
+{
+  "project": "PolicyBridge AI Podcast Station",
+  "version": 1,
+  "status": "planning-only",
+  "dependencies": {
+    "currentPhase": [
+      {
+        "name": "Markdown documentation",
+        "type": "documentation",
+        "required": true,
+        "runtimeImpact": "none"
+      },
+      {
+        "name": "JSON registries",
+        "type": "tooling-metadata",
+        "required": true,
+        "runtimeImpact": "none"
+      }
+    ],
+    "futureCandidates": [
+      {
+        "name": "LLM orchestration",
+        "type": "ai-runtime",
+        "approvalRequired": true,
+        "notes": "Must preserve uncertainty and source limits."
+      },
+      {
+        "name": "Realtime speech pipeline",
+        "type": "voice-runtime",
+        "approvalRequired": true,
+        "notes": "Not part of current phase."
+      },
+      {
+        "name": "Conversation persistence",
+        "type": "database",
+        "approvalRequired": true,
+        "notes": "Requires privacy, retention, and moderation design before implementation."
+      },
+      {
+        "name": "Public episode publishing",
+        "type": "distribution",
+        "approvalRequired": true,
+        "notes": "Requires transparency ledger and consent model."
+      }
+    ]
+  },
+  "protectedSystems": [
+    "stripe",
+    "auth",
+    "firestore-rules",
+    "onboarding",
+    "payment-flow",
+    "live_user_profiles",
+    "production-task-engine"
+  ]
+}
+

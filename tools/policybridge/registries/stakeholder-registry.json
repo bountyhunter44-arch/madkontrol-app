@@ -1,0 +1,33 @@
+{
+  "project": "PolicyBridge",
+  "version": 1,
+  "status": "taxonomy-draft",
+  "stakeholders": [
+    {
+      "id": "citizens",
+      "label": "Borgere",
+      "analysisQuestions": ["How does daily life change?", "Who pays?", "Who benefits?", "Who is overlooked?"]
+    },
+    {
+      "id": "politicians",
+      "label": "Politikere",
+      "analysisQuestions": ["What tradeoffs are explicit?", "What compromise is possible?", "What risks must be owned?"]
+    },
+    {
+      "id": "journalists",
+      "label": "Journalister",
+      "analysisQuestions": ["What claims need verification?", "What assumptions are hidden?", "Who is affected?"]
+    },
+    {
+      "id": "organizations",
+      "label": "Organisationer",
+      "analysisQuestions": ["What stakeholder burden changes?", "What implementation role exists?", "What conflicts arise?"]
+    },
+    {
+      "id": "advisors",
+      "label": "Rådgivere",
+      "analysisQuestions": ["What scenarios are plausible?", "What financing is realistic?", "What timeline is feasible?"]
+    }
+  ]
+}
+
