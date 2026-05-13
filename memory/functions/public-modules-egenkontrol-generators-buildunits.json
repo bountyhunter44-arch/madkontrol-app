@@ -1,0 +1,44 @@
+{
+  "source_file": "public/modules/egenkontrol/generators/buildUnits.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "buildUnits",
+    "getEnabledUnits",
+    "getUnitsByType"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildUnits",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getEnabledUnits",
+        "getUnitsByType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEnabledUnits",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getUnitsByType",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getEnabledUnits"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

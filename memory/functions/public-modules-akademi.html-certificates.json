@@ -1,0 +1,63 @@
+{
+  "source_file": "public/modules/akademi.html/certificates.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "loadSharedPartials",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "normalize",
+        "setupCertificateFilters",
+        "updateFilters"
+      ],
+      "selectors": [
+        ".certificate-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "normalize",
+      "type": "function",
+      "approx_occurrences": 11,
+      "calls": [
+        "loadSharedPartials",
+        "setupCertificateFilters",
+        "updateFilters"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setupCertificateFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadSharedPartials",
+        "normalize",
+        "updateFilters"
+      ],
+      "selectors": [
+        ".certificate-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "updateFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadSharedPartials",
+        "normalize",
+        "setupCertificateFilters"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

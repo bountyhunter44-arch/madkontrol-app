@@ -1,0 +1,18 @@
+{
+  "module": "deviations",
+  "files": [
+    {
+      "source_file": "public/modules/egenkontrol/afvigelser.html",
+      "selectors": [
+        ".reopen-alert-btn",
+        ".save-alert-btn, .save-awaiting-btn, .resolve-alert-btn",
+        ".stat-box.is-clickable",
+        ".task-collapse-head",
+        ".task-item",
+        "[data-extra-for]",
+        "button",
+        "input, textarea"
+      ]
+    }
+  ]
+}

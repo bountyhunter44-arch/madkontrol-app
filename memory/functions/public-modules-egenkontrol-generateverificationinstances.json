@@ -1,0 +1,31 @@
+{
+  "source_file": "public/modules/egenkontrol/generateVerificationInstances.js",
+  "module": "general",
+  "imports": [
+    "../../core/firebase-config.js",
+    "./controlLibraryHelpers.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [
+    "generateVerificationInstances"
+  ],
+  "collections": [
+    "verification_instances",
+    "verification_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "generateVerificationInstances",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "verification_instances",
+        "verification_templates"
+      ]
+    }
+  ]
+}

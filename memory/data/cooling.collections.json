@@ -1,0 +1,40 @@
+{
+  "module": "cooling",
+  "files": [
+    {
+      "source_file": "functions/admin/completeTaskEntryWithCooling.js",
+      "collections": [
+        "alerts",
+        "deviations",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "functions/egenkontrol/models/coolingHistoryModel.js",
+      "collections": [
+        "cooling_history"
+      ]
+    },
+    {
+      "source_file": "public/core/cooling-overlay.js",
+      "collections": [
+        "activeCoolingRuns",
+        "users"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/rutiner-cooling-ui.js",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/migrate-cooling-history.js",
+      "collections": [
+        "cooling_history",
+        "task_entries"
+      ]
+    }
+  ]
+}

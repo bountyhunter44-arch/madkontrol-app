@@ -1,0 +1,1170 @@
+{
+  "module": "general",
+  "files": [
+    {
+      "source_file": "add-user.js",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "admin/personale.html",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "audit-task-relations.json",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "core/database.js",
+      "collections": [
+        "companies",
+        "daily_runs",
+        "deviations",
+        "locations",
+        "media_assets",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "firestore.indexes.json",
+      "collections": [
+        "daily_runs",
+        "haccp_snapshots",
+        "task_instances",
+        "task_templates",
+        "verification_instances"
+      ]
+    },
+    {
+      "source_file": "functions/admin/completeTaskEntry.js",
+      "collections": [
+        "alerts",
+        "deviations",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "functions/admin/demoMode.js",
+      "collections": [
+        "companies",
+        "locations",
+        "task_instances",
+        "users"
+      ]
+    },
+    {
+      "source_file": "functions/admin/generateCleaningTasks.js",
+      "collections": [
+        "equipment",
+        "onboarding_answers",
+        "tasks"
+      ]
+    },
+    {
+      "source_file": "functions/admin/generateDailyTaskInstances.js",
+      "collections": [
+        "operating_overrides",
+        "task_instances",
+        "tasks"
+      ]
+    },
+    {
+      "source_file": "functions/admin/generateEgenkontrolFromRiskAnalysis.js",
+      "collections": [
+        "equipment",
+        "risks",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "functions/admin/generateTasksFromRisks.js",
+      "collections": [
+        "equipment",
+        "risks",
+        "tasks"
+      ]
+    },
+    {
+      "source_file": "functions/admin/riskLibraryManager.js",
+      "collections": [
+        "risk_analyses",
+        "risk_library"
+      ]
+    },
+    {
+      "source_file": "functions/admin/softArchive.js",
+      "collections": [
+        "alerts",
+        "companies",
+        "locations",
+        "periods",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "functions/closeDailyRun.js",
+      "collections": [
+        "alerts",
+        "daily_reports",
+        "daily_runs",
+        "deviations",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "functions/egenkontrol/builders/templateBuilder.js",
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "source_file": "functions/egenkontrol/egenkontrolGenerator.js",
+      "collections": [
+        "egenkontrol_programs",
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "source_file": "functions/egenkontrol/libraries/controlLibrary.js",
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "source_file": "functions/guideResolver.js",
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "source_file": "functions/processInstances.js",
+      "collections": [
+        "deviations",
+        "process_instances"
+      ]
+    },
+    {
+      "source_file": "functions/scenarioBasedHaccp.js",
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "source_file": "functions/scripts/generateMemorySeed.js",
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "source_file": "functions/scripts/migrateFrequencyFields.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "functions/scripts/resetAltDemoData.js",
+      "collections": [
+        "companies",
+        "daily_runs",
+        "deviations",
+        "equipment",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations",
+        "onboarding_answers",
+        "task_instances",
+        "task_templates",
+        "verification_instances"
+      ]
+    },
+    {
+      "source_file": "functions/scripts/sletAlleFirmaer.js",
+      "collections": [
+        "companies"
+      ]
+    },
+    {
+      "source_file": "functions/scripts/splitMemorySeed.js",
+      "collections": [
+        "risks"
+      ]
+    },
+    {
+      "source_file": "functions/test-real-firestore-data.js",
+      "collections": [
+        "locations",
+        "risk_analyses"
+      ]
+    },
+    {
+      "source_file": "functions/test-v2-write-and-verify.js",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "functions/water-module.js",
+      "collections": [
+        "users",
+        "water_alerts",
+        "water_measurements",
+        "water_production",
+        "water_sales",
+        "water_services",
+        "water_systems"
+      ]
+    },
+    {
+      "source_file": "public/core/auth.js",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "public/core/layout.js",
+      "collections": [
+        "live_user_profiles",
+        "organizations",
+        "users"
+      ]
+    },
+    {
+      "source_file": "public/core/session.js",
+      "collections": [
+        "companies",
+        "locations",
+        "users"
+      ]
+    },
+    {
+      "source_file": "public/debug-profile.html",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "public/debug-user.html",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "public/kontrol.html",
+      "collections": [
+        "alerts",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/modules/core/billed-arkiv.html",
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations",
+        "media_assets"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/controlLibraryOperational.js",
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/controlLibraryProgram.js",
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/generateDailyTaskInstances.js",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/generateVerificationInstances.js",
+      "collections": [
+        "verification_instances",
+        "verification_templates"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/logbooks.html",
+      "collections": [
+        "logbook_entries"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/luk-dag.html",
+      "collections": [
+        "daily_runs",
+        "deviations",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/rapport-view.html",
+      "collections": [
+        "reports"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/rapporter-list.html",
+      "collections": [
+        "reports"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/rapporter.html",
+      "collections": [
+        "alerts",
+        "companies",
+        "daily_reports",
+        "live_user_profiles",
+        "locations",
+        "media_assets",
+        "task_instances",
+        "users"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/risikoanalyse.html",
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/riskAnalysisService.js",
+      "collections": [
+        "companies",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/services/egenkontrolService.js",
+      "collections": [
+        "egenkontrol_programs",
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/start-dag.html",
+      "collections": [
+        "daily_runs",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/syncControlTemplatesToFirestore.js",
+      "collections": [
+        "program_sections",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/units.html",
+      "collections": [
+        "companies",
+        "equipment",
+        "locations",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/view-haccp.html",
+      "collections": [
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "source_file": "public/modules/lager/scanner.html",
+      "collections": [
+        "inventory_items",
+        "inventory_transactions"
+      ]
+    },
+    {
+      "source_file": "public/modules/seo/generator.html",
+      "collections": [
+        "live_user_profiles",
+        "seo_generator_configs"
+      ]
+    },
+    {
+      "source_file": "public/modules/water/production.html",
+      "collections": [
+        "users",
+        "water_production",
+        "water_sales",
+        "water_systems"
+      ]
+    },
+    {
+      "source_file": "public/modules/water/systems.html",
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "source_file": "public/modules/water/technician.html",
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "source_file": "public/scripts/audit-guide-mapping.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/audit-semantic-mappings.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/check-guidekey-integrity.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/check-task-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/check-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/delete-daily-runs.cjs",
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "source_file": "public/scripts/delete-egenkontrol-data-for-location.cjs",
+      "collections": [
+        "program_sections",
+        "task_instances",
+        "task_templates",
+        "verification_instances"
+      ]
+    },
+    {
+      "source_file": "public/scripts/delete-task-instances.cjs",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/scripts/delete-task-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/fetch-broken-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/fetch-real-task-instances.cjs",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/scripts/fetch-task-instances-sample.cjs",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/scripts/find-wrong-temperature-mappings.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/fix-broken-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/fix-equipment-maintenance-templates.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/fix-modtagekontrol.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/fix-semantic-mappings.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/fix-temperature-guidekeys.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/inspect-modtagekontrol.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/inspect-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/migrate-guides-v2.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/migrate-guides.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/migrate-task-evaluations.js",
+      "collections": [
+        "alerts",
+        "deviations",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/scripts/refine-guidekeys.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/regenerate-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/repair-guide-mapping.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/seed-company-location.cjs",
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "source_file": "public/scripts/seed-firestore-from-scratch.cjs",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "public/scripts/semantic-remap-guidekeys.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/set-controltype-on-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/test-equipment-maintenance-mapping.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/trigger-regeneration.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/trigger-via-admin.cjs",
+      "collections": [
+        "locations",
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/verify-actual-guides.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/verify-guide-system.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/verify-remaining-guides.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/scripts/verify-task-instances.cjs",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/generateBusinessSetup.js",
+      "collections": [
+        "companies",
+        "equipment",
+        "locations",
+        "onboarding_answers",
+        "risks"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/generateCompanySetup.js",
+      "collections": [
+        "areas",
+        "company_requirements",
+        "control_point_templates",
+        "control_points",
+        "requirement_templates",
+        "risk_analysis_items",
+        "risk_templates"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/generateDailyTasks.js",
+      "collections": [
+        "operating_overrides",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/generateRiskProfile.js",
+      "collections": [
+        "activity_profiles",
+        "deviations",
+        "risk_profiles"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importActivityProfiles.js",
+      "collections": [
+        "activity_profiles"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importAlerts.js",
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importAreas.js",
+      "collections": [
+        "areas"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importCompanies.js",
+      "collections": [
+        "companies"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importControlPointTemplates.js",
+      "collections": [
+        "control_point_templates"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importLocations.js",
+      "collections": [
+        "locations"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importMemberships.js",
+      "collections": [
+        "memberships"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importRequirementTemplates.js",
+      "collections": [
+        "equipment",
+        "requirement_templates"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importRiskTemplates.js",
+      "collections": [
+        "risk_templates"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importTaskEntries.js",
+      "collections": [
+        "task_entries"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importTasks.js",
+      "collections": [
+        "tasks"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importUnits.js",
+      "collections": [
+        "units"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/importUsers.js",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/resetDailyData.js",
+      "collections": [
+        "alerts",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/resetDatabase.js",
+      "collections": [
+        "alerts",
+        "areas",
+        "companies",
+        "locations",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/seed-task-templates.js",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/seed-data/tasks.json",
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "source_file": "public/test-egenkontrol.html",
+      "collections": [
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "source_file": "scripts/audit-all-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/audit-equipment-units.cjs",
+      "collections": [
+        "equipment_units",
+        "locations",
+        "onboarding_sessions",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/audit-task-instances.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/audit-task-relations.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/auditEquipmentMatrix.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/check-risk-fields.cjs",
+      "collections": [
+        "risk_analyses",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/check-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/check-templates.js",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/cleanup-database.js",
+      "collections": [
+        "alerts",
+        "daily_runs",
+        "deviations",
+        "equipment",
+        "media_assets",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/cleanup-test-data.cjs",
+      "collections": [
+        "task_instances",
+        "users"
+      ]
+    },
+    {
+      "source_file": "scripts/cleanupDuplicateTaskInstances.cjs",
+      "collections": [
+        "alerts",
+        "attachments",
+        "daily_reports",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/cleanupLegacyTaskTemplates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/cleanupMaintenanceEntries.cjs",
+      "collections": [
+        "task_entries"
+      ]
+    },
+    {
+      "source_file": "scripts/cleanupWaterTasks.cjs",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/database-audit.js",
+      "collections": [
+        "alerts",
+        "areas",
+        "companies",
+        "daily_runs",
+        "deviations",
+        "equipment",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations",
+        "media_assets",
+        "operating_overrides",
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/deactivate-legacy-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/delete-all-task-instances.cjs",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/delete-and-regenerate-tasks.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates",
+        "units"
+      ]
+    },
+    {
+      "source_file": "scripts/delete-luk-dag-template.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/delete-task-instances.cjs",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/deleteAllTaskInstances.cjs",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/deleteGenericTempInstances.cjs",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/disable-generic-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/findTaskCollectionsEverywhere.cjs",
+      "collections": [
+        "companies",
+        "locations",
+        "task_instances",
+        "verification_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/findTaskInstancesPath.cjs",
+      "collections": [
+        "companies",
+        "locations",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/findWaterLikeTasks.cjs",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/fix-demo-location-templates.js",
+      "collections": [
+        "daily_runs",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/fix-user-document.js",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "scripts/fix-user-supawan.cjs",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "scripts/migrateTemperatureTemplateFields.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/migrateTemperatureTemplates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/patch-and-audit.cjs",
+      "collections": [
+        "onboarding_answers",
+        "risks",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/patch-legacy-temp.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/patch-risk-templates.cjs",
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/patch-temp-fields.cjs",
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/publishLandingSite.js",
+      "collections": [
+        "seo_pages",
+        "websites"
+      ]
+    },
+    {
+      "source_file": "scripts/reset-day.cjs",
+      "collections": [
+        "daily_runs",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/set-super-admin.cjs",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "scripts/set-super-admin.js",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "scripts/setup-customer.js",
+      "collections": [
+        "companies",
+        "locations",
+        "users"
+      ]
+    },
+    {
+      "source_file": "scripts/simple-task-reset.cjs",
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/sync-auth-users-to-uid-docs.js",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "scripts/syncCleaningTemplates.cjs",
+      "collections": [
+        "equipment",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/syncEquipmentUnits.cjs",
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "source_file": "scripts/syncMaintenanceTemplates.cjs",
+      "collections": [
+        "equipment",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/verify-super-admin.js",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "scripts/verify-user-document.js",
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "source_file": "slet-alle-firmaer.json",
+      "collections": [
+        "daily_runs",
+        "deviations",
+        "equipment",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "media_assets",
+        "onboarding_answers",
+        "operating_overrides",
+        "program_sections",
+        "task_instances",
+        "task_templates",
+        "verification_instances"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,500 @@
+    // Transform to our format
+    const assets = resources.map((resource) => ({
+      id: resource.asset_id || resource.public_id,
+      publicId: resource.public_id,
+      secureUrl: resource.secure_url,
+      optimizedUrl: resource.secure_url?.replace("/upload/", "/upload/f_auto,q_auto/") || resource.secure_url,
+      format: resource.format,
+      width: resource.width,
+      height: resource.height,
+      bytes: resource.bytes,
+      createdAt: resource.created_at,
+      tags: resource.tags || [],
+      context: resource.context?.custom || {},
+      resourceType: resource.resource_type
+    }));
+
+    return {
+      ok: true,
+      total: result.total_count || assets.length,
+      assets
+    };
+  } catch (error) {
+    console.error("Cloudinary fetch fejl:", error);
+    throw new HttpsError(
+      "internal",
+      `Kunne ikke hente billeder fra Cloudinary: ${error.message}`
+    );
+  }
+});
+
+function scoreStockPhoto(photo) {
+  let score = 0;
+  const w = photo.width || 0;
+  const h = photo.height || 0;
+  if (w > 0 && h > 0) {
+    const ratio = w / h;
+    if (ratio >= 1.6 && ratio <= 1.85) score += 30;
+    else if (ratio >= 1.3) score += 15;
+    else if (ratio < 1) score -= 30;
+  }
+  if (w >= 1920) score += 20;
+  else if (w >= 1280) score += 10;
+  if (photo.src && photo.src.large2x) score += 10;
+  return score;
+}
+
+exports.searchRestaurantImages = onCall(
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"], region: "us-central1" },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Log ind for at søge billeder.");
+    }
+
+    const data = request.data;
+    const query = sanitizeString(data?.query || "", 200);
+    const perPage = Math.min(Math.max(1, Number(data?.perPage) || 15), 24);
+
+    if (!query) {
+      throw new HttpsError("invalid-argument", "Søgeord mangler.");
+    }
+
+    let config = {};
+    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
+    const pexelsKey = config?.pexels?.api_key || process.env.PEXELS_API_KEY || "";
+    const cloudName = config?.cloudinary?.cloud_name || process.env.CLOUDINARY_CLOUD_NAME || "";
+
+    if (!pexelsKey) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Pexels API nøgle ikke konfigureret. Kør: firebase functions:config:set pexels.api_key=\"DIN_NØGLE\" og redeploy."
+      );
+    }
+
+    const pexelsUrl = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=${perPage}&orientation=landscape`;
+    const pexelsResp = await fetch(pexelsUrl, { headers: { Authorization: pexelsKey } });
+
+    if (!pexelsResp.ok) {
+      const errText = await pexelsResp.text().catch(() => "");
+      throw new HttpsError("internal", `Pexels API fejlede: ${pexelsResp.status}. ${errText.slice(0, 200)}`);
+    }
+
+    const pexelsData = await pexelsResp.json();
+
+    const photos = (pexelsData.photos || [])
+      .map(p => ({
+        id: String(p.id),
+        url: p.src?.large2x || p.src?.large || p.src?.original || "",
+        thumbUrl: p.src?.medium || p.src?.small || "",
+        width: p.width || 0,
+        height: p.height || 0,
+        photographer: sanitizeString(p.photographer || "", 120),
+        photographerUrl: sanitizeString(p.photographer_url || "", 300),
+        source: "pexels",
+        sourceUrl: sanitizeString(p.url || "", 300),
+        alt: sanitizeString(p.alt || query, 200),
+        _raw: p
+      }))
+      .filter(p => p.url)
+      .sort((a, b) => scoreStockPhoto(b._raw) - scoreStockPhoto(a._raw))
+      .map(({ _raw, ...rest }) => rest);
+
+    return { photos, cloudName };
+  }
+);
+
+exports.saveRestaurantHeroImage = onCall(
+  { region: "us-central1" },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Log ind for at gemme billede.");
+    }
+
+    const data = request.data;
+    const companyId = sanitizeString(data?.companyId || "", 120);
+    const locationId = sanitizeString(data?.locationId || "", 120);
+    const url = sanitizeString(data?.url || "", 1000);
+
+    if (!companyId || !locationId || !url) {
+      throw new HttpsError("invalid-argument", "companyId, locationId og url er påkrævet.");
+    }
+
+    const docId = `${companyId}__${locationId}__hero_${Date.now()}`;
+    await db.collection("seo_hero_images").doc(docId).set({
+      companyId,
+      locationId,
+      url,
+      thumbUrl: sanitizeString(data?.thumbUrl || "", 1000),
+      enhancedUrl: sanitizeString(data?.enhancedUrl || "", 2000),
+      category: sanitizeString(data?.category || "", 80),
+      style: sanitizeString(data?.style || "", 80),
+      source: sanitizeString(data?.source || "pexels", 40),
+      sourceUrl: sanitizeString(data?.sourceUrl || "", 400),
+      photographer: sanitizeString(data?.photographer || "", 120),
+      photographerUrl: sanitizeString(data?.photographerUrl || "", 400),
+      alt: sanitizeString(data?.alt || "", 200),
+      createdBy: request.auth.uid,
+      createdAt: FieldValue.serverTimestamp(),
+      isActive: true
+    });
+
+    return { ok: true, docId };
+  }
+);
+
+exports.enhanceAndUploadRestaurantImage = onCall(
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"], region: "us-central1" },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Log ind for at behandle billeder.");
+    }
+
+    const data = request.data;
+    const imageUrl = sanitizeString(data?.url || "", 2000);
+    const style = sanitizeString(data?.style || "warm", 40);
+    const companyId = sanitizeString(data?.companyId || "", 120);
+    const locationId = sanitizeString(data?.locationId || "", 120);
+    const category = sanitizeString(data?.category || "", 80);
+    const thumbUrl = sanitizeString(data?.thumbUrl || "", 1000);
+    const source = sanitizeString(data?.source || "pexels", 40);
+    const sourceUrl = sanitizeString(data?.sourceUrl || "", 400);
+    const photographer = sanitizeString(data?.photographer || "", 120);
+    const photographerUrl = sanitizeString(data?.photographerUrl || "", 400);
+    const alt = sanitizeString(data?.alt || "", 200);
+
+    if (!imageUrl || !companyId || !locationId) {
+      throw new HttpsError("invalid-argument", "url, companyId og locationId er påkrævet.");
+    }
+
+    const SEO_HERO_TRANSFORMS = {
+      warm:   "e_improve,e_vibrance:35,e_sharpen,ar_16:9,c_fill,w_1600,q_auto,f_auto",
+      nordic: "e_improve,e_brightness:8,e_sharpen,ar_16:9,c_fill,w_1600,q_auto,f_auto",
+      dark:   "e_improve,e_brightness:-25,e_contrast:25,ar_16:9,c_fill,w_1600,q_auto,f_auto",
+      street: "e_improve,e_vibrance:55,e_sharpen:80,ar_16:9,c_fill,w_1600,q_auto,f_auto",
+      clean:  "e_improve,e_sharpen,ar_16:9,c_fill,w_1600,q_auto,f_auto"
+    };
+
+    let config = {};
+    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
+    const cloudName = config?.cloudinary?.cloud_name || process.env.CLOUDINARY_CLOUD_NAME || "";
+    const apiKey = config?.cloudinary?.api_key || process.env.CLOUDINARY_API_KEY || "";
+    const apiSecret = config?.cloudinary?.api_secret || process.env.CLOUDINARY_API_SECRET || "";
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      throw new HttpsError("failed-precondition", "Cloudinary er ikke konfigureret.");
+    }
+
+    const crypto = require("crypto");
+    const timestamp = Math.floor(Date.now() / 1000);
+    const folder = `madkontrol/${toAsciiSlug(companyId, 60)}/${toAsciiSlug(locationId, 60)}/seo_hero`;
+
+    // Signature: sorted params excluding api_key, resource_type, file
+    const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
+    const signature = crypto.createHash("sha1").update(paramsToSign + apiSecret).digest("hex");
+
+    let publicId = "";
+    let originalCloudinaryUrl = imageUrl;
+    let enhanced = false;
+
+    try {
+      const uploadParams = new URLSearchParams();
+      uploadParams.append("file", imageUrl);
+      uploadParams.append("folder", folder);
+      uploadParams.append("timestamp", String(timestamp));
+      uploadParams.append("api_key", apiKey);
+      uploadParams.append("signature", signature);
+
+      const uploadResp = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: uploadParams.toString()
+      });
+
+      if (!uploadResp.ok) {
+        const errText = await uploadResp.text().catch(() => "");
+        throw new Error(`Cloudinary upload: ${uploadResp.status} — ${errText.slice(0, 200)}`);
+      }
+
+      const uploadResult = await uploadResp.json();
+      publicId = uploadResult.public_id || "";
+      originalCloudinaryUrl = uploadResult.secure_url || imageUrl;
+      enhanced = true;
+    } catch (uploadErr) {
+      console.error("[enhanceAndUploadRestaurantImage] Upload fejlede, bruger original:", uploadErr.message);
+    }
+
+    const transforms = SEO_HERO_TRANSFORMS[style] || SEO_HERO_TRANSFORMS.warm;
+    const enhancedUrl = (enhanced && publicId)
+      ? `https://res.cloudinary.com/${cloudName}/image/upload/${transforms}/${publicId}`
+      : imageUrl;
+
+    const docId = `${companyId}__${locationId}__hero_${Date.now()}`;
+    await db.collection("seo_hero_images").doc(docId).set({
+      companyId, locationId,
+      url: originalCloudinaryUrl,
+      thumbUrl, enhancedUrl: enhanced ? enhancedUrl : "",
+      category, style, source, sourceUrl, photographer, photographerUrl, alt,
+      publicId, cloudName, enhanced,
+      createdBy: request.auth.uid,
+      createdAt: FieldValue.serverTimestamp(),
+      isActive: true
+    });
+
+    // Push hero image to any already-published websites for this location
+    try {
+      const sitesSnap = await db.collection("websites")
+        .where("companyId", "==", companyId)
+        .where("locationId", "==", locationId)
+        .where("status", "==", "published")
+        .limit(5)
+        .get();
+      if (!sitesSnap.empty) {
+        const siteBatch = db.batch();
+        sitesSnap.docs.forEach(d => {
+          siteBatch.set(d.ref, {
+            heroImageUrl: enhanced ? enhancedUrl : imageUrl,
+            heroThumbUrl: thumbUrl,
+            heroImageStyle: style,
+            updatedAt: FieldValue.serverTimestamp()
+          }, { merge: true });
+        });
+        await siteBatch.commit();
+      }
+    } catch (siteErr) {
+      console.warn("[enhanceAndUpload] Kunne ikke opdatere websites:", siteErr.message);
+    }
+
+    return { ok: true, docId, url: originalCloudinaryUrl, enhancedUrl, enhanced };
+  }
+);
+
+exports.generateSeoAiSuggestions = onCall(
+  { secrets: [OPENAI_API_KEY], region: "us-central1" },
+  async (request) => {
+    const data = request.data;
+
+    const businessName = sanitizeString(data?.businessName || "", 200);
+    const address = sanitizeString(data?.address || "", 300);
+    const city = sanitizeString(data?.city || "", 100);
+    const cuisineType = sanitizeString(data?.cuisineType || "", 100);
+    const offerings = sanitizeString(data?.offerings || "", 300);
+    const description = sanitizeString(data?.description || "", 1000);
+    const keyword = sanitizeString(data?.keyword || "", 200);
+    let websiteUrl = sanitizeString(data?.websiteUrl || "", 500);
+
+    if (!businessName && !cuisineType) {
+      throw new HttpsError("invalid-argument", "Mindst restaurantnavn eller køkkentype skal angives.");
+    }
+
+    if (websiteUrl && !/^https?:\/\//i.test(websiteUrl)) {
+      websiteUrl = "";
+    }
+
+    let websiteContent = "";
+    let websiteFetchOk = false;
+    let usedWebsite = false;
+
+    if (websiteUrl) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+
+        const response = await fetch(websiteUrl, {
+          method: "GET",
+          headers: { "User-Agent": "MadkontrolBot/1.0" },
+          signal: controller.signal,
+          redirect: "follow"
+        });
+
+        clearTimeout(timeout);
+
+        if (response.ok) {
+          const html = await response.text();
+          websiteContent = extractSeoRelevantText(html);
+          websiteFetchOk = true;
+          usedWebsite = !!websiteContent;
+        }
+      } catch (err) {
+        console.warn("Website fetch fejlede:", websiteUrl, err.message);
+      }
+    }
+
+    const openAiApiKey =
+      OPENAI_API_KEY.value() || process.env.OPENAI_API_KEY || "";
+
+    if (!openAiApiKey) {
+      throw new HttpsError(
+        "failed-precondition",
+        "OpenAI API-nøgle mangler. Sæt OPENAI_API_KEY som function secret."
+      );
+    }
+
+    const prompt = buildSeoAiPrompt({
+      businessName,
+      address,
+      city,
+      cuisineType,
+      offerings,
+      description,
+      keyword,
+      websiteContent
+    });
+
+    let responseData;
+
+    try {
+      const resp = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${openAiApiKey}`
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content:
+                  "Du er en dansk SEO-ekspert specialiseret i lokal restaurant-SEO. Du returnerer ALTID valid JSON uden ekstra tekst. Hvis du er i tvivl, returnér {}."
+              },
+              { role: "user", content: prompt }
+            ],
+            temperature: 0.7,
+            max_tokens: 800,
+            response_format: { type: "json_object" }
+          })
+        }
+      );
+
+      if (!resp.ok) {
+        const errText = await resp.text().catch(() => "");
+        throw new Error(`OpenAI API fejl: ${resp.status} ${errText}`);
+      }
+
+      responseData = await resp.json();
+    } catch (err) {
+      console.error("OpenAI API kald fejlede:", err);
+      throw new HttpsError(
+        "internal",
+        `AI-generering fejlede: ${err.message}`
+      );
+    }
+
+    // 🔥 STABIL PARSING (det her var dit problem)
+    const aiContent =
+      responseData?.choices?.[0]?.message?.content || "";
+
+    let suggestions = null;
+
+    try {
+      if (typeof aiContent === "string" && aiContent.trim()) {
+        suggestions = JSON.parse(aiContent);
+      }
+    } catch (err) {
+      console.warn("Kunne ikke parse AI JSON:", aiContent);
+    }
+
+    // 🔥 FALLBACK (sikrer aldrig "no result")
+    if (!suggestions || typeof suggestions !== "object") {
+      suggestions = {
+        primaryKeyword:
+          keyword || `${cuisineType} ${city}`.trim(),
+        shortDescription:
+          description ||
+          `${businessName || cuisineType} i ${city}`.trim()
+      };
+    }
+
+    return {
+      ...suggestions,
+      meta: {
+        usedWebsite,
+        websiteFetchOk
+      }
+    };
+  }
+);
+
+function extractSeoRelevantText(html) {
+  if (!html || typeof html !== "string") return "";
+
+  let text = html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
+  const title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, "").trim() : "";
+
+  const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i);
+  const metaDesc = metaDescMatch ? metaDescMatch[1].trim() : "";
+
+  const h1Match = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
+  const h1 = h1Match ? h1Match[1].replace(/<[^>]+>/g, "").trim() : "";
+
+  text = text.slice(0, 2000);
+
+  return [
+    title ? `Title: ${title}` : "",
+    metaDesc ? `Meta: ${metaDesc}` : "",
+    h1 ? `H1: ${h1}` : "",
+    text ? `Content: ${text}` : ""
+  ].filter(Boolean).join(" | ").slice(0, 3000);
+}
+
+function buildSeoAiPrompt({ businessName, address, city, cuisineType, offerings, description, keyword, websiteContent }) {
+  const parts = [
+    "Generer SEO-forslag til en dansk restaurant.",
+    businessName ? `Navn: ${businessName}` : "",
+    city ? `By: ${city}` : "",
+    address ? `Adresse: ${address}` : "",
+    cuisineType ? `Type: ${cuisineType}` : "",
+    offerings ? `Udbud: ${offerings}` : "",
+    description ? `Beskrivelse: ${description}` : "",
+    keyword ? `Nuværende søgeord: ${keyword}` : "",
+    websiteContent ? `Website-indhold: ${websiteContent}` : ""
+  ].filter(Boolean).join("\n");
+
+  return `${parts}
+
+Returner JSON med følgende struktur:
+{
+  "primaryKeyword": "primært lokalt søgeord (fx 'thai restaurant hvidovre')",
+  "secondaryKeywords": ["sekundært søgeord 1", "sekundært søgeord 2", "sekundært søgeord 3"],
+  "shortDescription": "kort beskrivelse 1-2 sætninger på dansk",
+  "seoTitle": "SEO title tag inkl. restaurantnavn og by",
+  "metaDescription": "meta description 150-160 tegn på dansk",
+  "extractedWebsiteSummary": "kort opsummering af hvad du fandt på hjemmesiden (eller tom hvis ingen website)"
+}
+
+Fokuser på lokal SEO. Brug faktiske oplysninger. Skriv på dansk. Hvis website-indhold er tilgængeligt, brug det til at gøre forslagene mere præcise.`;
+}
+
+exports.startCoolingProcess = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  const { companyId, locationId, productName, batchSize, container, startTemperature } = data;
+
+  if (!companyId || !locationId || !productName || startTemperature === undefined) {
+    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+  }
+
+  try {
+    return await processInstances.startCoolingProcess({
+      companyId,
+      locationId,
+      userId: context.auth.uid,
+      productName,
+      batchSize,
+      container,
+      startTemperature
+    });
+  } catch (error) {
+    console.error("Start cooling process fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);

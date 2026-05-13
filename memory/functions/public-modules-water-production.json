@@ -1,0 +1,179 @@
+{
+  "source_file": "public/modules/water/production.html",
+  "module": "general",
+  "imports": [
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [
+    "users",
+    "water_production",
+    "water_sales",
+    "water_systems"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "dateKeyBangkok",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getSystemId",
+        "getUserCtx",
+        "loadSystems",
+        "loadTodaySummary",
+        "nv",
+        "showStatus",
+        "sv"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_production",
+        "water_sales",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "getSystemId",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "loadTodaySummary",
+        "nv",
+        "showStatus",
+        "sv"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getUserCtx",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "dateKeyBangkok",
+        "getSystemId",
+        "loadSystems",
+        "loadTodaySummary",
+        "nv",
+        "showStatus",
+        "sv"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_production",
+        "water_sales",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "loadSystems",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "dateKeyBangkok",
+        "getSystemId",
+        "getUserCtx",
+        "loadTodaySummary",
+        "nv",
+        "showStatus",
+        "sv"
+      ],
+      "selectors": [],
+      "collections": [
+        "water_production",
+        "water_sales",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "loadTodaySummary",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "dateKeyBangkok",
+        "getSystemId",
+        "getUserCtx",
+        "loadSystems",
+        "nv",
+        "showStatus",
+        "sv"
+      ],
+      "selectors": [],
+      "collections": [
+        "water_production",
+        "water_sales"
+      ]
+    },
+    {
+      "name": "nv",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "dateKeyBangkok",
+        "getSystemId",
+        "getUserCtx",
+        "loadSystems",
+        "loadTodaySummary",
+        "showStatus",
+        "sv"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_production",
+        "water_sales",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "showStatus",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "dateKeyBangkok",
+        "getSystemId",
+        "getUserCtx",
+        "loadSystems",
+        "loadTodaySummary",
+        "nv",
+        "sv"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_production",
+        "water_sales",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "sv",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "dateKeyBangkok",
+        "getSystemId",
+        "getUserCtx",
+        "loadSystems",
+        "loadTodaySummary",
+        "nv",
+        "showStatus"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_production",
+        "water_sales",
+        "water_systems"
+      ]
+    }
+  ]
+}

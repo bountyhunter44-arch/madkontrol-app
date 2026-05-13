@@ -1,0 +1,174 @@
+{
+  "source_file": "core/database.js",
+  "module": "general",
+  "imports": [
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+  ],
+  "exports": [
+    "COLLECTIONS",
+    "STATUS",
+    "WORKFLOW_PHASES",
+    "cleanupTestData",
+    "createBaseDocument",
+    "createDeviation",
+    "createInventoryItem",
+    "createInventoryTransaction",
+    "createTaskInstance",
+    "createUpdateDocument",
+    "getDashboardLock",
+    "getUserContext",
+    "getWorkflowPhase",
+    "migrateDocument",
+    "queryWithContext",
+    "setDashboardLock",
+    "setWorkflowPhase"
+  ],
+  "collections": [
+    "companies",
+    "daily_runs",
+    "deviations",
+    "locations",
+    "media_assets",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "cleanupTestData",
+      "type": "const_async",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createBaseDocument",
+      "type": "const_function",
+      "approx_occurrences": 4,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "daily_runs",
+        "deviations",
+        "locations",
+        "media_assets",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "createDeviation",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "createBaseDocument"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createInventoryItem",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "createBaseDocument"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createInventoryTransaction",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "createBaseDocument"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createTaskInstance",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "createBaseDocument"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createUpdateDocument",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "createBaseDocument"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "daily_runs",
+        "deviations",
+        "locations",
+        "media_assets",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getDashboardLock",
+      "type": "const_async",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getUserContext",
+      "type": "const_async",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getWorkflowPhase",
+      "type": "const_async",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "migrateDocument",
+      "type": "const_async",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "queryWithContext",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setDashboardLock",
+      "type": "const_async",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setWorkflowPhase",
+      "type": "const_async",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "source_file": "public/scripts/verify-remaining-guides.cjs",
+  "module": "general",
+  "imports": [
+    "../../functions/guideLibrary",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "verifyRemainingGuides",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "source_file": "admin/personale.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getRoleLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadEmployees"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "loadEmployees",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getRoleLabel"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    }
+  ]
+}

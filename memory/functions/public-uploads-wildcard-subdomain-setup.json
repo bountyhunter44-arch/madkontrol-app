@@ -1,0 +1,21 @@
+{
+  "source_file": "public/uploads/wildcard-subdomain-setup.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "copyCode",
+      "type": "function",
+      "approx_occurrences": 20,
+      "calls": [],
+      "selectors": [
+        "pre"
+      ],
+      "collections": []
+    }
+  ]
+}

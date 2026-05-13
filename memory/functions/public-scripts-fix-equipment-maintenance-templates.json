@@ -1,0 +1,28 @@
+{
+  "source_file": "public/scripts/fix-equipment-maintenance-templates.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "fixEquipmentMaintenanceTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    }
+  ]
+}

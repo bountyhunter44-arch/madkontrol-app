@@ -1,0 +1,28 @@
+{
+  "source_file": "public/scripts/check-guidekey-integrity.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "checkGuideKeyIntegrity",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    }
+  ]
+}

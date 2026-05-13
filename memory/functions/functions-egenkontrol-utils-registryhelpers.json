@@ -1,0 +1,34 @@
+{
+  "source_file": "functions/egenkontrol/utils/registryHelpers.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "normalizeOnboardingProfile",
+    "unique"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "normalizeOnboardingProfile",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "unique"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "unique",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "normalizeOnboardingProfile"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,240 @@
+{
+  "source_file": "public/modules/egenkontrol/buildRiskAnalysisFromOnboarding.js",
+  "module": "onboarding",
+  "imports": [
+    "./restaurantTypeProfiles.js",
+    "./riskAnalysisControlMap.js",
+    "./riskAnalysisMasterLibrary.js"
+  ],
+  "exports": [
+    "buildRiskAnalysisFromOnboarding"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "arrayOrEmpty",
+      "type": "function",
+      "approx_occurrences": 11,
+      "calls": [
+        "bool",
+        "buildSectionFromBlock",
+        "getDynamicControlLabels",
+        "getProgramSectionKeysForBlock",
+        "getTaskTemplateKeysForBlock",
+        "normalizeOnboarding",
+        "onboardingHasRequiredMatch",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "bool",
+      "type": "function",
+      "approx_occurrences": 12,
+      "calls": [
+        "arrayOrEmpty",
+        "buildSectionFromBlock",
+        "getDynamicControlLabels",
+        "getProgramSectionKeysForBlock",
+        "getTaskTemplateKeysForBlock",
+        "normalizeOnboarding",
+        "onboardingHasRequiredMatch",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildCoverPage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildHazardPage",
+        "buildRiskAnalysisFromOnboarding",
+        "buildSectionFromBlock",
+        "buildSummaryPage",
+        "normalizeOnboarding",
+        "onboardingHasRequiredMatch",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildHazardPage",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildCoverPage",
+        "buildRiskAnalysisFromOnboarding",
+        "buildSectionFromBlock",
+        "buildSummaryPage",
+        "normalizeOnboarding",
+        "onboardingHasRequiredMatch",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildRiskAnalysisFromOnboarding",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildCoverPage",
+        "buildHazardPage",
+        "buildSectionFromBlock",
+        "buildSummaryPage",
+        "normalizeOnboarding",
+        "onboardingHasRequiredMatch",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildSectionFromBlock",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "arrayOrEmpty",
+        "buildCoverPage",
+        "buildHazardPage",
+        "buildRiskAnalysisFromOnboarding",
+        "buildSummaryPage",
+        "getDynamicControlLabels",
+        "getProgramSectionKeysForBlock",
+        "getTaskTemplateKeysForBlock",
+        "normalizeOnboarding",
+        "onboardingHasRequiredMatch"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildSummaryPage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildCoverPage",
+        "buildHazardPage",
+        "buildRiskAnalysisFromOnboarding",
+        "buildSectionFromBlock",
+        "normalizeOnboarding",
+        "onboardingHasRequiredMatch",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDynamicControlLabels",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "arrayOrEmpty",
+        "buildCoverPage",
+        "buildHazardPage",
+        "buildRiskAnalysisFromOnboarding",
+        "buildSectionFromBlock",
+        "buildSummaryPage",
+        "getProgramSectionKeysForBlock",
+        "getTaskTemplateKeysForBlock",
+        "normalizeOnboarding"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProgramSectionKeysForBlock",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "arrayOrEmpty",
+        "buildCoverPage",
+        "buildHazardPage",
+        "buildRiskAnalysisFromOnboarding",
+        "buildSectionFromBlock",
+        "buildSummaryPage",
+        "getDynamicControlLabels",
+        "getTaskTemplateKeysForBlock",
+        "normalizeOnboarding",
+        "onboardingHasRequiredMatch"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTaskTemplateKeysForBlock",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "arrayOrEmpty",
+        "buildCoverPage",
+        "buildHazardPage",
+        "buildRiskAnalysisFromOnboarding",
+        "buildSectionFromBlock",
+        "buildSummaryPage",
+        "getDynamicControlLabels",
+        "getProgramSectionKeysForBlock",
+        "normalizeOnboarding",
+        "onboardingHasRequiredMatch"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeOnboarding",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "arrayOrEmpty",
+        "bool",
+        "buildSectionFromBlock",
+        "getDynamicControlLabels",
+        "getProgramSectionKeysForBlock",
+        "getTaskTemplateKeysForBlock",
+        "onboardingHasRequiredMatch"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "onboardingHasRequiredMatch",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "arrayOrEmpty",
+        "buildCoverPage",
+        "buildHazardPage",
+        "buildSectionFromBlock",
+        "buildSummaryPage",
+        "getDynamicControlLabels",
+        "getProgramSectionKeysForBlock",
+        "getTaskTemplateKeysForBlock"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "arrayOrEmpty",
+        "bool",
+        "buildSectionFromBlock",
+        "getDynamicControlLabels",
+        "getProgramSectionKeysForBlock",
+        "getTaskTemplateKeysForBlock",
+        "normalizeOnboarding",
+        "onboardingHasRequiredMatch"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

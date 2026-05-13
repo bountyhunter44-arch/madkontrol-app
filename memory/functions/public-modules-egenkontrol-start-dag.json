@@ -1,0 +1,462 @@
+{
+  "source_file": "public/modules/egenkontrol/start-dag.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [
+    "daily_runs",
+    "task_instances"
+  ],
+  "flags": [
+    "startDayForLocation"
+  ],
+  "risks": [],
+  "functions": [
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "getSafeDescription",
+        "getTaskTags",
+        "getTodayKey",
+        "loadTodayTasks",
+        "mapStatusLabel",
+        "push",
+        "renderStats",
+        "renderTaskPreview",
+        "safeTagValue",
+        "setStatus"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getModeConfig",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getSafeDescription",
+        "getTaskTags",
+        "mapStatusLabel",
+        "push",
+        "renderMode",
+        "renderStats",
+        "renderTaskPreview",
+        "safeTagValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProfileCompanyId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getModeConfig",
+        "getSafeDescription",
+        "getStoredLocationId",
+        "getTaskTags",
+        "getTodayKey",
+        "mapStatusLabel",
+        "push",
+        "renderMode",
+        "renderTaskPreview",
+        "safeTagValue",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSafeDescription",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getTaskTags",
+        "getTodayKey",
+        "loadTodayTasks",
+        "mapStatusLabel",
+        "push",
+        "renderStats",
+        "renderTaskPreview",
+        "safeTagValue",
+        "setStatus"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getStoredLocationId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getModeConfig",
+        "getSafeDescription",
+        "getTaskTags",
+        "getTodayKey",
+        "mapStatusLabel",
+        "push",
+        "renderMode",
+        "renderTaskPreview",
+        "safeTagValue",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTaskTags",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getSafeDescription",
+        "getTodayKey",
+        "loadDailyRun",
+        "loadTodayTasks",
+        "mapStatusLabel",
+        "push",
+        "renderStats",
+        "renderTaskPreview",
+        "safeTagValue",
+        "setStatus"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getTodayKey",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "getModeConfig",
+        "getSafeDescription",
+        "getTaskTags",
+        "mapStatusLabel",
+        "push",
+        "renderMode",
+        "renderTaskPreview",
+        "safeTagValue",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadDailyRun",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getTodayKey",
+        "loadTodayTasks",
+        "previewStartDay",
+        "setStatus",
+        "startDay",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "loadTodayTasks",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "getTodayKey",
+        "loadDailyRun",
+        "previewStartDay",
+        "renderStats",
+        "renderTaskPreview",
+        "setStatus",
+        "startDay",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "mapStatusLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getSafeDescription",
+        "getTaskTags",
+        "getTodayKey",
+        "loadDailyRun",
+        "loadTodayTasks",
+        "renderStats",
+        "renderTaskPreview",
+        "setStatus"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "normalizeLocationIds",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getModeConfig",
+        "getProfileCompanyId",
+        "getSafeDescription",
+        "getStoredLocationId",
+        "getTodayKey",
+        "push",
+        "pushValue",
+        "renderMode",
+        "safeTagValue",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "previewStartDay",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "loadTodayTasks",
+        "renderMode",
+        "renderStats",
+        "renderTaskPreview",
+        "setStatus",
+        "startDay",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "push",
+      "type": "const_function",
+      "approx_occurrences": 6,
+      "calls": [
+        "escapeHtml",
+        "getSafeDescription",
+        "getTaskTags",
+        "getTodayKey",
+        "loadDailyRun",
+        "loadTodayTasks",
+        "mapStatusLabel",
+        "renderStats",
+        "renderTaskPreview",
+        "safeTagValue",
+        "setStatus"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "pushValue",
+      "type": "const_function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "getModeConfig",
+        "getProfileCompanyId",
+        "getSafeDescription",
+        "getStoredLocationId",
+        "getTaskTags",
+        "getTodayKey",
+        "push",
+        "renderMode",
+        "safeTagValue",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderMode",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getModeConfig",
+        "getSafeDescription",
+        "getTaskTags",
+        "getTodayKey",
+        "loadTodayTasks",
+        "mapStatusLabel",
+        "push",
+        "renderStats",
+        "renderTaskPreview",
+        "safeTagValue",
+        "setStatus"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "renderStats",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "getTodayKey",
+        "loadDailyRun",
+        "loadTodayTasks",
+        "renderTaskPreview",
+        "setStatus",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "renderTaskPreview",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "escapeHtml",
+        "getSafeDescription",
+        "getTaskTags",
+        "getTodayKey",
+        "loadDailyRun",
+        "loadTodayTasks",
+        "mapStatusLabel",
+        "renderStats",
+        "setStatus"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "safeTagValue",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getSafeDescription",
+        "getTaskTags",
+        "getTodayKey",
+        "loadDailyRun",
+        "loadTodayTasks",
+        "mapStatusLabel",
+        "push",
+        "renderStats",
+        "renderTaskPreview",
+        "setStatus"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "setStatus",
+      "type": "function",
+      "approx_occurrences": 17,
+      "calls": [
+        "getTodayKey",
+        "loadDailyRun",
+        "loadTodayTasks",
+        "previewStartDay",
+        "renderStats",
+        "renderTaskPreview",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "startDay",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "loadTodayTasks",
+        "normalizeLocationIds",
+        "renderMode",
+        "renderStats",
+        "renderTaskPreview",
+        "setStatus",
+        "toLegacyId",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toLegacyId",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "getModeConfig",
+        "getProfileCompanyId",
+        "getSafeDescription",
+        "getStoredLocationId",
+        "getTodayKey",
+        "normalizeLocationIds",
+        "push",
+        "pushValue",
+        "renderMode",
+        "safeTagValue",
+        "userCanStartDay"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "userCanStartDay",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "escapeHtml",
+        "getModeConfig",
+        "getSafeDescription",
+        "getTaskTags",
+        "mapStatusLabel",
+        "push",
+        "renderMode",
+        "renderTaskPreview",
+        "safeTagValue"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

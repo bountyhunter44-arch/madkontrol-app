@@ -1,0 +1,284 @@
+{
+  "source_file": "public/modules/egenkontrol/controlFieldRenderer.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "getDefaultValue",
+    "renderField",
+    "renderFields"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "_boolean",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_photo",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "_checkbox",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_boolean",
+        "_photo",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "_input",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_number",
+        "_photo",
+        "_radio",
+        "_select",
+        "_text",
+        "_textarea",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "_label",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_input",
+        "_number",
+        "_photo",
+        "_radio",
+        "_select",
+        "_text",
+        "_textarea",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "_number",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_photo",
+        "_radio",
+        "_select",
+        "_textarea",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "_photo",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "_radio",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_photo",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "_select",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_photo",
+        "_radio",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "_text",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_number",
+        "_photo",
+        "_radio",
+        "_select",
+        "_textarea",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "_textarea",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_photo",
+        "_radio",
+        "_select",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "a",
+      "type": "function",
+      "approx_occurrences": 30,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "e",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "a"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDefaultValue",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_input",
+        "_label",
+        "_number",
+        "_photo",
+        "_radio",
+        "_select",
+        "_text",
+        "_textarea",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "items",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_photo",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "opts",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_photo",
+        "_radio",
+        "a",
+        "e"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderField",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_input",
+        "_label",
+        "_number",
+        "_photo",
+        "_radio",
+        "_select",
+        "_text",
+        "_textarea",
+        "a",
+        "e",
+        "getDefaultValue",
+        "renderFields"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderFields",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_boolean",
+        "_checkbox",
+        "_input",
+        "_label",
+        "_number",
+        "_photo",
+        "_radio",
+        "_select",
+        "_text",
+        "_textarea",
+        "a",
+        "e",
+        "getDefaultValue",
+        "renderField"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

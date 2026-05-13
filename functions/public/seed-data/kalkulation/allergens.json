@@ -1,0 +1,100 @@
+[
+    {
+        "id": "gluten",
+        "name": "Gluten",
+        "description": "Kornprodukter som hvede, rug, byg, havre, spelt og khorasan",
+        "sortOrder": 10,
+        "active": true
+    },
+    {
+        "id": "crustaceans",
+        "name": "Krebsdyr",
+        "description": "Rejer, krabber, hummer og andre krebsdyr",
+        "sortOrder": 20,
+        "active": true
+    },
+    {
+        "id": "eggs",
+        "name": "Æg",
+        "description": "Æg og produkter der indeholder æg",
+        "sortOrder": 30,
+        "active": true
+    },
+    {
+        "id": "fish",
+        "name": "Fisk",
+        "description": "Fisk og produkter der indeholder fisk",
+        "sortOrder": 40,
+        "active": true
+    },
+    {
+        "id": "peanuts",
+        "name": "Jordnødder",
+        "description": "Jordnødder og produkter der indeholder jordnødder",
+        "sortOrder": 50,
+        "active": true
+    },
+    {
+        "id": "soy",
+        "name": "Soja",
+        "description": "Sojabønner og produkter der indeholder soja",
+        "sortOrder": 60,
+        "active": true
+    },
+    {
+        "id": "milk",
+        "name": "Mælk",
+        "description": "Mælk og mejeriprodukter inklusive laktose",
+        "sortOrder": 70,
+        "active": true
+    },
+    {
+        "id": "nuts",
+        "name": "Nødder",
+        "description": "Mandler, hasselnødder, valnødder, cashewnødder, pekannødder, paranødder, pistacienødder og macadamianødder",
+        "sortOrder": 80,
+        "active": true
+    },
+    {
+        "id": "celery",
+        "name": "Selleri",
+        "description": "Selleri og produkter der indeholder selleri",
+        "sortOrder": 90,
+        "active": true
+    },
+    {
+        "id": "mustard",
+        "name": "Sennep",
+        "description": "Sennep og produkter der indeholder sennep",
+        "sortOrder": 100,
+        "active": true
+    },
+    {
+        "id": "sesame",
+        "name": "Sesam",
+        "description": "Sesamfrø og produkter der indeholder sesam",
+        "sortOrder": 110,
+        "active": true
+    },
+    {
+        "id": "sulphites",
+        "name": "Sulfitter",
+        "description": "Svovldioxid og sulfitter",
+        "sortOrder": 120,
+        "active": true
+    },
+    {
+        "id": "lupin",
+        "name": "Lupin",
+        "description": "Lupin og produkter der indeholder lupin",
+        "sortOrder": 130,
+        "active": true
+    },
+    {
+        "id": "molluscs",
+        "name": "Bløddyr",
+        "description": "Muslinger, østers, blæksprutter og andre bløddyr",
+        "sortOrder": 140,
+        "active": true
+    }
+]

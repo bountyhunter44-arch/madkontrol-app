@@ -1,0 +1,500 @@
+
+  // Create one cleaning template per equipment unit
+  for (const equipment of activeEquipment) {
+    // Find matching definition for this equipment type
+    const def = EQUIPMENT_CLEANING_TEMPLATE_DEFINITIONS.find(d => d.equipmentType === equipment.type);
+    if (!def) continue;
+
+    // Deterministic ID: locationId__equipmentId__cleaning
+    const docId = `${locationId}__${equipment.id}__cleaning`;
+    const ref = dbRef.collection("task_templates").doc(docId);
+    const snap = await ref.get();
+
+    if (snap.exists) {
+      skipped++;
+      continue;
+    }
+
+    const title = `${equipment.name} - ${def.titleBase}`;
+
+    await ref.set({
+      templateId:    docId,
+      id:            `${def.key}__${equipment.id}`,
+      companyId,
+      organizationId: companyId,
+      locationId,
+      equipmentId:   equipment.id,
+      equipmentName: equipment.name,
+      equipmentType: equipment.type,
+      title,
+      description:   def.guideBody || "",
+      category:      def.category,
+      controlType:   def.controlType,
+      libraryType:   "operational",
+      templateType:  "operational",
+      templateSource: "equipment_cleaning_library",
+      sourceType:    "equipment_cleaning_library",
+      frequency:     def.frequency,
+      frequencyType: def.frequency,
+      frequencyDays: def.frequency === "weekly" ? 7 : 1,
+      riskLevel:     def.riskLevel,
+      fields:        [],
+      rules:         [],
+      actions:       { allowApprove: true, allowDeviation: true },
+      guideTitle:    `Vejledning: ${def.titleBase}`,
+      guideBody:     def.guideBody || "",
+      schemaVersion: 1,
+      isActive:      true,
+      active:        true,
+      createdAt:     nowTs,
+      updatedAt:     nowTs,
+    });
+    created++;
+    console.log(`[syncEquipmentCleaningTemplates] created ${docId} for ${equipment.name}`);
+  }
+
+  console.log(`[syncEquipmentCleaningTemplates] done — created=${created}, skipped=${skipped}, equipment=${activeEquipment.length}`);
+  return { ok: true, created, skipped };
+}
+// ─── EQUIPMENT-BASED MAINTENANCE TEMPLATES ───────────────────────────────────
+// Defines which equipment types should generate a per-unit maintenance task.
+// controlType "maintenance_check" + explicit equipmentType triggers per-unit expansion.
+
+const EQUIPMENT_MAINTENANCE_TEMPLATE_DEFINITIONS = [
+  { key: "maintenance_fridge_control",        equipmentType: "fridge",          titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér køleskab for mekaniske fejl. Tjek termostat, kompressor og ventilator. Kontrollér gummilister og dørlukning. Afrim om nødvendigt. Rens kondensatorbakke." },
+  { key: "maintenance_freezer_control",       equipmentType: "freezer",         titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér fryser for mekaniske fejl. Tjek termostat, kompressor og lås. Kontrollér gummilister. Afrim og rengør kondensatorbakke." },
+  { key: "maintenance_walk_in_cooler_control",equipmentType: "walk_in_cooler",  titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér walk-in køler. Tjek kompressor, fordamper, lys og dørlukning. Kontrollér pakninger og låsemekanisme. Kontrollér gulvafløb." },
+  { key: "maintenance_walk_in_freezer_control",equipmentType: "walk_in_freezer",titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér walk-in fryser. Tjek kompressor, fordamper, lys og dørlukning. Afgørende: ingen isophobning på fordamper. Kontrollér pakninger og låsemekanisme." },
+  { key: "maintenance_fryer_control",         equipmentType: "fryer",           titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér frituregryde. Tjek termostat og sikkerhedsafbryder. Kontrollér varmeelement og drænsystem. Kontrollér oliestanden og oliernes kvalitet." },
+  { key: "maintenance_dishwasher_control",    equipmentType: "dishwasher",      titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér opvaskemaskine. Tjek skylletemperatur (min. 82°C), vandtryk og doseringssystem. Rens filtre og sprøjtearme. Kontrollér tætninger og låger." },
+  { key: "maintenance_ice_machine_control",   equipmentType: "ice_machine",     titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér isterningemaskine. Tjek vandfilter og afkølingssystem. Kontrollér at ingen slim eller alger er synlige. Efterse vandindløb og afløb." },
+  { key: "maintenance_blast_chiller_control", equipmentType: "blast_chiller",   titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér blast chiller. Tjek kompressor, fordamper og temperaturprobe. Kontrollér dørlukning og pakninger. Kontrollér at fordamper er fri for isophobning." },
+  { key: "maintenance_warming_cabinet_control",equipmentType: "warming_cabinet",titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér varmeskab. Tjek termostat og varmeelement. Kontrollér temperaturjustering og dørlukning. Eftersyn af pakninger og vandskuffe (ved dampvarmeskabe)." },
+  { key: "maintenance_display_fridge_control",equipmentType: "display_fridge",  titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér displaykøl. Tjek kompressor, belysning og dørlukning. Kontrollér gummilister og hyldeplaceringer. Rens kondensatorgitter og kontrollér afløb." },
+  { key: "maintenance_softice_control",       equipmentType: "softice_machine", titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér softice-maskine. Tjek blandeenhed, pumper og seals. Kontrollér temperatur og viskositet. Kontrollér at sikkerhedstermostat fungerer korrekt." },
+];
+
+async function syncEquipmentMaintenanceTemplates({ db: dbRef, companyId, locationId }) {
+  if (!companyId || !locationId) {
+    console.warn("[syncEquipmentMaintenanceTemplates] missing companyId or locationId, skipping");
+    return { ok: false, created: 0, skipped: 0 };
+  }
+
+  // Get all active equipment units for this location
+  const eqSnap = await dbRef.collection("equipment")
+    .where("locationId", "==", locationId)
+    .get();
+
+  const activeEquipment = [];
+  for (const doc of eqSnap.docs) {
+    const d = doc.data() || {};
+    if (d.active === false) continue;
+    const type = sanitizeEquipmentType(d.type || d.equipmentType || "");
+    if (!type) continue;
+    activeEquipment.push({
+      id: doc.id,
+      type,
+      name: d.name || d.displayName || d.title || `${type} ${d.unitNumber || 1}`,
+      unitNumber: d.unitNumber || 1
+    });
+  }
+
+  if (activeEquipment.length === 0) {
+    console.warn("[syncEquipmentMaintenanceTemplates] no active equipment found, skipping");
+    return { ok: false, created: 0, skipped: 0 };
+  }
+
+  const nowTs = FieldValue.serverTimestamp();
+  let created = 0, skipped = 0;
+
+  // Create one maintenance template per equipment unit
+  for (const equipment of activeEquipment) {
+    // Find matching definition for this equipment type
+    const def = EQUIPMENT_MAINTENANCE_TEMPLATE_DEFINITIONS.find(d => d.equipmentType === equipment.type);
+    if (!def) continue;
+
+    // Deterministic ID: locationId__equipmentId__maintenance
+    const docId = `${locationId}__${equipment.id}__maintenance`;
+    const ref = dbRef.collection("task_templates").doc(docId);
+    const snap = await ref.get();
+
+    if (snap.exists) {
+      skipped++;
+      continue;
+    }
+
+    const title = `${equipment.name} - ${def.titleBase}`;
+    const freqConfig = parseFrequencyConfig({ frequency: def.frequency }, "frequency");
+
+    await ref.set({
+      templateId:     docId,
+      id:             `${def.key}__${equipment.id}`,
+      companyId,
+      organizationId: companyId,
+      locationId,
+      equipmentId:    equipment.id,
+      equipmentName:  equipment.name,
+      equipmentType:  equipment.type,
+      title,
+      description:    def.guideBody || "",
+      category:       def.category,
+      controlType:    def.controlType,
+      libraryType:    "operational",
+      templateType:   "operational",
+      templateSource: "equipment_maintenance_library",
+      sourceType:     "equipment_maintenance_library",
+      frequency:      def.frequency,
+      frequencyType:  freqConfig.type,
+      frequencyDays:  freqConfig.days,
+      interval_days:  freqConfig.days,
+      riskLevel:      def.riskLevel,
+      fields:         [],
+      rules:          [],
+      actions:        { allowApprove: true, allowDeviation: true },
+      guideTitle:     `Vejledning: ${def.titleBase}`,
+      guideBody:      def.guideBody || "",
+      schemaVersion:  1,
+      isActive:       true,
+      active:         true,
+      scheduleConfig: {
+        scheduleType: "maintenance",
+        recurrenceMode: "yearly",
+        recurrenceValue: 1,
+        firstRunImmediately: true,
+        useDailyObservation: false
+      },
+      createdAt:      nowTs,
+      updatedAt:      nowTs,
+    });
+    created++;
+    console.log(`[syncEquipmentMaintenanceTemplates] created ${docId} for ${equipment.name}`);
+  }
+
+  console.log(`[syncEquipmentMaintenanceTemplates] done — created=${created}, skipped=${skipped}, equipment=${activeEquipment.length}`);
+  return { ok: true, created, skipped };
+}
+
+// ─── AREA-BASEREDE RENGØRINGSRUTINER ─────────────────────────────────────────
+// Én template per rengøringsområde afledt af onboarding_answers.areas[].
+// templateSource = "area_cleaning_library"  templateType = "operational"
+
+const AREA_CLEANING_DEFINITIONS = [
+  { areaKey: "kitchen",              title: "Rengøring af køkken",                  frequency: "daily",   riskLevel: "high",   guideBody: "Rengør og desinficér alle køkkenoverflader: bordplader, gulv, vaskestationer og udstyr. Tjek at der er rene karklude. Tip affald ud. Dokumentér udførelse." },
+  { areaKey: "production_kitchen",   title: "Rengøring af produktionskøkken",       frequency: "daily",   riskLevel: "high",   guideBody: "Rengør produktionsoverflader og -udstyr. Tip affaldsposer og skift. Rengør gulv, vask og dræn. Kontrollér at ingen fødevareaffald er tilbage." },
+  { areaKey: "serving_area",         title: "Rengøring af serveringsområde",        frequency: "daily",   riskLevel: "medium", guideBody: "Rengør borde, stole, buffet og serveringsstationer. Rengør gulv og sørg for at alle overflader gæster har kontakt med er rene." },
+  { areaKey: "dry_storage",          title: "Rengøring af tørlager",                frequency: "weekly",  riskLevel: "low",    guideBody: "Rengør hylder og gulv. Kontrollér at alle varer er hævet fra gulvet og korrekt opbevaret. Kontrollér holdbarhedsdatoer. Tjek for skadedyr." },
+  { areaKey: "toilet",               title: "Rengøring af toilet og håndvask",      frequency: "daily",   riskLevel: "high",   guideBody: "Rengør og desinficér toilet, håndvask og gulv. Fyld sæbe og papirhåndklæder op. Kontrollér at der er håndsprit tilgængeligt for personale." },
+  { areaKey: "dishwashing_area",     title: "Rengøring af opvaskområde",            frequency: "daily",   riskLevel: "medium", guideBody: "Rengør opvaskemaskine, bakkestativ og gulvafløb. Tip madrester ud. Kontrollér rengøringsmidler og skyllemidler. Tjek at alle overflader er rene." },
+  { areaKey: "washing_room",         title: "Rengøring af vaskerum",                frequency: "daily",   riskLevel: "medium", guideBody: "Rengør vaskerum og dræn. Kontrollér at lagervarer er ryddeligt placeret og hævet fra gulvet." },
+  { areaKey: "vegetable_room",       title: "Rengøring af grøntrum",                frequency: "daily",   riskLevel: "medium", guideBody: "Rengør hylder og gulv. Fjern blade og affald. Tjek at temperatur er korrekt (typisk 10–12°C). Kontrollér at ingen råd/mug på varer." },
+  { areaKey: "walk_in_cooler_room",  title: "Rengøring af kølerum",                 frequency: "daily",   riskLevel: "high",   guideBody: "Rengør gulv og hylder. Tjek at alle varer er korrekt dækket og mærket. Kontrollér at gulvafløbet ikke er tilstoppet. Rengør dørpakninger." },
+  { areaKey: "walk_in_freezer_room", title: "Rengøring af fryserum",                frequency: "weekly",  riskLevel: "medium", guideBody: "Rengør gulv og hylder. Tjek at alle varer er korrekt dækket og mærket. Afrim om nødvendigt. Kontrollér at dør lukker tæt og pakninger er intakte." },
+];
+
+async function syncAreaCleaningTemplates({ db: dbRef, companyId, locationId }) {
+  if (!companyId || !locationId) {
+    console.warn("[syncAreaCleaningTemplates] missing companyId or locationId, skipping");
+    return { ok: false, created: 0 };
+  }
+
+  // Hent areas fra onboarding_answers — læs canonical doc direkte for at undgå at ramme forkert doc
+  const canonicalDocId = `${companyId}__${locationId}__onboarding`;
+  const oaDoc = await dbRef.collection("onboarding_answers").doc(canonicalDocId).get();
+  const oaData = oaDoc.exists ? oaDoc.data() : {};
+  const areas = toArray(oaData.areas);
+
+  // Fallback: alle lokationer har et køkken
+  const activeAreas = new Set(areas.length > 0 ? areas : ["kitchen"]);
+
+  const nowTs = FieldValue.serverTimestamp();
+  let created = 0, skipped = 0;
+
+  for (const def of AREA_CLEANING_DEFINITIONS) {
+    if (!activeAreas.has(def.areaKey)) continue;
+
+    const docId = `${companyId}_${locationId}_area_cleaning_${def.areaKey}`;
+    const ref   = dbRef.collection("task_templates").doc(docId);
+    const snap  = await ref.get();
+    if (snap.exists) { skipped++; continue; }
+
+    await ref.set({
+      templateId:     docId,
+      companyId,
+      organizationId: companyId,
+      locationId,
+      areaKey:        def.areaKey,
+      title:          def.title,
+      description:    def.guideBody,
+      category:       "area_cleaning",
+      controlType:    "cleaning_check",
+      libraryType:    "operational",
+      templateType:   "operational",
+      templateSource: "area_cleaning_library",
+      sourceType:     "area_cleaning_library",
+      frequency:      def.frequency,
+      frequencyType:  def.frequency,
+      riskLevel:      def.riskLevel,
+      fields:         [],
+      rules:          [],
+      actions:        { allowApprove: true, allowDeviation: true },
+      guideTitle:     `Vejledning: ${def.title}`,
+      guideBody:      def.guideBody,
+      schemaVersion:  1,
+      isActive:       true,
+      active:         true,
+      createdAt:      nowTs,
+      updatedAt:      nowTs,
+    });
+    created++;
+    console.log(`[syncAreaCleaningTemplates] created ${docId}`);
+  }
+
+  console.log(`[syncAreaCleaningTemplates] done — created=${created} skipped=${skipped} areas=${[...activeAreas].join(",")}`);
+  return { ok: true, created, skipped };
+}
+
+// ─── PROCES-BASEREDE DRIFTSOPGAVER ───────────────────────────────────────────
+// Én template per driftsopgave afledt af onboarding_answers.processes[].
+// Visse opgaver genereres altid (datokontrol, adskillelse, luk dag).
+// 3-timers regel genereres kun ved buffet/servering uden permanent køl/varme.
+// templateSource = "process_drift_library"
+
+const PROCESS_DRIFT_TEMPLATE_DEFINITIONS = [
+  {
+    key:         "process_drift_datokontrol",
+    title:       "Datokontrol",
+    description: "Kontrollér holdbarhedsdatoer på alle opbevarede fødevarer. Fjern udgåede varer og følg FIFO-princippet (først ind, først ud).",
+    frequency:   "daily",
+    category:    "drift",
+    controlType: "date_control",
+    guideKey:    "date_check",
+    alwaysInclude: true,
+  },
+  {
+    key:         "process_drift_adskillelse",
+    title:       "Adskillelse",
+    description: "Kontrollér korrekt adskillelse af rå og tilberedte fødevarer i køl, på arbejdsborde og med redskaber.",
+    frequency:   "daily",
+    category:    "drift",
+    controlType: "separation_control",
+    guideKey:    "separation_control",
+    alwaysInclude: true,
+  },
+  {
+    key:         "process_drift_tre_timers_regel",
+    title:       "3-timers regel",
+    description: "Kontrollér at fødevarer uden aktiv køl eller varme ikke har stået i farezonen (8–65°C) i mere end 3 timer.",
+    frequency:   "daily",
+    category:    "drift",
+    controlType: "three_hour_rule",
+    guideKey:    "three_hour_rule",
+    alwaysInclude: false,
+    requiresProcessAny: ["serve_cold_food", "hot_hold_food"],
+  },
+];
+
+async function syncProcessDriftTemplates({ db: dbRef, companyId, locationId }) {
+  if (!companyId || !locationId) {
+    console.warn("[syncProcessDriftTemplates] missing companyId or locationId, skipping");
+    return { ok: false, created: 0, skipped: 0 };
+  }
+
+  // Hent aktive processes fra onboarding_answers (canonical doc)
+  const canonicalDocId = `${companyId}__${locationId}__onboarding`;
+  const oaDoc = await dbRef.collection("onboarding_answers").doc(canonicalDocId).get();
+  const processes = oaDoc.exists ? (oaDoc.data().processes || []) : [];
+
+  const nowTs = FieldValue.serverTimestamp();
+  let created = 0, skipped = 0;
+
+  for (const def of PROCESS_DRIFT_TEMPLATE_DEFINITIONS) {
+    // Feature-flag: spring over hvis requiresProcessAny ikke er opfyldt
+    if (!def.alwaysInclude && def.requiresProcessAny) {
+      const hasAny = def.requiresProcessAny.some((p) => processes.includes(p));
+      if (!hasAny) continue;
+    }
+
+    const docId = `${companyId}_${locationId}_${def.key}`;
+    const ref   = dbRef.collection("task_templates").doc(docId);
+    const snap  = await ref.get();
+
+    if (snap.exists) {
+      // Patch title/description hvis stale
+      const existing = snap.data() || {};
+      if (existing.title !== def.title || existing.description !== def.description) {
+        await ref.update({ title: def.title, description: def.description, updatedAt: nowTs });
+      }
+      skipped++;
+      continue;
+    }
+
+    await ref.set({
+      templateId:     docId,
+      companyId,
+      organizationId: companyId,
+      locationId,
+      title:          def.title,
+      description:    def.description,
+      category:       def.category,
+      controlType:    def.controlType,
+      guideKey:       def.guideKey,
+      libraryType:    "operational",
+      templateType:   "operational",
+      templateSource: "process_drift_library",
+      sourceType:     "process_drift_library",
+      frequency:      def.frequency,
+      frequencyType:  def.frequency,
+      frequencyDays:  1,
+      riskLevel:      "medium",
+      sortOrder:      def.sortOrder || 100,
+      fields:         [],
+      rules:          [],
+      actions:        { allowApprove: true, allowDeviation: true },
+      guideTitle:     `Vejledning: ${def.title}`,
+      guideBody:      def.description,
+      schemaVersion:  1,
+      isActive:       true,
+      active:         true,
+      createdAt:      nowTs,
+      updatedAt:      nowTs,
+    });
+    created++;
+    console.log(`[syncProcessDriftTemplates] created ${docId}`);
+  }
+
+  console.log(`[syncProcessDriftTemplates] done — created=${created} skipped=${skipped}`);
+  return { ok: true, created, skipped };
+}
+
+// ─── VANDKONTROL RUTINER ─────────────────────────────────────────────────────
+// FJERNET: syncWaterControlTemplates funktion og WATER_CONTROL_TEMPLATE_DEFINITIONS
+// Vandkontrol er nu deaktiveret i provisioning flow
+
+const EQUIPMENT_COUNT_MAPPING = [
+  { countKeys: ["fridge", "fridgeCount", "antalKoeleskabe"],                equipmentType: "fridge",          titleBase: "Køleskab",          controlTypes: ["temperature_check"] },
+  { countKeys: ["freezer", "freezerCount", "antalFrysere"],                 equipmentType: "freezer",         titleBase: "Fryser",            controlTypes: ["temperature_check"] },
+  { countKeys: ["walk_in_cooler", "walkInCooler", "walkInCoolerCount"],     equipmentType: "walk_in_cooler",   titleBase: "Walk-in køler",     controlTypes: ["temperature_check"] },
+  { countKeys: ["walk_in_freezer", "walkInFreezer", "walkInFreezerCount"],  equipmentType: "walk_in_freezer",  titleBase: "Walk-in fryser",    controlTypes: ["temperature_check"] },
+  { countKeys: ["ice_machine", "iceMachine", "antalIsterningemaskiner"],    equipmentType: "ice_machine",      titleBase: "Isterningemaskine", controlTypes: [] },
+  { countKeys: ["ice_box", "isboks", "antalIsbokse"],                       equipmentType: "ice_box",          titleBase: "Isboks",            controlTypes: ["temperature_check"] },
+  { countKeys: ["fryer", "antalFrityreGryder"],                             equipmentType: "fryer",            titleBase: "Frituregryden",     controlTypes: [] },
+  { countKeys: ["dishwasher", "antalOpvaskemaskiner"],                      equipmentType: "dishwasher",       titleBase: "Opvaskemaskine",    controlTypes: [] },
+  { countKeys: ["blast_chiller", "blastChiller", "antalBlastChillere"],     equipmentType: "blast_chiller",    titleBase: "Blast chiller",     controlTypes: ["temperature_check"] },
+  { countKeys: ["warming_cabinet", "warmingCabinet", "antalVarmeskabe"],    equipmentType: "warming_cabinet",  titleBase: "Varmeskab",         controlTypes: ["temperature_check"] },
+  { countKeys: ["display_fridge", "displayFridge", "antalDisplaykoele"],   equipmentType: "display_fridge",   titleBase: "Displaykøl",        controlTypes: ["temperature_check"] },
+  { countKeys: ["softice_machine", "softiceMachine"],                       equipmentType: "softice_machine",  titleBase: "Softice maskine",   controlTypes: ["temperature_check"] },
+];
+
+function normalizeEquipmentCounts(rawCounts = {}, profile = {}) {
+  const result = {};
+  for (const mapping of EQUIPMENT_COUNT_MAPPING) {
+    let count = 0;
+    for (const key of mapping.countKeys) {
+      const val = rawCounts[key] != null ? rawCounts[key] : profile[key];
+      if (val != null) {
+        count = toPositiveInt(val);
+        break;
+      }
+    }
+    // Boolean fallbacks for single-unit types
+    if (count === 0 && mapping.equipmentType === "walk_in_cooler" && profile.hasWalkInCooler) count = 1;
+    if (count === 0 && mapping.equipmentType === "walk_in_freezer" && profile.hasWalkInFreezer) count = 1;
+    if (count === 0 && mapping.equipmentType === "ice_machine"     && profile.hasIceMachine)    count = 1;
+    if (count === 0 && mapping.equipmentType === "softice_machine" && profile.hasSofticeachine) count = 1;
+    if (count === 0 && mapping.equipmentType === "ice_box"         && profile.hasIsboks)        count = 1;
+    result[mapping.equipmentType] = count;
+  }
+  return result;
+}
+
+async function syncOnboardingEquipmentUnits({ db: dbRef, companyId, locationId, equipmentCounts = {}, profile = {} }) {
+  if (!companyId || !locationId) {
+    console.warn("[syncOnboardingEquipmentUnits] missing companyId or locationId, skipping");
+    return { ok: false, error: "missing companyId or locationId" };
+  }
+  console.log("[syncOnboardingEquipmentUnits] start", { companyId, locationId });
+
+  const normalizedCounts = normalizeEquipmentCounts(equipmentCounts, profile);
+  console.log("[syncOnboardingEquipmentUnits] normalizedCounts", normalizedCounts);
+
+  const existingSnap = await dbRef
+    .collection("equipment")
+    .where("locationId", "==", locationId)
+    .where("source", "==", "onboarding")
+    .get();
+
+  const existingById = new Map();
+  for (const doc of existingSnap.docs) {
+    existingById.set(doc.id, { ref: doc.ref, data: doc.data() || {} });
+  }
+
+  const batch = dbRef.batch();
+  let created = 0, updated = 0, deactivated = 0, kept = 0;
+  const equipmentIds = [];
+  const nowTs = FieldValue.serverTimestamp();
+
+  for (const mapping of EQUIPMENT_COUNT_MAPPING) {
+    const count = normalizedCounts[mapping.equipmentType] || 0;
+    const { equipmentType, titleBase, controlTypes } = mapping;
+
+    // Find highest existing unit number for this type
+    let maxExisting = 0;
+    for (const [id] of existingById) {
+      const prefix = `onboarding_${equipmentType}_`;
+      if (id.startsWith(prefix)) {
+        const n = parseInt(id.slice(prefix.length), 10);
+        if (!isNaN(n) && n > maxExisting) maxExisting = n;
+      }
+    }
+
+    // Upsert active units 1..count
+    for (let i = 1; i <= count; i++) {
+      const docId = `onboarding_${equipmentType}_${i}`;
+      const title = `${titleBase} ${i}`;
+      const existing = existingById.get(docId);
+      const ref = existing?.ref || dbRef.collection("equipment").doc(docId);
+
+      if (existing) {
+        batch.set(ref, {
+          companyId, organizationId: companyId, locationId,
+          source: "onboarding", equipmentType, type: equipmentType,
+          controlTypes, controlType: controlTypes[0] || "",
+          title, name: title, displayName: title,
+          unitNumber: i, active: true,
+          updatedAt: nowTs
+        }, { merge: true });
+        if (existing.data.active === false) { updated++; } else { kept++; }
+      } else {
+        batch.set(ref, {
+          companyId, organizationId: companyId, locationId,
+          source: "onboarding", equipmentType, type: equipmentType,
+          controlTypes, controlType: controlTypes[0] || "",
+          title, name: title, displayName: title,
+          unitNumber: i, active: true,
+          createdAt: nowTs, updatedAt: nowTs
+        });
+        created++;
+        console.log(`[syncOnboardingEquipmentUnits] created ${docId}`);
+      }
+      equipmentIds.push(docId);
+    }
+
+    // Deactivate units above current count
+    for (let i = count + 1; i <= maxExisting; i++) {
+      const docId = `onboarding_${equipmentType}_${i}`;
+      const existing = existingById.get(docId);
+      if (existing && existing.data.active !== false) {
+        batch.set(existing.ref, { active: false, updatedAt: nowTs }, { merge: true });
+        deactivated++;
+        console.log(`[syncOnboardingEquipmentUnits] deactivated ${docId}`);
+      }
+    }
+  }
+
+  await batch.commit();
+  
+  // Ensure temperature-relevant units have temperatureControl settings
+  let tempControlUpdated = 0;
+  for (const equipmentId of equipmentIds) {
+    try {
+      const unitRef = dbRef.collection("equipment").doc(equipmentId);

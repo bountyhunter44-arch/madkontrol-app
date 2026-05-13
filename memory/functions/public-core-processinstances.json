@@ -1,0 +1,113 @@
+{
+  "source_file": "public/core/processInstances.js",
+  "module": "general",
+  "imports": [
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "_call",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "calculateDuration",
+        "calculateProgress",
+        "calculateRemaining",
+        "formatTime",
+        "loadActiveProcessInstances",
+        "showNewCoolingOption",
+        "showRecoveryOptions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "calculateDuration",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "calculateProgress",
+        "calculateRemaining",
+        "formatTime",
+        "showNewCoolingOption",
+        "showRecoveryOptions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "calculateProgress",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "formatTime",
+        "showNewCoolingOption",
+        "showRecoveryOptions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "calculateRemaining",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "calculateProgress",
+        "formatTime",
+        "showNewCoolingOption",
+        "showRecoveryOptions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatTime",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "showNewCoolingOption",
+        "showRecoveryOptions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadActiveProcessInstances",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "calculateDuration",
+        "calculateProgress",
+        "calculateRemaining",
+        "formatTime",
+        "showNewCoolingOption",
+        "showRecoveryOptions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "showNewCoolingOption",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "showRecoveryOptions",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "showNewCoolingOption"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

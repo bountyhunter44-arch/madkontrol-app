@@ -1,0 +1,199 @@
+{
+  "source_file": "public/seed-data/generateBusinessSetup.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "companies",
+    "equipment",
+    "locations",
+    "onboarding_answers",
+    "risks"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildCompanyDoc",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEquipmentFromCounts",
+        "buildLocationDoc",
+        "buildOnboardingDoc",
+        "buildRisksFromOnboarding",
+        "buildTasksFromRisksAndEquipment",
+        "buildUserDoc",
+        "nowFields"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildEquipmentFromCounts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildRisksFromOnboarding",
+        "buildTasksFromRisksAndEquipment",
+        "nowFields"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildLocationDoc",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEquipmentFromCounts",
+        "buildOnboardingDoc",
+        "buildRisksFromOnboarding",
+        "buildTasksFromRisksAndEquipment",
+        "buildUserDoc",
+        "nowFields"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildOnboardingDoc",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEquipmentFromCounts",
+        "buildRisksFromOnboarding",
+        "buildTasksFromRisksAndEquipment",
+        "nowFields"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildRisksFromOnboarding",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildTasksFromRisksAndEquipment",
+        "nowFields"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTasksFromRisksAndEquipment",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "nowFields"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildUserDoc",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEquipmentFromCounts",
+        "buildOnboardingDoc",
+        "buildRisksFromOnboarding",
+        "buildTasksFromRisksAndEquipment",
+        "nowFields"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "deleteCollectionDocsByField",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildCompanyDoc",
+        "buildEquipmentFromCounts",
+        "buildLocationDoc",
+        "buildOnboardingDoc",
+        "buildRisksFromOnboarding",
+        "buildTasksFromRisksAndEquipment",
+        "buildUserDoc",
+        "generateBusinessSetup",
+        "upsertDoc"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "equipment",
+        "locations",
+        "onboarding_answers",
+        "risks"
+      ]
+    },
+    {
+      "name": "generateBusinessSetup",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildCompanyDoc",
+        "buildEquipmentFromCounts",
+        "buildLocationDoc",
+        "buildOnboardingDoc",
+        "buildRisksFromOnboarding",
+        "buildTasksFromRisksAndEquipment",
+        "buildUserDoc",
+        "deleteCollectionDocsByField",
+        "upsertDoc"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "equipment",
+        "locations",
+        "onboarding_answers",
+        "risks"
+      ]
+    },
+    {
+      "name": "nowFields",
+      "type": "function",
+      "approx_occurrences": 11,
+      "calls": [
+        "buildCompanyDoc",
+        "buildEquipmentFromCounts",
+        "buildLocationDoc",
+        "buildOnboardingDoc",
+        "buildRisksFromOnboarding",
+        "buildTasksFromRisksAndEquipment",
+        "buildUserDoc"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "upsertDoc",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "buildCompanyDoc",
+        "buildEquipmentFromCounts",
+        "buildLocationDoc",
+        "buildOnboardingDoc",
+        "buildRisksFromOnboarding",
+        "buildTasksFromRisksAndEquipment",
+        "buildUserDoc",
+        "deleteCollectionDocsByField",
+        "generateBusinessSetup"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "equipment",
+        "locations",
+        "onboarding_answers",
+        "risks"
+      ]
+    }
+  ]
+}

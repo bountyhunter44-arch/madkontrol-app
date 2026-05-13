@@ -1,0 +1,87 @@
+{
+  "source_file": "public/admin/owner-dashboard.html",
+  "module": "dashboard",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "companies",
+    "deviations",
+    "locations",
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "formatTimeAgo",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "isSuperAdmin",
+        "loadOwnerDashboard",
+        "renderAccessDenied"
+      ],
+      "selectors": [],
+      "collections": [
+        "locations"
+      ]
+    },
+    {
+      "name": "isSuperAdmin",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadOwnerDashboard",
+        "renderAccessDenied",
+        "renderDashboard"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "deviations",
+        "users"
+      ]
+    },
+    {
+      "name": "loadOwnerDashboard",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "renderDashboard"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "deviations",
+        "users"
+      ]
+    },
+    {
+      "name": "renderAccessDenied",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadOwnerDashboard",
+        "renderDashboard"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "deviations",
+        "users"
+      ]
+    },
+    {
+      "name": "renderDashboard",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

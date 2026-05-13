@@ -1,0 +1,114 @@
+{
+  "source_file": "scripts/export-to-markdown.cjs",
+  "module": "general",
+  "imports": [
+    "fs",
+    "path"
+  ],
+  "exports": [
+    "EXPORT_PATTERNS"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "createMarkdownContent",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "exportToMarkdown",
+        "findFiles",
+        "getLanguage",
+        "matchPattern",
+        "pathToMarkdownFilename",
+        "traverse"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "exportToMarkdown",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createMarkdownContent",
+        "findFiles",
+        "pathToMarkdownFilename"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "findFiles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createMarkdownContent",
+        "exportToMarkdown",
+        "matchPattern",
+        "pathToMarkdownFilename",
+        "traverse"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getLanguage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createMarkdownContent",
+        "exportToMarkdown",
+        "findFiles",
+        "matchPattern",
+        "pathToMarkdownFilename",
+        "traverse"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "matchPattern",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "createMarkdownContent",
+        "exportToMarkdown",
+        "findFiles",
+        "pathToMarkdownFilename"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "pathToMarkdownFilename",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createMarkdownContent",
+        "exportToMarkdown",
+        "findFiles",
+        "getLanguage",
+        "matchPattern",
+        "traverse"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "traverse",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "createMarkdownContent",
+        "exportToMarkdown",
+        "findFiles",
+        "matchPattern",
+        "pathToMarkdownFilename"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

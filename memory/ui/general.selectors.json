@@ -1,0 +1,298 @@
+{
+  "module": "general",
+  "files": [
+    {
+      "source_file": ".venv/Lib/site-packages/pygame/docs/generated/_static/doctools.js",
+      "selectors": [
+        "img.toggler",
+        "input[name=q]",
+        "tr.cg-${idNumber}"
+      ]
+    },
+    {
+      "source_file": ".venv/Lib/site-packages/pygame/docs/generated/_static/sphinx_highlight.js",
+      "selectors": [
+        "#searchbox .highlight-link",
+        "body",
+        "body, svg, foreignObject",
+        "button, select, textarea",
+        "div.body",
+        "span.highlighted",
+        "svg"
+      ]
+    },
+    {
+      "source_file": "core/workflow.js",
+      "selectors": [
+        ".smart-prompt-btn",
+        ".smart-prompt-overlay"
+      ]
+    },
+    {
+      "source_file": "public/components/identity-block.js",
+      "selectors": [
+        "#identityAvatar",
+        "#identityContext",
+        "#identityMenu",
+        "#identityName",
+        "#identityTrigger",
+        "#logoutBtn",
+        "#switchLocationBtn"
+      ]
+    },
+    {
+      "source_file": "public/components/module-lock.js",
+      "selectors": [
+        "[data-requires-module]"
+      ]
+    },
+    {
+      "source_file": "public/core/auth.js",
+      "selectors": [
+        "#mkpDemoBannerDismiss",
+        "#mkpDemoBannerLink",
+        "#mkpDemoBannerMeta",
+        "#mkpDemoBannerText",
+        "#mkpDemoBannerTitle",
+        "main"
+      ]
+    },
+    {
+      "source_file": "public/core/i18n.js",
+      "selectors": [
+        "[data-i18n-aria-label]",
+        "[data-i18n-html]",
+        "[data-i18n-placeholder]",
+        "[data-i18n-title]",
+        "[data-i18n]"
+      ]
+    },
+    {
+      "source_file": "public/core/layout.js",
+      "selectors": [
+        ".mobile-app-nav"
+      ]
+    },
+    {
+      "source_file": "public/index.html",
+      "selectors": [
+        "#landingLoginEmail",
+        "#landingLoginForm",
+        "#landingLoginPassword",
+        "#landingLoginStatus",
+        ".hero-sales-dot",
+        ".hero-sales-slide",
+        ".login-modal-close",
+        ".module-preview-link"
+      ]
+    },
+    {
+      "source_file": "public/modules/accounting/js/akademi.js",
+      "selectors": [
+        ".faq-btn",
+        ".faq-btn span:last-child",
+        ".faq-item"
+      ]
+    },
+    {
+      "source_file": "public/modules/akademi.html/akademi.html",
+      "selectors": [
+        ".course-card",
+        ".faq-btn",
+        ".faq-btn span:last-child",
+        ".faq-item",
+        "span:last-child"
+      ]
+    },
+    {
+      "source_file": "public/modules/akademi.html/certificates.html",
+      "selectors": [
+        ".certificate-card"
+      ]
+    },
+    {
+      "source_file": "public/modules/akademi.html/courses.html",
+      "selectors": [
+        ".course-card"
+      ]
+    },
+    {
+      "source_file": "public/modules/akademi.html/quizzes.html",
+      "selectors": [
+        ".quiz-card"
+      ]
+    },
+    {
+      "source_file": "public/modules/akademi.html/staff.html",
+      "selectors": [
+        ".staff-card"
+      ]
+    },
+    {
+      "source_file": "public/modules/business/vision.html",
+      "selectors": [
+        "[data-addon-input]",
+        "[data-addon]",
+        "h4"
+      ]
+    },
+    {
+      "source_file": "public/modules/drift/events.html",
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ]
+    },
+    {
+      "source_file": "public/modules/drift/ingredients.html",
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ]
+    },
+    {
+      "source_file": "public/modules/drift/menu.html",
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ]
+    },
+    {
+      "source_file": "public/modules/drift/purchases.html",
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ]
+    },
+    {
+      "source_file": "public/modules/drift/recipes.html",
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ]
+    },
+    {
+      "source_file": "public/modules/drift/suppliers.html",
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/front.html",
+      "selectors": [
+        "[data-flow-complete]",
+        "[data-flow-step]",
+        "[data-scroll-target]"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/logbooks.html",
+      "selectors": [
+        ".choice-item",
+        ".form-card",
+        ".form-panel",
+        ".js-open-form",
+        ".logbook-card",
+        ".tab-btn",
+        "[data-choice-list]",
+        "[data-segmented]",
+        "[data-segmented] button",
+        "button",
+        "form[data-log-form]"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/rapporter.html",
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/risikoanalyse.html",
+      "selectors": [
+        ".accordion-content",
+        ".risk-beskrivelse-input",
+        ".risk-cancel-btn",
+        ".risk-card",
+        ".risk-card-custom",
+        ".risk-card-head",
+        ".risk-kontrol-input",
+        ".risk-new-card",
+        ".risk-note",
+        ".risk-save-btn",
+        ".risk-save-new-btn",
+        ".risk-title-input",
+        "[data-accordion-card]",
+        "[data-accordion-toggle]"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/start-dag.html",
+      "selectors": [
+        ".task-preview-head",
+        ".task-preview-item"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/units.html",
+      "selectors": [
+        "[data-add-unit]",
+        "[data-deactivate-unit]",
+        "[data-remove-new]",
+        "[data-restore-unit]",
+        "[data-unit-name]"
+      ]
+    },
+    {
+      "source_file": "public/modules/i18n/language-switcher.js",
+      "selectors": [
+        ".language-option",
+        ".mkp-topbar-brand-row",
+        ".topbar-right"
+      ]
+    },
+    {
+      "source_file": "public/modules/kalkulation/index.html",
+      "selectors": [
+        "[data-recipe-id]"
+      ]
+    },
+    {
+      "source_file": "public/modules/seo/generator.html",
+      "selectors": [
+        ".img-grid-item",
+        ".preview-hero",
+        ".seo-lp-hero .hero-awning[data-awning]",
+        ".template"
+      ]
+    },
+    {
+      "source_file": "public/modules/skole/skole-akedemi-v1.html",
+      "selectors": [
+        ".nav-link"
+      ]
+    },
+    {
+      "source_file": "public/modules/skole/skole-akedemi-v2.html",
+      "selectors": [
+        ".nav-link",
+        ".quiz-option"
+      ]
+    },
+    {
+      "source_file": "public/modules/water/systems.html",
+      "selectors": [
+        ".ws-status-sel"
+      ]
+    },
+    {
+      "source_file": "public/modules/water/technician.html",
+      "selectors": [
+        ".wt-panel",
+        ".wt-tab"
+      ]
+    },
+    {
+      "source_file": "public/uploads/wildcard-subdomain-setup.html",
+      "selectors": [
+        "pre"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "source_file": "public/modules/water/systems.html",
+  "module": "general",
+  "imports": [
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [
+    "users",
+    "water_systems"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getUserCtx",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadAndRenderSystems",
+        "sv"
+      ],
+      "selectors": [
+        ".ws-status-sel"
+      ],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "loadAndRenderSystems",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "getUserCtx",
+        "showStatus",
+        "sv"
+      ],
+      "selectors": [
+        ".ws-status-sel"
+      ],
+      "collections": [
+        "water_systems"
+      ]
+    },
+    {
+      "name": "nv",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getUserCtx",
+        "loadAndRenderSystems",
+        "showStatus"
+      ],
+      "selectors": [
+        ".ws-status-sel"
+      ],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "showStatus",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "getUserCtx",
+        "loadAndRenderSystems"
+      ],
+      "selectors": [
+        ".ws-status-sel"
+      ],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "sv",
+      "type": "function",
+      "approx_occurrences": 9,
+      "calls": [
+        "getUserCtx",
+        "loadAndRenderSystems",
+        "nv",
+        "showStatus"
+      ],
+      "selectors": [
+        ".ws-status-sel"
+      ],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    }
+  ]
+}

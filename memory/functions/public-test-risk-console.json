@@ -1,0 +1,47 @@
+{
+  "source_file": "public/test-risk-console.html",
+  "module": "general",
+  "imports": [
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "generateRiskAnalysis",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "getProfileContext",
+        "log"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProfileContext",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "generateRiskAnalysis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "log",
+      "type": "function",
+      "approx_occurrences": 16,
+      "calls": [
+        "generateRiskAnalysis",
+        "getProfileContext"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

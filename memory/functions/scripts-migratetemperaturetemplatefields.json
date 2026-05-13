@@ -1,0 +1,69 @@
+{
+  "source_file": "scripts/migrateTemperatureTemplateFields.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "eqType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "inferProfile",
+        "isEmpty",
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "inferProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "isEmpty",
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "isEmpty",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "inferProfile",
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "inferProfile",
+        "isEmpty"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

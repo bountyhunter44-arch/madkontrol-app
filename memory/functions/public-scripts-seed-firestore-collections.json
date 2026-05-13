@@ -1,0 +1,36 @@
+{
+  "source_file": "public/scripts/seed-firestore-collections.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [
+    "alerts_without_deviation_creation"
+  ],
+  "functions": [
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "seedCollection"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "seedCollection",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "run"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

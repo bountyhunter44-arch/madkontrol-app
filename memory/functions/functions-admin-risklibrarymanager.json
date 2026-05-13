@@ -1,0 +1,57 @@
+{
+  "source_file": "functions/admin/riskLibraryManager.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin/firestore"
+  ],
+  "exports": [
+    "generateRiskAnalysisFromOnboarding",
+    "getGuideByGuideKey",
+    "saveRiskAnalysis"
+  ],
+  "collections": [
+    "risk_analyses",
+    "risk_library"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "generateRiskAnalysisFromOnboarding",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getGuideByGuideKey",
+        "saveRiskAnalysis"
+      ],
+      "selectors": [],
+      "collections": [
+        "risk_analyses",
+        "risk_library"
+      ]
+    },
+    {
+      "name": "getGuideByGuideKey",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "risk_library"
+      ]
+    },
+    {
+      "name": "saveRiskAnalysis",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getGuideByGuideKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "risk_analyses",
+        "risk_library"
+      ]
+    }
+  ]
+}

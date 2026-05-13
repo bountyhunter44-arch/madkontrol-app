@@ -1,0 +1,2419 @@
+{
+  "source_file": "functions/index.js",
+  "module": "backend",
+  "imports": [
+    "./admin/demoMode",
+    "./admin/generateEgenkontrolFromRiskAnalysis",
+    "./admin/generateRisksFromOnboardingAnswers",
+    "./admin/softArchive",
+    "./auditCompanyLocation",
+    "./closeDailyRun",
+    "./egenkontrol/egenkontrolGenerator",
+    "./fixOnboardingStructure",
+    "./generateComprehensiveHaccp",
+    "./processInstances",
+    "./provisioning",
+    "./scenarioBasedHaccp",
+    "./security/environmentGuard",
+    "./water-module",
+    "crypto",
+    "firebase-admin",
+    "firebase-functions",
+    "firebase-functions/params",
+    "firebase-functions/v2/https",
+    "firebase-functions/v2/scheduler",
+    "stripe"
+  ],
+  "exports": [
+    "addCoolingMeasurement",
+    "adminActivateSeoSite",
+    "adminReprovisionEquipment",
+    "analyzeCloudinaryAsset",
+    "api",
+    "archiveCompany",
+    "auditCompanyLocationIntegrity",
+    "checkSubdomainAvailability",
+    "cleanupExpiredDemoEnvironments",
+    "cleanupTaskTemplates",
+    "closeDailyRun",
+    "completeCoolingProcess",
+    "completeReheatingProcess",
+    "convertDemoToProduction",
+    "createDemoEnvironment",
+    "createHaccpSnapshotFromOnboarding",
+    "createLocationUser",
+    "createOnboardingCheckoutSession",
+    "createStripeCheckoutSession",
+    "disableDemoMode",
+    "disposeCoolingProcess",
+    "enableDemoMode",
+    "enhanceAndUploadRestaurantImage",
+    "finalizeOnboardingCheckoutProvisioning",
+    "finalizeSeoCheckoutProvisioning",
+    "fixOnboardingStructure",
+    "generateRisksForLocation",
+    "generateSeoAiSuggestions",
+    "generateTemplatesForLocation",
+    "getCloudinaryAssets",
+    "getCloudinarySignature",
+    "getDashboardSnapshot",
+    "getLexiCustomerStatus",
+    "listLocationUsers",
+    "loadActiveProcessInstances",
+    "lookupCvr",
+    "manualGenerateRiskAnalysis",
+    "migrateCompanyAndLocationDisplayNames",
+    "regenerateTaskTemplatesForLocation",
+    "resetDemoData",
+    "resetTaskInstances",
+    "restoreCompany",
+    "saveLocationEquipmentUnits",
+    "saveRestaurantHeroImage",
+    "saveRoutineTask",
+    "saveSeoGeneratorConfig",
+    "searchRestaurantImages",
+    "seedDemoData",
+    "seedUserDisplayFields",
+    "seoSiteRenderer",
+    "startCoolingProcess",
+    "startDayForLocation",
+    "startNewCoolingFromReheating",
+    "startNewPeriod",
+    "startReheatingProcess",
+    "stripeWebhook",
+    "syncRiskTaskTemplates"
+  ],
+  "collections": [
+    "alerts",
+    "areas",
+    "checkout_sessions",
+    "companies",
+    "company_locations",
+    "company_registry",
+    "daily_runs",
+    "deviations",
+    "egenkontrol_programs",
+    "equipment",
+    "haccp_snapshots",
+    "live_user_profiles",
+    "locations",
+    "media_assets",
+    "onboarding_answers",
+    "onboarding_checkout_drafts",
+    "operating_overrides",
+    "seo_generator_configs",
+    "seo_hero_images",
+    "seo_pages",
+    "task_entries",
+    "task_instances",
+    "task_templates",
+    "users",
+    "websites"
+  ],
+  "flags": [
+    "cooling_run_finish",
+    "saveRoutineTask",
+    "startDayForLocation"
+  ],
+  "risks": [],
+  "functions": [
+    {
+      "name": "addDays",
+      "type": "function",
+      "approx_occurrences": 9,
+      "calls": [
+        "daysBetween",
+        "formatDateKey",
+        "getRoutineAnchorDate",
+        "getWeekdayFromDateKey",
+        "normalizeDateKey",
+        "parseFrequencyConfig",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "assertAdminAccess",
+      "type": "function",
+      "approx_occurrences": 11,
+      "calls": [
+        "assertSeoGeneratorAccess",
+        "buildScopedUserResponse",
+        "deleteScopedCollectionDocs",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "normalizeEmploymentRole",
+        "sanitizeString",
+        "toDocSafeId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "assertLexiCustomerAccess",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "assertAdminAccess",
+        "assertSeoGeneratorAccess",
+        "assertStartDayAccess",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "assertSeoGeneratorAccess",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildScopedUserResponse",
+        "deleteScopedCollectionDocs",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "loadActiveTaskTemplates",
+        "normalizeEmploymentRole",
+        "sanitizeString",
+        "toDocSafeId",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "assertStartDayAccess",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "assertAdminAccess",
+        "assertSeoGeneratorAccess",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "autoDocumentationNote",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildCoolingDataPayload",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_entries"
+      ]
+    },
+    {
+      "name": "batchSetMergeByRefs",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildDemoEnvironmentIds",
+        "buildDemoLifecyclePayload",
+        "buildDemoSeedProfile",
+        "buildDemoSeedRiskModel",
+        "buildOnboardingSummary",
+        "deriveCustomerName",
+        "provisionDemoEnvironment",
+        "queryRefsByField",
+        "sanitizeString",
+        "setDemoMetadataForEnvironment",
+        "toDocSafeId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations",
+        "onboarding_answers",
+        "users"
+      ]
+    },
+    {
+      "name": "blocked",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "assertStartDayAccess",
+        "ensureLocationTemperatureSettings",
+        "getDateKey",
+        "getOperatingModeForLocation",
+        "loadActiveTaskTemplates",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "buildCanonicalCompanyId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildCompanyKey",
+        "getOrCreateCompany"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "company_registry"
+      ]
+    },
+    {
+      "name": "buildCompanyKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildCanonicalCompanyId",
+        "getOrCreateCompany",
+        "getStripeClient",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "company_registry"
+      ]
+    },
+    {
+      "name": "buildComparableInstancePayload",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "assertStartDayAccess",
+        "diffComparableFields",
+        "ensureLocationTemperatureSettings",
+        "getDateKey",
+        "getOperatingModeForLocation",
+        "materiallyEqualInstance",
+        "sanitizeString",
+        "shouldGenerateDailyRoutineTemplate",
+        "stableNormalize"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "buildCoolingDataPayload",
+      "type": "const_function",
+      "approx_occurrences": 3,
+      "calls": [
+        "sanitizeString",
+        "toFiniteNumberOrNull"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildCoolingEntryPayload",
+      "type": "const_function",
+      "approx_occurrences": 2,
+      "calls": [
+        "sanitizeString",
+        "toFiniteNumberOrNull"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "buildDemoEnvironmentIds",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "batchSetMergeByRefs",
+        "buildDemoLifecyclePayload",
+        "buildDemoSeedProfile",
+        "buildDemoSeedRiskModel",
+        "sanitizeOnboardingProfile",
+        "sanitizeRiskModelInput",
+        "sanitizeString",
+        "toAsciiSlug",
+        "toDocSafeId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildDemoLifecyclePayload",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "batchSetMergeByRefs",
+        "buildDemoEnvironmentIds",
+        "buildDemoSeedProfile",
+        "buildDemoSeedRiskModel",
+        "buildOnboardingSummary",
+        "deriveCustomerName",
+        "provisionDemoEnvironment",
+        "queryRefsByField",
+        "sanitizeString",
+        "setDemoMetadataForEnvironment",
+        "toDocSafeId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations",
+        "onboarding_answers",
+        "users"
+      ]
+    },
+    {
+      "name": "buildDemoSeedProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "batchSetMergeByRefs",
+        "buildDemoLifecyclePayload",
+        "buildDemoSeedRiskModel",
+        "queryRefsByField",
+        "sanitizeOnboardingProfile",
+        "sanitizeRiskModelInput",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildDemoSeedRiskModel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "batchSetMergeByRefs",
+        "buildDemoLifecyclePayload",
+        "queryRefsByField",
+        "sanitizeRiskModelInput",
+        "sanitizeString",
+        "setDemoMetadataForEnvironment"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations",
+        "onboarding_answers",
+        "users"
+      ]
+    },
+    {
+      "name": "buildHaccpSnapshotPayload",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "removeUndefinedFields",
+        "sanitizeOnboardingProfile",
+        "sanitizeRiskModelInput"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildLiveUserProfilePayload",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildHaccpSnapshotPayload",
+        "deriveOnboardingAnswers",
+        "sanitizeOnboardingProfile",
+        "sanitizeRiskModelInput",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildOnboardingSummary",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildHaccpSnapshotPayload",
+        "buildLiveUserProfilePayload",
+        "deriveCriticalPoints",
+        "deriveOnboardingAnswers",
+        "sanitizeOnboardingProfile",
+        "sanitizeRiskModelInput",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildPreferredLocationIds",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "assertAdminAccess",
+        "assertLexiCustomerAccess",
+        "assertStartDayAccess",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "isDemoScopedId",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "buildProvisionedTaskTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildProvisionedTemplateAlertRules",
+        "buildProvisionedTemplateFields",
+        "sanitizeString",
+        "sanitizeStringList",
+        "toDocSafeId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildProvisionedTemplateAlertRules",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "extractTemperatureLimits",
+        "formatCorrectiveActions",
+        "formatCriticalLimits",
+        "formatInstructions",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildProvisionedTemplateFields",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildProvisionedTemplateAlertRules",
+        "extractTemperatureLimits",
+        "formatInstructions",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildScopedUserResponse",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteScopedCollectionDocs",
+        "getExistingTaskInstanceMap",
+        "getUserLocationIds",
+        "loadActiveTaskTemplates",
+        "normalizeEmploymentRole",
+        "sanitizeString",
+        "toDocSafeId",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "buildSeoAiPrompt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildSeoLandingPages",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "parsePageCount",
+        "sanitizeString",
+        "toAsciiSlug",
+        "toDocSafeId",
+        "upsertWebsiteAndSeoPages"
+      ],
+      "selectors": [],
+      "collections": [
+        "websites"
+      ]
+    },
+    {
+      "name": "buildSpecificGuideContent",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildStartDayTargets",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "sanitizeEquipmentType",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildSyntheticEquipmentFromCounts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildStartDayTargets",
+        "prettyEquipmentTypeName",
+        "sanitizeEquipmentType",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTaskDeadlineMeta",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "parseFrequencyConfig",
+        "resolveTemplateSchedule",
+        "sanitizeString",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildVisionPrompt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "category",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildSpecificGuideContent",
+        "formatCorrectiveActions",
+        "formatCriticalLimits",
+        "formatInstructions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "cleanMetaValue",
+      "type": "const_function",
+      "approx_occurrences": 9,
+      "calls": [
+        "buildVisionPrompt",
+        "extractJsonBlock",
+        "sanitizeString",
+        "toAsciiSlug"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "cleanupDemoCompanyEnvironment",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildPreferredLocationIds",
+        "collectScopedDemoRefs",
+        "deleteDocsByRefs",
+        "getOperatingModeForLocation",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "isDemoScopedId",
+        "normalizeDateKey",
+        "resolveLexiStatus",
+        "resolveOperatingMode",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "operating_overrides",
+        "users"
+      ]
+    },
+    {
+      "name": "collectScopedDemoRefs",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "cleanupDemoCompanyEnvironment",
+        "deleteDocsByRefs",
+        "getOperatingModeForLocation",
+        "getUserLocationIds",
+        "isDemoScopedId",
+        "normalizeDateKey",
+        "queryRefsByField",
+        "resolveLexiStatus",
+        "resolveOperatingMode",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "areas",
+        "companies",
+        "daily_runs",
+        "deviations",
+        "equipment",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations",
+        "media_assets",
+        "onboarding_answers",
+        "operating_overrides",
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "controlType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "sanitizeEquipmentType",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createHaccpSnapshotDocument",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildDemoEnvironmentIds",
+        "buildDemoSeedProfile",
+        "buildHaccpSnapshotPayload",
+        "removeUndefinedFields",
+        "sanitizeOnboardingProfile",
+        "sanitizeString",
+        "toArray",
+        "toAsciiSlug",
+        "toDocSafeId",
+        "upsertOnboardingAnswersDocument"
+      ],
+      "selectors": [],
+      "collections": [
+        "egenkontrol_programs",
+        "haccp_snapshots",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "createTaskTemplate",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createTemplateIfNotExists",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "daysBetween",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "formatDateKey",
+        "getRoutineAnchorDate",
+        "getWeekdayFromDateKey",
+        "normalizeDateKey",
+        "parseFrequencyConfig",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "deleteDocsByRefs",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "cleanupDemoCompanyEnvironment",
+        "collectScopedDemoRefs",
+        "getOperatingModeForLocation",
+        "getUserLocationIds",
+        "normalizeDateKey",
+        "queryRefsByField",
+        "resolveLexiStatus",
+        "resolveOperatingMode"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "areas",
+        "companies",
+        "daily_runs",
+        "deviations",
+        "equipment",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations",
+        "media_assets",
+        "onboarding_answers",
+        "operating_overrides",
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "deleteScopedCollectionDocs",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getExistingTaskInstanceMap",
+        "getOperatingOverrideDataForLocation",
+        "loadActiveTaskTemplates",
+        "loadDashboardTaskInstances",
+        "sanitizeString",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "deriveCriticalPoints",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildHaccpSnapshotPayload",
+        "buildLiveUserProfilePayload",
+        "buildOnboardingSummary",
+        "deriveCustomerName",
+        "deriveOnboardingAnswers",
+        "sanitizeOnboardingProfile",
+        "sanitizeRiskModelInput",
+        "sanitizeString",
+        "sanitizeStringList",
+        "toArray"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "deriveCustomerName",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildHaccpSnapshotPayload",
+        "buildLiveUserProfilePayload",
+        "buildOnboardingSummary",
+        "deriveCriticalPoints",
+        "deriveOnboardingAnswers",
+        "sanitizeOnboardingProfile",
+        "sanitizeRiskModelInput",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "deriveOnboardingAnswers",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "toAsciiSlug"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "deriveTemperatureStatus",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildStartDayTargets",
+        "buildSyntheticEquipmentFromCounts",
+        "getEquipmentDisplayName",
+        "prettyEquipmentTypeName",
+        "sanitizeEquipmentType",
+        "sanitizeString",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "diffComparableFields",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "assertStartDayAccess",
+        "ensureLocationTemperatureSettings",
+        "getDateKey",
+        "getOperatingModeForLocation",
+        "loadActiveTaskTemplates",
+        "sanitizeString",
+        "shouldGenerateDailyRoutineTemplate"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "docId",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "sanitizeEquipmentType",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "enhancedUrl",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildSeoAiPrompt",
+        "extractSeoRelevantText",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "seo_hero_images",
+        "websites"
+      ]
+    },
+    {
+      "name": "ensureCoolingDeviationAndAlert",
+      "type": "const_async",
+      "approx_occurrences": 3,
+      "calls": [
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "ensureEgenkontrolTaskTemplates",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "createTemplateIfNotExists"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "ensureEquipmentTemperatureControl",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "deriveTemperatureStatus",
+        "getEquipmentDisplayName",
+        "getLastCompleted",
+        "normalizeDateKey",
+        "prettyEquipmentTypeName",
+        "sanitizeEquipmentType",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "ensureLiveTaskTemplatesForProvisioning",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildProvisionedTaskTemplates",
+        "getComparableEpoch",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "loadLatestScopedRiskSource",
+        "sanitizeString",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots",
+        "live_user_profiles",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "ensureLocationTemperatureSettings",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "ensureEquipmentTemperatureControl",
+        "getDateKey",
+        "sanitizeEquipmentType"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "esc",
+      "type": "const_function",
+      "approx_occurrences": 15,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "extractCloudinaryAssets",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "deriveOnboardingAnswers",
+        "sanitizeString",
+        "toArray",
+        "toAsciiSlug"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "extractJsonBlock",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildVisionPrompt",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "extractSeoRelevantText",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSeoAiPrompt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "extractTemperatureLimits",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSpecificGuideContent",
+        "formatCorrectiveActions",
+        "formatCriticalLimits",
+        "formatInstructions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatCorrectiveActions",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSpecificGuideContent"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatCriticalLimits",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSpecificGuideContent",
+        "formatCorrectiveActions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDateKey",
+      "type": "const_function",
+      "approx_occurrences": 5,
+      "calls": [
+        "getRoutineAnchorDate",
+        "normalizeDateKey",
+        "parseFrequencyConfig",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatInstructions",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSpecificGuideContent",
+        "formatCorrectiveActions",
+        "formatCriticalLimits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getBillingPlan",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildCanonicalCompanyId",
+        "buildCompanyKey",
+        "getOrCreateCompany",
+        "slug"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "company_registry"
+      ]
+    },
+    {
+      "name": "getComparableEpoch",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "assertLexiCustomerAccess",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "loadLatestScopedRiskSource",
+        "sanitizeOnboardingProfile",
+        "sanitizeString",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots",
+        "live_user_profiles"
+      ]
+    },
+    {
+      "name": "getDateKey",
+      "type": "function",
+      "approx_occurrences": 9,
+      "calls": [
+        "addDays",
+        "daysBetween",
+        "formatDateKey",
+        "getRoutineAnchorDate",
+        "getWeekdayFromDateKey",
+        "normalizeDateKey",
+        "parseFrequencyConfig",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEquipmentDisplayName",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildStartDayTargets",
+        "buildSyntheticEquipmentFromCounts",
+        "prettyEquipmentTypeName",
+        "sanitizeEquipmentType",
+        "sanitizeString",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getExistingTaskInstanceMap",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getOperatingOverrideDataForLocation",
+        "getSnapshotEpoch",
+        "inferProvisionedTemplateMeta",
+        "loadDashboardAlertCount",
+        "loadDashboardTaskInstances",
+        "loadLatestHaccpSnapshot",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "haccp_snapshots",
+        "operating_overrides",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getLastCompleted",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildStartDayTargets",
+        "buildSyntheticEquipmentFromCounts",
+        "deriveTemperatureStatus",
+        "getEquipmentDisplayName",
+        "normalizeDateKey",
+        "prettyEquipmentTypeName",
+        "sanitizeEquipmentType",
+        "sanitizeString",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getLexiCustomerStatusPayload",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "ensureEquipmentTemperatureControl",
+        "ensureLocationTemperatureSettings",
+        "getDateKey",
+        "getLastCompleted",
+        "getOperatingModeForLocation",
+        "isDueToday",
+        "loadActiveTaskTemplates",
+        "resolveTemplateSchedule",
+        "sanitizeEquipmentType",
+        "sanitizeString",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "getOnboardingEquipmentCounts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createTaskTemplate",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "getOperatingModeForLocation",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "assertLexiCustomerAccess",
+        "assertStartDayAccess",
+        "buildPreferredLocationIds",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "isDemoScopedId",
+        "resolveLexiStatus",
+        "resolveOperatingMode",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "users"
+      ]
+    },
+    {
+      "name": "getOperatingOverrideDataForLocation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getSnapshotEpoch",
+        "inferProvisionedTemplateMeta",
+        "loadDashboardAlertCount",
+        "loadDashboardTaskInstances",
+        "loadLatestHaccpSnapshot",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "haccp_snapshots",
+        "operating_overrides",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getOrCreateCompany",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildCanonicalCompanyId",
+        "buildCompanyKey",
+        "getStripeClient",
+        "sanitizeOnboardingProfile",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "company_registry"
+      ]
+    },
+    {
+      "name": "getRoutineAnchorDate",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "normalizeDateKey",
+        "parseFrequencyConfig",
+        "sanitizeString",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSnapshotEpoch",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildProvisionedTemplateFields",
+        "inferProvisionedTemplateMeta",
+        "loadLatestHaccpSnapshot",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "getStripeClient",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "companies"
+      ]
+    },
+    {
+      "name": "getUserAccessProfile",
+      "type": "function",
+      "approx_occurrences": 12,
+      "calls": [
+        "assertAdminAccess",
+        "assertLexiCustomerAccess",
+        "assertStartDayAccess",
+        "getUserLocationIds",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "getUserLocationIds",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "assertLexiCustomerAccess",
+        "assertStartDayAccess",
+        "buildPreferredLocationIds",
+        "getUserAccessProfile",
+        "isDemoScopedId",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "getWeekdayFromDateKey",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "formatDateKey",
+        "getRoutineAnchorDate",
+        "normalizeDateKey",
+        "parseFrequencyConfig",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "guideKey",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "assertStartDayAccess",
+        "ensureLocationTemperatureSettings",
+        "getDateKey",
+        "getOperatingModeForLocation",
+        "loadActiveTaskTemplates",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "host",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "esc",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "seo_pages",
+        "websites"
+      ]
+    },
+    {
+      "name": "inferProvisionedTemplateMeta",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildProvisionedTemplateAlertRules",
+        "buildProvisionedTemplateFields",
+        "extractTemperatureLimits",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isAllowedCheckoutHost",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSeoLandingPages",
+        "normalizeCheckoutOrigin",
+        "parsePageCount",
+        "sanitizeString",
+        "toAsciiSlug",
+        "upsertWebsiteAndSeoPages"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isDemoScopedId",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "assertAdminAccess",
+        "assertLexiCustomerAccess",
+        "assertStartDayAccess",
+        "buildPreferredLocationIds",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "isDueToday",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "addDays",
+        "buildTaskDeadlineMeta",
+        "getWeekdayFromDateKey",
+        "parseFrequencyConfig",
+        "resolveTemplateSchedule",
+        "sanitizeString",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadActiveTaskTemplates",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getExistingTaskInstanceMap",
+        "getOperatingOverrideDataForLocation",
+        "getSnapshotEpoch",
+        "loadDashboardAlertCount",
+        "loadDashboardTaskInstances",
+        "sanitizeString",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "operating_overrides",
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "loadDashboardAlertCount",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildProvisionedTemplateFields",
+        "getSnapshotEpoch",
+        "inferProvisionedTemplateMeta",
+        "loadLatestHaccpSnapshot",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "loadDashboardTaskInstances",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildProvisionedTemplateFields",
+        "getSnapshotEpoch",
+        "inferProvisionedTemplateMeta",
+        "loadDashboardAlertCount",
+        "loadLatestHaccpSnapshot",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "haccp_snapshots",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "loadLatestHaccpSnapshot",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildProvisionedTemplateAlertRules",
+        "buildProvisionedTemplateFields",
+        "getSnapshotEpoch",
+        "inferProvisionedTemplateMeta",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "loadLatestScopedRiskSource",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "assertLexiCustomerAccess",
+        "getComparableEpoch",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "sanitizeOnboardingProfile",
+        "sanitizeRiskModelInput",
+        "sanitizeString",
+        "toDocSafeId",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots",
+        "live_user_profiles"
+      ]
+    },
+    {
+      "name": "materiallyEqualInstance",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "assertStartDayAccess",
+        "buildComparableInstancePayload",
+        "diffComparableFields",
+        "ensureLocationTemperatureSettings",
+        "getDateKey",
+        "getOperatingModeForLocation",
+        "loadActiveTaskTemplates",
+        "sanitizeString",
+        "shouldGenerateDailyRoutineTemplate"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "normalizeCheckoutOrigin",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildSeoLandingPages",
+        "isAllowedCheckoutHost",
+        "parsePageCount",
+        "sanitizeString",
+        "toAsciiSlug",
+        "toDocSafeId",
+        "upsertWebsiteAndSeoPages"
+      ],
+      "selectors": [],
+      "collections": [
+        "websites"
+      ]
+    },
+    {
+      "name": "normalizeConfig",
+      "type": "const_function",
+      "approx_occurrences": 3,
+      "calls": [
+        "sanitizeBoolean",
+        "sanitizeOnboardingProfile",
+        "sanitizeString",
+        "sanitizeStringList",
+        "toArray",
+        "toPositiveInt",
+        "toScheduleCadenceFromFrequencyConfig"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeDateKey",
+      "type": "function",
+      "approx_occurrences": 20,
+      "calls": [
+        "formatDateKey",
+        "getRoutineAnchorDate",
+        "parseFrequencyConfig",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeEmploymentRole",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildScopedUserResponse",
+        "deleteScopedCollectionDocs",
+        "getExistingTaskInstanceMap",
+        "getUserLocationIds",
+        "loadActiveTaskTemplates",
+        "sanitizeString",
+        "toDocSafeId",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "normalizeEquipmentCounts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "syncOnboardingEquipmentUnits",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "parseFrequencyConfig",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "sanitizeString",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "parsePageCount",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildSeoLandingPages",
+        "sanitizeString",
+        "toAsciiSlug",
+        "toDocSafeId",
+        "upsertWebsiteAndSeoPages"
+      ],
+      "selectors": [],
+      "collections": [
+        "websites"
+      ]
+    },
+    {
+      "name": "photos",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "sanitizeString",
+        "scoreStockPhoto"
+      ],
+      "selectors": [],
+      "collections": [
+        "seo_hero_images"
+      ]
+    },
+    {
+      "name": "prettyEquipmentTypeName",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildStartDayTargets",
+        "buildSyntheticEquipmentFromCounts",
+        "sanitizeEquipmentType",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "provisionDemoEnvironment",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDemoEnvironmentIds",
+        "buildDemoSeedProfile",
+        "buildDemoSeedRiskModel",
+        "buildLiveUserProfilePayload",
+        "buildOnboardingSummary",
+        "createHaccpSnapshotDocument",
+        "deriveCustomerName",
+        "sanitizeString",
+        "toDocSafeId",
+        "upsertOnboardingAnswersDocument"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "queryRefsByField",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "batchSetMergeByRefs",
+        "buildDemoEnvironmentIds",
+        "buildDemoLifecyclePayload",
+        "buildDemoSeedProfile",
+        "buildDemoSeedRiskModel",
+        "buildOnboardingSummary",
+        "deriveCustomerName",
+        "provisionDemoEnvironment",
+        "sanitizeString",
+        "setDemoMetadataForEnvironment",
+        "toDocSafeId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations",
+        "onboarding_answers",
+        "users"
+      ]
+    },
+    {
+      "name": "registrationTemplate",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildTaskDeadlineMeta",
+        "isDueToday",
+        "materiallyEqualInstance",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "removeUndefinedFields",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildDemoEnvironmentIds",
+        "buildDemoSeedProfile",
+        "buildHaccpSnapshotPayload",
+        "createHaccpSnapshotDocument",
+        "sanitizeOnboardingProfile",
+        "sanitizeString",
+        "toArray",
+        "toAsciiSlug",
+        "toDocSafeId",
+        "upsertOnboardingAnswersDocument"
+      ],
+      "selectors": [],
+      "collections": [
+        "egenkontrol_programs",
+        "haccp_snapshots",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "resolveLexiStatus",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "assertLexiCustomerAccess",
+        "assertStartDayAccess",
+        "buildPreferredLocationIds",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "isDemoScopedId",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "resolveOperatingMode",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "assertLexiCustomerAccess",
+        "assertStartDayAccess",
+        "buildPreferredLocationIds",
+        "getOperatingModeForLocation",
+        "getUserAccessProfile",
+        "getUserLocationIds",
+        "isDemoScopedId",
+        "normalizeDateKey",
+        "resolveLexiStatus",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "users"
+      ]
+    },
+    {
+      "name": "resolveTemplateSchedule",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "isDueToday",
+        "sanitizeString",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeAddonKeys",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "addDays",
+        "daysBetween",
+        "formatDateKey",
+        "getDateKey",
+        "getLexiCustomerStatusPayload",
+        "getWeekdayFromDateKey",
+        "normalizeDateKey",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeBoolean",
+      "type": "function",
+      "approx_occurrences": 62,
+      "calls": [
+        "sanitizeOnboardingProfile",
+        "sanitizeString",
+        "sanitizeStringList",
+        "toArray"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeEquipmentType",
+      "type": "function",
+      "approx_occurrences": 14,
+      "calls": [
+        "buildStartDayTargets",
+        "buildSyntheticEquipmentFromCounts",
+        "deriveTemperatureStatus",
+        "getEquipmentDisplayName",
+        "prettyEquipmentTypeName",
+        "sanitizeString",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeOnboardingProfile",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "sanitizeBoolean",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeRelativePath",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "buildSeoLandingPages",
+        "isAllowedCheckoutHost",
+        "normalizeCheckoutOrigin",
+        "parsePageCount",
+        "sanitizeString",
+        "toAsciiSlug",
+        "upsertWebsiteAndSeoPages"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeRiskModelInput",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "deriveOnboardingAnswers",
+        "extractCloudinaryAssets",
+        "sanitizeString",
+        "sanitizeStringList",
+        "toArray",
+        "toAsciiSlug"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeString",
+      "type": "function",
+      "approx_occurrences": 530,
+      "calls": [
+        "parseFrequencyConfig",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeStringList",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "sanitizeBoolean",
+        "sanitizeOnboardingProfile",
+        "sanitizeString",
+        "toArray"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "scopedTitle",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildTaskDeadlineMeta",
+        "getLastCompleted",
+        "getRoutineAnchorDate",
+        "isDueToday",
+        "resolveTemplateSchedule",
+        "sanitizeString",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "scoreStockPhoto",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "seo_hero_images"
+      ]
+    },
+    {
+      "name": "setDemoMetadataForEnvironment",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "batchSetMergeByRefs",
+        "buildDemoEnvironmentIds",
+        "buildDemoLifecyclePayload",
+        "buildDemoSeedProfile",
+        "buildDemoSeedRiskModel",
+        "buildOnboardingSummary",
+        "deriveCustomerName",
+        "provisionDemoEnvironment",
+        "sanitizeString",
+        "toDocSafeId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations",
+        "onboarding_answers",
+        "users"
+      ]
+    },
+    {
+      "name": "shouldGenerateDailyRoutineTemplate",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "assertStartDayAccess",
+        "ensureLocationTemperatureSettings",
+        "getDateKey",
+        "getOperatingModeForLocation",
+        "loadActiveTaskTemplates",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "shouldRunToday",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "addDays",
+        "buildTaskDeadlineMeta",
+        "daysBetween",
+        "getWeekdayFromDateKey",
+        "isDueToday",
+        "parseFrequencyConfig"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "slug",
+      "type": "const_function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildCanonicalCompanyId",
+        "buildCompanyKey",
+        "getOrCreateCompany"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "company_registry"
+      ]
+    },
+    {
+      "name": "slugPath",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "esc"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "stableNormalize",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "assertStartDayAccess",
+        "buildComparableInstancePayload",
+        "diffComparableFields",
+        "ensureLocationTemperatureSettings",
+        "getDateKey",
+        "materiallyEqualInstance",
+        "sanitizeString",
+        "shouldGenerateDailyRoutineTemplate"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "syncAreaCleaningTemplates",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "toArray"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "syncEquipmentCleaningTemplates",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "parseFrequencyConfig",
+        "sanitizeEquipmentType",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "syncEquipmentMaintenanceTemplates",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "parseFrequencyConfig",
+        "sanitizeEquipmentType"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "syncOnboardingEquipmentUnits",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "ensureEquipmentTemperatureControl",
+        "normalizeEquipmentCounts"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "syncProcessDriftTemplates",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "syncWaterControlTemplates",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "parseFrequencyConfig",
+        "sanitizeEquipmentType"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "taskType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "assertStartDayAccess",
+        "ensureLocationTemperatureSettings",
+        "getDateKey",
+        "getOperatingModeForLocation",
+        "loadActiveTaskTemplates",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "templateKey",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "sanitizeEquipmentType",
+        "sanitizeString",
+        "shouldGenerateDailyRoutineTemplate"
+      ],
+      "selectors": [],
+      "collections": [
+        "areas",
+        "equipment"
+      ]
+    },
+    {
+      "name": "templateType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "assertStartDayAccess",
+        "ensureLocationTemperatureSettings",
+        "getDateKey",
+        "getOperatingModeForLocation",
+        "loadActiveTaskTemplates",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "title",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildSpecificGuideContent",
+        "formatCorrectiveActions",
+        "formatCriticalLimits",
+        "formatInstructions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toArray",
+      "type": "function",
+      "approx_occurrences": 13,
+      "calls": [
+        "sanitizeBoolean",
+        "sanitizeOnboardingProfile",
+        "sanitizeString",
+        "sanitizeStringList"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toAsciiSlug",
+      "type": "function",
+      "approx_occurrences": 18,
+      "calls": [
+        "buildSeoLandingPages",
+        "isAllowedCheckoutHost",
+        "normalizeCheckoutOrigin",
+        "parsePageCount",
+        "sanitizeRelativePath",
+        "sanitizeString",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toDocSafeId",
+      "type": "function",
+      "approx_occurrences": 16,
+      "calls": [
+        "deleteScopedCollectionDocs",
+        "getExistingTaskInstanceMap",
+        "getOperatingOverrideDataForLocation",
+        "loadActiveTaskTemplates",
+        "loadDashboardTaskInstances",
+        "sanitizeString",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "toFiniteNumberOrNull",
+      "type": "const_function",
+      "approx_occurrences": 8,
+      "calls": [
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toLegacyId",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "buildSeoLandingPages",
+        "isAllowedCheckoutHost",
+        "normalizeCheckoutOrigin",
+        "parsePageCount",
+        "sanitizeRelativePath",
+        "sanitizeString",
+        "toAsciiSlug"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toPositiveInt",
+      "type": "function",
+      "approx_occurrences": 38,
+      "calls": [
+        "syncEquipmentCleaningTemplates"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toScheduleCadenceFromFrequencyConfig",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "sanitizeBoolean",
+        "sanitizeOnboardingProfile",
+        "sanitizeString",
+        "sanitizeStringList",
+        "toArray"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateDemoStateForCompany",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "batchSetMergeByRefs",
+        "buildDemoLifecyclePayload",
+        "cleanupDemoCompanyEnvironment",
+        "collectScopedDemoRefs",
+        "deleteDocsByRefs",
+        "queryRefsByField"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "areas",
+        "companies",
+        "daily_runs",
+        "deviations",
+        "equipment",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations",
+        "media_assets",
+        "onboarding_answers",
+        "operating_overrides",
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "upsertOnboardingAnswersDocument",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildDemoEnvironmentIds",
+        "buildDemoLifecyclePayload",
+        "buildDemoSeedProfile",
+        "buildDemoSeedRiskModel",
+        "sanitizeOnboardingProfile",
+        "sanitizeRiskModelInput",
+        "sanitizeString",
+        "toArray",
+        "toAsciiSlug",
+        "toDocSafeId"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "upsertWebsiteAndSeoPages",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildSeoLandingPages",
+        "parsePageCount",
+        "sanitizeAddonKeys",
+        "sanitizeString",
+        "toDocSafeId"
+      ],
+      "selectors": [],
+      "collections": [
+        "seo_pages",
+        "websites"
+      ]
+    }
+  ]
+}

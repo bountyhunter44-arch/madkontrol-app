@@ -1,0 +1,172 @@
+{
+  "source_file": "functions/water-module.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "firebase-functions"
+  ],
+  "exports": [
+    "closeWaterAlert",
+    "createWaterSystem",
+    "getWaterChartData",
+    "getWaterDashboardSummary",
+    "recordWaterMeasurement",
+    "recordWaterProduction",
+    "recordWaterSales",
+    "recordWaterService",
+    "updateWaterSystemStatus"
+  ],
+  "collections": [
+    "users",
+    "water_alerts",
+    "water_measurements",
+    "water_production",
+    "water_sales",
+    "water_services",
+    "water_systems"
+  ],
+  "flags": [],
+  "risks": [
+    "alerts_without_deviation_creation"
+  ],
+  "functions": [
+    {
+      "name": "assertAccess",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "ss",
+        "toFloat",
+        "toInt"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "dateKeyNow",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "assertAccess",
+        "monthKeyNow",
+        "ss",
+        "toFloat",
+        "toInt"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "hasDeviation",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "assertAccess",
+        "dateKeyNow",
+        "ss",
+        "toMoney"
+      ],
+      "selectors": [],
+      "collections": [
+        "water_alerts",
+        "water_measurements",
+        "water_services"
+      ]
+    },
+    {
+      "name": "monthKeyNow",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "assertAccess",
+        "dateKeyNow",
+        "ss",
+        "toFloat",
+        "toInt"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "ss",
+      "type": "function",
+      "approx_occurrences": 45,
+      "calls": [
+        "assertAccess",
+        "dateKeyNow",
+        "monthKeyNow",
+        "toFloat",
+        "toInt",
+        "toMoney"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "toFloat",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "assertAccess",
+        "dateKeyNow",
+        "monthKeyNow",
+        "ss",
+        "toInt",
+        "toMoney"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "toInt",
+      "type": "function",
+      "approx_occurrences": 12,
+      "calls": [
+        "assertAccess",
+        "dateKeyNow",
+        "monthKeyNow",
+        "ss",
+        "toFloat",
+        "toMoney"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "toMoney",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "assertAccess",
+        "dateKeyNow",
+        "monthKeyNow",
+        "ss",
+        "toFloat",
+        "toInt"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    }
+  ]
+}

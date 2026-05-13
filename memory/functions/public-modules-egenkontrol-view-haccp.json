@@ -1,0 +1,108 @@
+{
+  "source_file": "public/modules/egenkontrol/view-haccp.html",
+  "module": "general",
+  "imports": [
+    "/core/firebase-config.js",
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "haccp_snapshots"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "formatDate",
+        "loadSnapshot",
+        "renderControls",
+        "renderDocument",
+        "renderHazards"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "formatDate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "loadSnapshot",
+        "renderControls",
+        "renderDocument",
+        "renderHazards"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "loadSnapshot",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "renderDocument"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "renderControls",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDate",
+        "loadSnapshot",
+        "renderDocument",
+        "renderHazards"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "renderDocument",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatDate",
+        "loadSnapshot",
+        "renderControls",
+        "renderHazards"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "renderHazards",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDate",
+        "loadSnapshot",
+        "renderControls",
+        "renderDocument"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots"
+      ]
+    }
+  ]
+}

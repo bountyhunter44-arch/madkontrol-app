@@ -1,0 +1,167 @@
+{
+  "source_file": "scripts/patch-and-audit.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "onboarding_answers",
+    "risks",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "cat",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "check",
+        "fmt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "check",
+      "type": "function",
+      "approx_occurrences": 11,
+      "calls": [
+        "main",
+        "patchOnboardingAnswers",
+        "readAfter",
+        "readBefore",
+        "stepAreaTemplates",
+        "stepRisks",
+        "stepTemplates"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "fmt",
+      "type": "const_function",
+      "approx_occurrences": 4,
+      "calls": [
+        "check",
+        "main",
+        "patchOnboardingAnswers",
+        "readAfter",
+        "readBefore",
+        "stepAreaTemplates",
+        "stepRisks",
+        "stepTemplates"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "patchOnboardingAnswers",
+        "readAfter",
+        "readBefore",
+        "stepAreaTemplates",
+        "stepRisks",
+        "stepTemplates"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "patchOnboardingAnswers",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "stepAreaTemplates",
+        "stepRisks",
+        "stepTemplates"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "readAfter",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "check",
+        "fmt"
+      ],
+      "selectors": [],
+      "collections": [
+        "risks",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "readBefore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "patchOnboardingAnswers",
+        "stepRisks",
+        "stepTemplates"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "risks",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "stepAreaTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "readAfter"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "risks",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "stepRisks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "readAfter",
+        "stepAreaTemplates",
+        "stepTemplates"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "risks",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "stepTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "readAfter",
+        "stepAreaTemplates"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "risks",
+        "task_templates"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1165 @@
+{
+  "source_file": "public/modules/seo/generator.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "/core/layout.js",
+    "/modules/seo/generator/generator-runner.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [
+    "live_user_profiles",
+    "seo_generator_configs"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "_bodySecs",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "applyLogoPlacement",
+        "escapeHtml",
+        "generateSite",
+        "getModulePriceLabel",
+        "getRecommendedModules",
+        "getThemePresetForCuisine",
+        "handleModulePurchase",
+        "loadHeroAwningInlineInto",
+        "renderModules",
+        "setGeneratorStatus",
+        "setLogoContent"
+      ],
+      "selectors": [
+        ".seo-lp-hero .hero-awning[data-awning]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "_menuSec",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "escapeHtml",
+        "generateSite",
+        "getModulePriceLabel",
+        "getRecommendedModules",
+        "getThemePresetForCuisine",
+        "loadHeroAwningInlineInto",
+        "renderModules",
+        "setGeneratorStatus"
+      ],
+      "selectors": [
+        ".seo-lp-hero .hero-awning[data-awning]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "_miHtml",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "escapeHtml",
+        "getModulePriceLabel",
+        "getRecommendedModules",
+        "getThemePresetForCuisine",
+        "loadHeroAwningInlineInto",
+        "renderModules"
+      ],
+      "selectors": [
+        ".seo-lp-hero .hero-awning[data-awning]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "_pick",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "_poolKey",
+        "_shuffle",
+        "buildFeatures",
+        "buildLandingPages",
+        "buildMenuItems",
+        "capitalize",
+        "generateDishDescription",
+        "generateMenuByCategory"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "_poolKey",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "_pick",
+        "_shuffle",
+        "buildFeatures",
+        "buildLandingPages",
+        "buildMenuItems",
+        "capitalize",
+        "generateDishDescription",
+        "generateMenuByCategory"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "_shuffle",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "_pick",
+        "_poolKey",
+        "buildFeatures",
+        "buildLandingPages",
+        "buildMenuItems",
+        "capitalize",
+        "generateDishDescription",
+        "generateMenuByCategory"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "activateSubdomain",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildLandingPageConfigFromGenerator",
+        "escapeHtml",
+        "generateSite",
+        "renderImageGrid",
+        "selectStockImage",
+        "setGeneratorStatus"
+      ],
+      "selectors": [
+        ".img-grid-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "applyLogoPlacement",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "applyPreviewTheme",
+        "buildFeatures",
+        "buildMenuItems",
+        "fillFromCore",
+        "generateSite",
+        "getGeneratorConfig",
+        "getTemplateThemeClass",
+        "getThemePresetForCuisine",
+        "loadHeroAwningInline",
+        "renderModules",
+        "setLogoContent",
+        "slugify"
+      ],
+      "selectors": [
+        ".preview-hero"
+      ],
+      "collections": []
+    },
+    {
+      "name": "applyPreviewTheme",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getGeneratorConfig",
+        "getThemePresetForCuisine",
+        "openSeoModal",
+        "renderHeroActions",
+        "renderSeoPages"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildAutoSubdomain",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_shuffle",
+        "buildLandingPageObjects",
+        "buildLandingPages",
+        "buildMetaDescription",
+        "generateMenuByCategory",
+        "slugify",
+        "syncSubdomainFromName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildFeatures",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyPreviewTheme",
+        "buildLandingPages",
+        "capitalize",
+        "getThemePresetForCuisine",
+        "renderCards",
+        "renderHeroActions",
+        "renderSeoPages"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildLandingPageConfigFromGenerator",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "activateSubdomain",
+        "escapeHtml",
+        "generateSite",
+        "getGeneratorConfig",
+        "getThemeForCuisine",
+        "setGeneratorStatus",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildLandingPageObjects",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_shuffle",
+        "buildLandingPages",
+        "buildMetaDescription",
+        "generateMenuByCategory",
+        "getGeneratorConfig",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildLandingPages",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyPreviewTheme",
+        "capitalize",
+        "escapeHtml",
+        "getThemePresetForCuisine",
+        "renderCards",
+        "renderHeroActions",
+        "renderSeoPages"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildMenuItems",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyPreviewTheme",
+        "buildFeatures",
+        "buildLandingPages",
+        "capitalize",
+        "generateMenuByCategory",
+        "getThemePresetForCuisine",
+        "renderCards",
+        "renderHeroActions",
+        "renderSeoPages"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildMetaDescription",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_shuffle",
+        "buildLandingPageObjects",
+        "buildLandingPages",
+        "generateMenuByCategory",
+        "getGeneratorConfig",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "c",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "_pick",
+        "_poolKey",
+        "_shuffle",
+        "buildFeatures",
+        "buildLandingPages",
+        "buildMenuItems",
+        "capitalize",
+        "generateDishDescription",
+        "generateMenuByCategory"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "capitalize",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "getTemplateThemeClass",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "checkSubdomainLive",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "generateSite",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "handleModulePurchase",
+        "persistConfig",
+        "setGeneratorStatus",
+        "setSubdomainStatus",
+        "setupSubdomainInput",
+        "slugify",
+        "syncSubdomainFromName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 27,
+      "calls": [
+        "getGeneratorConfig",
+        "openSeoModal"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "fillFromCore",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "applyPreviewTheme",
+        "buildFeatures",
+        "buildMenuItems",
+        "generateSite",
+        "getGeneratorConfig",
+        "getTemplateThemeClass",
+        "getThemePresetForCuisine",
+        "loadHeroAwningInline",
+        "renderHeroActions",
+        "renderModules",
+        "slugify"
+      ],
+      "selectors": [
+        ".preview-hero"
+      ],
+      "collections": []
+    },
+    {
+      "name": "formValue",
+      "type": "const_function",
+      "approx_occurrences": 8,
+      "calls": [
+        "buildAutoSubdomain",
+        "buildLandingPageObjects",
+        "buildMetaDescription",
+        "generateSite",
+        "getSeoAiInputData",
+        "handleAiSuggestions",
+        "slugify",
+        "syncSubdomainFromName",
+        "topbar"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateAndSave",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildLandingPageConfigFromGenerator",
+        "getGeneratorConfig",
+        "getThemeForCuisine",
+        "setGeneratorStatus",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateDishDescription",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "_pick",
+        "_poolKey",
+        "_shuffle",
+        "applyPreviewTheme",
+        "buildFeatures",
+        "buildLandingPages",
+        "buildMenuItems",
+        "capitalize",
+        "generateMenuByCategory",
+        "getThemePresetForCuisine",
+        "renderCards"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateMenuByCategory",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "_pick",
+        "_poolKey",
+        "_shuffle",
+        "applyPreviewTheme",
+        "buildFeatures",
+        "buildLandingPages",
+        "buildMenuItems",
+        "capitalize",
+        "generateDishDescription",
+        "getThemePresetForCuisine",
+        "renderCards"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateSite",
+      "type": "function",
+      "approx_occurrences": 13,
+      "calls": [
+        "applyPreviewTheme",
+        "buildFeatures",
+        "buildMenuItems",
+        "getGeneratorConfig",
+        "getTemplateThemeClass",
+        "getThemePresetForCuisine",
+        "loadHeroAwningInline",
+        "renderCards",
+        "renderHeroActions",
+        "renderModules",
+        "renderSeoPages"
+      ],
+      "selectors": [
+        ".preview-hero"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getAuthToken",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "checkSubdomainLive",
+        "getGeneratorConfig",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "isOnboardingUser",
+        "persistConfig",
+        "restoreLocalDraft",
+        "saveLocalDraft",
+        "set",
+        "setGeneratorStatus",
+        "slugify"
+      ],
+      "selectors": [
+        ".template"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getGeneratorConfig",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "buildLandingPageObjects",
+        "capitalize",
+        "generateMenuByCategory",
+        "getAuthToken",
+        "getSessionCompanyId",
+        "isOnboardingUser",
+        "saveLocalDraft",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getModulePriceLabel",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formValue",
+        "generateSite",
+        "getSeoAiInputData",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "handleAiSuggestions",
+        "setGeneratorStatus",
+        "setSubdomainStatus",
+        "topbar"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getRecommendedModules",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyLogoPlacement",
+        "fillFromCore",
+        "generateSite",
+        "getModulePriceLabel",
+        "handleModulePurchase",
+        "renderModules",
+        "setGeneratorStatus",
+        "setLogoContent"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSeoAiInputData",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAutoSubdomain",
+        "buildMetaDescription",
+        "formValue",
+        "generateSite",
+        "handleAiSuggestions",
+        "slugify",
+        "syncSubdomainFromName",
+        "topbar"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSessionCompanyId",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "buildAutoSubdomain",
+        "formValue",
+        "generateSite",
+        "getSeoAiInputData",
+        "getSessionLocationId",
+        "handleAiSuggestions",
+        "slugify",
+        "syncSubdomainFromName",
+        "topbar"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSessionLocationId",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "buildAutoSubdomain",
+        "buildMetaDescription",
+        "formValue",
+        "generateSite",
+        "getSeoAiInputData",
+        "handleAiSuggestions",
+        "slugify",
+        "syncSubdomainFromName",
+        "topbar"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTemplateThemeClass",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getThemeForCuisine",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildLandingPageConfigFromGenerator",
+        "escapeHtml",
+        "getGeneratorConfig",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getThemePresetForCuisine",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "applyPreviewTheme",
+        "escapeHtml",
+        "getGeneratorConfig",
+        "openSeoModal",
+        "renderHeroActions",
+        "renderSeoPages"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleAiSuggestions",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildAutoSubdomain",
+        "buildLandingPageObjects",
+        "buildLandingPages",
+        "buildMetaDescription",
+        "generateMenuByCategory",
+        "generateSite",
+        "getSeoAiInputData",
+        "slugify",
+        "syncSubdomainFromName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleModulePurchase",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateSite",
+        "getGeneratorConfig",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "maybeFinalizeSeoCheckout",
+        "persistConfig",
+        "setGeneratorStatus"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "id",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "checkSubdomainLive",
+        "getAuthToken",
+        "getGeneratorConfig",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "persistConfig",
+        "restoreLocalDraft",
+        "saveLocalDraft",
+        "set",
+        "setGeneratorStatus",
+        "setSubdomainStatus",
+        "slugify"
+      ],
+      "selectors": [
+        ".template"
+      ],
+      "collections": []
+    },
+    {
+      "name": "isOnboarding",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "generateSite",
+        "loadHeroAwningInline",
+        "loadHeroAwningInlineInto",
+        "loadSavedConfig",
+        "maybeFinalizeSeoCheckout",
+        "prefillFromLiveProfile",
+        "restoreLocalDraft",
+        "setGeneratorStatus",
+        "syncSubdomainFromName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isOnboardingUser",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "checkSubdomainLive",
+        "getAuthToken",
+        "getGeneratorConfig",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "persistConfig",
+        "restoreLocalDraft",
+        "saveLocalDraft",
+        "set",
+        "setGeneratorStatus",
+        "setSubdomainStatus",
+        "slugify"
+      ],
+      "selectors": [
+        ".template"
+      ],
+      "collections": []
+    },
+    {
+      "name": "loadHeroAwningInline",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateSite",
+        "loadHeroAwningInlineInto",
+        "restoreLocalDraft",
+        "syncSubdomainFromName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadHeroAwningInlineInto",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateSite",
+        "restoreLocalDraft",
+        "syncSubdomainFromName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadSavedConfig",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "isOnboardingUser",
+        "prefillFromLiveProfile",
+        "set",
+        "setIfEmpty",
+        "slugify",
+        "syncSubdomainFromName",
+        "topbar"
+      ],
+      "selectors": [
+        ".template"
+      ],
+      "collections": [
+        "live_user_profiles",
+        "seo_generator_configs"
+      ]
+    },
+    {
+      "name": "maybeFinalizeSeoCheckout",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateSite",
+        "getGeneratorConfig",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "renderModules",
+        "scheduleAutoSave",
+        "setGeneratorStatus"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "openSeoModal",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getGeneratorConfig"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "persistConfig",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "checkSubdomainLive",
+        "getAuthToken",
+        "getGeneratorConfig",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "handleModulePurchase",
+        "setGeneratorStatus",
+        "setSubdomainStatus",
+        "setupSubdomainInput",
+        "slugify",
+        "syncSubdomainFromName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "prefillFromLiveProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateSite",
+        "getAuthToken",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "loadHeroAwningInline",
+        "loadHeroAwningInlineInto",
+        "loadSavedConfig",
+        "maybeFinalizeSeoCheckout",
+        "restoreLocalDraft",
+        "setGeneratorStatus",
+        "setIfEmpty",
+        "syncSubdomainFromName",
+        "topbar"
+      ],
+      "selectors": [],
+      "collections": [
+        "live_user_profiles"
+      ]
+    },
+    {
+      "name": "renderCards",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "applyPreviewTheme",
+        "escapeHtml",
+        "getGeneratorConfig",
+        "getThemePresetForCuisine",
+        "openSeoModal",
+        "renderHeroActions",
+        "renderSeoPages"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderHeroActions",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getGeneratorConfig",
+        "openSeoModal",
+        "renderSeoPages"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderImageGrid",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "selectStockImage"
+      ],
+      "selectors": [
+        ".img-grid-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderModules",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "applyLogoPlacement",
+        "fillFromCore",
+        "generateSite",
+        "getModulePriceLabel",
+        "getRecommendedModules",
+        "handleModulePurchase",
+        "setGeneratorStatus",
+        "setLogoContent"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderSeoPages",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getGeneratorConfig",
+        "openSeoModal"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "restoreLocalDraft",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "checkSubdomainLive",
+        "getAuthToken",
+        "getGeneratorConfig",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "persistConfig",
+        "set",
+        "setGeneratorStatus",
+        "setSubdomainStatus",
+        "slugify"
+      ],
+      "selectors": [
+        ".template"
+      ],
+      "collections": []
+    },
+    {
+      "name": "saveLocalDraft",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "checkSubdomainLive",
+        "getAuthToken",
+        "getGeneratorConfig",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "persistConfig",
+        "restoreLocalDraft",
+        "set",
+        "setGeneratorStatus",
+        "setSubdomainStatus",
+        "slugify"
+      ],
+      "selectors": [
+        ".template"
+      ],
+      "collections": []
+    },
+    {
+      "name": "scheduleAutoSave",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "capitalize",
+        "generateSite",
+        "getTemplateThemeClass",
+        "slugify",
+        "syncSubdomainFromName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "selectStockImage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "renderImageGrid"
+      ],
+      "selectors": [
+        ".img-grid-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "set",
+      "type": "const_function",
+      "approx_occurrences": 31,
+      "calls": [
+        "checkSubdomainLive",
+        "getAuthToken",
+        "getGeneratorConfig",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "persistConfig",
+        "setGeneratorStatus",
+        "setSubdomainStatus",
+        "setupSubdomainInput",
+        "slugify"
+      ],
+      "selectors": [
+        ".template"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setGeneratorStatus",
+      "type": "function",
+      "approx_occurrences": 26,
+      "calls": [
+        "buildAutoSubdomain",
+        "formValue",
+        "generateSite",
+        "getSeoAiInputData",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "handleAiSuggestions",
+        "setSubdomainStatus",
+        "slugify",
+        "topbar"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setIfEmpty",
+      "type": "const_function",
+      "approx_occurrences": 8,
+      "calls": [
+        "generateSite",
+        "getAuthToken",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "loadHeroAwningInline",
+        "loadHeroAwningInlineInto",
+        "loadSavedConfig",
+        "maybeFinalizeSeoCheckout",
+        "prefillFromLiveProfile",
+        "restoreLocalDraft",
+        "setGeneratorStatus",
+        "syncSubdomainFromName",
+        "topbar"
+      ],
+      "selectors": [],
+      "collections": [
+        "live_user_profiles"
+      ]
+    },
+    {
+      "name": "setLogoContent",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "applyLogoPlacement",
+        "applyPreviewTheme",
+        "buildFeatures",
+        "buildMenuItems",
+        "fillFromCore",
+        "generateSite",
+        "getGeneratorConfig",
+        "getTemplateThemeClass",
+        "getThemePresetForCuisine",
+        "loadHeroAwningInline",
+        "renderModules",
+        "slugify"
+      ],
+      "selectors": [
+        ".preview-hero"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setSubdomainStatus",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "buildAutoSubdomain",
+        "formValue",
+        "generateSite",
+        "getSeoAiInputData",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "handleAiSuggestions",
+        "slugify",
+        "syncSubdomainFromName",
+        "topbar"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setupSubdomainInput",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "checkSubdomainLive",
+        "generateSite",
+        "getSessionCompanyId",
+        "getSessionLocationId",
+        "handleModulePurchase",
+        "maybeFinalizeSeoCheckout",
+        "persistConfig",
+        "setGeneratorStatus",
+        "slugify",
+        "syncSubdomainFromName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 13,
+      "calls": [
+        "getTemplateThemeClass"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "syncSubdomainFromName",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "_shuffle",
+        "buildAutoSubdomain",
+        "buildLandingPageObjects",
+        "buildLandingPages",
+        "buildMetaDescription",
+        "generateMenuByCategory",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "topbar",
+      "type": "const_function",
+      "approx_occurrences": 5,
+      "calls": [
+        "buildAutoSubdomain",
+        "buildMetaDescription",
+        "formValue",
+        "generateSite",
+        "getSeoAiInputData",
+        "handleAiSuggestions",
+        "slugify",
+        "syncSubdomainFromName"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

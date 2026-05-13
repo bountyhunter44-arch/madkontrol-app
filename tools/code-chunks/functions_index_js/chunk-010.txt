@@ -1,0 +1,500 @@
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
+  }
+
+  await assertStartDayAccess({
+    uid: auth.uid,
+    email: auth.token?.email || "",
+    companyId,
+    locationId
+  });
+
+  const [operatingOverride, tasks, alertCount, haccpSnapshot] = await Promise.all([
+    getOperatingOverrideDataForLocation({ companyId, locationId }),
+    loadDashboardTaskInstances({ companyId, locationId, dateKey }),
+    loadDashboardAlertCount({ companyId, locationId, dateKey }),
+    loadLatestHaccpSnapshot({ companyId })
+  ]);
+
+  return {
+    ok: true,
+    dateKey,
+    operatingOverride,
+    tasks,
+    alertCount,
+    haccpSnapshot
+  };
+});
+
+exports.seedDemoData = functions.https.onCall(async (data, context) => {
+  if (!context.auth?.uid) {
+    throw new functions.https.HttpsError("unauthenticated", "Du skal vaere logget ind for at oprette demo-data.");
+  }
+
+  // CRITICAL: Block seed demo in production
+  guardDangerousOperation(context, "seedDemoData");
+
+  const companyId = sanitizeString(data?.companyId || "", 120);
+  const locationId = sanitizeString(data?.locationId || "", 120);
+
+  if (!companyId || !locationId) {
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
+  }
+
+  await assertAdminAccess({
+    uid: context.auth.uid,
+    email: context.auth.token?.email || "",
+    companyId,
+    locationId
+  });
+
+  const dateKey = getDateKey();
+  const nowIso = new Date().toISOString();
+
+  const demoTasks = [
+    {
+      taskId: "demo_fridge_temperature_1",
+      title: "Køleskab 1 temperatur",
+      description: "Mål temperatur i køleskab 1 og udfyld målefelt.",
+      type: "measurement",
+      measurementUnit: "°C",
+      minValue: 0,
+      maxValue: 5,
+      equipmentType: "fridge",
+      equipmentName: "Køleskab 1"
+    },
+    {
+      taskId: "demo_fridge_temperature_2",
+      title: "Køleskab 2 temperatur",
+      description: "Mål temperatur i køleskab 2 og udfyld målefelt.",
+      type: "measurement",
+      measurementUnit: "°C",
+      minValue: 0,
+      maxValue: 5,
+      equipmentType: "fridge",
+      equipmentName: "Køleskab 2"
+    },
+    {
+      taskId: "demo_freezer_temperature_1",
+      title: "Fryser 1 temperatur",
+      description: "Mål temperatur i fryser 1 og udfyld målefelt.",
+      type: "measurement",
+      measurementUnit: "°C",
+      minValue: -30,
+      maxValue: -18,
+      equipmentType: "freezer",
+      equipmentName: "Fryser 1"
+    },
+    {
+      taskId: "demo_cleaning_surface",
+      title: "Rengøring af arbejdsflader",
+      description: "Kontroller at arbejdsflader er rengjort og kryds af.",
+      type: "check",
+      equipmentType: "cleaning",
+      equipmentName: "Arbejdsflader"
+    },
+    {
+      taskId: "demo_allergen_separation",
+      title: "Adskillelse af allergener",
+      description: "Bekræft adskillelse mellem allergenvarer og øvrige varer.",
+      type: "check",
+      equipmentType: "storage",
+      equipmentName: "Tørvarelager"
+    },
+    {
+      taskId: "demo_receiving_check",
+      title: "Varemodtagelse kontrol",
+      description: "Kontroller emballage, temperatur og datomærkning.",
+      type: "check",
+      equipmentType: "receiving",
+      equipmentName: "Varemodtagelse"
+    },
+    {
+      taskId: "demo_softice_cleaning",
+      title: "Softice-maskine rengøring",
+      description: "Rengør softice-maskine inkl. tappetud, slanger, pakninger og drypbakke.",
+      type: "check",
+      equipmentType: "softice",
+      equipmentName: "Softice-maskine",
+      guideTitle: "Softice-maskine - rengøring af maskine og dele",
+      guideIntro: "Maskinen skal adskilles og rengøres efter producentens procedure for at undgå bakterievækst.",
+      guideAreas: [
+        "Tappetud, pakninger, slanger, omrører og drypbakke",
+        "Beholder og alle produktberørte kontaktflader",
+        "Korrekt samling af alle dele efter rengøring"
+      ],
+      guideSteps: [
+        "Stop drift, tøm produkt og adskil de dele der skal rengøres.",
+        "Vask, skyl og desinficér delene efter godkendt rengøringsinstruks.",
+        "Saml maskinen igen, kør test/skyl og registrér opgaven."
+      ],
+      guideApproval: [
+        "Alle dele er synligt rene og korrekt monteret.",
+        "Ingen rester af produkt eller rengøringsmiddel.",
+        "Maskinen er klar til sikker drift."
+      ],
+      guideIfNotOk: [
+        "Registrér afvigelse med hvilken del der ikke er ok.",
+        "Gentag rengøring før maskinen tages i brug.",
+        "Informer ansvarlig ved teknisk fejl eller manglende tæthed."
+      ]
+    },
+    {
+      taskId: "demo_oven_cleaning_and_temp",
+      title: "Ovn rengøring og temperaturkontrol",
+      description: "Rengør ovn og verificér at ovntemperatur er korrekt.",
+      type: "measurement",
+      measurementUnit: "°C",
+      minValue: 160,
+      maxValue: 260,
+      equipmentType: "oven",
+      equipmentName: "Kombiovn 1",
+      guideTitle: "Ovn - rengøring og temperaturkontrol",
+      guideIntro: "Ovnen skal være ren og holde den temperatur der er sat for sikker tilberedning.",
+      guideAreas: [
+        "Ovnrum, riste, plader, tætningslister og håndtag",
+        "Temperaturvisning og evt. kernetermometer",
+        "Luftcirkulation og ventilationsåbninger"
+      ],
+      guideSteps: [
+        "Rengør ovnens indvendige flader og tilbehør.",
+        "Forvarm ovnen og mål faktisk temperatur med kalibreret termometer.",
+        "Indtast målingen og registrér kommentar ved afvigelse."
+      ],
+      guideApproval: [
+        "Ovnen er fri for fastbrændte rester.",
+        "Målt temperatur ligger inden for tilladt interval.",
+        "Kontrollen er dokumenteret i systemet."
+      ],
+      guideIfNotOk: [
+        "Opret afvigelse med målt temperatur og forventet værdi.",
+        "Tag ovn ud af drift ved kritisk temperaturfejl.",
+        "Bestil service/kalibrering."
+      ]
+    },
+    {
+      taskId: "demo_industrial_dishwasher_temp",
+      title: "Industriopvaskemaskine temperaturkontrol",
+      description: "Kontrollér vaske-/slutskylletemperatur og rengør filtre/dyser.",
+      type: "measurement",
+      measurementUnit: "°C",
+      minValue: 60,
+      maxValue: 90,
+      equipmentType: "dishwasher",
+      equipmentName: "Industriopvaskemaskine",
+      guideTitle: "Industriopvaskemaskine - rengøring og temperatur",
+      guideIntro: "Maskinen skal være ren, og temperaturer skal sikre hygiejnisk opvask.",
+      guideAreas: [
+        "Filtre, dyser, skyllearme og tank",
+        "Sæbe-/afspændingsdosering",
+        "Vaske- og slutskylletemperatur"
+      ],
+      guideSteps: [
+        "Rengør filtre, dyser og tank efter daglig rutine.",
+        "Kør testprogram og aflæs temperaturer.",
+        "Registrér temperaturmåling og evt. afvigelse."
+      ],
+      guideApproval: [
+        "Maskinen er rengjort uden madrester.",
+        "Målt temperatur ligger inden for tilladt interval.",
+        "Dokumentation er gemt."
+      ],
+      guideIfNotOk: [
+        "Opret afvigelse med målte temperaturer.",
+        "Stop brug ved kritisk afvigelse.",
+        "Kontakt service ved gentagne fejl."
+      ]
+    }
+  ];
+
+  const batch = db.batch();
+  let createdCount = 0;
+
+  for (const item of demoTasks) {
+    const docId = toDocSafeId(`demo__${companyId}__${locationId}__${dateKey}__${item.taskId}`);
+    const ref = db.collection("task_instances").doc(docId);
+    const snap = await ref.get();
+    if (snap.exists) continue;
+
+    batch.set(ref, {
+      taskId: item.taskId,
+      companyId,
+      organizationId: companyId,
+      locationId,
+      unitId: "",
+      title: item.title,
+      description: item.description,
+      category: "egenkontrol",
+      dateKey,
+      status: "pending",
+      type: item.type,
+      requiresMeasurement: item.type === "measurement",
+      measurementUnit: item.measurementUnit || "",
+      minValue: Number.isFinite(item.minValue) ? item.minValue : null,
+      maxValue: Number.isFinite(item.maxValue) ? item.maxValue : null,
+      equipmentId: item.taskId,
+      equipmentName: item.equipmentName || "",
+      equipmentType: item.equipmentType || "",
+      guideEnabled: true,
+      guideTitle: item.guideTitle || `${item.title} - demo guide`,
+      guideIntro: item.guideIntro || "Dette er demo-data. Udfyld kun felter som en medarbejder normalt udfylder.",
+      guideAreas: Array.isArray(item.guideAreas) ? item.guideAreas : [],
+      guideSteps: Array.isArray(item.guideSteps) ? item.guideSteps : [
+        "Læs opgaven",
+        "Udfyld måling eller vælg udført",
+        "Tilføj kommentar ved afvigelse"
+      ],
+      guideApproval: Array.isArray(item.guideApproval) ? item.guideApproval : [],
+      guideIfNotOk: Array.isArray(item.guideIfNotOk) ? item.guideIfNotOk : [],
+      frequency: "daily",
+      frequencyType: "daily",
+      registrationFrequency: "daily",
+      registrationFrequencyType: "daily",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+      demoSeed: true,
+      demoSeedVersion: 1,
+      demoSeededAtIso: nowIso
+    }, { merge: true });
+
+    createdCount++;
+  }
+
+  if (createdCount > 0) {
+    await batch.commit();
+  }
+
+  return {
+    ok: true,
+    created: createdCount,
+    dateKey
+  };
+});
+
+exports.resetDemoData = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const auth = request.auth;
+  
+
+  if (!auth?.uid) {
+    throw new functions.https.HttpsError("unauthenticated", "Du skal vaere logget ind.");
+  }
+
+  // CRITICAL: Block reset demo in production
+  guardDangerousOperation(request, "resetDemoData");
+
+  const companyId = sanitizeString(data?.companyId || "", 120);
+  const locationId = sanitizeString(data?.locationId || "", 120);
+
+  if (!companyId || !locationId) {
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
+  }
+
+  await assertAdminAccess({
+    uid: auth.uid,
+    email: auth.token?.email || "",
+    companyId,
+    locationId
+  });
+
+  const snapshots = await Promise.all([
+    db.collection("users").where("companyId", "==", companyId).limit(100).get(),
+    db.collection("users").where("organizationId", "==", companyId).limit(100).get()
+  ]);
+
+  const usersById = new Map();
+  snapshots.forEach((snap) => {
+    snap.docs.forEach((docSnap) => {
+      if (!usersById.has(docSnap.id)) {
+        usersById.set(docSnap.id, docSnap.data() || {});
+      }
+    });
+  });
+
+  const users = [...usersById.entries()]
+    .filter(([, userData]) => {
+      const locationIds = getUserLocationIds(userData);
+      if (!locationIds.length) return true;
+      return locationIds.includes(locationId);
+    })
+    .map(([userId, userData]) => buildScopedUserResponse(userId, userData))
+    .sort((left, right) => {
+      const leftName = String(left.displayName || left.email || left.userId || "").toLowerCase();
+      const rightName = String(right.displayName || right.email || right.userId || "").toLowerCase();
+      return leftName.localeCompare(rightName, "da");
+    });
+
+  return { ok: true, users };
+});
+
+exports.resetTaskInstances = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const auth = request.auth;
+  
+  if (!auth?.uid) {
+    throw new functions.https.HttpsError("unauthenticated", "Du skal vaere logget ind.");
+  }
+
+  // CRITICAL: Block reset task instances in production
+  guardDangerousOperation(request, "resetTaskInstances");
+
+  const companyId = sanitizeString(data?.companyId || "", 120);
+  const locationId = sanitizeString(data?.locationId || "", 120);
+
+  if (!companyId || !locationId) {
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
+  }
+
+  await assertAdminAccess({
+    uid: auth.uid,
+    email: auth.token?.email || "",
+    companyId,
+    locationId
+  });
+
+  const [deletedTaskInstances, deletedDailyRuns] = await Promise.all([
+    deleteScopedCollectionDocs({ collectionName: "task_instances", companyId, locationId }),
+    deleteScopedCollectionDocs({ collectionName: "daily_runs", companyId, locationId })
+  ]);
+
+  return {
+    ok: true,
+    deleted: {
+      task_instances: deletedTaskInstances,
+      daily_runs: deletedDailyRuns
+    },
+    message: `Slettet ${deletedTaskInstances} task instances og ${deletedDailyRuns} daily runs`
+  };
+});
+
+exports.listLocationUsers = onCall(
+  { region: "us-central1" },
+  async (request) => {
+    console.log("listLocationUsers v2 debug", {
+      hasAuth: !!request.auth,
+      uid: request.auth?.uid || null,
+      email: request.auth?.token?.email || null,
+      data: request.data || null
+    });
+
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Du skal vaere logget ind.");
+    }
+
+    const companyId = sanitizeString(request.data?.companyId || "", 120);
+    const locationId = sanitizeString(request.data?.locationId || "", 120);
+
+    if (!companyId || !locationId) {
+      throw new HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
+    }
+
+    await assertAdminAccess({
+      uid: request.auth.uid,
+      email: request.auth.token?.email || "",
+      companyId,
+      locationId
+    });
+
+    try {
+      const usersSnapshot = await db.collection("users")
+        .where("companyId", "==", companyId)
+        .where("locationId", "==", locationId)
+        .get();
+
+      const users = [];
+      usersSnapshot.forEach(doc => {
+        const userData = doc.data();
+        users.push({
+          userId: doc.id,
+          displayName: userData.displayName || "",
+          email: userData.email || "",
+          role: userData.role || "medarbejder",
+          employmentRole: userData.employmentRole || userData.role || "medarbejder",
+          status: userData.status || "active",
+          createdAt: userData.createdAt || null
+        });
+      });
+
+      return { users };
+    } catch (error) {
+      console.error("Fejl ved hentning af lokationsbrugere:", error);
+      throw new HttpsError("internal", "Kunne ikke hente brugere.");
+    }
+  }
+);
+
+exports.createLocationUser = onCall(
+  { region: "us-central1" },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Du skal vaere logget ind.");
+    }
+
+    const companyId = sanitizeString(request.data?.companyId || "", 120);
+    const locationId = sanitizeString(request.data?.locationId || "", 120);
+    const displayName = sanitizeString(request.data?.displayName || "", 100);
+    const email = sanitizeString(request.data?.email || "", 100);
+    const password = sanitizeString(request.data?.password || "", 100);
+    const role = sanitizeString(request.data?.role || "employee", 50);
+    const employmentRole = sanitizeString(request.data?.employmentRole || "medarbejder", 50);
+
+    if (!companyId || !locationId || !displayName || !email || !password) {
+      throw new HttpsError("invalid-argument", "companyId, locationId, displayName, email og password er paakraevet.");
+    }
+
+    if (password.length < 6) {
+      throw new HttpsError("invalid-argument", "Password skal vaere mindst 6 tegn.");
+    }
+
+    await assertAdminAccess({
+      uid: request.auth.uid,
+      email: request.auth.token?.email || "",
+      companyId,
+      locationId
+    });
+
+    try {
+      const existingUser = await db.collection("users")
+        .where("email", "==", email)
+        .where("companyId", "==", companyId)
+        .where("locationId", "==", locationId)
+        .limit(1)
+        .get();
+
+      if (!existingUser.empty) {
+        throw new HttpsError("already-exists", "Bruger med denne email eksisterer allerede.");
+      }
+
+      // Create Firebase Auth user
+      const authUser = await admin.auth().createUser({
+        email,
+        password,
+        displayName,
+        emailVerified: false
+      });
+
+      // Create Firestore user document
+      const userRef = db.collection("users").doc(authUser.uid);
+      await userRef.set({
+        displayName,
+        email,
+        companyId,
+        locationId,
+        role,
+        employmentRole,
+        status: "active",
+        createdAt: FieldValue.serverTimestamp(),
+        createdBy: request.auth.uid
+      });
+
+      return {
+        success: true,
+        userId: authUser.uid,
+        message: "Bruger oprettet med login-adgang."
+      };
+    } catch (error) {
+      console.error("Fejl ved oprettelse af lokationsbruger:", error);
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+      throw new HttpsError("internal", "Kunne ikke oprette bruger.");
+    }

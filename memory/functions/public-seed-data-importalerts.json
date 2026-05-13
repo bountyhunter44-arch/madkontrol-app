@@ -1,0 +1,28 @@
+{
+  "source_file": "public/seed-data/importAlerts.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts"
+  ],
+  "flags": [],
+  "risks": [
+    "alerts_without_deviation_creation"
+  ],
+  "functions": [
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "alerts"
+      ]
+    }
+  ]
+}

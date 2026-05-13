@@ -1,0 +1,31 @@
+{
+  "source_file": "functions/fixOnboardingStructure.js",
+  "module": "onboarding",
+  "imports": [
+    "firebase-admin",
+    "firebase-functions"
+  ],
+  "exports": [
+    "ensureOnboardingStructure",
+    "fixOnboardingStructure"
+  ],
+  "collections": [
+    "companies",
+    "locations"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "ensureOnboardingStructure",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    }
+  ]
+}

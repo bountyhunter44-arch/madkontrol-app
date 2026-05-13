@@ -1,0 +1,26 @@
+{
+  "source_file": "scripts/sync-auth-users-to-uid-docs.js",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    }
+  ]
+}

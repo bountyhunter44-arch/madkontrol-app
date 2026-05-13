@@ -1,0 +1,94 @@
+{
+  "source_file": "public/modules/egenkontrol/front.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "completeStep",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadState",
+        "render",
+        "saveState",
+        "setStep"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "initDemoFlow",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "completeStep",
+        "loadState",
+        "render",
+        "saveState",
+        "setStep"
+      ],
+      "selectors": [
+        "[data-flow-complete]",
+        "[data-flow-step]",
+        "[data-scroll-target]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "loadState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "completeStep",
+        "render",
+        "saveState",
+        "setStep"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "render",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "completeStep",
+        "loadState",
+        "saveState",
+        "setStep"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "saveState",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "completeStep",
+        "loadState",
+        "render",
+        "setStep"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setStep",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "completeStep",
+        "loadState",
+        "render",
+        "saveState"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

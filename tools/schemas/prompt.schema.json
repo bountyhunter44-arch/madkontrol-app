@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Prompt Schema",
+  "description": "Schema for AI prompts and templates",
+  "type": "object",
+  "required": ["id", "title", "category", "content"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the prompt"
+    },
+    "title": {
+      "type": "string",
+      "description": "Prompt title"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["windsurf", "codex", "debug", "deploy", "firestore", "ui", "refactor", "hotfix"],
+      "description": "Prompt category"
+    },
+    "content": {
+      "type": "string",
+      "description": "Prompt content/template"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "example": {"type": "string"}
+        }
+      },
+      "description": "Template variables that can be replaced"
+    },
+    "targetAgent": {
+      "type": "string",
+      "enum": ["windsurf", "codex", "chatgpt", "claude"],
+      "description": "Which AI agent this prompt is optimized for"
+    },
+    "createdAt": {"type": "string", "format": "date-time"},
+    "updatedAt": {"type": "string", "format": "date-time"}
+  }
+}

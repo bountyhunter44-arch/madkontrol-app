@@ -1,0 +1,80 @@
+{
+  "source_file": "functions/admin/demoMode.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin"
+  ],
+  "exports": [
+    "cleanupExpiredDemoData",
+    "createDemoCompany",
+    "disableDemoMode",
+    "enableDemoMode"
+  ],
+  "collections": [
+    "companies",
+    "locations",
+    "task_instances",
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "cleanupExpiredDemoData",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "createDemoCompany",
+        "disableDemoMode",
+        "enableDemoMode"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations",
+        "task_instances",
+        "users"
+      ]
+    },
+    {
+      "name": "createDemoCompany",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "cleanupExpiredDemoData",
+        "disableDemoMode",
+        "enableDemoMode"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations",
+        "task_instances",
+        "users"
+      ]
+    },
+    {
+      "name": "disableDemoMode",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "enableDemoMode",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "createDemoCompany",
+        "disableDemoMode"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    }
+  ]
+}

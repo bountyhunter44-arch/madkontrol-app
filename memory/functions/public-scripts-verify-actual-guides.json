@@ -1,0 +1,29 @@
+{
+  "source_file": "public/scripts/verify-actual-guides.cjs",
+  "module": "general",
+  "imports": [
+    "../../functions/guideLibrary",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "verifyActualGuides",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    }
+  ]
+}

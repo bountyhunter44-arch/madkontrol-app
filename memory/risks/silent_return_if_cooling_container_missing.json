@@ -1,0 +1,13 @@
+{
+  "risk": "silent_return_if_cooling_container_missing",
+  "occurrences": [
+    {
+      "source_file": "functions/scripts/generateMemorySeed.js",
+      "module": "general"
+    },
+    {
+      "source_file": "public/modules/egenkontrol/rutiner.html",
+      "module": "rutiner"
+    }
+  ]
+}

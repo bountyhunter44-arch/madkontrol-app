@@ -1,0 +1,29 @@
+{
+  "source_file": "scripts/delete-and-regenerate-tasks.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances",
+    "task_templates",
+    "units"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "deleteAndRegenerateTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates",
+        "units"
+      ]
+    }
+  ]
+}

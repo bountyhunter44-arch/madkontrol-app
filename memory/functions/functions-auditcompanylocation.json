@@ -1,0 +1,25 @@
+{
+  "source_file": "functions/auditCompanyLocation.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "firebase-functions"
+  ],
+  "exports": [
+    "auditCompanyLocationIntegrity",
+    "auditMissingCompanyAndLocation"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "auditMissingCompanyAndLocation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

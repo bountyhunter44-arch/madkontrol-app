@@ -1,0 +1,86 @@
+{
+  "source_file": "public/modules/i18n/index.js",
+  "module": "general",
+  "imports": [
+    "./ar.js",
+    "./da.js",
+    "./de.js",
+    "./en.js",
+    "./fa.js",
+    "./it.js",
+    "./pl.js",
+    "./ro.js",
+    "./sv.js",
+    "./th.js",
+    "./tr.js",
+    "./ur.js",
+    "./yue.js"
+  ],
+  "exports": [
+    "getAvailableLanguages",
+    "getUserLanguage",
+    "isRTL",
+    "t",
+    "tl"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getAvailableLanguages",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "isRTL"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getUserLanguage",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getAvailableLanguages",
+        "isRTL"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isRTL",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "t",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getAvailableLanguages",
+        "getUserLanguage",
+        "isRTL",
+        "tl"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "tl",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getAvailableLanguages",
+        "getUserLanguage",
+        "isRTL",
+        "t"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "source_file": "scripts/disable-generic-templates.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "disableGenericTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "isGenericTemplate"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "isGenericTemplate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "disableGenericTemplates"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

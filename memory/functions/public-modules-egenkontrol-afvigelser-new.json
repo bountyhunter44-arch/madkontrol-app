@@ -1,0 +1,60 @@
+{
+  "source_file": "public/modules/egenkontrol/afvigelser-new.html",
+  "module": "deviations",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "deviations"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "createDeviationRow",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "openDeviationDetail"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 9,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadDeviations",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "createDeviationRow",
+        "escapeHtml",
+        "openDeviationDetail"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "openDeviationDetail",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

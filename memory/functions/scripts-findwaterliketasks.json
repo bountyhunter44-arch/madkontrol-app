@@ -1,0 +1,26 @@
+{
+  "source_file": "scripts/findWaterLikeTasks.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "findWaterLikeTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    }
+  ]
+}

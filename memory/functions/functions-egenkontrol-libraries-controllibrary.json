@@ -1,0 +1,24 @@
+{
+  "source_file": "functions/egenkontrol/libraries/controlLibrary.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "controlLibrary",
+    "getControlByKey"
+  ],
+  "collections": [
+    "equipment"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getControlByKey",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

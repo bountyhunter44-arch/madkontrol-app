@@ -1,0 +1,364 @@
+{
+  "source_file": "functions/scripts/generateMemorySeed.js",
+  "module": "general",
+  "imports": [
+    "fs",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "deviations"
+  ],
+  "flags": [
+    "completeTaskEntryWithCooling",
+    "cooling_add_run",
+    "cooling_run_finish",
+    "cooling_runs_list_selector",
+    "ok_sitti",
+    "saveRoutineTask",
+    "startDayForLocation"
+  ],
+  "risks": [
+    "abort_may_only_clear_state",
+    "conditional_ui_placeholder_may_hide_real_controls",
+    "silent_return_if_cooling_container_missing"
+  ],
+  "functions": [
+    {
+      "name": "addFn",
+      "type": "const_function",
+      "approx_occurrences": 1,
+      "calls": [
+        "detectFlags",
+        "extractCollections",
+        "extractFunctionWindow",
+        "extractSelectors"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildFileEntry",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildSeed",
+        "detectFlags",
+        "detectRisks",
+        "ensureDir",
+        "extractCollections",
+        "extractExports",
+        "extractFunctions",
+        "extractImports",
+        "extractSelectors",
+        "guessModule",
+        "main",
+        "readTextSafe",
+        "summarizeModules",
+        "toPosix",
+        "walk"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildSeed",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureDir",
+        "main",
+        "summarizeModules",
+        "toPosix",
+        "walk"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "detectFlags",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildFileEntry",
+        "buildSeed",
+        "detectRisks",
+        "extractCollections",
+        "extractExports",
+        "extractFunctions",
+        "extractImports",
+        "extractSelectors",
+        "guessModule",
+        "readTextSafe",
+        "summarizeModules",
+        "toPosix",
+        "walk"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "detectRisks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildFileEntry",
+        "buildSeed",
+        "detectFlags",
+        "ensureDir",
+        "extractCollections",
+        "extractExports",
+        "extractFunctions",
+        "extractImports",
+        "extractSelectors",
+        "guessModule",
+        "main",
+        "readTextSafe",
+        "summarizeModules",
+        "toPosix",
+        "walk"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "ensureDir",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addFn",
+        "extractExports",
+        "extractFunctions",
+        "extractImports",
+        "guessModule",
+        "readTextSafe",
+        "toPosix",
+        "walk"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "extractCollections",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildFileEntry",
+        "buildSeed",
+        "detectFlags",
+        "detectRisks",
+        "extractExports",
+        "extractFunctions",
+        "extractImports",
+        "extractSelectors",
+        "guessModule",
+        "readTextSafe",
+        "summarizeModules",
+        "toPosix",
+        "walk"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "extractExports",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addFn",
+        "extractCollections",
+        "extractFunctionWindow",
+        "extractFunctions",
+        "extractSelectors"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "extractFunctions",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addFn",
+        "detectFlags",
+        "extractCollections",
+        "extractFunctionWindow",
+        "extractSelectors"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "extractFunctionWindow",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildFileEntry",
+        "detectFlags",
+        "detectRisks",
+        "extractCollections",
+        "extractExports",
+        "extractFunctions",
+        "extractImports",
+        "extractSelectors",
+        "guessModule",
+        "readTextSafe",
+        "summarizeModules",
+        "toPosix"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "extractImports",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addFn",
+        "extractCollections",
+        "extractExports",
+        "extractFunctionWindow",
+        "extractFunctions",
+        "extractSelectors"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "extractSelectors",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildFileEntry",
+        "detectFlags",
+        "detectRisks",
+        "extractCollections",
+        "extractExports",
+        "extractFunctions",
+        "extractImports",
+        "guessModule",
+        "readTextSafe",
+        "summarizeModules",
+        "toPosix"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "guessModule",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addFn",
+        "extractCollections",
+        "extractExports",
+        "extractFunctionWindow",
+        "extractFunctions",
+        "extractImports",
+        "extractSelectors"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSeed",
+        "ensureDir"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "readTextSafe",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addFn",
+        "extractExports",
+        "extractFunctionWindow",
+        "extractFunctions",
+        "extractImports",
+        "guessModule",
+        "walk"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "summarizeModules",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSeed",
+        "ensureDir",
+        "main",
+        "toPosix",
+        "walk"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toPosix",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "addFn",
+        "extractExports",
+        "extractFunctions",
+        "extractImports",
+        "guessModule",
+        "readTextSafe",
+        "walk"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "walk",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "addFn",
+        "extractCollections",
+        "extractExports",
+        "extractFunctionWindow",
+        "extractFunctions",
+        "extractImports",
+        "extractSelectors",
+        "guessModule"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    }
+  ]
+}

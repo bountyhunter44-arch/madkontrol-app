@@ -1,0 +1,44 @@
+{
+  "source_file": "public/landing-pages/template-renderer.js",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "renderTemplate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "replacePlaceholders",
+        "walkTextNodes"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "replacePlaceholders",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "renderTemplate",
+        "walkTextNodes"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "walkTextNodes",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "renderTemplate",
+        "replacePlaceholders"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

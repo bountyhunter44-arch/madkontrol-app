@@ -1,0 +1,28 @@
+{
+  "source_file": "scripts/provision-missing-equipment.cjs",
+  "module": "onboarding",
+  "imports": [
+    "../node_modules/firebase-admin",
+    "../serviceAccountKey.json"
+  ],
+  "exports": [],
+  "collections": [
+    "equipment",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "task_templates"
+      ]
+    }
+  ]
+}

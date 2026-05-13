@@ -1,0 +1,21 @@
+{
+  "source_file": "public/modules/drift/suppliers.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "loadSharedPartials",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ],
+      "collections": []
+    }
+  ]
+}

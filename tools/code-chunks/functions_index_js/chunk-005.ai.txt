@@ -1,0 +1,506 @@
+
+FILE: functions/index.js
+CHUNK: 005
+
+--- CODE START ---
+}
+
+async function loadLatestScopedRiskSource({ companyId, locationId }) {
+  const variants = [
+    { companyField: "companyId", companyValue: companyId, locationValue: locationId },
+    { companyField: "organizationId", companyValue: companyId, locationValue: locationId },
+    { companyField: "companyId", companyValue: toLegacyId(companyId), locationValue: toLegacyId(locationId) },
+    { companyField: "organizationId", companyValue: toLegacyId(companyId), locationValue: toLegacyId(locationId) }
+  ];
+
+  for (const variant of variants) {
+    const normalizedCompanyValue = sanitizeString(variant.companyValue, 120);
+    const normalizedLocationValue = sanitizeString(variant.locationValue, 120);
+    if (!normalizedCompanyValue || !normalizedLocationValue) continue;
+
+    for (const collectionName of ["live_user_profiles", "haccp_snapshots"]) {
+      try {
+        const snapshot = await db
+          .collection(collectionName)
+          .where(variant.companyField, "==", normalizedCompanyValue)
+          .where("locationId", "==", normalizedLocationValue)
+          .limit(20)
+          .get();
+
+        if (!snapshot.empty) {
+          const docs = snapshot.docs
+            .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+            .sort((a, b) => getComparableEpoch(b) - getComparableEpoch(a));
+
+          const latest = docs[0] || null;
+          if (latest) {
+            return {
+              sourceCollection: collectionName,
+              payload: latest
+            };
+          }
+        }
+      } catch (error) {
+        console.warn(`Kunne ikke hente ${collectionName} for ${variant.companyField}:`, error);
+      }
+    }
+  }
+
+  return null;
+}
+
+exports.syncRiskTaskTemplates = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const auth = request.auth;
+  
+  if (!auth?.uid) {
+    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind for at synkronisere task-skabeloner.");
+  }
+
+  const uid = sanitizeString(auth.uid, 160);
+  const email = sanitizeString(auth.token?.email || "", 160).toLowerCase();
+  const userData = await getUserAccessProfile({ uid, email });
+
+  if (!userData) {
+    throw new functions.https.HttpsError("permission-denied", "Brugerprofil blev ikke fundet.");
+  }
+
+  const requestedCompanyId = sanitizeString(data?.companyId, 120);
+  const requestedLocationId = sanitizeString(data?.locationId, 120);
+
+  const companyId = requestedCompanyId || sanitizeString(userData.companyId || userData.organizationId, 120);
+  const locationIds = getUserLocationIds(userData);
+  const locationId = requestedLocationId || locationIds[0] || sanitizeString(userData.primaryLocationId || userData.locationId, 120);
+
+  if (!companyId || !locationId) {
+    throw new functions.https.HttpsError("failed-precondition", "companyId eller locationId mangler.");
+  }
+
+  await assertLexiCustomerAccess({ uid, email, companyId, locationId });
+
+  const riskSource = await loadLatestScopedRiskSource({ companyId, locationId });
+  if (!riskSource?.payload) {
+    throw new functions.https.HttpsError("not-found", "Ingen live risikoanalyse fundet for denne lokation.");
+  }
+
+  const payload = riskSource.payload || {};
+  const profile = sanitizeOnboardingProfile(payload.profile || {
+    companyName: payload.companyName,
+    companyType: payload.companyType,
+    cvr: payload.cvr,
+    address: payload.address
+  });
+  const riskModel = sanitizeRiskModelInput(payload.riskModel || payload.generated || {});
+
+  // Generate scenario-based HACCP analysis
+  const scenarioHaccp = generateScenarioBasedHaccp({
+    profile: profile,
+    companyType: profile.companyType
+  });
+
+  // Save comprehensive HACCP snapshot to haccp_snapshots collection
+  const snapshotId = toDocSafeId(`${companyId}__${locationId}__${Date.now()}`);
+  await db.collection("haccp_snapshots").doc(snapshotId).set({
+    companyId,
+    organizationId: companyId,
+    locationId,
+    profile,
+    riskModel,
+    // Scenario-based data structures
+    scenarios: scenarioHaccp.scenarios || [],
+    processes: scenarioHaccp.processes || [],
+    hazards: scenarioHaccp.hazards || [],
+    controlMeasures: scenarioHaccp.controlMeasures || [],
+    criticalLimits: scenarioHaccp.criticalLimits || [],
+    monitoringProcedures: scenarioHaccp.monitoringProcedures || [],
+    correctiveActions: scenarioHaccp.correctiveActions || [],
+    verificationTasks: scenarioHaccp.verificationTasks || [],
+    documentationRequirements: scenarioHaccp.documentationRequirements || [],
+    taskTemplates: scenarioHaccp.taskTemplates || [],
+    // Backward compatible KCPs
+    kcps: scenarioHaccp.kcps || [],
+    // Metadata
+    version: scenarioHaccp.version || "3.0_scenario_based",
+    summary: scenarioHaccp.summary || {},
+    generatedAt: scenarioHaccp.generatedAt || new Date().toISOString(),
+    generatedBy: uid,
+    generatedByEmail: email,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  });
+
+  const summary = await ensureLiveTaskTemplatesForProvisioning({
+    companyId,
+    locationId,
+    profile,
+    riskModel,
+    userId: uid,
+    userEmail: email
+  });
+
+  return {
+    ok: true,
+    companyId,
+    locationId,
+    sourceCollection: riskSource.sourceCollection,
+    snapshotId,
+    taskTemplateCount: Number(summary?.created || 0),
+    scenarioCount: scenarioHaccp.scenarios?.length || 0,
+    processCount: scenarioHaccp.processes?.length || 0,
+    hazardCount: scenarioHaccp.hazards?.length || 0,
+    controlMeasureCount: scenarioHaccp.controlMeasures?.length || 0,
+    ccpCount: scenarioHaccp.summary?.totalCCPs || 0,
+    cpCount: scenarioHaccp.summary?.totalCPs || 0
+  };
+});
+
+// ─── ADMIN: RE-PROVISION EQUIPMENT FOR EXISTING LOCATION ────────────────────
+// Kald dette for lokationer som ikke gik igennem det nye checkout-flow.
+// Populerer `equipment` collection, rydder op i cleaning/maintenance templates.
+exports.adminReprovisionEquipment = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const auth = request.auth;
+
+  if (!auth?.uid) {
+    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+  }
+
+  const uid = sanitizeString(auth.uid, 160);
+  const email = sanitizeString(auth.token?.email || "", 160).toLowerCase();
+  const companyId = sanitizeString(data?.companyId, 120);
+  const locationId = sanitizeString(data?.locationId, 120);
+
+  if (!companyId || !locationId) {
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+  }
+
+  await assertAdminAccess({ uid, email, companyId, locationId });
+
+  // Accept explicit counts or fall back to live_user_profiles → profile
+  let equipmentCounts = {};
+  let profile = {};
+
+  if (data?.equipmentCounts && typeof data.equipmentCounts === "object") {
+    equipmentCounts = data.equipmentCounts;
+  } else {
+    // Try to load from live_user_profiles
+    const liveSnap = await db.collection("live_user_profiles")
+      .where("companyId", "==", companyId)
+      .where("locationId", "==", locationId)
+      .limit(1)
+      .get();
+
+    if (!liveSnap.empty) {
+      const liveData = liveSnap.docs[0].data() || {};
+      profile = liveData.profile || {};
+      equipmentCounts = liveData.onboardingAnswers?.equipmentCounts || {};
+    }
+  }
+
+  const eqResult = await syncOnboardingEquipmentUnits({ db, companyId, locationId, equipmentCounts, profile });
+  const cleanResult = await syncEquipmentCleaningTemplates({ db, companyId, locationId });
+  const maintResult = await syncEquipmentMaintenanceTemplates({ db, companyId, locationId });
+  const areaResult  = await syncAreaCleaningTemplates({ db, companyId, locationId });
+  const driftResult = await syncProcessDriftTemplates({ db, companyId, locationId });
+  //const waterResult = await syncWaterControlTemplates({ db, companyId, locationId });
+
+  // Steg 4: Generer/opdater risks fra onboarding
+  const { generateRisksFromOnboardingAnswers } = require("./admin/generateRisksFromOnboardingAnswers");
+  const risksResult = await generateRisksFromOnboardingAnswers({ locationId });
+
+  // Steg 5: Byg task_templates fra risks
+  const { generateEgenkontrolFromRiskAnalysis } = require("./admin/generateEgenkontrolFromRiskAnalysis");
+  const templatesResult = await generateEgenkontrolFromRiskAnalysis({ locationId, db });
+
+  return {
+    ok: true,
+    companyId,
+    locationId,
+    equipment: eqResult,
+    cleaningTemplates: cleanResult,
+    maintenanceTemplates: maintResult,
+    areaTemplates: areaResult,
+    driftTemplates: driftResult,
+   // waterControlTemplates: waterResult,
+    risks: risksResult,
+    riskTemplates: templatesResult
+  };
+});
+
+// ─── ADMIN: GENERER RISKS FRA ONBOARDING ─────────────────────────────────────
+exports.generateRisksForLocation = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const auth = request.auth;
+
+  if (!auth?.uid) {
+    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+  }
+
+  const uid = sanitizeString(auth.uid, 160);
+  const email = sanitizeString(auth.token?.email || "", 160).toLowerCase();
+  const companyId = sanitizeString(data?.companyId, 120);
+  const locationId = sanitizeString(data?.locationId, 120);
+
+  if (!companyId || !locationId) {
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+  }
+
+  await assertAdminAccess({ uid, email, companyId, locationId });
+
+  const { generateRisksFromOnboardingAnswers } = require("./admin/generateRisksFromOnboardingAnswers");
+  const result = await generateRisksFromOnboardingAnswers({ locationId });
+
+  return { ok: true, ...result };
+});
+
+// ─── ADMIN: GENERER EGENKONTROL-TEMPLATES FRA RISKS ──────────────────────────
+exports.generateTemplatesForLocation = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const auth = request.auth;
+
+  if (!auth?.uid) {
+    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+  }
+
+  const uid = sanitizeString(auth.uid, 160);
+  const email = sanitizeString(auth.token?.email || "", 160).toLowerCase();
+  const companyId = sanitizeString(data?.companyId, 120);
+  const locationId = sanitizeString(data?.locationId, 120);
+
+  if (!companyId || !locationId) {
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+  }
+
+  await assertAdminAccess({ uid, email, companyId, locationId });
+
+  const { generateEgenkontrolFromRiskAnalysis } = require("./admin/generateEgenkontrolFromRiskAnalysis");
+  const result = await generateEgenkontrolFromRiskAnalysis({ locationId, db });
+
+  return { ok: true, ...result };
+});
+
+async function getLexiCustomerStatusPayload({ companyId, locationId }) {
+  const todayKey = getDateKey();
+  const operatingMode = await getOperatingModeForLocation({
+    companyId,
+    locationId,
+    todayKey
+  });
+
+  // Ensure location has temperature control settings for new schedule system
+  let locationTemperatureSettings = null;
+  try {
+    locationTemperatureSettings = await ensureLocationTemperatureSettings(db, companyId, locationId, todayKey);
+  } catch (err) {
+    console.warn("[getLexiCustomerStatusPayload] ensureLocationTemperatureSettings failed:", err.message);
+  }
+
+  // Load equipment units with temperatureControl settings
+  const equipmentUnitMap = new Map();
+  try {
+    const equipmentSnap = await db.collection("equipment")
+      .where("locationId", "==", locationId)
+      .get();
+    
+    for (const equipmentDoc of equipmentSnap.docs) {
+      const equipment = equipmentDoc.data() || {};
+      if (equipment.active === false) continue;
+      const normalized = {
+        id: equipmentDoc.id,
+        type: sanitizeEquipmentType(equipment.type || equipment.equipmentType),
+        temperatureControl: equipment.temperatureControl || null
+      };
+      
+      try {
+        const normalizedUnit = await ensureEquipmentTemperatureControl(db, locationId, normalized);
+        if (normalizedUnit.temperatureControl) {
+          normalized.temperatureControl = normalizedUnit.temperatureControl;
+        }
+      } catch (err) {
+        console.warn(`[getLexiCustomerStatusPayload] ensureEquipmentTemperatureControl failed for ${normalized.id}:`, err.message);
+      }
+      
+      equipmentUnitMap.set(normalized.id, normalized);
+    }
+  } catch (err) {
+    console.warn("[getLexiCustomerStatusPayload] Failed to load equipment:", err.message);
+  }
+
+  const [templateDocs] = await Promise.all([
+    loadActiveTaskTemplates({ companyId, locationId })
+  ]);
+
+  const routineChecks = await Promise.all(templateDocs.map(async (doc) => {
+    const template = doc.data() || {};
+    const taskId = sanitizeString(template.taskId, 120);
+
+    try {
+      // Resolve schedule configuration combining template, location and unit settings
+      const equipmentUnitId = template.equipmentUnit || template.equipmentId || "";
+      const unitForTemplate = equipmentUnitId ? equipmentUnitMap.get(equipmentUnitId) : null;
+      
+      const resolvedSchedule = resolveTemplateSchedule({
+        template,
+        locationTemperatureSettings,
+        unitTemperatureControl: unitForTemplate?.temperatureControl || null,
+        todayKey
+      });
+
+      // Check if unit is disabled - skip if so
+      if (resolvedSchedule && resolvedSchedule.enabled === false) {
+        return { dueToday: false };
+      }
+
+      const lastCompletedDateKey = taskId
+        ? await getLastCompleted(taskId, locationId)
+        : null;
+      
+      // Use new schedule system if available, otherwise fallback to legacy
+      let dueToday = false;
+      if (resolvedSchedule && resolvedSchedule.useNewSchedule) {
+        const anchorDate = resolvedSchedule.anchorDate || locationTemperatureSettings?.anchorDate || todayKey;
+        dueToday = shouldRunToday(resolvedSchedule, todayKey, anchorDate, lastCompletedDateKey);
+      } else {
+        dueToday = isDueToday(template, todayKey, lastCompletedDateKey);
+      }
+      
+      // Debug logging for schedule consistency validation
+      console.log("[SCHEDULE_DEBUG]", {
+        templateId: doc.id,
+        taskId: taskId,
+        hasScheduleConfig: !!template.scheduleConfig,
+        resolvedSchedule: resolvedSchedule ? {
+          useNewSchedule: resolvedSchedule.useNewSchedule,
+          enabled: resolvedSchedule.enabled,
+          scheduleType: resolvedSchedule.scheduleType,
+          recurrenceMode: resolvedSchedule.recurrenceMode,
+          recurrenceValue: resolvedSchedule.recurrenceValue
+        } : null,
+        lastCompletedDateKey: lastCompletedDateKey,
+        dueToday: dueToday,
+        source: "lexi"
+      });
+      
+      return { dueToday };
+    } catch (error) {
+      console.error(`Kunne ikke beregne rutine for template ${doc.id}:`, error);
+      return { dueToday: true };
+    }
+  }));
+
+  const totalActive = routineChecks.length;
+  const dueToday = routineChecks.filter((routine) => routine.dueToday).length;
+  const status = resolveLexiStatus({ operatingMode, totalActive, dueToday });
+
+  return {
+    source: "madkontrol",
+    companyId,
+    locationId,
+    dateKey: todayKey,
+    operatingMode,
+    status,
+    antal_rutiner: totalActive,
+    antal_forfaldne_rutiner: dueToday
+  };
+}
+
+exports.getLexiCustomerStatus = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const auth = request.auth;
+  
+  if (!auth?.uid) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "Du skal vaere logget ind for at hente kundestatus."
+    );
+  }
+
+  const companyId = sanitizeString(data?.companyId || "", 120);
+  const locationId = sanitizeString(data?.locationId || "", 120);
+
+  if (!companyId || !locationId) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "companyId og locationId er paakraevet."
+    );
+  }
+
+  await assertLexiCustomerAccess({
+    uid: auth.uid,
+    email: auth.token?.email || "",
+    companyId,
+    locationId
+  });
+
+  return {
+    ...(await getLexiCustomerStatusPayload({ companyId, locationId }))
+  };
+});
+
+//
+// 🔹 FREKVENS LOGIK
+//
+
+/**
+ * Ny unified schedule evaluator med support for scheduleConfig.
+ * Understøtter: daily, every_n_days, weekly_days, monthly, yearly, firstRunImmediately.
+ */
+function shouldRunToday(scheduleConfig, todayKey, anchorDateKey, lastCompletedDateKey) {
+  if (!scheduleConfig) return false;
+
+  const scheduleType = scheduleConfig.scheduleType || "operational";
+  const firstRunImmediately = scheduleConfig.firstRunImmediately === true;
+  const recurrenceMode = scheduleConfig.documentedIntervalMode || scheduleConfig.recurrenceMode || "daily";
+  const recurrenceValue = Number(scheduleConfig.documentedIntervalValue || scheduleConfig.recurrenceValue || 1);
+  const weekdays = scheduleConfig.weekdays || [];
+  const monthDays = scheduleConfig.monthDays || [];
+  const anchor = anchorDateKey || todayKey;
+
+  if (scheduleType === "event_driven") return false;
+
+  if (scheduleType === "maintenance") {
+    if (firstRunImmediately && !lastCompletedDateKey) {
+      console.log("[shouldRunToday] Maintenance task - first run immediately");
+      return true;
+    }
+    if (!lastCompletedDateKey) return false;
+    
+    const yearlyInterval = recurrenceMode === "yearly" ? (recurrenceValue || 1) * 365 : 365;
+    const nextDue = addDays(lastCompletedDateKey, yearlyInterval);
+    const due = todayKey >= nextDue;
+    console.log("[shouldRunToday] Maintenance task - yearly check", { lastCompletedDateKey, nextDue, todayKey, due });
+    return due;
+  }
+
+  if (todayKey < anchor) return false;
+
+  if (recurrenceMode === "daily") return true;
+
+  if (recurrenceMode === "every_n_days") {
+    if (!lastCompletedDateKey) {
+      console.log("[shouldRunToday] every_n_days - no completion, using anchor", { anchor, todayKey });
+      const daysSinceAnchor = daysBetween(anchor, todayKey);
+      const due = daysSinceAnchor % recurrenceValue === 0;
+      console.log("[shouldRunToday] every_n_days from anchor", { daysSinceAnchor, recurrenceValue, due });
+      return due;
+    }
+    const nextDue = addDays(lastCompletedDateKey, recurrenceValue);
+    const due = todayKey >= nextDue;
+    console.log("[shouldRunToday] every_n_days from last completion", { lastCompletedDateKey, nextDue, todayKey, recurrenceValue, due });
+    return due;
+  }
+
+  if (recurrenceMode === "weekly_days") {
+    if (weekdays.length === 0) return false;
+    const weekday = getWeekdayFromDateKey(todayKey);
+    return weekdays.includes(weekday);
+  }
+
+  if (recurrenceMode === "monthly") {
+    if (monthDays.length === 0) return false;
+    const day = Number(todayKey.slice(8, 10));
+    return monthDays.includes(day);
+  }
+
+  if (recurrenceMode === "yearly") {
+--- CODE END ---

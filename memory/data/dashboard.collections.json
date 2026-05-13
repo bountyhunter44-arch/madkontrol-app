@@ -1,0 +1,45 @@
+{
+  "module": "dashboard",
+  "files": [
+    {
+      "source_file": "public/admin/owner-dashboard.html",
+      "collections": [
+        "companies",
+        "deviations",
+        "locations",
+        "users"
+      ]
+    },
+    {
+      "source_file": "public/dashboard.html",
+      "collections": [
+        "alerts",
+        "companies",
+        "live_user_profiles",
+        "locations",
+        "media_assets",
+        "operating_overrides",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "public/modules/lager/dashboard.html",
+      "collections": [
+        "inventory_items"
+      ]
+    },
+    {
+      "source_file": "public/modules/lager/profit-dashboard.html",
+      "collections": [
+        "deviations",
+        "inventory_transactions"
+      ]
+    },
+    {
+      "source_file": "public/modules/water/dashboard.html",
+      "collections": [
+        "users"
+      ]
+    }
+  ]
+}

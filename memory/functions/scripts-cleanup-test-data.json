@@ -1,0 +1,91 @@
+{
+  "source_file": "scripts/cleanup-test-data.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances",
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "deleteCollection",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteNonAdminAuthUsers",
+        "deleteNonAdminUserDocs",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "users"
+      ]
+    },
+    {
+      "name": "deleteNonAdminAuthUsers",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteCollection",
+        "deleteNonAdminUserDocs",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "users"
+      ]
+    },
+    {
+      "name": "deleteNonAdminUserDocs",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteCollection",
+        "deleteNonAdminAuthUsers",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "users"
+      ]
+    },
+    {
+      "name": "email",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "deleteCollection",
+        "deleteNonAdminAuthUsers",
+        "deleteNonAdminUserDocs",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteCollection",
+        "deleteNonAdminAuthUsers",
+        "deleteNonAdminUserDocs"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    }
+  ]
+}

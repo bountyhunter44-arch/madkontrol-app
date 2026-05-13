@@ -1,0 +1,86 @@
+{
+  "source_file": "public/core/i18n.js",
+  "module": "general",
+  "imports": [
+    "/modules/i18n/index.js",
+    "/modules/i18n/language-switcher.js"
+  ],
+  "exports": [
+    "getCurrentLanguage",
+    "initI18n",
+    "setLanguage",
+    "t",
+    "translatePage"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getCurrentLanguage",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "initI18n",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getCurrentLanguage",
+        "setLanguage",
+        "t",
+        "translatePage"
+      ],
+      "selectors": [
+        "[data-i18n-aria-label]",
+        "[data-i18n-html]",
+        "[data-i18n-placeholder]",
+        "[data-i18n-title]",
+        "[data-i18n]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setLanguage",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getCurrentLanguage"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "t",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getCurrentLanguage",
+        "setLanguage"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "translatePage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getCurrentLanguage",
+        "setLanguage",
+        "t"
+      ],
+      "selectors": [
+        "[data-i18n-aria-label]",
+        "[data-i18n-html]",
+        "[data-i18n-placeholder]",
+        "[data-i18n-title]",
+        "[data-i18n]"
+      ],
+      "collections": []
+    }
+  ]
+}

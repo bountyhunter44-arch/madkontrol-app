@@ -1,0 +1,51 @@
+{
+  "source_file": "functions/security/environmentGuard.js",
+  "module": "general",
+  "imports": [
+    "firebase-functions"
+  ],
+  "exports": [
+    "OperationCategory",
+    "getEnvironment",
+    "guardDangerousOperation",
+    "isDeveloperUser"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getEnvironment",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "guardDangerousOperation",
+        "isDeveloperUser"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "guardDangerousOperation",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getEnvironment",
+        "isDeveloperUser"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isDeveloperUser",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getEnvironment",
+        "guardDangerousOperation"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

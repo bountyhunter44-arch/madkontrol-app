@@ -1,0 +1,192 @@
+{
+  "source_file": "functions/egenkontrol/egenkontrolGenerator.js",
+  "module": "general",
+  "imports": [
+    "./allergenData",
+    "./risikoanalyseData"
+  ],
+  "exports": [
+    "buildEgenkontrolProgram",
+    "generateAndSaveEgenkontrolProgram"
+  ],
+  "collections": [
+    "egenkontrol_programs",
+    "haccp_snapshots"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildEgenkontrolProgram",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildPersonalisering",
+        "buildProcedurer",
+        "buildSkemaer",
+        "buildUnits",
+        "generateAndSaveEgenkontrolProgram",
+        "normalizeCompanyType"
+      ],
+      "selectors": [],
+      "collections": [
+        "egenkontrol_programs",
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "buildPersonalisering",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "extractActivities",
+        "generateKontrollerForSchema",
+        "getRisikoanalyseDataForSchema",
+        "shouldEnableSchema"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildProcedurer",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEgenkontrolProgram",
+        "buildPersonalisering",
+        "buildSkemaer",
+        "buildUnits",
+        "generateAndSaveEgenkontrolProgram",
+        "normalizeCompanyType"
+      ],
+      "selectors": [],
+      "collections": [
+        "egenkontrol_programs",
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "buildSkemaer",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEgenkontrolProgram",
+        "buildPersonalisering",
+        "buildProcedurer",
+        "buildUnits",
+        "generateKontrollerForSchema",
+        "getRisikoanalyseDataForSchema",
+        "normalizeCompanyType",
+        "shouldEnableSchema"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildUnits",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "extractActivities"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "country",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildEgenkontrolProgram",
+        "buildPersonalisering",
+        "buildProcedurer",
+        "buildSkemaer",
+        "buildUnits",
+        "generateAndSaveEgenkontrolProgram",
+        "normalizeCompanyType"
+      ],
+      "selectors": [],
+      "collections": [
+        "egenkontrol_programs",
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "extractActivities",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildPersonalisering",
+        "generateKontrollerForSchema",
+        "shouldEnableSchema"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateAndSaveEgenkontrolProgram",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildEgenkontrolProgram"
+      ],
+      "selectors": [],
+      "collections": [
+        "egenkontrol_programs",
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "generateKontrollerForSchema",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSkemaer",
+        "getRisikoanalyseDataForSchema",
+        "shouldEnableSchema"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getRisikoanalyseDataForSchema",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEgenkontrolProgram",
+        "buildPersonalisering",
+        "buildProcedurer",
+        "buildSkemaer",
+        "buildUnits",
+        "generateKontrollerForSchema",
+        "normalizeCompanyType",
+        "shouldEnableSchema"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeCompanyType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildUnits",
+        "extractActivities"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldEnableSchema",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSkemaer",
+        "generateKontrollerForSchema",
+        "getRisikoanalyseDataForSchema"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

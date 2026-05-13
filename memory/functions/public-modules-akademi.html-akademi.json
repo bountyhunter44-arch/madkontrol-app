@@ -1,0 +1,95 @@
+{
+  "source_file": "public/modules/akademi.html/akademi.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "applyFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadSharedPartials",
+        "normalize",
+        "setupCourseFilters",
+        "setupFaqAccordion"
+      ],
+      "selectors": [
+        ".faq-btn",
+        ".faq-btn span:last-child",
+        ".faq-item",
+        "span:last-child"
+      ],
+      "collections": []
+    },
+    {
+      "name": "loadSharedPartials",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyFilters",
+        "normalize",
+        "setupCourseFilters"
+      ],
+      "selectors": [
+        ".course-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "normalize",
+      "type": "function",
+      "approx_occurrences": 12,
+      "calls": [
+        "applyFilters",
+        "loadSharedPartials",
+        "setupCourseFilters",
+        "setupFaqAccordion"
+      ],
+      "selectors": [
+        ".faq-btn",
+        ".faq-btn span:last-child",
+        ".faq-item",
+        "span:last-child"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setupCourseFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyFilters",
+        "normalize",
+        "setupFaqAccordion"
+      ],
+      "selectors": [
+        ".course-card",
+        ".faq-btn",
+        ".faq-btn span:last-child",
+        ".faq-item",
+        "span:last-child"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setupFaqAccordion",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadSharedPartials",
+        "setupCourseFilters"
+      ],
+      "selectors": [
+        ".faq-btn",
+        ".faq-btn span:last-child",
+        ".faq-item",
+        "span:last-child"
+      ],
+      "collections": []
+    }
+  ]
+}

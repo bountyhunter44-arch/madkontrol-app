@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kom i gang | Madkontrollen Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #eef4ee;
+            --surface: #ffffff;
+            --text: #162016;
+            --muted: #617061;
+            --border: #d7e2d7;
+            --green: #2f7d32;
+            --green-dark: #1e5c24;
+            --green-soft: #eaf6eb;
+            --red: #c0392b;
+            --red-soft: #fff0ee;
+            --shadow: 0 24px 60px rgba(18, 32, 18, 0.10);
+            --radius-xl: 32px;
+            --radius-lg: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: "Inter", system-ui, sans-serif;
+            color: var(--text);
+            background: linear-gradient(180deg, #f8fbf8 0%, var(--bg) 100%);
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            padding: 48px 40px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--green-dark);
+        }
+
+        .subtitle {
+            margin: 0 0 32px 0;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        /* Progress Indicator */
+        .progress-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .progress-indicator::before {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border);
+            z-index: 0;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--muted);
+            transition: all 0.3s;
+        }
+
+        .progress-step.active .progress-step-circle {
+            background: var(--green);
+            border-color: var(--green);
+            color: white;
+        }
+
+        .progress-step.completed .progress-step-circle {
+            background: var(--green-soft);
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .progress-step-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .progress-step.active .progress-step-label {
+            color: var(--green-dark);
+        }
+
+        /* Step Container */
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--green-dark);
+            margin: 0 0 24px 0;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--green);
+        }
+
+        input[type="number"] {
+            width: 100px;
+        }
+
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Question List */
+        .question-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .question-item {
+            padding: 20px;
+            background: var(--green-soft);
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .question-item:hover {
+            border-color: var(--green);
+        }
+
+        .question-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        .question-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-yes,
+        .btn-no {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+            color: var(--text);
+        }
+
+        .btn-yes:hover {
+            border-color: var(--green);
+            background: var(--green-soft);
+        }
+
+        .btn-no:hover {
+            border-color: var(--muted);
+            background: #f5f5f5;
+        }
+
+        .btn-yes.selected {
+            background: var(--green);
+            border-color: var(--green);
+            color: white;
+        }
+
+        .btn-no.selected {
+            background: var(--muted);
+            border-color: var(--muted);
+            color: white;
+        }
+
+        /* Summary */
+        .summary-item {
+            padding: 16px;
+            background: var(--green-soft);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .summary-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .summary-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--green-dark);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--green);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--green-dark);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #c5d4c5;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .error {
+            background: var(--red-soft);
+            color: var(--red);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid var(--green-soft);
+            border-top: 3px solid var(--green);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .login-link a {
+            color: var(--green);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kom i gang</h1>
+        <p class="subtitle">Opret din konto på 4 enkle trin.</p>
+
+        <!-- Progress Indicator -->
+        <div class="progress-indicator">
+            <div class="progress-step" data-step="1">
+                <div class="progress-step-circle">1</div>
+                <div class="progress-step-label">Firma</div>
+            </div>
+            <div class="progress-step" data-step="2">
+                <div class="progress-step-circle">2</div>
+                <div class="progress-step-label">Enheder</div>
+            </div>
+            <div class="progress-step" data-step="3">
+                <div class="progress-step-circle">3</div>
+                <div class="progress-step-label">Aktiviteter</div>
+            </div>
+            <div class="progress-step" data-step="4">
+                <div class="progress-step-circle">4</div>
+                <div class="progress-step-label">Opret</div>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="error"></div>
+
+        <!-- STEP 1: Firmaoplysninger -->
+        <div class="step active" data-step="1">
+            <h2 class="step-title">Firmaoplysninger</h2>
+            
+            <div class="form-group">
+                <label for="companyName">Firmanavn</label>
+                <input type="text" id="companyName" required placeholder="Fx Restaurant Madglad" autocomplete="organization">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" required placeholder="din@email.dk" autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Kodeord</label>
+                <input type="password" id="password" required placeholder="Mindst 6 tegn" autocomplete="new-password" minlength="6">
+            </div>
+
+            <div class="form-group">
+                <label for="address">Adresse</label>
+                <input type="text" id="address" placeholder="Gadenavn 123" autocomplete="street-address">
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="postalCode">Postnummer</label>
+                    <input type="text" id="postalCode" placeholder="1234" autocomplete="postal-code">
+                </div>
+
+                <div class="form-group">
+                    <label for="city">By</label>
+                    <input type="text" id="city" placeholder="København" autocomplete="address-level2">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Telefon</label>
+                <input type="tel" id="phone" placeholder="+45 12 34 56 78" autocomplete="tel">
+            </div>
+
+            <div class="form-group">
+                <label for="industry">Driftstype</label>
+                <select id="industry" required>
+                    <option value="restaurant">Restaurant</option>
+                    <option value="cafe">Café</option>
+                    <option value="takeaway">Takeaway</option>
+                    <option value="ice_shop">Isbutik</option>
+                    <option value="bakery">Bageri</option>
+                    <option value="kiosk">Kiosk</option>
+                    <option value="catering">Catering</option>
+                    <option value="other">Andet</option>
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn btn-primary" onclick="nextStep()">Fortsæt →</button>
+            </div>
+        </div>
+
+        <!-- STEP 2: Enheder -->
+        <div class="step" data-step="2">
+            <h2 class="step-title">Vælg enheder</h2>
+            
+            <div class="equipment-grid">
+                <div class="form-group">
+                    <label for="fridgeCount">Køleskabe</label>
+                    <input type="number" id="fridgeCount" min="0" max="20" value="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="freezerCount">Frysere</label>
+                    <input type="number" id="freezerCount" min="0" max="20" value="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="walkinCoolerCount">Walk-in kølere</label>
+                    <input type="number" id="walkinCoolerCount" min="0" max="10" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="walkinFreezerCount">Walk-in frysere</label>
+                    <input type="number" id="walkinFreezerCount" min="0" max="10" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="refrigeratedDisplayCount">Kølediske</label>
+                    <input type="number" id="refrigeratedDisplayCount" min="0" max="10" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="dishwasherCount">Opvaskemaskiner</label>
+                    <input type="number" id="dishwasherCount" min="0" max="5" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="fryerCount">Friturer</label>
+                    <input type="number" id="fryerCount" min="0" max="5" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="ovenCount">Ovne</label>
+                    <input type="number" id="ovenCount" min="0" max="10" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="stoveCount">Komfurer</label>
+                    <input type="number" id="stoveCount" min="0" max="10" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="blastChillerCount">Blæsekølere</label>
+                    <input type="number" id="blastChillerCount" min="0" max="5" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="hotCabinetCount">Varmeskabe</label>
+                    <input type="number" id="hotCabinetCount" min="0" max="5" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="proofingCabinetCount">Rasteskabe</label>
+                    <input type="number" id="proofingCabinetCount" min="0" max="5" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="smokeOvenCount">Røgeovne</label>
+                    <input type="number" id="smokeOvenCount" min="0" max="5" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="slicerCount">Pålægsmaskiner</label>
+                    <input type="number" id="slicerCount" min="0" max="5" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="softiceMachineCount">Softice-maskiner</label>
+                    <input type="number" id="softiceMachineCount" min="0" max="5" value="0">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Tilbage</button>
+                <button type="button" class="btn btn-primary" onclick="nextStep()">Fortsæt →</button>
+            </div>
+        </div>
+
+        <!-- STEP 3: Spørgsmål -->
+        <div class="step" data-step="3">
+            <h2 class="step-title">Fortæl os hvad I gør i virksomheden</h2>
+            <p class="subtitle" style="margin-top: -16px; margin-bottom: 24px;">Svar på spørgsmålene nedenfor, så vi kan oprette de rigtige rutiner til jer.</p>
+            
+            <div class="question-list">
+                <div class="question-item" data-question="receivesFood">
+                    <div class="question-text">Modtager I fødevarer?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="coolsFood">
+                    <div class="question-text">Nedkøler I fødevarer?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="heatsFood">
+                    <div class="question-text">Opvarmer/genopvarmer I fødevarer?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="hotHolding">
+                    <div class="question-text">Holder I fødevarer varme, fx i varmeskab, kogekar eller på varmeplade?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="threeHourRule">
+                    <div class="question-text">Har I varmebehandlede fødevarer uden køl/varme? (3-timers regel)</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="storesRawAndReady">
+                    <div class="question-text">Opbevarer I rå og spiseklare fødevarer?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes selected" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="handlesAllergens">
+                    <div class="question-text">Håndterer I allergener?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="preparesSushiRice">
+                    <div class="question-text">Tilbereder virksomheden sushi-ris?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="freezesFishForSushi">
+                    <div class="question-text">Indfryser virksomheden fisk til sushi, gravad laks mv.?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="picklesVegetables">
+                    <div class="question-text">Sylter virksomheden grøntsager?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="hasCoffeeMachineWithMilk">
+                    <div class="question-text">Har virksomheden kaffemaskine med indbygget køl til mælk?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="transportsFood">
+                    <div class="question-text">Transporterer I fødevarer?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="hasCleaningPlan">
+                    <div class="question-text">Har I rengøringsplan?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes selected" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="needsTraceability">
+                    <div class="question-text">Skal der være sporbarhedskontrol?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="needsRecall">
+                    <div class="question-text">Skal der være tilbagetrækningskontrol?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+
+                <div class="question-item" data-question="needsAnnualRevision">
+                    <div class="question-text">Skal egenkontrolprogrammet revideres årligt?</div>
+                    <div class="question-buttons">
+                        <button type="button" class="btn-yes selected" data-answer="yes">Ja</button>
+                        <button type="button" class="btn-no" data-answer="no">Nej</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Tilbage</button>
+                <button type="button" class="btn btn-primary" onclick="nextStep()">Fortsæt →</button>
+            </div>
+        </div>
+
+        <!-- STEP 4: Opsummering -->
+        <div class="step" data-step="4">
+            <h2 class="step-title">Klar til oprettelse</h2>
+            
+            <div class="summary-item">
+                <div class="summary-label">Firma</div>
+                <div class="summary-value" id="summaryCompany">-</div>
+            </div>
+
+            <div class="summary-item">
+                <div class="summary-label">Adresse</div>
+                <div class="summary-value" id="summaryAddress">-</div>
+            </div>
+
+            <div class="summary-item">
+                <div class="summary-label">Driftstype</div>
+                <div class="summary-value" id="summaryIndustry">-</div>
+            </div>
+
+            <div class="summary-item">
+                <div class="summary-label">Antal enheder</div>
+                <div class="summary-value" id="summaryEquipment">0</div>
+            </div>
+
+            <div class="summary-item">
+                <div class="summary-label">Antal aktiviteter</div>
+                <div class="summary-value" id="summaryActivities">0</div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Tilbage</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()" id="submitBtn">Opret Madkontrollen</button>
+            </div>
+        </div>
+
+        <div id="loadingIndicator" class="loading">
+            <div class="spinner"></div>
+            <p>Opretter din konto...</p>
+        </div>
+
+        <div class="login-link">
+            Har du allerede en konto? <a href="/login.html">Log ind her</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import app, { auth } from "/core/firebase-config.js";
+        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+        const functions = getFunctions(app, "us-central1");
+        
+        // State
+        const state = {
+            currentStep: 1
+        };
+
+        // Initialize
+        updateProgressIndicator();
+        setupQuestionButtons();
+
+        // Navigation
+        window.nextStep = function() {
+            if (state.currentStep === 1) {
+                if (!validateStep1()) return;
+            }
+            
+            if (state.currentStep < 4) {
+                state.currentStep++;
+                showStep(state.currentStep);
+                
+                if (state.currentStep === 4) {
+                    updateSummary();
+                }
+            }
+        };
+
+        window.prevStep = function() {
+            if (state.currentStep > 1) {
+                state.currentStep--;
+                showStep(state.currentStep);
+            }
+        };
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            document.querySelector(`.step[data-step="${step}"]`).classList.add('active');
+            updateProgressIndicator();
+            window.scrollTo(0, 0);
+        }
+
+        function updateProgressIndicator() {
+            document.querySelectorAll('.progress-step').forEach(el => {
+                const stepNum = parseInt(el.dataset.step);
+                el.classList.remove('active', 'completed');
+                
+                if (stepNum === state.currentStep) {
+                    el.classList.add('active');
+                } else if (stepNum < state.currentStep) {
+                    el.classList.add('completed');
+                }
+            });
+        }
+
+        function validateStep1() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const companyName = document.getElementById('companyName').value.trim();
+
+            if (!email || !password || !companyName) {
+                showError("Udfyld venligst alle påkrævede felter.");
+                return false;
+            }
+
+            if (password.length < 6) {
+                showError("Kodeordet skal være mindst 6 tegn.");
+                return false;
+            }
+
+            hideError();
+            return true;
+        }
+
+        function setupQuestionButtons() {
+            document.querySelectorAll('.question-item').forEach(item => {
+                const yesBtn = item.querySelector('.btn-yes');
+                const noBtn = item.querySelector('.btn-no');
+                
+                yesBtn.addEventListener('click', () => {
+                    yesBtn.classList.add('selected');
+                    noBtn.classList.remove('selected');
+                });
+                
+                noBtn.addEventListener('click', () => {
+                    noBtn.classList.add('selected');
+                    yesBtn.classList.remove('selected');
+                });
+            });
+        }
+
+        function updateSummary() {
+            // Company
+            const companyName = document.getElementById('companyName').value.trim();
+            document.getElementById('summaryCompany').textContent = companyName || '-';
+
+            // Address
+            const address = document.getElementById('address').value.trim();
+            const postalCode = document.getElementById('postalCode').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const fullAddress = [address, postalCode, city].filter(Boolean).join(', ') || '-';
+            document.getElementById('summaryAddress').textContent = fullAddress;
+
+            // Industry
+            const industry = document.getElementById('industry').value;
+            const industryLabels = {
+                restaurant: 'Restaurant',
+                cafe: 'Café',
+                takeaway: 'Takeaway',
+                ice_shop: 'Isbutik',
+                bakery: 'Bageri',
+                kiosk: 'Kiosk',
+                catering: 'Catering',
+                other: 'Andet'
+            };
+            document.getElementById('summaryIndustry').textContent = industryLabels[industry] || industry;
+
+            // Equipment count
+            const equipmentCount = [
+                'fridgeCount', 'freezerCount', 'walkinCoolerCount', 'walkinFreezerCount',
+                'refrigeratedDisplayCount', 'dishwasherCount', 'fryerCount', 'ovenCount',
+                'stoveCount', 'blastChillerCount', 'hotCabinetCount', 'proofingCabinetCount',
+                'smokeOvenCount', 'slicerCount', 'softiceMachineCount'
+            ].reduce((sum, id) => sum + (parseInt(document.getElementById(id).value) || 0), 0);
+            document.getElementById('summaryEquipment').textContent = equipmentCount;
+
+            // Activities count (count "Ja" answers)
+            const activitiesCount = document.querySelectorAll('.btn-yes.selected').length;
+            document.getElementById('summaryActivities').textContent = activitiesCount;
+        }
+
+        window.submitForm = async function() {
+            hideError();
+            showLoading();
+
+            try {
+                // Collect data
+                const email = document.getElementById('email').value.trim().toLowerCase();
+                const password = document.getElementById('password').value;
+                const companyName = document.getElementById('companyName').value.trim();
+                const address = document.getElementById('address').value.trim();
+                const postalCode = document.getElementById('postalCode').value.trim();
+                const city = document.getElementById('city').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const industry = document.getElementById('industry').value;
+
+                // Collect questions
+                const questions = {};
+                document.querySelectorAll('.question-item').forEach(item => {
+                    const questionKey = item.dataset.question;
+                    const yesBtn = item.querySelector('.btn-yes');
+                    questions[questionKey] = yesBtn.classList.contains('selected');
+                });
+
+                // Build setup
+                const setup = {
+                    industry,
+                    // Equipment counts
+                    fridgeCount: parseInt(document.getElementById('fridgeCount').value) || 0,
+                    freezerCount: parseInt(document.getElementById('freezerCount').value) || 0,
+                    walkinCoolerCount: parseInt(document.getElementById('walkinCoolerCount').value) || 0,
+                    walkinFreezerCount: parseInt(document.getElementById('walkinFreezerCount').value) || 0,
+                    refrigeratedDisplayCount: parseInt(document.getElementById('refrigeratedDisplayCount').value) || 0,
+                    dishwasherCount: parseInt(document.getElementById('dishwasherCount').value) || 0,
+                    fryerCount: parseInt(document.getElementById('fryerCount').value) || 0,
+                    ovenCount: parseInt(document.getElementById('ovenCount').value) || 0,
+                    stoveCount: parseInt(document.getElementById('stoveCount').value) || 0,
+                    blastChillerCount: parseInt(document.getElementById('blastChillerCount').value) || 0,
+                    hotCabinetCount: parseInt(document.getElementById('hotCabinetCount').value) || 0,
+                    proofingCabinetCount: parseInt(document.getElementById('proofingCabinetCount').value) || 0,
+                    smokeOvenCount: parseInt(document.getElementById('smokeOvenCount').value) || 0,
+                    slicerCount: parseInt(document.getElementById('slicerCount').value) || 0,
+                    softiceMachineCount: parseInt(document.getElementById('softiceMachineCount').value) || 0,
+                    // Questions (Ja/Nej answers)
+                    questions: questions
+                };
+
+                console.log('[Quick Onboarding] Payload:', { email, companyName, address, phone, industry, setup });
+
+                // Create account
+                const createAccount = httpsCallable(functions, 'createQuickOnboardingAccount');
+                const result = await createAccount({
+                    email,
+                    password,
+                    companyName,
+                    address,
+                    postalCode,
+                    city,
+                    phone,
+                    industry,
+                    setup
+                });
+
+                console.log('[Quick Onboarding] Result:', result.data);
+
+                // Sign in
+                await signInWithEmailAndPassword(auth, email, password);
+
+                // Redirect
+                window.location.href = '/modules/egenkontrol/rutiner.html';
+
+            } catch (error) {
+                console.error('[Quick Onboarding] Error:', error);
+                hideLoading();
+
+                let errorMsg = 'Der opstod en fejl. Prøv igen.';
+                if (error.code === 'already-exists') {
+                    errorMsg = 'Denne email er allerede i brug.';
+                } else if (error.message) {
+                    errorMsg = error.message;
+                }
+
+                showError(errorMsg);
+            }
+        };
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        function showLoading() {
+            document.querySelectorAll('.step').forEach(el => el.style.display = 'none');
+            document.getElementById('loadingIndicator').classList.add('show');
+        }
+
+        function hideLoading() {
+            showStep(state.currentStep);
+            document.getElementById('loadingIndicator').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

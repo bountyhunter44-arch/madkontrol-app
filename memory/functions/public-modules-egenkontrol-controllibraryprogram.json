@@ -1,0 +1,24 @@
+{
+  "source_file": "public/modules/egenkontrol/controlLibraryProgram.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "controlLibraryProgram",
+    "getProgramDefinition"
+  ],
+  "collections": [
+    "equipment"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getProgramDefinition",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

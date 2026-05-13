@@ -1,0 +1,715 @@
+{
+  "source_file": "public/modules/egenkontrol/onboarding.html",
+  "module": "onboarding",
+  "imports": [
+    "./onboardingService.js",
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [
+    "equipment",
+    "onboarding_answers",
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "bindCheckEvents",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getProfile",
+        "getUploadMeta",
+        "openImagePickerForTarget",
+        "render",
+        "saveDraftToLocalStorage",
+        "updateSaveIndicator",
+        "uploadImageToCloudinary"
+      ],
+      "selectors": [
+        "[data-approve-check]",
+        "[data-check-comment]",
+        "[data-check-section]",
+        "[data-save-check]",
+        "[data-upload-check]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "bindProgramEvents",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindCheckEvents",
+        "getDefaultAnswer",
+        "openImagePickerForTarget",
+        "render",
+        "saveDraftToLocalStorage",
+        "updateSaveIndicator"
+      ],
+      "selectors": [
+        "[data-answer-section]",
+        "[data-approve-check]",
+        "[data-approve-section]",
+        "[data-check-comment]",
+        "[data-check-section]",
+        "[data-choice-section]",
+        "[data-default-section]",
+        "[data-save-check]",
+        "[data-save-section]",
+        "[data-upload-section]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "buildCheckoutSummary",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildOnboardingProfile",
+        "getProfile",
+        "handleSubmit",
+        "render"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildOnboardingProfile",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getProfile",
+        "has",
+        "inc",
+        "isAlreadyPaid",
+        "qty"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "buildUnitsFromEquipment",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "escapeHtml",
+        "getApprovedCount",
+        "getUploadCount",
+        "render",
+        "renderCompanyStep",
+        "renderStepNav",
+        "saveDraftToLocalStorage",
+        "slugify",
+        "updateProgress",
+        "updateSaveIndicator",
+        "updateSidebarStats"
+      ],
+      "selectors": [
+        "[data-step-index]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "clearTestData",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildUnitsFromEquipment",
+        "ensureProductsFromType",
+        "getApprovedCount",
+        "getUploadCount",
+        "saveDraftToLocalStorage",
+        "slugify",
+        "syncDynamicAnswers",
+        "updateProgress",
+        "updateSaveIndicator",
+        "updateSidebarStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "ensureProductsFromType",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "buildUnitsFromEquipment",
+        "escapeHtml",
+        "getApprovedCount",
+        "getUploadCount",
+        "render",
+        "renderCompanyStep",
+        "renderStepNav",
+        "saveDraftToLocalStorage",
+        "slugify",
+        "updateProgress",
+        "updateSaveIndicator",
+        "updateSidebarStats"
+      ],
+      "selectors": [
+        "[data-step-index]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 72,
+      "calls": [
+        "getInitialState",
+        "getProfile",
+        "mergeDeep",
+        "safeJsonParse",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "fillDemoData",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildUnitsFromEquipment",
+        "clearTestData",
+        "ensureProductsFromType",
+        "render",
+        "saveDraftToLocalStorage",
+        "slugify",
+        "syncDynamicAnswers"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getApprovedCount",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "getUploadCount",
+        "render",
+        "renderCompanyStep",
+        "renderStepNav",
+        "saveDraftToLocalStorage",
+        "updateProgress",
+        "updateSaveIndicator",
+        "updateSidebarStats"
+      ],
+      "selectors": [
+        "[data-step-index]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getDefaultAnswer",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "renderProgramStep"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getInitialState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildUnitsFromEquipment",
+        "ensureProductsFromType",
+        "fillDemoData",
+        "getProfile",
+        "mergeDeep",
+        "safeJsonParse"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProfile",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "fillDemoData",
+        "getInitialState",
+        "mergeDeep",
+        "safeJsonParse"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getUploadCount",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "getApprovedCount",
+        "render",
+        "renderCompanyStep",
+        "renderStepNav",
+        "saveDraftToLocalStorage",
+        "updateProgress",
+        "updateSaveIndicator",
+        "updateSidebarStats"
+      ],
+      "selectors": [
+        "[data-step-index]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getUploadMeta",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getProfile",
+        "render",
+        "saveDraftToLocalStorage",
+        "updateSaveIndicator",
+        "uploadImageToCloudinary"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleSubmit",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildCheckoutSummary",
+        "buildOnboardingProfile",
+        "getProfile",
+        "render",
+        "updateSaveIndicator"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "has",
+      "type": "const_function",
+      "approx_occurrences": 26,
+      "calls": [
+        "getProfile",
+        "inc",
+        "isAlreadyPaid",
+        "qty"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "users"
+      ]
+    },
+    {
+      "name": "inc",
+      "type": "const_function",
+      "approx_occurrences": 8,
+      "calls": [
+        "getProfile",
+        "has",
+        "isAlreadyPaid",
+        "qty"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "users"
+      ]
+    },
+    {
+      "name": "isAlreadyPaid",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildCheckoutSummary",
+        "buildOnboardingProfile",
+        "getProfile",
+        "saveOnboardingToFirestore",
+        "updateSaveIndicator"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "users"
+      ]
+    },
+    {
+      "name": "mergeDeep",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "fillDemoData",
+        "getInitialState",
+        "getProfile",
+        "safeJsonParse"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "openImagePickerForTarget",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getProfile",
+        "getUploadMeta",
+        "render",
+        "saveDraftToLocalStorage",
+        "updateSaveIndicator",
+        "uploadImageToCloudinary"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "qty",
+      "type": "const_function",
+      "approx_occurrences": 8,
+      "calls": [
+        "getProfile",
+        "has",
+        "inc",
+        "isAlreadyPaid"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "render",
+      "type": "function",
+      "approx_occurrences": 19,
+      "calls": [
+        "buildUnitsFromEquipment",
+        "ensureProductsFromType",
+        "renderChecksStep",
+        "renderCompanyStep",
+        "renderEquipmentStep",
+        "renderProductionStep",
+        "renderProgramStep",
+        "renderStepNav",
+        "renderSummaryStep",
+        "saveDraftToLocalStorage",
+        "syncDynamicAnswers",
+        "updateProgress",
+        "updateSidebarStats",
+        "updateSubmitBtnLabel"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "renderChecksStep",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "renderUploadPreview"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderCompanyStep",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderEquipmentStep",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildUnitsFromEquipment",
+        "escapeHtml",
+        "render",
+        "saveDraftToLocalStorage"
+      ],
+      "selectors": [
+        "[data-equip-qty]",
+        "[data-equip-toggle]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderProductionStep",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureProductsFromType",
+        "escapeHtml",
+        "render",
+        "renderEquipmentStep",
+        "saveDraftToLocalStorage",
+        "syncDynamicAnswers"
+      ],
+      "selectors": [
+        "[data-production]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderProgramStep",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderStepNav",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "render",
+        "renderCompanyStep"
+      ],
+      "selectors": [
+        "[data-step-index]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderSummaryStep",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getApprovedCount",
+        "getUploadCount"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderUploadPreview",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "getDefaultAnswer",
+        "renderProgramStep"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "safeJsonParse",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "getInitialState",
+        "getProfile",
+        "mergeDeep",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "saveDraftToLocalStorage",
+      "type": "function",
+      "approx_occurrences": 18,
+      "calls": [
+        "escapeHtml",
+        "render",
+        "renderCompanyStep",
+        "renderStepNav",
+        "updateProgress",
+        "updateSaveIndicator",
+        "updateSidebarStats"
+      ],
+      "selectors": [
+        "[data-step-index]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "saveOnboardingToFirestore",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildCheckoutSummary",
+        "buildOnboardingProfile",
+        "getProfile",
+        "handleSubmit",
+        "updateSaveIndicator"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getInitialState",
+        "getProfile",
+        "mergeDeep",
+        "safeJsonParse"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "syncDynamicAnswers",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "buildUnitsFromEquipment",
+        "ensureProductsFromType",
+        "escapeHtml",
+        "getApprovedCount",
+        "getUploadCount",
+        "renderStepNav",
+        "saveDraftToLocalStorage",
+        "slugify",
+        "updateProgress",
+        "updateSaveIndicator",
+        "updateSidebarStats"
+      ],
+      "selectors": [
+        "[data-step-index]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "updateProgress",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "render",
+        "renderCompanyStep",
+        "renderStepNav"
+      ],
+      "selectors": [
+        "[data-step-index]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "updateSaveIndicator",
+      "type": "function",
+      "approx_occurrences": 13,
+      "calls": [
+        "escapeHtml",
+        "render",
+        "renderCompanyStep",
+        "renderStepNav",
+        "saveDraftToLocalStorage",
+        "updateProgress",
+        "updateSidebarStats"
+      ],
+      "selectors": [
+        "[data-step-index]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "updateSidebarStats",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "escapeHtml",
+        "getApprovedCount",
+        "getUploadCount",
+        "render",
+        "renderCompanyStep",
+        "renderStepNav",
+        "saveDraftToLocalStorage",
+        "updateProgress",
+        "updateSaveIndicator"
+      ],
+      "selectors": [
+        "[data-step-index]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "updateSubmitBtnLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildUnitsFromEquipment",
+        "ensureProductsFromType",
+        "isAlreadyPaid",
+        "render",
+        "renderChecksStep",
+        "renderCompanyStep",
+        "renderEquipmentStep",
+        "renderProductionStep",
+        "renderProgramStep",
+        "renderStepNav",
+        "renderSummaryStep",
+        "saveDraftToLocalStorage",
+        "syncDynamicAnswers",
+        "updateProgress",
+        "updateSidebarStats"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "uploadImageToCloudinary",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildOnboardingProfile",
+        "getProfile",
+        "getUploadMeta",
+        "qty"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "uploadTargets",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "escapeHtml",
+        "renderUploadPreview"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "vat",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "escapeHtml",
+        "getApprovedCount",
+        "getUploadCount"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

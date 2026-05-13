@@ -1,0 +1,137 @@
+{
+  "source_file": "public/modules/water/dashboard.html",
+  "module": "dashboard",
+  "imports": [
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildQualityChart",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildRevenueChart",
+        "buildTempChart",
+        "buildVolumeChart",
+        "destroyChart",
+        "qualityClass",
+        "render"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildRevenueChart",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "destroyChart",
+        "qualityClass",
+        "render"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTempChart",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildRevenueChart",
+        "buildVolumeChart",
+        "destroyChart",
+        "qualityClass",
+        "render"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildVolumeChart",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildRevenueChart",
+        "destroyChart",
+        "qualityClass",
+        "render"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "destroyChart",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "buildQualityChart",
+        "buildRevenueChart",
+        "buildTempChart",
+        "buildVolumeChart",
+        "qualityClass",
+        "render"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getUserCtx",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildQualityChart",
+        "buildRevenueChart",
+        "buildTempChart",
+        "buildVolumeChart",
+        "destroyChart",
+        "qualityClass",
+        "render"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "load",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getUserCtx",
+        "render"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "qualityClass",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "render"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "render",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "qualityClass"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

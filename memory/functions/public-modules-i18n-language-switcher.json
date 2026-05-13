@@ -1,0 +1,201 @@
+{
+  "source_file": "public/modules/i18n/language-switcher.js",
+  "module": "general",
+  "imports": [
+    "./index.js"
+  ],
+  "exports": [
+    "addLanguageSwitcherStyles",
+    "changeLanguage",
+    "createLanguageSwitcher",
+    "getLanguagePreference",
+    "initLanguageSwitcher",
+    "saveLanguagePreference",
+    "setDocumentDirection"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "addLanguageSwitcherStyles",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "browserLocaleToLang",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createLanguageSwitcher",
+        "detectBrowserLanguage",
+        "getFlagEmoji",
+        "getLanguagePreference",
+        "initLanguageSwitcher",
+        "setDocumentDirection"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "changeLanguage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addLanguageSwitcherStyles",
+        "saveLanguagePreference",
+        "setDocumentDirection"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createLanguageSwitcher",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addLanguageSwitcherStyles",
+        "changeLanguage",
+        "getFlagEmoji",
+        "getLanguagePreference",
+        "initLanguageSwitcher",
+        "saveLanguagePreference",
+        "setDocumentDirection"
+      ],
+      "selectors": [
+        ".language-option",
+        ".mkp-topbar-brand-row",
+        ".topbar-right"
+      ],
+      "collections": []
+    },
+    {
+      "name": "detectBrowserLanguage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "browserLocaleToLang",
+        "createLanguageSwitcher",
+        "getFlagEmoji",
+        "getLanguagePreference",
+        "initLanguageSwitcher",
+        "setDocumentDirection"
+      ],
+      "selectors": [
+        ".mkp-topbar-brand-row",
+        ".topbar-right"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getFlagEmoji",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "addLanguageSwitcherStyles",
+        "changeLanguage",
+        "createLanguageSwitcher",
+        "getLanguagePreference",
+        "initLanguageSwitcher",
+        "saveLanguagePreference",
+        "setDocumentDirection"
+      ],
+      "selectors": [
+        ".language-option",
+        ".mkp-topbar-brand-row",
+        ".topbar-right"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getLanguagePreference",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "changeLanguage",
+        "createLanguageSwitcher",
+        "detectBrowserLanguage",
+        "getFlagEmoji",
+        "initLanguageSwitcher",
+        "setDocumentDirection"
+      ],
+      "selectors": [
+        ".language-option",
+        ".mkp-topbar-brand-row",
+        ".topbar-right"
+      ],
+      "collections": []
+    },
+    {
+      "name": "initLanguageSwitcher",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "addLanguageSwitcherStyles",
+        "changeLanguage",
+        "createLanguageSwitcher",
+        "getLanguagePreference",
+        "saveLanguagePreference",
+        "setDocumentDirection"
+      ],
+      "selectors": [
+        ".language-option",
+        ".mkp-topbar-brand-row",
+        ".topbar-right"
+      ],
+      "collections": []
+    },
+    {
+      "name": "raw",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "createLanguageSwitcher",
+        "detectBrowserLanguage",
+        "getFlagEmoji",
+        "getLanguagePreference",
+        "initLanguageSwitcher",
+        "setDocumentDirection"
+      ],
+      "selectors": [
+        ".mkp-topbar-brand-row",
+        ".topbar-right"
+      ],
+      "collections": []
+    },
+    {
+      "name": "saveLanguagePreference",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "browserLocaleToLang",
+        "createLanguageSwitcher",
+        "detectBrowserLanguage",
+        "getFlagEmoji",
+        "getLanguagePreference",
+        "initLanguageSwitcher",
+        "setDocumentDirection"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setDocumentDirection",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "browserLocaleToLang",
+        "createLanguageSwitcher",
+        "detectBrowserLanguage",
+        "getFlagEmoji",
+        "getLanguagePreference",
+        "saveLanguagePreference"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

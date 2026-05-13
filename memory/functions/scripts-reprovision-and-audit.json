@@ -1,0 +1,131 @@
+{
+  "source_file": "scripts/reprovision-and-audit.cjs",
+  "module": "onboarding",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "equipment",
+    "onboarding_answers",
+    "risks",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "audit",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers",
+        "risks",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "cat",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "audit",
+        "stepGenerateRisks",
+        "stepGenerateTemplates",
+        "stepSyncCleaning",
+        "stepSyncEquipment",
+        "stepSyncMaintenance"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "stepGenerateRisks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "stepGenerateTemplates",
+        "stepSyncCleaning",
+        "stepSyncMaintenance"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "stepGenerateTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "audit",
+        "stepSyncCleaning",
+        "stepSyncMaintenance"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "stepSyncCleaning",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "audit",
+        "stepSyncMaintenance"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "stepSyncEquipment",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "stepGenerateRisks",
+        "stepGenerateTemplates",
+        "stepSyncCleaning"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "stepSyncMaintenance",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "audit"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers",
+        "risks",
+        "task_templates"
+      ]
+    }
+  ]
+}

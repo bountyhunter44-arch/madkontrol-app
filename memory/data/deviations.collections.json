@@ -1,0 +1,34 @@
+{
+  "module": "deviations",
+  "files": [
+    {
+      "source_file": "public/modules/egenkontrol/afvigelser-new.html",
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/afvigelser.html",
+      "collections": [
+        "alerts",
+        "deviations",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/delete-aroid-afvigelser.js",
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "source_file": "scripts/delete-global-manual-deviations.js",
+      "collections": [
+        "alerts",
+        "deviations",
+        "task_entries"
+      ]
+    }
+  ]
+}

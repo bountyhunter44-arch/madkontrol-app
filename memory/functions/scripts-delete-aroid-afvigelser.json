@@ -1,0 +1,59 @@
+{
+  "source_file": "scripts/delete-aroid-afvigelser.js",
+  "module": "deviations",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "deviations"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "collectDocs",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteRefs",
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "deleteRefs",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "collectDocs",
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "collectDocs",
+        "deleteRefs"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    }
+  ]
+}

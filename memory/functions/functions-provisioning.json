@@ -1,0 +1,61 @@
+{
+  "source_file": "functions/provisioning.js",
+  "module": "onboarding",
+  "imports": [
+    "firebase-admin",
+    "firebase-functions"
+  ],
+  "exports": [
+    "buildStructuredHaccpData",
+    "generateDailyRoutinesProvision",
+    "generateRiskAnalysisProvision"
+  ],
+  "collections": [
+    "companies",
+    "locations",
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildOperationalTemplatesFromOnboarding",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildStructuredHaccpData",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getCorrectiveAction",
+        "isRelevant"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCorrectiveAction",
+      "type": "function",
+      "approx_occurrences": 53,
+      "calls": [
+        "buildStructuredHaccpData",
+        "isRelevant"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isRelevant",
+      "type": "function",
+      "approx_occurrences": 54,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

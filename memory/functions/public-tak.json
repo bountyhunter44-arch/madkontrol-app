@@ -1,0 +1,428 @@
+{
+  "source_file": "public/tak.html",
+  "module": "general",
+  "imports": [
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "applyAuthUiState",
+      "type": "function",
+      "approx_occurrences": 18,
+      "calls": [
+        "renderErrorState",
+        "renderPendingState",
+        "renderSuccessState",
+        "renderSummary",
+        "setHeroPills",
+        "setProgress",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "clearExistingSessionBeforeFinalize",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyAuthUiState",
+        "clearStoredCredentials",
+        "finalizeFromCheckout",
+        "firstNameFromProfile",
+        "getStoredCredentials",
+        "renderErrorState",
+        "renderPendingState",
+        "renderSuccessState",
+        "renderSummary",
+        "safeParseJson",
+        "startProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "clearStoredCredentials",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "applyAuthUiState",
+        "displayStoredEmail",
+        "getStoredCredentials",
+        "renderPendingState",
+        "renderSuccessState",
+        "renderSummary",
+        "setHeroPills",
+        "setProgress",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "displayStoredEmail",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "applyAuthUiState",
+        "getStoredCredentials",
+        "renderPendingState",
+        "renderSuccessState",
+        "renderSummary",
+        "setHeroPills",
+        "setProgress",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "ensureSignedInUser",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyAuthUiState",
+        "clearExistingSessionBeforeFinalize",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "finalizeFromCheckout",
+        "firstNameFromProfile",
+        "getStoredCredentials",
+        "handleLogout",
+        "handleManualLogin",
+        "renderPendingState",
+        "safeParseJson",
+        "startProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyAuthUiState",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "firstNameFromProfile",
+        "getStoredCredentials",
+        "renderCriticalPoints",
+        "renderSummary",
+        "safeParseJson",
+        "setHeroPills",
+        "setProgress",
+        "startProgressAnimation",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "finalizeFromCheckout",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyAuthUiState",
+        "clearExistingSessionBeforeFinalize",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "ensureSignedInUser",
+        "firstNameFromProfile",
+        "getStoredCredentials",
+        "renderErrorState",
+        "renderPendingState",
+        "renderSuccessState",
+        "renderSummary",
+        "safeParseJson",
+        "startProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "firstNameFromProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyAuthUiState",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "escapeHtml",
+        "getStoredCredentials",
+        "renderCriticalPoints",
+        "renderSummary",
+        "safeParseJson",
+        "setHeroPills",
+        "setProgress",
+        "startProgressAnimation",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStoredCredentials",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "applyAuthUiState",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "renderPendingState",
+        "renderSuccessState",
+        "renderSummary",
+        "safeParseJson",
+        "setHeroPills",
+        "setProgress",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleLogout",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "applyAuthUiState",
+        "clearExistingSessionBeforeFinalize",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "finalizeFromCheckout",
+        "firstNameFromProfile",
+        "getStoredCredentials",
+        "renderErrorState",
+        "renderPendingState",
+        "renderSuccessState",
+        "renderSummary",
+        "safeParseJson",
+        "startProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleManualLogin",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "applyAuthUiState",
+        "clearExistingSessionBeforeFinalize",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "finalizeFromCheckout",
+        "firstNameFromProfile",
+        "getStoredCredentials",
+        "handleLogout",
+        "renderErrorState",
+        "renderPendingState",
+        "renderSuccessState",
+        "renderSummary",
+        "safeParseJson",
+        "startProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderCriticalPoints",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyAuthUiState",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "escapeHtml",
+        "getStoredCredentials",
+        "renderPendingState",
+        "renderSummary",
+        "safeParseJson",
+        "setHeroPills"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderErrorState",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "applyAuthUiState",
+        "clearExistingSessionBeforeFinalize",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "ensureSignedInUser",
+        "getStoredCredentials",
+        "handleLogout",
+        "handleManualLogin",
+        "setHeroPills",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderPendingState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyAuthUiState",
+        "displayStoredEmail",
+        "ensureSignedInUser",
+        "getStoredCredentials",
+        "renderErrorState",
+        "renderSuccessState",
+        "renderSummary",
+        "setHeroPills",
+        "setProgress",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderSuccessState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyAuthUiState",
+        "displayStoredEmail",
+        "ensureSignedInUser",
+        "getStoredCredentials",
+        "handleManualLogin",
+        "renderErrorState",
+        "renderSummary",
+        "setHeroPills",
+        "setProgress",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderSummary",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "applyAuthUiState",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "getStoredCredentials",
+        "renderCriticalPoints",
+        "renderPendingState",
+        "renderSuccessState",
+        "safeParseJson",
+        "setHeroPills"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "safeParseJson",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "applyAuthUiState",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "escapeHtml",
+        "firstNameFromProfile",
+        "getStoredCredentials",
+        "renderCriticalPoints",
+        "renderSummary",
+        "setHeroPills",
+        "setProgress",
+        "startProgressAnimation",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setHeroPills",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "applyAuthUiState",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "getStoredCredentials",
+        "renderPendingState",
+        "renderSuccessState",
+        "renderSummary",
+        "safeParseJson",
+        "setProgress",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setProgress",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "applyAuthUiState",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "escapeHtml",
+        "getStoredCredentials",
+        "renderCriticalPoints",
+        "renderSummary",
+        "safeParseJson",
+        "setHeroPills",
+        "startProgressAnimation",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "startProgressAnimation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyAuthUiState",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "escapeHtml",
+        "getStoredCredentials",
+        "renderCriticalPoints",
+        "renderPendingState",
+        "renderSummary",
+        "safeParseJson",
+        "setHeroPills",
+        "setProgress",
+        "stopProgressAnimation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "stopProgressAnimation",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "applyAuthUiState",
+        "clearStoredCredentials",
+        "displayStoredEmail",
+        "escapeHtml",
+        "getStoredCredentials",
+        "renderCriticalPoints",
+        "renderPendingState",
+        "renderSummary",
+        "safeParseJson",
+        "setHeroPills"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

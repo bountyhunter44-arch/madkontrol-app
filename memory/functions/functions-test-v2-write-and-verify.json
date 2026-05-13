@@ -1,0 +1,42 @@
+{
+  "source_file": "functions/test-v2-write-and-verify.js",
+  "module": "general",
+  "imports": [
+    "./egenkontrol/adapters/onboardingAdapter",
+    "./egenkontrol/builders/templateBuilder",
+    "./egenkontrol/generators/taskGenerator",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getExistingDocumentsByKeys",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "testV2WriteAndVerify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "testV2WriteAndVerify",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getExistingDocumentsByKeys"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

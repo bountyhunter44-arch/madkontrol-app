@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Read HACCP Snapshot</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDqVwVJgF6jFHdLCvIlvNWVVqD8Hs-XPQM",
+            authDomain: "madkontrollen.firebaseapp.com",
+            projectId: "madkontrollen",
+            storageBucket: "madkontrollen.firebasestorage.app",
+            messagingSenderId: "937588793415",
+            appId: "1:937588793415:web:4d7e9c6e8b5f3a2c1d4e5f"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        async function readSnapshot() {
+            const docId = 'cuxm0Qy9dMRcR6bYosjT';
+            
+            console.log('[readSnapshot] Reading doc:', docId);
+            
+            try {
+                const docRef = doc(db, 'haccp_snapshots', docId);
+                const docSnap = await getDoc(docRef);
+                
+                if (!docSnap.exists()) {
+                    console.error('❌ Document not found');
+                    document.getElementById('result').innerHTML = `
+                        <h2 style="color: red;">❌ Document not found</h2>
+                        <p>Doc ID: ${docId}</p>
+                    `;
+                    return;
+                }
+                
+                const data = docSnap.data();
+                
+                const result = {
+                    companyId: data.companyId,
+                    locationId: data.locationId,
+                    version: data.version,
+                    updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+                    controlPointsLength: data.controlPoints?.length || 0,
+                    firstControlPointKey: data.controlPoints?.[0]?.key || 'N/A',
+                    firstControlPointTitle: data.controlPoints?.[0]?.title || 'N/A'
+                };
+                
+                console.log('✅ Snapshot data:', result);
+                console.log('Full controlPoints:', data.controlPoints);
+                
+                document.getElementById('result').innerHTML = `
+                    <h2 style="color: green;">✅ Snapshot Found</h2>
+                    <table style="border-collapse: collapse; margin-top: 20px;">
+                        <tr>
+                            <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">companyId:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${result.companyId}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">locationId:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${result.locationId}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">version:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: ${result.version === '2.0.0' ? 'green' : 'orange'};">${result.version}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">updatedAt:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${result.updatedAt}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">controlPoints.length:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${result.controlPointsLength}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">controlPoints[0].key:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${result.firstControlPointKey}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">controlPoints[0].title:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${result.firstControlPointTitle}</td>
+                        </tr>
+                    </table>
+                    <h3 style="margin-top: 30px;">All Control Points:</h3>
+                    <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; overflow-x: auto;">${JSON.stringify(data.controlPoints?.map(cp => ({ key: cp.key, title: cp.title, type: cp.type })) || [], null, 2)}</pre>
+                `;
+            } catch (error) {
+                console.error('❌ ERROR:', error);
+                document.getElementById('result').innerHTML = `
+                    <h2 style="color: red;">❌ ERROR</h2>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+        
+        // Auto-run on load
+        window.addEventListener('load', readSnapshot);
+    </script>
+</head>
+<body style="font-family: sans-serif; padding: 40px;">
+    <h1>Read HACCP Snapshot</h1>
+    <p><strong>Doc ID:</strong> cuxm0Qy9dMRcR6bYosjT</p>
+    
+    <div id="result" style="margin-top: 30px;">
+        <p>Loading...</p>
+    </div>
+</body>
+</html>

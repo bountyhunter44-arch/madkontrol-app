@@ -1,0 +1,154 @@
+{
+  "source_file": "public/modules/egenkontrol/riskAnalysisHtmlRenderer.js",
+  "module": "general",
+  "imports": [
+    "/modules/i18n/index.js"
+  ],
+  "exports": [
+    "renderRiskAnalysisHtml"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "body",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "escapeHtml",
+        "renderCoverPage",
+        "renderHazardPage",
+        "renderList",
+        "renderSection",
+        "renderSummaryPage"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 19,
+      "calls": [
+        "renderCoverPage",
+        "renderHazardPage",
+        "renderList",
+        "renderSection",
+        "renderSummaryPage"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "itemTitle",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "escapeHtml",
+        "renderCoverPage",
+        "renderHazardPage",
+        "renderRiskAnalysisHtml",
+        "renderSummaryPage"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderCoverPage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "renderHazardPage",
+        "renderRiskAnalysisHtml",
+        "renderSection",
+        "renderSummaryPage"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderHazardPage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "renderCoverPage",
+        "renderRiskAnalysisHtml",
+        "renderSection",
+        "renderSummaryPage"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderList",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "escapeHtml",
+        "renderCoverPage",
+        "renderHazardPage",
+        "renderSection",
+        "renderSummaryPage"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderRiskAnalysisHtml",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "renderCoverPage",
+        "renderHazardPage",
+        "renderSummaryPage"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderSection",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "renderCoverPage",
+        "renderHazardPage",
+        "renderList",
+        "renderSummaryPage"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderSummaryPage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "renderCoverPage",
+        "renderHazardPage",
+        "renderRiskAnalysisHtml"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "title",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "escapeHtml",
+        "renderCoverPage",
+        "renderHazardPage",
+        "renderList",
+        "renderSection",
+        "renderSummaryPage"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

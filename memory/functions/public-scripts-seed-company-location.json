@@ -1,0 +1,28 @@
+{
+  "source_file": "public/scripts/seed-company-location.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "companies",
+    "locations"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "seedCompanyAndLocation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    }
+  ]
+}

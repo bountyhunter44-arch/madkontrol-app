@@ -1,0 +1,77 @@
+{
+  "source_file": "core/workflow.js",
+  "module": "general",
+  "imports": [
+    "./database.js"
+  ],
+  "exports": [
+    "showDashboardLockBanner",
+    "showSmartPrompt",
+    "showSuccess",
+    "transitionDeviationToLock",
+    "transitionScanInToTempCheck",
+    "transitionToNextPhase"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "showDashboardLockBanner",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "showSmartPrompt",
+      "type": "const_async",
+      "approx_occurrences": 4,
+      "calls": [],
+      "selectors": [
+        ".smart-prompt-btn",
+        ".smart-prompt-overlay"
+      ],
+      "collections": []
+    },
+    {
+      "name": "showSuccess",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "transitionDeviationToLock",
+      "type": "const_async",
+      "approx_occurrences": 0,
+      "calls": [
+        "showSmartPrompt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "transitionScanInToTempCheck",
+      "type": "const_async",
+      "approx_occurrences": 0,
+      "calls": [
+        "showSmartPrompt"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "transitionToNextPhase",
+      "type": "const_async",
+      "approx_occurrences": 0,
+      "calls": [
+        "showSmartPrompt"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM Prospects - Madkontrollen Pro</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .prospects-container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .prospects-header {
+      margin-bottom: 16px;
+    }
+
+    .prospects-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #182118;
+      margin: 0 0 8px 0;
+    }
+
+    .prospects-header p {
+      font-size: 14px;
+      color: #5a6c5a;
+      margin: 0;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 250px;
+      padding: 10px 16px;
+      border: 1px solid #d9e4d9;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #2e7d32;
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+    }
+
+    .toolbar-btn {
+      padding: 10px 16px;
+      border: 1px solid #d9e4d9;
+      border-radius: 8px;
+      background: #fff;
+      color: #182118;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .toolbar-btn:hover {
+      background: #f2f8f2;
+      border-color: #2e7d32;
+    }
+
+    .toolbar-btn.primary {
+      background: #2e7d32;
+      color: #fff;
+      border-color: #2e7d32;
+    }
+
+    .toolbar-btn.primary:hover {
+      background: #1b5e20;
+    }
+
+    .filter-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border: 1px solid #d9e4d9;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+
+    .filter-checkbox:hover {
+      background: #f2f8f2;
+    }
+
+    .filter-checkbox input {
+      cursor: pointer;
+    }
+
+    .prospects-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border: 1px solid #d9e4d9;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(16,24,16,0.04);
+    }
+
+    .stat-card h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #5a6c5a;
+      margin: 0 0 8px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2e7d32;
+      margin: 0;
+    }
+
+    .prospects-table {
+      background: #fff;
+      border: 1px solid #d9e4d9;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(16,24,16,0.04);
+    }
+
+    .table-header {
+      display: grid;
+      grid-template-columns: 180px 120px 180px 100px 140px 140px 100px 180px;
+      gap: 12px;
+      padding: 16px 20px;
+      background: #f2f8f2;
+      border-bottom: 1px solid #d9e4d9;
+      font-size: 12px;
+      font-weight: 700;
+      color: #5a6c5a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .prospect-row {
+      display: grid;
+      grid-template-columns: 180px 120px 180px 100px 140px 140px 100px 180px;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid #e8f0e8;
+      align-items: center;
+      transition: background 0.15s;
+      font-size: 13px;
+    }
+
+    .prospect-row:hover {
+      background: #f9fcf9;
+    }
+
+    .prospect-row:last-child {
+      border-bottom: none;
+    }
+
+    .prospect-name {
+      font-weight: 600;
+      color: #182118;
+    }
+
+    .prospect-cvr {
+      font-size: 12px;
+      color: #5a6c5a;
+      margin-top: 2px;
+    }
+
+    .prospect-link {
+      color: #2e7d32;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .prospect-link:hover {
+      text-decoration: underline;
+    }
+
+    .phone-display {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .phone-value {
+      color: #182118;
+      font-weight: 500;
+    }
+
+    .phone-missing {
+      color: #9e9e9e;
+      font-style: italic;
+    }
+
+    .phone-edit-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+
+    .phone-edit-btn:hover {
+      background: #e8f0e8;
+    }
+
+    .phone-add-btn {
+      background: #2e7d32;
+      color: #fff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .phone-add-btn:hover {
+      background: #1b5e20;
+    }
+
+    .phone-edit-form {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .phone-edit-input {
+      flex: 1;
+      padding: 6px 10px;
+      border: 1px solid #d9e4d9;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .phone-edit-input:focus {
+      outline: none;
+      border-color: #2e7d32;
+      box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+    }
+
+    .phone-save-btn,
+    .phone-cancel-btn {
+      padding: 4px 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .phone-save-btn {
+      background: #2e7d32;
+      color: #fff;
+    }
+
+    .phone-save-btn:hover {
+      background: #1b5e20;
+    }
+
+    .phone-cancel-btn {
+      background: #e0e0e0;
+      color: #424242;
+    }
+
+    .phone-cancel-btn:hover {
+      background: #bdbdbd;
+    }
+
+    .contact-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .contact-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid #d9e4d9;
+      background: #fff;
+      color: #2e7d32;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+
+    .contact-btn:hover:not(:disabled) {
+      background: #f2f8f2;
+      border-color: #2e7d32;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(46, 125, 50, 0.15);
+    }
+
+    .contact-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .status-select {
+      padding: 4px 8px;
+      border: 1px solid #d9e4d9;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: inherit;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .status-select:focus {
+      outline: none;
+      border-color: #2e7d32;
+    }
+
+    .action-btn {
+      padding: 6px 12px;
+      border: 1px solid #d9e4d9;
+      border-radius: 6px;
+      background: #fff;
+      color: #2e7d32;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .action-btn:hover {
+      background: #f2f8f2;
+      border-color: #2e7d32;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #5a6c5a;
+    }
+
+    .empty-state h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #5a6c5a;
+      font-size: 14px;
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 40px 20px;
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      margin: 20px;
+    }
+
+    .error-state h3 {
+      color: #856404;
+      margin: 0 0 8px 0;
+    }
+
+    .error-state p {
+      color: #856404;
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .progress-bar {
+      margin: 20px;
+      padding: 20px;
+      background: #fff;
+      border: 1px solid #d9e4d9;
+      border-radius: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 8px;
+      background: #2e7d32;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #5a6c5a;
+      text-align: center;
+    }
+
+    #csvFileInput {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="mkpLayoutContainer"></div>
+
+  <main class="prospects-container">
+    <div class="prospects-header">
+      <h1>CRM Prospects</h1>
+      <p>Importerede potentielle kunder klar til onboarding</p>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchInput" class="search-input" placeholder="Søg efter virksomhed, CVR, email...">
+      
+      <select id="statusFilter" class="toolbar-btn">
+        <option value="">Alle status</option>
+        <option value="prospect">Prospect</option>
+        <option value="contacted">Kontaktet</option>
+        <option value="converted">Konverteret</option>
+        <option value="rejected">Afvist</option>
+      </select>
+
+      <label class="filter-checkbox">
+        <input type="checkbox" id="filterMissingPhone">
+        <span>Kun mangler telefon</span>
+      </label>
+
+      <label class="filter-checkbox">
+        <input type="checkbox" id="filterMissingEmail">
+        <span>Kun mangler email</span>
+      </label>
+
+      <button id="importCsvBtn" class="toolbar-btn primary">📥 Importer CSV</button>
+      <button id="reloadBtn" class="toolbar-btn">🔄 Genindlæs</button>
+      <input type="file" id="csvFileInput" accept=".csv">
+    </div>
+
+    <div class="prospects-stats">
+      <div class="stat-card">
+        <h3>Total Prospects</h3>
+        <p class="value" id="totalProspects">0</p>
+      </div>
+      <div class="stat-card">
+        <h3>Med Telefon</h3>
+        <p class="value" id="withPhone">0</p>
+      </div>
+      <div class="stat-card">
+        <h3>Mangler Telefon</h3>
+        <p class="value" id="missingPhone">0</p>
+      </div>
+      <div class="stat-card">
+        <h3>Med Email</h3>
+        <p class="value" id="withEmail">0</p>
+      </div>
+    </div>
+
+    <div id="progressContainer"></div>
+
+    <div class="prospects-table">
+      <div class="table-header">
+        <div>Virksomhed</div>
+        <div>CVR</div>
+        <div>Adresse</div>
+        <div>By</div>
+        <div>Email</div>
+        <div>Telefon</div>
+        <div>Status</div>
+        <div>Handlinger</div>
+      </div>
+      <div id="prospectsListContainer">
+        <div class="loading">Indlæser prospects...</div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import { loadLayout } from "/core/layout.js";
+    import { db } from "/core/firebase-config.js";
+    import {
+      collection,
+      getDocs,
+      doc,
+      updateDoc,
+      setDoc,
+      serverTimestamp,
+      query,
+      limit,
+      writeBatch
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    let currentUser = null;
+    let currentProfile = null;
+    let allProspects = [];
+    let filteredProspects = [];
+    let editingCvr = null;
+
+    const container = document.getElementById("prospectsListContainer");
+    const totalProspectsEl = document.getElementById("totalProspects");
+    const withPhoneEl = document.getElementById("withPhone");
+    const missingPhoneEl = document.getElementById("missingPhone");
+    const withEmailEl = document.getElementById("withEmail");
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const filterMissingPhone = document.getElementById("filterMissingPhone");
+    const filterMissingEmail = document.getElementById("filterMissingEmail");
+    const importCsvBtn = document.getElementById("importCsvBtn");
+    const csvFileInput = document.getElementById("csvFileInput");
+    const reloadBtn = document.getElementById("reloadBtn");
+    const progressContainer = document.getElementById("progressContainer");
+
+    function hasAccess() {
+      if (!currentProfile) return false;
+      const role = (currentProfile.role || currentProfile.userRole || "").toLowerCase();
+      return ["owner", "admin", "hq_admin", "location_manager", "super-admin", "superadmin"].includes(role);
+    }
+
+    function canEdit() {
+      if (!currentProfile) return false;
+      const role = (currentProfile.role || currentProfile.userRole || "").toLowerCase();
+      return ["owner", "admin", "hq_admin", "super-admin", "superadmin"].includes(role);
+    }
+
+    function formatPhoneNumber(input) {
+      if (!input) return null;
+      let cleaned = input.trim().replace(/[\s\-\(\)]/g, "");
+      if (!/^\+?\d+$/.test(cleaned)) return null;
+      if (cleaned.startsWith("+45")) cleaned = cleaned.substring(3);
+      else if (cleaned.startsWith("45") && cleaned.length === 10) cleaned = cleaned.substring(2);
+      if (cleaned.length < 8) return null;
+      if (cleaned.length === 8) return "+45" + cleaned;
+      if (!cleaned.startsWith("+")) cleaned = "+" + cleaned;
+      return cleaned;
+    }
+
+    function getPhoneInternational(phone) {
+      if (!phone) return "";
+      return phone.replace(/[\s\-\(\)]/g, "").replace(/^\+/, "");
+    }
+
+    async function loadProspects() {
+      try {
+        container.innerHTML = '<div class="loading">Indlæser prospects...</div>';
+        
+        let q = query(collection(db, "prospects"), limit(200));
+        const snap = await getDocs(q);
+        
+        allProspects = snap.docs.map(doc => ({
+          cvr: doc.id,
+          ...doc.data()
+        }));
+
+        applyFilters();
+        updateStats();
+      } catch (error) {
+        console.error("Fejl ved indlæsning af prospects:", error);
+        
+        if (error.code === "permission-denied") {
+          container.innerHTML = `
+            <div class="error-state">
+              <h3>⚠️ Manglende adgang</h3>
+              <p>Du har ikke adgang til prospects. Tjek Firestore rules og din brugerrolle.</p>
+              <p style="margin-top:8px;font-size:12px;">Error: ${error.message}</p>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div class="error-state">
+              <h3>❌ Fejl</h3>
+              <p>Kunne ikke indlæse prospects: ${error.message}</p>
+            </div>
+          `;
+        }
+      }
+    }
+
+    function applyFilters() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const status = statusFilter.value;
+      const onlyMissingPhone = filterMissingPhone.checked;
+      const onlyMissingEmail = filterMissingEmail.checked;
+
+      filteredProspects = allProspects.filter(p => {
+        if (searchTerm) {
+          const searchable = [
+            p.name || p.companyName || "",
+            p.cvr || "",
+            p.email || "",
+            p.phone || "",
+            p.address || "",
+            p.city || ""
+          ].join(" ").toLowerCase();
+          if (!searchable.includes(searchTerm)) return false;
+        }
+
+        if (status && p.status !== status) return false;
+        if (onlyMissingPhone && p.phone) return false;
+        if (onlyMissingEmail && p.email) return false;
+
+        return true;
+      });
+
+      renderProspects();
+    }
+
+    function updateStats() {
+      totalProspectsEl.textContent = allProspects.length;
+      withPhoneEl.textContent = allProspects.filter(p => p.phone).length;
+      missingPhoneEl.textContent = allProspects.filter(p => !p.phone).length;
+      withEmailEl.textContent = allProspects.filter(p => p.email).length;
+    }
+
+    function renderProspects() {
+      if (filteredProspects.length === 0) {
+        container.innerHTML = '<div class="empty-state"><h3>Ingen prospects</h3><p>Ingen prospects matcher dine filtre</p></div>';
+        return;
+      }
+
+      container.innerHTML = filteredProspects.map(prospect => {
+        const hasPhone = Boolean(prospect.phone);
+        const hasEmail = Boolean(prospect.email);
+        const phoneInternational = getPhoneInternational(prospect.phone);
+        const isEditing = editingCvr === prospect.cvr;
+
+        return `
+          <div class="prospect-row" data-cvr="${prospect.cvr}">
+            <div>
+              <div class="prospect-name">${escapeHtml(prospect.name || prospect.companyName || "Unavngivet")}</div>
+            </div>
+            <div>
+              <div class="prospect-cvr">${escapeHtml(prospect.cvr || "")}</div>
+            </div>
+            <div>
+              <span style="font-size:12px;color:#5a6c5a;">${escapeHtml(prospect.address || "Ikke angivet")}</span>
+            </div>
+            <div>
+              <span style="font-size:12px;color:#5a6c5a;">${escapeHtml(prospect.city || prospect.by || "")}</span>
+            </div>
+            <div>
+              ${hasEmail ? `<a href="mailto:${escapeHtml(prospect.email)}" class="prospect-link">${escapeHtml(prospect.email)}</a>` : '<span style="color:#9e9e9e;font-size:12px;">Ikke angivet</span>'}
+            </div>
+            <div class="phone-display" data-phone-cell="${prospect.cvr}">
+              ${isEditing ? renderPhoneEditForm(prospect) : renderPhoneDisplay(prospect, hasPhone)}
+            </div>
+            <div>
+              <select class="status-select" data-status-select="${prospect.cvr}" ${!canEdit() ? 'disabled' : ''}>
+                <option value="prospect" ${(prospect.status || "prospect") === "prospect" ? "selected" : ""}>Prospect</option>
+                <option value="contacted" ${prospect.status === "contacted" ? "selected" : ""}>Kontaktet</option>
+                <option value="converted" ${prospect.status === "converted" ? "selected" : ""}>Konverteret</option>
+                <option value="rejected" ${prospect.status === "rejected" ? "selected" : ""}>Afvist</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <a href="/modules/egenkontrol/onboarding.html?cvr=${encodeURIComponent(prospect.cvr)}" class="action-btn" title="Åbn onboarding">🚀 Onboard</a>
+              <button class="action-btn" data-copy-cvr="${prospect.cvr}" title="Kopiér CVR">📋</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      attachEventListeners();
+    }
+
+    function renderPhoneDisplay(prospect, hasPhone) {
+      if (!canEdit()) {
+        return hasPhone 
+          ? `<span class="phone-value">${escapeHtml(prospect.phone)}</span>`
+          : `<span class="phone-missing">Ikke angivet</span>`;
+      }
+
+      if (hasPhone) {
+        return `
+          <span class="phone-value">${escapeHtml(prospect.phone)}</span>
+          <button class="phone-edit-btn" data-edit-phone="${prospect.cvr}" title="Rediger">✏️</button>
+        `;
+      } else {
+        return `
+          <span class="phone-missing">Ikke angivet</span>
+          <button class="phone-add-btn" data-edit-phone="${prospect.cvr}">Tilføj</button>
+        `;
+      }
+    }
+
+    function renderPhoneEditForm(prospect) {
+      return `
+        <div class="phone-edit-form">
+          <input 
+            type="tel" 
+            class="phone-edit-input" 
+            placeholder="+45 12 34 56 78" 
+            value="${escapeHtml(prospect.phone || '')}"
+            data-phone-input="${prospect.cvr}"
+          />
+          <button class="phone-save-btn" data-save-phone="${prospect.cvr}">Gem</button>
+          <button class="phone-cancel-btn" data-cancel-phone="${prospect.cvr}">Annuller</button>
+        </div>
+      `;
+    }
+
+    function attachEventListeners() {
+      document.querySelectorAll("[data-edit-phone]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const cvr = e.target.dataset.editPhone;
+          editingCvr = cvr;
+          renderProspects();
+          setTimeout(() => {
+            const input = document.querySelector(`[data-phone-input="${cvr}"]`);
+            if (input) {
+              input.focus();
+              input.select();
+            }
+          }, 10);
+        });
+      });
+
+      document.querySelectorAll("[data-save-phone]").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          const cvr = e.target.dataset.savePhone;
+          await savePhone(cvr);
+        });
+      });
+
+      document.querySelectorAll("[data-cancel-phone]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          editingCvr = null;
+          renderProspects();
+        });
+      });
+
+      document.querySelectorAll("[data-phone-input]").forEach(input => {
+        input.addEventListener("keydown", async (e) => {
+          if (e.key === "Enter") {
+            const cvr = e.target.dataset.phoneInput;
+            await savePhone(cvr);
+          } else if (e.key === "Escape") {
+            editingCvr = null;
+            renderProspects();
+          }
+        });
+      });
+
+      document.querySelectorAll("[data-status-select]").forEach(select => {
+        select.addEventListener("change", async (e) => {
+          const cvr = e.target.dataset.statusSelect;
+          const newStatus = e.target.value;
+          await updateStatus(cvr, newStatus);
+        });
+      });
+
+      document.querySelectorAll("[data-copy-cvr]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const cvr = e.target.dataset.copyCvr;
+          navigator.clipboard.writeText(cvr).then(() => {
+            e.target.textContent = "✓";
+            setTimeout(() => {
+              e.target.textContent = "📋";
+            }, 1000);
+          });
+        });
+      });
+    }
+
+    async function savePhone(cvr) {
+      const input = document.querySelector(`[data-phone-input="${cvr}"]`);
+      if (!input) return;
+
+      const rawValue = input.value;
+      const formatted = formatPhoneNumber(rawValue);
+
+      if (!formatted) {
+        alert("Ugyldigt telefonnummer. Indtast mindst 8 cifre.");
+        input.focus();
+        return;
+      }
+
+      try {
+        await updateDoc(doc(db, "prospects", cvr), {
+          phone: formatted,
+          phoneDisplay: formatted,
+          updatedAt: serverTimestamp()
+        });
+
+        const prospect = allProspects.find(p => p.cvr === cvr);
+        if (prospect) {
+          prospect.phone = formatted;
+          prospect.phoneDisplay = formatted;
+        }
+
+        editingCvr = null;
+        applyFilters();
+        updateStats();
+      } catch (error) {
+        console.error("Fejl ved gem af telefonnummer:", error);
+        alert("Kunne ikke gemme telefonnummer: " + error.message);
+      }
+    }
+
+    async function updateStatus(cvr, status) {
+      try {
+        await updateDoc(doc(db, "prospects", cvr), {
+          status: status,
+          updatedAt: serverTimestamp()
+        });
+
+        const prospect = allProspects.find(p => p.cvr === cvr);
+        if (prospect) {
+          prospect.status = status;
+        }
+      } catch (error) {
+        console.error("Fejl ved opdatering af status:", error);
+        alert("Kunne ikke opdatere status: " + error.message);
+      }
+    }
+
+    async function importCSV(file) {
+      const text = await file.text();
+      const lines = text.split("\n").filter(line => line.trim());
+      
+      if (lines.length === 0) {
+        alert("CSV-filen er tom");
+        return;
+      }
+
+      const headers = lines[0].split(";").map(h => h.trim().toLowerCase());
+      const rows = lines.slice(1);
+
+      const fieldMap = {
+        "cvr": "cvr",
+        "firmanavn": "name",
+        "navn": "name",
+        "companyname": "name",
+        "adresse": "address",
+        "address": "address",
+        "postnummer": "zip",
+        "zip": "zip",
+        "by": "city",
+        "city": "city",
+        "hjemmeside": "website",
+        "website": "website",
+        "email": "email",
+        "e-mail": "email",
+        "phone": "phone",
+        "telefon": "phone",
+        "tlf": "phone"
+      };
+
+      progressContainer.innerHTML = `
+        <div class="progress-bar">
+          <div class="progress-bar-fill" id="progressBarFill" style="width:0%"></div>
+          <div class="progress-text" id="progressText">Forbereder import...</div>
+        </div>
+      `;
+
+      const progressBarFill = document.getElementById("progressBarFill");
+      const progressText = document.getElementById("progressText");
+
+      let created = 0;
+      let updated = 0;
+      let skipped = 0;
+
+      const batch = writeBatch(db);
+      let batchCount = 0;
+      const MAX_BATCH = 400;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const values = row.split(";").map(v => v.trim());
+        
+        const prospect = {};
+        headers.forEach((header, idx) => {
+          const field = fieldMap[header];
+          if (field && values[idx]) {
+            prospect[field] = values[idx];
+          }
+        });
+
+        if (!prospect.cvr) {
+          skipped++;
+          continue;
+        }
+
+        const cvrClean = prospect.cvr.replace(/\D/g, "");
+        if (!cvrClean) {
+          skipped++;
+          continue;
+        }
+
+        if (prospect.phone) {
+          const formatted = formatPhoneNumber(prospect.phone);
+          if (formatted) {
+            prospect.phone = formatted;
+            prospect.phoneDisplay = formatted;
+          }
+        }
+
+        prospect.companyName = prospect.name;
+        prospect.status = prospect.status || "prospect";
+        prospect.updatedAt = serverTimestamp();
+
+        const docRef = doc(db, "prospects", cvrClean);
+        
+        const existingProspect = allProspects.find(p => p.cvr === cvrClean);
+        if (existingProspect) {
+          batch.update(docRef, prospect);
+          updated++;
+        } else {
+          prospect.createdAt = serverTimestamp();
+          batch.set(docRef, prospect);
+          created++;
+        }
+
+        batchCount++;
+
+        if (batchCount >= MAX_BATCH) {
+          await batch.commit();
+          batchCount = 0;
+        }
+
+        const progress = Math.round(((i + 1) / rows.length) * 100);
+        progressBarFill.style.width = progress + "%";
+        progressText.textContent = `Importerer ${i + 1} / ${rows.length}`;
+      }
+
+      if (batchCount > 0) {
+        await batch.commit();
+      }
+
+      progressContainer.innerHTML = `
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width:100%;background:#2e7d32;"></div>
+          <div class="progress-text" style="color:#2e7d32;font-weight:600;">
+            ✓ Import færdig: ${created} oprettet, ${updated} opdateret, ${skipped} sprunget over
+          </div>
+        </div>
+      `;
+
+      setTimeout(() => {
+        progressContainer.innerHTML = "";
+      }, 5000);
+
+      await loadProspects();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    searchInput.addEventListener("input", applyFilters);
+    statusFilter.addEventListener("change", applyFilters);
+    filterMissingPhone.addEventListener("change", applyFilters);
+    filterMissingEmail.addEventListener("change", applyFilters);
+
+    importCsvBtn.addEventListener("click", () => {
+      csvFileInput.click();
+    });
+
+    csvFileInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        await importCSV(file);
+      } catch (error) {
+        console.error("CSV import fejl:", error);
+        alert("Fejl ved import af CSV: " + error.message);
+      }
+
+      csvFileInput.value = "";
+    });
+
+    reloadBtn.addEventListener("click", loadProspects);
+
+    await loadLayout();
+
+    setupAuthGate({
+      appName: "Madkontrollen Pro - CRM",
+      onAuthenticated: async ({ user, profile }) => {
+        currentUser = user;
+        currentProfile = profile;
+
+        if (!hasAccess()) {
+          container.innerHTML = `
+            <div class="error-state">
+              <h3>🔒 Ingen adgang</h3>
+              <p>Du har ikke adgang til CRM Prospects.</p>
+              <p style="margin-top:8px;font-size:12px;">Kun owner, admin, hq_admin, location_manager og super-admin har adgang.</p>
+            </div>
+          `;
+          return;
+        }
+
+        await loadProspects();
+      }
+    });
+  </script>
+</body>
+</html>

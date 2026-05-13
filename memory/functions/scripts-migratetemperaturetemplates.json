@@ -1,0 +1,40 @@
+{
+  "source_file": "scripts/migrateTemperatureTemplates.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "inferEquipmentType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "inferEquipmentType"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

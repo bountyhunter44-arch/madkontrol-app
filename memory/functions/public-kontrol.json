@@ -1,0 +1,46 @@
+{
+  "source_file": "public/kontrol.html",
+  "module": "general",
+  "imports": [
+    "/core/firebase-config.js",
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [
+    "alerts_without_deviation_creation"
+  ],
+  "functions": [
+    {
+      "name": "getTodayKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadControlStats"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "loadControlStats",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getTodayKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_instances"
+      ]
+    }
+  ]
+}

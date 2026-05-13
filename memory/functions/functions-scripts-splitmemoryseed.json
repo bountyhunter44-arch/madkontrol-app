@@ -1,0 +1,265 @@
+{
+  "source_file": "functions/scripts/splitMemorySeed.js",
+  "module": "general",
+  "imports": [
+    "fs",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "risks"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildDataFiles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildFunctionFiles",
+        "buildMasterIndex",
+        "buildModuleFiles",
+        "buildRiskFiles",
+        "buildUiFiles",
+        "ensureAllDirs",
+        "main",
+        "readJson",
+        "sanitizeName",
+        "toPosix",
+        "uniqueSorted",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildFunctionFiles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDataFiles",
+        "buildModuleFiles",
+        "buildUiFiles",
+        "sanitizeName",
+        "toPosix",
+        "uniqueSorted",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildMasterIndex",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDataFiles",
+        "buildFunctionFiles",
+        "buildModuleFiles",
+        "buildRiskFiles",
+        "buildUiFiles",
+        "ensureAllDirs",
+        "main",
+        "readJson",
+        "toPosix",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildModuleFiles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDataFiles",
+        "buildFunctionFiles",
+        "buildMasterIndex",
+        "buildRiskFiles",
+        "buildUiFiles",
+        "ensureAllDirs",
+        "main",
+        "readJson",
+        "sanitizeName",
+        "toPosix",
+        "uniqueSorted",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildRiskFiles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDataFiles",
+        "buildFunctionFiles",
+        "buildMasterIndex",
+        "buildModuleFiles",
+        "buildUiFiles",
+        "ensureAllDirs",
+        "main",
+        "readJson",
+        "sanitizeName",
+        "toPosix",
+        "uniqueSorted",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildUiFiles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDataFiles",
+        "buildMasterIndex",
+        "buildModuleFiles",
+        "buildRiskFiles",
+        "sanitizeName",
+        "toPosix",
+        "uniqueSorted",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "ensureAllDirs",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDataFiles",
+        "buildFunctionFiles",
+        "buildUiFiles",
+        "ensureDir",
+        "readJson",
+        "sanitizeName",
+        "toPosix",
+        "uniqueSorted",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "ensureDir",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDataFiles",
+        "buildFunctionFiles",
+        "buildUiFiles",
+        "ensureAllDirs",
+        "readJson",
+        "sanitizeName",
+        "toPosix",
+        "uniqueSorted",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDataFiles",
+        "buildFunctionFiles",
+        "buildMasterIndex",
+        "buildModuleFiles",
+        "buildRiskFiles",
+        "buildUiFiles",
+        "ensureAllDirs",
+        "readJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "readJson",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDataFiles",
+        "buildFunctionFiles",
+        "buildModuleFiles",
+        "buildUiFiles",
+        "sanitizeName",
+        "toPosix",
+        "uniqueSorted",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeName",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "buildDataFiles",
+        "buildFunctionFiles",
+        "buildModuleFiles",
+        "buildUiFiles",
+        "toPosix",
+        "uniqueSorted",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toPosix",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "buildDataFiles",
+        "buildFunctionFiles",
+        "buildModuleFiles",
+        "buildUiFiles",
+        "sanitizeName",
+        "uniqueSorted",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "uniqueSorted",
+      "type": "function",
+      "approx_occurrences": 19,
+      "calls": [
+        "buildDataFiles",
+        "buildFunctionFiles",
+        "buildModuleFiles",
+        "buildUiFiles",
+        "sanitizeName",
+        "toPosix",
+        "writeJson"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "writeJson",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "buildDataFiles",
+        "buildFunctionFiles",
+        "buildModuleFiles",
+        "buildUiFiles",
+        "sanitizeName",
+        "toPosix",
+        "uniqueSorted"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

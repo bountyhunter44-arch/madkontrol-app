@@ -1,0 +1,39 @@
+{
+  "source_file": "public/scripts/delete-egenkontrol-data-for-location.cjs",
+  "module": "general",
+  "imports": [
+    "../../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "program_sections",
+    "task_instances",
+    "task_templates",
+    "verification_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "deleteCollectionScoped",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "run"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteCollectionScoped"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

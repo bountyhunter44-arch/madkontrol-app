@@ -1,0 +1,87 @@
+{
+  "source_file": "functions/egenkontrol/adapters/onboardingAdapter.js",
+  "module": "onboarding",
+  "imports": [],
+  "exports": [
+    "adaptLegacyOnboardingToProfile",
+    "mapLegacyActivitiesToKeys",
+    "mapLegacyAreasToKeys",
+    "mapLegacyBusinessTypeToKey",
+    "mapLegacyEquipmentToKeys"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "adaptLegacyOnboardingToProfile",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "mapLegacyActivitiesToKeys",
+        "mapLegacyAreasToKeys",
+        "mapLegacyBusinessTypeToKey",
+        "mapLegacyEquipmentToKeys"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "mapLegacyActivitiesToKeys",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "adaptLegacyOnboardingToProfile",
+        "mapLegacyAreasToKeys",
+        "mapLegacyBusinessTypeToKey",
+        "mapLegacyEquipmentToKeys"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "mapLegacyAreasToKeys",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "adaptLegacyOnboardingToProfile",
+        "mapLegacyActivitiesToKeys",
+        "mapLegacyBusinessTypeToKey",
+        "mapLegacyEquipmentToKeys"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "mapLegacyBusinessTypeToKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "mapLegacyActivitiesToKeys",
+        "mapLegacyAreasToKeys",
+        "mapLegacyEquipmentToKeys"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "mapLegacyEquipmentToKeys",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "mapLegacyActivitiesToKeys",
+        "mapLegacyAreasToKeys"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "riskTags",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

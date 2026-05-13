@@ -1,0 +1,228 @@
+{
+  "source_file": "public/modules/lager/profit-dashboard.html",
+  "module": "dashboard",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "deviations",
+    "inventory_transactions"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "calculateDeviationScore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateMonthLabels",
+        "initializeProfitChart",
+        "updateMetricsDisplay",
+        "updateProfitChart",
+        "updateProfitSlider"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "calculateFifoCompliance",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateDeviationScore",
+        "updateMetricsDisplay",
+        "updateProfitChart",
+        "updateProfitSlider"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "inventory_transactions"
+      ]
+    },
+    {
+      "name": "calculateScanningActivity",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateDeviationScore",
+        "calculateFifoCompliance",
+        "updateProfitSlider"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "inventory_transactions"
+      ]
+    },
+    {
+      "name": "complianceRate",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "calculateDeviationScore",
+        "generateMonthLabels",
+        "initializeProfitChart",
+        "updateMetricsDisplay",
+        "updateProfitChart",
+        "updateProfitSlider"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "externalPressure",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "generateMonthLabels",
+        "initializeProfitChart",
+        "updateMetricsDisplay",
+        "updateProfitChart"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateMonthLabels",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadDashboardData",
+        "startRealtimeUpdates",
+        "updateMetricsDisplay",
+        "updateProfitSlider"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "initializeProfitChart",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateMonthLabels",
+        "loadDashboardData",
+        "startRealtimeUpdates",
+        "updateProfitChart"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "internalScore",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "generateMonthLabels",
+        "initializeProfitChart",
+        "updateMetricsDisplay",
+        "updateProfitChart"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadDashboardData",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "calculateDeviationScore",
+        "calculateFifoCompliance",
+        "calculateScanningActivity",
+        "updateMetricsDisplay",
+        "updateProfitSlider"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "inventory_transactions"
+      ]
+    },
+    {
+      "name": "monthIndex",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "loadDashboardData",
+        "startRealtimeUpdates",
+        "updateMetricsDisplay",
+        "updateProfitSlider"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "percentage",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "generateMonthLabels",
+        "initializeProfitChart",
+        "updateMetricsDisplay",
+        "updateProfitChart"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "startRealtimeUpdates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadDashboardData",
+        "updateMetricsDisplay",
+        "updateProfitSlider"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateMetricsDisplay",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "generateMonthLabels",
+        "initializeProfitChart",
+        "updateProfitChart"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateProfitChart",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateMonthLabels",
+        "loadDashboardData",
+        "startRealtimeUpdates",
+        "updateMetricsDisplay",
+        "updateProfitSlider"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateProfitSlider",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "generateMonthLabels",
+        "initializeProfitChart",
+        "updateMetricsDisplay",
+        "updateProfitChart"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

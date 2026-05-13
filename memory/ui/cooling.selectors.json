@@ -1,0 +1,19 @@
+{
+  "module": "cooling",
+  "files": [
+    {
+      "source_file": "public/core/cooling-overlay.js",
+      "selectors": [
+        ".mk-cr-abort",
+        ".mk-cr-detail",
+        ".mk-cr-finish",
+        ".mk-cr-row",
+        ".mk-cr-toggle",
+        ".mk-minpill",
+        ".mk-mpill-icon",
+        ".mk-phase-icon",
+        ".mk-phase-lbl"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "source_file": "scripts/check-templates.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "checkTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

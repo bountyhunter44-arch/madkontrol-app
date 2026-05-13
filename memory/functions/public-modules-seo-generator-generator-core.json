@@ -1,0 +1,94 @@
+{
+  "source_file": "public/modules/seo/generator/generator-core.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "generateWebsiteFiles"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "generateLandingPage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateRobots",
+        "generateSitemap"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateMainPage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateLandingPage",
+        "generateRobots",
+        "generateSitemap"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generatePages",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateLandingPage",
+        "generateMainPage",
+        "generateRobots",
+        "generateSitemap"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateRobots",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateSitemap",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateRobots"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateWebsiteFiles",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "generateLandingPage",
+        "generateMainPage",
+        "generatePages",
+        "generateRobots",
+        "generateSitemap"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "landingPages",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "generateLandingPage",
+        "generateMainPage",
+        "generateRobots",
+        "generateSitemap"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

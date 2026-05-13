@@ -1,0 +1,1268 @@
+{
+  "source_file": "public/dashboard.html",
+  "module": "dashboard",
+  "imports": [
+    "/components/module-lock.js",
+    "/components/risk-analysis-card.js?v=7",
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "/core/impersonation.js",
+    "/modules/i18n/language-switcher.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "companies",
+    "live_user_profiles",
+    "locations",
+    "media_assets",
+    "operating_overrides",
+    "task_instances"
+  ],
+  "flags": [
+    "saveRoutineTask"
+  ],
+  "risks": [
+    "alerts_without_deviation_creation"
+  ],
+  "functions": [
+    {
+      "name": "alertAlreadyExists",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "evaluateTaskResult",
+        "getEntryPayload",
+        "getTodayKey",
+        "isTemperatureTask",
+        "maybeCreateAlert",
+        "maybeCreateMissedControlAlerts",
+        "saveTaskEntry"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "applyOperatingStateToUi",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "bindGuideToggles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getCommentForInstance",
+        "renderAiPreviewCard",
+        "showToast"
+      ],
+      "selectors": [
+        ".task-ai-preview",
+        "[data-guide-toggle]",
+        "button[data-ai-approve]",
+        "style[data-toast-styles]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "bindOperatingButtons",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyOperatingStateToUi",
+        "fetchDashboardSnapshot",
+        "getProfileCompanyId",
+        "loadDashboardData",
+        "loadOperatingState",
+        "normalizeLocationIds",
+        "renderHaccpSnapshot",
+        "renderTasks",
+        "resolveOperatingState",
+        "setOperatingMode",
+        "setReferenceDateFromPrompt",
+        "startTaskListener",
+        "switchLocation",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "bindTaskActionButtons",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "optimizeImageForUpload",
+        "uploadToCloudinaryWithRetry"
+      ],
+      "selectors": [
+        ".task-camera-btn[data-open-camera][data-instance-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "bindTeamManagement",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "loadDashboardLocationDisplayName",
+        "normalizeLocationIds",
+        "pushValue",
+        "renderLocationSwitcher",
+        "setStoredLocationId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "buildGuideMarkup",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyOperatingStateToUi",
+        "escapeHtml",
+        "getGuideContent",
+        "getOperatingOverride",
+        "getTodayKey",
+        "normalizeDateKey",
+        "resolveOperatingState",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "buildHaccpRiskSet",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "fetchDashboardSnapshot",
+        "formatDateDa",
+        "normalizeText",
+        "pickSnapshotProfile",
+        "renderHaccpNarrative",
+        "renderHaccpSnapshot",
+        "renderHaccpTables"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "el",
+      "type": "const_function",
+      "approx_occurrences": 8,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 50,
+      "calls": [
+        "formatDateDa",
+        "formatDateTimeDa",
+        "formatEmploymentRoleLabel",
+        "getReadableTaskReference",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "normalizeText",
+        "parseDateValue",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "evaluateTaskResult",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getGuideContent",
+        "getTaskType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "fetchDashboardSnapshot",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "evaluateTaskResult",
+        "getDateKey",
+        "getOverrideDocId",
+        "getTodayKey",
+        "isTemperatureTask",
+        "loadDashboardData",
+        "normalizeDateKey",
+        "setReferenceDateFromPrompt",
+        "startTaskListener",
+        "updateKpis",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDateDa",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "escapeHtml",
+        "formatDateTimeDa",
+        "formatEmploymentRoleLabel",
+        "getReadableTaskReference",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "loadLocationUsers",
+        "normalizeText",
+        "parseDateValue",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "toLegacyId",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDateTimeDa",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatEmploymentRoleLabel",
+        "getReadableTaskReference",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "loadLocationUsers",
+        "normalizeText",
+        "parseDateValue",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "toLegacyId",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatEmploymentRoleLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "handleCreateLocationUser",
+        "loadLocationUsers",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getClosingRank",
+      "type": "const_function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateTimeDa",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskStatusLabel",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCommentForInstance",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindTaskActionButtons",
+        "escapeHtml",
+        "renderAiPreviewCard",
+        "showToast"
+      ],
+      "selectors": [
+        ".task-ai-preview",
+        ".task-camera-btn[data-open-camera][data-instance-id]",
+        "button[data-ai-approve]",
+        "style[data-toast-styles]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getDateKey",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatDateTimeDa",
+        "formatEmploymentRoleLabel",
+        "getReadableTaskReference",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskStatusLabel",
+        "normalizeDateKey",
+        "normalizeText",
+        "parseDateValue",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEntryPayload",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "alertAlreadyExists",
+        "evaluateTaskResult",
+        "getTodayKey",
+        "isTemperatureTask",
+        "maybeCreateAlert"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "getGuideContent",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getTaskType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getOperatingOverride",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "applyOperatingStateToUi",
+        "getTodayKey",
+        "normalizeDateKey",
+        "resolveOperatingState",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "getOverrideDocId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "evaluateTaskResult",
+        "getGuideContent",
+        "getTaskType",
+        "isTemperatureTask",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProfileCompanyId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildHaccpRiskSet",
+        "escapeHtml",
+        "getStoredLocationId",
+        "loadDashboardData",
+        "loadDashboardLocationDisplayName",
+        "loadLocationUsers",
+        "loadPrettyContext",
+        "renderLocationSwitcher",
+        "renderPrettyUI",
+        "setStoredLocationId",
+        "startTaskListener",
+        "switchLocation",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "getReadableTaskReference",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatEmploymentRoleLabel",
+        "loadLocationUsers",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "toLegacyId",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStoredLocationId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildHaccpRiskSet",
+        "escapeHtml",
+        "loadDashboardData",
+        "loadDashboardLocationDisplayName",
+        "loadLocationUsers",
+        "loadPrettyContext",
+        "renderLocationSwitcher",
+        "renderPrettyUI",
+        "setStoredLocationId",
+        "startTaskListener",
+        "switchLocation",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "getTaskCreatedAt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatEmploymentRoleLabel",
+        "getReadableTaskReference",
+        "getTaskHandledAt",
+        "loadLocationUsers",
+        "normalizeText",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "toLegacyId",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTaskHandledAt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatEmploymentRoleLabel",
+        "getReadableTaskReference",
+        "loadLocationUsers",
+        "normalizeText",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "toLegacyId",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTaskStatusLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatDateTimeDa",
+        "formatEmploymentRoleLabel",
+        "getReadableTaskReference",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "normalizeText",
+        "parseDateValue",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTaskType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getGuideContent"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTodayKey",
+      "type": "function",
+      "approx_occurrences": 17,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatDateTimeDa",
+        "formatEmploymentRoleLabel",
+        "getDateKey",
+        "getReadableTaskReference",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskStatusLabel",
+        "normalizeDateKey",
+        "normalizeText",
+        "parseDateValue",
+        "setTeamStatus",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleCreateLocationUser",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "bindTeamManagement",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "loadLocationUsers",
+        "normalizeLocationIds",
+        "pushValue",
+        "renderLocationSwitcher",
+        "setStoredLocationId",
+        "setTeamStatus",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isTemperatureTask",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "evaluateTaskResult",
+        "getGuideContent",
+        "getTaskType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadAlerts",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "bindOperatingButtons",
+        "getOverrideDocId",
+        "getTodayKey",
+        "loadDashboardData",
+        "loadOperatingState",
+        "normalizeDateKey",
+        "setOperatingMode",
+        "setReferenceDateFromPrompt",
+        "startTaskListener",
+        "switchLocation",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "loadDashboardData",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "applyOperatingStateToUi",
+        "fetchDashboardSnapshot",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "normalizeLocationIds",
+        "renderHaccpSnapshot",
+        "renderTasks",
+        "resolveOperatingState",
+        "setStoredLocationId",
+        "toLegacyId",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadDashboardLocationDisplayName",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildHaccpRiskSet",
+        "escapeHtml",
+        "loadDashboardData",
+        "loadLocationUsers",
+        "loadPrettyContext",
+        "normalizeText",
+        "pickSnapshotProfile",
+        "renderHaccpNarrative",
+        "renderHaccpTables",
+        "renderPrettyUI",
+        "setStoredLocationId",
+        "startTaskListener",
+        "switchLocation",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "loadLocationUsers",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "bindTeamManagement",
+        "handleCreateLocationUser",
+        "normalizeLocationIds",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadOperatingState",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "applyOperatingStateToUi",
+        "fetchDashboardSnapshot",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "loadDashboardData",
+        "normalizeLocationIds",
+        "renderHaccpSnapshot",
+        "renderTasks",
+        "resolveOperatingState",
+        "setStoredLocationId",
+        "startTaskListener",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadPrettyContext",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "el",
+        "renderPrettyUI"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations"
+      ]
+    },
+    {
+      "name": "loadTasks",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getTodayKey",
+        "loadAlerts",
+        "maybeCreateMissedControlAlerts",
+        "normalizeDateKey",
+        "setOperatingMode",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "maybeCreateAlert",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "alertAlreadyExists",
+        "evaluateTaskResult",
+        "getEntryPayload",
+        "getTodayKey",
+        "isTemperatureTask",
+        "maybeCreateMissedControlAlerts",
+        "saveTaskEntry"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "maybeCreateMissedControlAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "evaluateTaskResult",
+        "getEntryPayload",
+        "getTodayKey",
+        "loadAlerts",
+        "loadTasks",
+        "normalizeDateKey",
+        "saveTaskEntry"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "normalizeDateKey",
+      "type": "function",
+      "approx_occurrences": 11,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatDateTimeDa",
+        "formatEmploymentRoleLabel",
+        "getDateKey",
+        "getReadableTaskReference",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskStatusLabel",
+        "normalizeText",
+        "parseDateValue",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeLocationIds",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "loadDashboardLocationDisplayName",
+        "pushValue",
+        "renderLocationSwitcher",
+        "setStoredLocationId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "normalizeText",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatEmploymentRoleLabel",
+        "getReadableTaskReference",
+        "loadLocationUsers",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "toLegacyId",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "optimizeImageForUpload",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "uploadToCloudinaryWithRetry"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "parseDateValue",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatDateTimeDa",
+        "formatEmploymentRoleLabel",
+        "getDateKey",
+        "getReadableTaskReference",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskStatusLabel",
+        "normalizeDateKey",
+        "normalizeText",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "pickSnapshotProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildHaccpRiskSet",
+        "fetchDashboardSnapshot",
+        "formatDateDa",
+        "getTodayKey",
+        "renderHaccpNarrative",
+        "renderHaccpSnapshot",
+        "renderHaccpTables",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "pushValue",
+      "type": "const_function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "loadDashboardLocationDisplayName",
+        "renderLocationSwitcher",
+        "setStoredLocationId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "renderAiPreviewCard",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindTaskActionButtons",
+        "escapeHtml",
+        "optimizeImageForUpload"
+      ],
+      "selectors": [
+        ".task-ai-preview",
+        ".task-camera-btn[data-open-camera][data-instance-id]",
+        "button[data-ai-approve]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderHaccpNarrative",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildHaccpRiskSet",
+        "fetchDashboardSnapshot",
+        "formatDateDa",
+        "getTodayKey",
+        "pickSnapshotProfile",
+        "renderHaccpSnapshot",
+        "renderHaccpTables",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderHaccpSnapshot",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildHaccpRiskSet",
+        "fetchDashboardSnapshot",
+        "formatDateDa",
+        "getDateKey",
+        "getTodayKey",
+        "pickSnapshotProfile",
+        "renderHaccpNarrative",
+        "renderHaccpTables",
+        "setReferenceDateFromPrompt",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderHaccpTables",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildHaccpRiskSet",
+        "escapeHtml",
+        "fetchDashboardSnapshot",
+        "formatDateDa",
+        "getTodayKey",
+        "pickSnapshotProfile",
+        "renderHaccpNarrative",
+        "renderHaccpSnapshot"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderLocationSwitcher",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildHaccpRiskSet",
+        "escapeHtml",
+        "loadDashboardData",
+        "loadDashboardLocationDisplayName",
+        "loadLocationUsers",
+        "loadPrettyContext",
+        "normalizeText",
+        "renderPrettyUI",
+        "setStoredLocationId",
+        "startTaskListener",
+        "switchLocation",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "renderLocationUsers",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatEmploymentRoleLabel",
+        "handleCreateLocationUser",
+        "loadLocationUsers",
+        "setTeamStatus",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderPrettyUI",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "el"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateTimeDa",
+        "getClosingRank",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskStatusLabel",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "resolveOperatingState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyOperatingStateToUi",
+        "getTodayKey",
+        "normalizeDateKey",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "saveTaskEntry",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "evaluateTaskResult",
+        "getEntryPayload",
+        "getTodayKey",
+        "loadAlerts",
+        "loadTasks",
+        "maybeCreateMissedControlAlerts",
+        "normalizeDateKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "setOperatingMode",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "applyOperatingStateToUi",
+        "bindOperatingButtons",
+        "fetchDashboardSnapshot",
+        "getOverrideDocId",
+        "getTodayKey",
+        "loadDashboardData",
+        "loadOperatingState",
+        "normalizeDateKey",
+        "renderHaccpSnapshot",
+        "renderTasks",
+        "resolveOperatingState",
+        "setReferenceDateFromPrompt",
+        "startTaskListener",
+        "switchLocation",
+        "updateKpis",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "setReferenceDateFromPrompt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "evaluateTaskResult",
+        "getDateKey",
+        "getGuideContent",
+        "getOverrideDocId",
+        "getTaskType",
+        "isTemperatureTask",
+        "loadDashboardData",
+        "normalizeDateKey",
+        "startTaskListener",
+        "updateKpis",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setStoredLocationId",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildHaccpRiskSet",
+        "escapeHtml",
+        "loadDashboardData",
+        "loadDashboardLocationDisplayName",
+        "loadLocationUsers",
+        "loadPrettyContext",
+        "normalizeText",
+        "renderLocationSwitcher",
+        "renderPrettyUI",
+        "startTaskListener",
+        "switchLocation",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "setTeamStatus",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatEmploymentRoleLabel",
+        "handleCreateLocationUser",
+        "loadLocationUsers",
+        "renderLocationUsers",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "showToast",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "bindTaskActionButtons",
+        "escapeHtml",
+        "renderAiPreviewCard"
+      ],
+      "selectors": [
+        ".task-ai-preview",
+        ".task-camera-btn[data-open-camera][data-instance-id]",
+        "button[data-ai-approve]",
+        "style[data-toast-styles]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "startTaskListener",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "applyOperatingStateToUi",
+        "fetchDashboardSnapshot",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "loadDashboardData",
+        "normalizeLocationIds",
+        "renderHaccpSnapshot",
+        "renderTasks",
+        "resolveOperatingState",
+        "setStoredLocationId",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "switchLocation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildHaccpRiskSet",
+        "escapeHtml",
+        "formatDateDa",
+        "loadDashboardData",
+        "loadLocationUsers",
+        "loadPrettyContext",
+        "normalizeText",
+        "pickSnapshotProfile",
+        "renderHaccpNarrative",
+        "renderHaccpSnapshot",
+        "renderHaccpTables",
+        "renderPrettyUI",
+        "setStoredLocationId",
+        "startTaskListener",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toLegacyId",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "escapeHtml",
+        "formatDateDa",
+        "formatEmploymentRoleLabel",
+        "handleCreateLocationUser",
+        "loadLocationUsers",
+        "renderLocationUsers",
+        "setTeamStatus",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateKpis",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "evaluateTaskResult",
+        "getGuideContent",
+        "getTaskType",
+        "isTemperatureTask"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "uploadToCloudinaryWithRetry",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "optimizeImageForUpload"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "userIsResponsible",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "evaluateTaskResult",
+        "getDateKey",
+        "getOverrideDocId",
+        "getTaskType",
+        "isTemperatureTask",
+        "loadDashboardData",
+        "normalizeDateKey",
+        "setReferenceDateFromPrompt",
+        "startTaskListener",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

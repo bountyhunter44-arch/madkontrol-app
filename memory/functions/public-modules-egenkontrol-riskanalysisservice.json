@@ -1,0 +1,192 @@
+{
+  "source_file": "public/modules/egenkontrol/riskAnalysisService.js",
+  "module": "general",
+  "imports": [
+    "./buildRiskAnalysisFromOnboarding.js",
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [
+    "ensureRiskAnalysisForLocation",
+    "getActiveContext",
+    "getExistingRiskAnalysis",
+    "loadOnboardingFromFirestore",
+    "loadRiskAnalysisFromFirestore",
+    "saveRiskAnalysisDocument"
+  ],
+  "collections": [
+    "companies",
+    "haccp_snapshots",
+    "live_user_profiles",
+    "locations"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildMetaFromHaccpData",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "ensureRiskAnalysisForLocation",
+        "getExistingRiskAnalysis",
+        "mapProfileToOnboardingInput",
+        "saveRiskAnalysisDocument"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "buildPagesFromHaccpData",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildScopeVariants",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "convertProvisioningRiskAnalysisToFrontend",
+        "loadOnboardingFromFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots",
+        "live_user_profiles"
+      ]
+    },
+    {
+      "name": "buildSection",
+      "type": "const_function",
+      "approx_occurrences": 4,
+      "calls": [
+        "getActiveContext"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "convertHaccpSnapshotToRiskAnalysis",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "convertProvisioningRiskAnalysisToFrontend",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSection"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "ensureRiskAnalysisForLocation",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getExistingRiskAnalysis",
+        "mapProfileToOnboardingInput",
+        "saveRiskAnalysisDocument"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getActiveContext",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "convertHaccpSnapshotToRiskAnalysis",
+        "convertProvisioningRiskAnalysisToFrontend",
+        "getExistingRiskAnalysis",
+        "loadRiskAnalysisFromFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "getExistingRiskAnalysis",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "convertHaccpSnapshotToRiskAnalysis",
+        "convertProvisioningRiskAnalysisToFrontend",
+        "loadRiskAnalysisFromFirestore"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadOnboardingFromFirestore",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildScopeVariants",
+        "buildSection",
+        "convertProvisioningRiskAnalysisToFrontend"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots",
+        "live_user_profiles"
+      ]
+    },
+    {
+      "name": "loadRiskAnalysisFromFirestore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "convertHaccpSnapshotToRiskAnalysis",
+        "convertProvisioningRiskAnalysisToFrontend",
+        "getExistingRiskAnalysis"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "mapProfileToOnboardingInput",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildScopeVariants",
+        "loadOnboardingFromFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "haccp_snapshots",
+        "live_user_profiles"
+      ]
+    },
+    {
+      "name": "saveRiskAnalysisDocument",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureRiskAnalysisForLocation",
+        "getExistingRiskAnalysis",
+        "mapProfileToOnboardingInput"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    }
+  ]
+}

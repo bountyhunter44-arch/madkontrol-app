@@ -1,0 +1,618 @@
+{
+  "source_file": "public/modules/egenkontrol/risikoanalyse.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "/core/layout.js",
+    "/modules/egenkontrol/risk-analysis-library.js",
+    "/modules/egenkontrol/riskAnalysisHtmlRenderer.js",
+    "/modules/egenkontrol/riskAnalysisService.js",
+    "/modules/egenkontrol/riskAnalysisStyles.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "companies",
+    "locations"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "bindAccordions",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "renderRiskAccordions",
+        "renderSummaryRows"
+      ],
+      "selectors": [
+        ".accordion-content",
+        "[data-accordion-card]",
+        "[data-accordion-toggle]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "bindRiskContainer",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "renderCustomCards",
+        "saveCustomCard",
+        "saveRiskNote"
+      ],
+      "selectors": [
+        ".risk-beskrivelse-input",
+        ".risk-cancel-btn",
+        ".risk-card",
+        ".risk-card-head",
+        ".risk-kontrol-input",
+        ".risk-new-card",
+        ".risk-note",
+        ".risk-save-btn",
+        ".risk-save-new-btn",
+        ".risk-title-input"
+      ],
+      "collections": []
+    },
+    {
+      "name": "cacheDom",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindRiskContainer",
+        "escapeHtml",
+        "loadReadableLocationName",
+        "readOnboardingFromLocalStorage",
+        "renderLoadingState",
+        "resolveCompanyAndLocation",
+        "safeJsonParse",
+        "updateHeroHeader"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 41,
+      "calls": [
+        "loadReadableLocationName",
+        "readOnboardingFromLocalStorage",
+        "renderEmptyState",
+        "renderLoadingState",
+        "resolveCompanyAndLocation",
+        "safeJsonParse",
+        "updateHeroHeader"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "getCanonicalRiskKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "normalizeRiskItems",
+        "renderRiskAnalysis",
+        "resolveKontrollerFromOnboarding"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getRiskNoteRef",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "loadCustomCards",
+        "loadRiskNotes",
+        "renderCustomCards",
+        "saveCustomCard",
+        "saveRiskNote"
+      ],
+      "selectors": [
+        ".risk-card-custom"
+      ],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "initPage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "cacheDom",
+        "mountRiskAnalysisStyles",
+        "onAuthenticated",
+        "renderEmptyState"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "listHtml",
+      "type": "const_function",
+      "approx_occurrences": 3,
+      "calls": [
+        "bindAccordions",
+        "escapeHtml",
+        "renderAccordionCard",
+        "renderSummaryRows"
+      ],
+      "selectors": [
+        "[data-accordion-card]",
+        "[data-accordion-toggle]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "loadCustomCards",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "renderCustomCards",
+        "saveCustomCard",
+        "showNewCardForm"
+      ],
+      "selectors": [
+        ".risk-card-custom",
+        ".risk-new-card"
+      ],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "loadLiveRiskData",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "cacheDom",
+        "initPage",
+        "loadCustomCards",
+        "loadReadableLocationName",
+        "loadRiskNotes",
+        "mountRiskAnalysisStyles",
+        "onAuthenticated",
+        "readOnboardingFromLocalStorage",
+        "render",
+        "renderEmptyState",
+        "renderLoadingState",
+        "resolveCompanyAndLocation",
+        "updateHeroHeader"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadReadableLocationName",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "listHtml",
+        "renderEmptyState",
+        "renderHazardSection",
+        "renderLoadingState",
+        "renderSummaryRows"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "loadRiskNotes",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getRiskNoteRef",
+        "loadCustomCards",
+        "renderCustomCards",
+        "saveCustomCard",
+        "saveRiskNote"
+      ],
+      "selectors": [
+        ".risk-card-custom"
+      ],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "mountRiskAnalysisStyles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindRiskContainer",
+        "cacheDom",
+        "escapeHtml",
+        "loadReadableLocationName",
+        "readOnboardingFromLocalStorage",
+        "resolveCompanyAndLocation",
+        "safeJsonParse",
+        "updateHeroHeader"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "normalizeRiskItems",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getCanonicalRiskKey",
+        "renderRiskAnalysis",
+        "resolveKontrollerFromOnboarding"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "onAuthenticated",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "cacheDom",
+        "initPage",
+        "loadCustomCards",
+        "loadLiveRiskData",
+        "loadReadableLocationName",
+        "loadRiskNotes",
+        "mountRiskAnalysisStyles",
+        "readOnboardingFromLocalStorage",
+        "render",
+        "renderEmptyState",
+        "renderLoadingState",
+        "resolveCompanyAndLocation",
+        "updateHeroHeader"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "readOnboardingFromLocalStorage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "loadReadableLocationName",
+        "renderEmptyState",
+        "renderHazardSection",
+        "renderLoadingState",
+        "safeJsonParse",
+        "updateHeroHeader"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "render",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "cacheDom",
+        "initPage",
+        "loadCustomCards",
+        "loadLiveRiskData",
+        "loadReadableLocationName",
+        "loadRiskNotes",
+        "mountRiskAnalysisStyles",
+        "onAuthenticated",
+        "readOnboardingFromLocalStorage",
+        "renderCustomCards",
+        "renderEmptyState",
+        "renderHeroStats",
+        "renderLoadingState",
+        "renderRiskAnalysis",
+        "resolveCompanyAndLocation",
+        "updateHeroHeader"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderAccordionCard",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "bindAccordions",
+        "escapeHtml",
+        "renderRiskAccordions"
+      ],
+      "selectors": [
+        ".accordion-content",
+        "[data-accordion-card]",
+        "[data-accordion-toggle]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderCustomCards",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "bindRiskContainer",
+        "escapeHtml",
+        "showNewCardForm"
+      ],
+      "selectors": [
+        ".risk-card-custom",
+        ".risk-new-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderEmptyState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "listHtml",
+        "renderAccordionCard",
+        "renderHazardSection",
+        "renderSummaryRows"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderHaccpDocument",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "escapeHtml",
+        "getRiskNoteRef",
+        "renderHeroStats"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "renderHazardSection",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "bindAccordions",
+        "escapeHtml",
+        "listHtml",
+        "renderAccordionCard",
+        "renderSummaryRows"
+      ],
+      "selectors": [
+        "[data-accordion-card]",
+        "[data-accordion-toggle]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderHeroStats",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getRiskNoteRef",
+        "loadRiskNotes",
+        "saveRiskNote"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "renderLoadingState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "listHtml",
+        "renderAccordionCard",
+        "renderEmptyState",
+        "renderHazardSection",
+        "renderSummaryRows"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderRiskAccordions",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "bindAccordions",
+        "renderHaccpDocument",
+        "renderSummaryRows"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderRiskAnalysis",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "normalizeRiskItems",
+        "render",
+        "renderHeroStats",
+        "resolveKontrollerFromOnboarding"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderSummaryRows",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindAccordions",
+        "escapeHtml",
+        "renderAccordionCard",
+        "renderRiskAccordions"
+      ],
+      "selectors": [
+        ".accordion-content",
+        "[data-accordion-card]",
+        "[data-accordion-toggle]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "resolveCompanyAndLocation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "loadReadableLocationName",
+        "readOnboardingFromLocalStorage",
+        "renderEmptyState",
+        "renderLoadingState",
+        "safeJsonParse",
+        "updateHeroHeader"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "resolveKontrollerFromOnboarding",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getCanonicalRiskKey",
+        "normalizeRiskItems"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "safeJsonParse",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "loadReadableLocationName",
+        "readOnboardingFromLocalStorage",
+        "renderEmptyState",
+        "renderLoadingState",
+        "resolveCompanyAndLocation",
+        "updateHeroHeader"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "saveCustomCard",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "renderCustomCards",
+        "showNewCardForm"
+      ],
+      "selectors": [
+        ".risk-card-custom",
+        ".risk-new-card"
+      ],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "saveRiskNote",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getRiskNoteRef",
+        "loadCustomCards",
+        "renderCustomCards",
+        "saveCustomCard"
+      ],
+      "selectors": [
+        ".risk-card-custom"
+      ],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "showNewCardForm",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "bindRiskContainer",
+        "escapeHtml",
+        "renderCustomCards",
+        "saveCustomCard"
+      ],
+      "selectors": [
+        ".risk-beskrivelse-input",
+        ".risk-card",
+        ".risk-card-head",
+        ".risk-kontrol-input",
+        ".risk-new-card",
+        ".risk-note",
+        ".risk-save-new-btn",
+        ".risk-title-input"
+      ],
+      "collections": []
+    },
+    {
+      "name": "updateHeroHeader",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "listHtml",
+        "loadReadableLocationName",
+        "renderEmptyState",
+        "renderHazardSection",
+        "renderLoadingState"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    }
+  ]
+}

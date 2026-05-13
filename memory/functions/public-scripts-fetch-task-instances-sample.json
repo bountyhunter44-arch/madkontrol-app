@@ -1,0 +1,26 @@
+{
+  "source_file": "public/scripts/fetch-task-instances-sample.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "fetchTaskInstancesSample",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    }
+  ]
+}

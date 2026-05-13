@@ -1,0 +1,18 @@
+{
+  "name": "deviations",
+  "files": [
+    "public/modules/egenkontrol/afvigelser-new.html",
+    "public/modules/egenkontrol/afvigelser.html",
+    "scripts/delete-aroid-afvigelser.js",
+    "scripts/delete-global-manual-deviations.js"
+  ],
+  "total_functions": 94,
+  "flags": [],
+  "collections": [
+    "alerts",
+    "deviations",
+    "task_entries",
+    "task_instances"
+  ],
+  "risks": []
+}

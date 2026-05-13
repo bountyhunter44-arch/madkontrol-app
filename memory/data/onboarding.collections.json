@@ -1,0 +1,76 @@
+{
+  "module": "onboarding",
+  "files": [
+    {
+      "source_file": "functions/admin/generateRisksFromOnboardingAnswers.js",
+      "collections": [
+        "onboarding_answers",
+        "risks"
+      ]
+    },
+    {
+      "source_file": "functions/fixOnboardingStructure.js",
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "source_file": "functions/provisioning.js",
+      "collections": [
+        "companies",
+        "locations",
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/onboarding.html",
+      "collections": [
+        "equipment",
+        "onboarding_answers",
+        "users"
+      ]
+    },
+    {
+      "source_file": "public/onboarding.html",
+      "collections": [
+        "equipment",
+        "onboarding_answers",
+        "users"
+      ]
+    },
+    {
+      "source_file": "scripts/generate-templates-from-onboarding.cjs",
+      "collections": [
+        "equipment",
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/inspect-onboarding.cjs",
+      "collections": [
+        "companies",
+        "locations",
+        "onboarding_sessions"
+      ]
+    },
+    {
+      "source_file": "scripts/provision-missing-equipment.cjs",
+      "collections": [
+        "equipment",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "scripts/reprovision-and-audit.cjs",
+      "collections": [
+        "equipment",
+        "onboarding_answers",
+        "risks",
+        "task_templates"
+      ]
+    }
+  ]
+}

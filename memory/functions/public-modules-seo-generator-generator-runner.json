@@ -1,0 +1,33 @@
+{
+  "source_file": "public/modules/seo/generator/generator-runner.js",
+  "module": "general",
+  "imports": [
+    "./generator-core.js"
+  ],
+  "exports": [
+    "runGenerator"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "runGenerator",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "saveFiles"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "saveFiles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

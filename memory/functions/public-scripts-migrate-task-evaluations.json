@@ -1,0 +1,173 @@
+{
+  "source_file": "public/scripts/migrate-task-evaluations.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "deviations",
+    "task_entries",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildEvaluationMessage",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "inferReason",
+        "normalizeNumber",
+        "safeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTaskInstanceMap",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEvaluationMessage",
+        "inferReason",
+        "migrateTaskEntries",
+        "normalizeNumber",
+        "safeString",
+        "toBoolean"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "inferReason",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildEvaluationMessage",
+        "getTaskInstanceMap",
+        "migrateTaskEntries",
+        "normalizeNumber",
+        "safeString",
+        "toBoolean"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "migrateAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEvaluationMessage",
+        "inferReason",
+        "migrateDeviations",
+        "normalizeNumber",
+        "safeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "migrateDeviations",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEvaluationMessage",
+        "getTaskInstanceMap",
+        "inferReason",
+        "migrateAlerts",
+        "migrateTaskEntries",
+        "normalizeNumber",
+        "run",
+        "safeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "migrateTaskEntries",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEvaluationMessage",
+        "inferReason",
+        "migrateAlerts",
+        "normalizeNumber",
+        "safeString",
+        "toBoolean"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_entries"
+      ]
+    },
+    {
+      "name": "normalizeNumber",
+      "type": "function",
+      "approx_occurrences": 18,
+      "calls": [
+        "buildEvaluationMessage",
+        "inferReason",
+        "safeString",
+        "toBoolean"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getTaskInstanceMap",
+        "migrateAlerts",
+        "migrateDeviations",
+        "migrateTaskEntries"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "safeString",
+      "type": "function",
+      "approx_occurrences": 16,
+      "calls": [
+        "buildEvaluationMessage",
+        "inferReason",
+        "normalizeNumber",
+        "toBoolean"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toBoolean",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildEvaluationMessage",
+        "inferReason",
+        "normalizeNumber",
+        "safeString"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

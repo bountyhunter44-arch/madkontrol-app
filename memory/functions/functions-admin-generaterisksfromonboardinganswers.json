@@ -1,0 +1,188 @@
+{
+  "source_file": "functions/admin/generateRisksFromOnboardingAnswers.js",
+  "module": "onboarding",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [
+    "generateRisksFromOnboardingAnswers"
+  ],
+  "collections": [
+    "onboarding_answers",
+    "risks"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildAllergenRisk",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildRiskPayload",
+        "buildTransportRisk",
+        "comparableRiskData",
+        "generateRisksForOnboardingDoc",
+        "makeRiskDocId",
+        "shouldIncludeAllergenRisk",
+        "shouldIncludeTransportRisk"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildRiskPayload",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAllergenRisk",
+        "buildTransportRisk",
+        "comparableRiskData",
+        "generateRisksForOnboardingDoc",
+        "generateRisksFromOnboardingAnswers",
+        "makeRiskDocId",
+        "shouldIncludeAllergenRisk",
+        "shouldIncludeTransportRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "risks"
+      ]
+    },
+    {
+      "name": "buildTransportRisk",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAllergenRisk",
+        "buildRiskPayload",
+        "comparableRiskData",
+        "generateRisksForOnboardingDoc",
+        "makeRiskDocId",
+        "shouldIncludeAllergenRisk",
+        "shouldIncludeTransportRisk"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "comparableRiskData",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildAllergenRisk",
+        "buildRiskPayload",
+        "buildTransportRisk",
+        "generateRisksForOnboardingDoc",
+        "generateRisksFromOnboardingAnswers",
+        "makeRiskDocId",
+        "shouldIncludeAllergenRisk",
+        "shouldIncludeTransportRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "risks"
+      ]
+    },
+    {
+      "name": "generateRisksForOnboardingDoc",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAllergenRisk",
+        "buildRiskPayload",
+        "buildTransportRisk",
+        "comparableRiskData",
+        "generateRisksFromOnboardingAnswers",
+        "makeRiskDocId",
+        "run",
+        "shouldIncludeAllergenRisk",
+        "shouldIncludeTransportRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers",
+        "risks"
+      ]
+    },
+    {
+      "name": "generateRisksFromOnboardingAnswers",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateRisksForOnboardingDoc",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "makeRiskDocId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAllergenRisk",
+        "buildRiskPayload",
+        "buildTransportRisk",
+        "comparableRiskData",
+        "generateRisksForOnboardingDoc",
+        "shouldIncludeAllergenRisk",
+        "shouldIncludeTransportRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "risks"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateRisksFromOnboardingAnswers"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldIncludeAllergenRisk",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAllergenRisk",
+        "buildRiskPayload",
+        "buildTransportRisk",
+        "comparableRiskData",
+        "generateRisksForOnboardingDoc",
+        "makeRiskDocId",
+        "shouldIncludeTransportRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "risks"
+      ]
+    },
+    {
+      "name": "shouldIncludeTransportRisk",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAllergenRisk",
+        "buildRiskPayload",
+        "buildTransportRisk",
+        "comparableRiskData",
+        "generateRisksForOnboardingDoc",
+        "makeRiskDocId",
+        "shouldIncludeAllergenRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "risks"
+      ]
+    }
+  ]
+}

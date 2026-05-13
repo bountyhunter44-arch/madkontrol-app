@@ -1,0 +1,35 @@
+{
+  "source_file": "public/modules/egenkontrol/onboardingService.js",
+  "module": "onboarding",
+  "imports": [
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [
+    "saveOnboardingAndStartCheckout"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "extractCloudinaryAssetsFromSections",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "saveOnboardingAndStartCheckout",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "extractCloudinaryAssetsFromSections"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

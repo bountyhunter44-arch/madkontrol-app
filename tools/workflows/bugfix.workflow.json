@@ -1,0 +1,109 @@
+{
+  "id": "bugfix-workflow",
+  "name": "Bug Fix Workflow",
+  "type": "bugfix",
+  "version": "1.0.0",
+  "description": "Standard workflow for fixing bugs",
+  "steps": [
+    {
+      "order": 1,
+      "action": "Reproduce bug",
+      "description": "Verify bug exists and understand reproduction steps",
+      "requiredTools": ["browser", "firebase console"],
+      "checkpoints": [
+        "Bug reproduced locally",
+        "Steps documented",
+        "Error messages captured"
+      ]
+    },
+    {
+      "order": 2,
+      "action": "Identify root cause",
+      "description": "Use debugging tools to find root cause",
+      "requiredTools": ["Windsurf", "browser console", "code_search"],
+      "checkpoints": [
+        "Root cause identified",
+        "Affected code located",
+        "Dependencies understood"
+      ]
+    },
+    {
+      "order": 3,
+      "action": "Check registries",
+      "description": "Check if bug affects registered helpers/engines",
+      "requiredTools": ["grep", "find"],
+      "checkpoints": [
+        "Dependencies checked",
+        "Impact assessed",
+        "Critical areas identified"
+      ]
+    },
+    {
+      "order": 4,
+      "action": "Design fix",
+      "description": "Plan minimal fix that addresses root cause",
+      "requiredTools": ["Windsurf"],
+      "checkpoints": [
+        "Fix approach documented",
+        "Minimal changes identified",
+        "Side effects considered"
+      ]
+    },
+    {
+      "order": 5,
+      "action": "Implement fix",
+      "description": "Make minimal changes to fix bug",
+      "requiredTools": ["Windsurf", "Codex"],
+      "checkpoints": [
+        "Only necessary code changed",
+        "Fix addresses root cause",
+        "No new bugs introduced"
+      ]
+    },
+    {
+      "order": 6,
+      "action": "Test fix",
+      "description": "Verify bug is fixed and nothing else broke",
+      "requiredTools": ["firebase serve", "browser"],
+      "checkpoints": [
+        "Bug no longer reproduces",
+        "Existing features work",
+        "No console errors"
+      ]
+    },
+    {
+      "order": 7,
+      "action": "Deploy fix",
+      "description": "Deploy to production",
+      "requiredTools": ["firebase CLI"],
+      "checkpoints": [
+        "Deployed successfully",
+        "Production verified",
+        "Bug fixed in production"
+      ]
+    },
+    {
+      "order": 8,
+      "action": "Log fix",
+      "description": "Document bug, root cause, and fix in logs",
+      "requiredTools": ["text editor"],
+      "checkpoints": [
+        "Bug logged in fixes.log.json",
+        "Root cause documented",
+        "Prevention measures noted"
+      ]
+    }
+  ],
+  "prerequisites": [
+    "Bug report available",
+    "Reproduction steps known",
+    "AGENT_START_RULES.md read"
+  ],
+  "verification": [
+    "Bug no longer reproduces",
+    "No regressions",
+    "Fix logged",
+    "Production verified"
+  ],
+  "tags": ["bugfix", "debugging", "standard"]
+}

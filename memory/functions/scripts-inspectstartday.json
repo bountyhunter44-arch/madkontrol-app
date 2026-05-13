@@ -1,0 +1,326 @@
+{
+  "source_file": "scripts/inspectStartDay.cjs",
+  "module": "scheduler",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "daily_runs",
+    "equipment",
+    "onboarding_answers",
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [
+    "startDayForLocation"
+  ],
+  "risks": [],
+  "functions": [
+    {
+      "name": "applyStartDayFilter",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildTargets",
+        "loadEquipment"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "buildComparablePayload",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "applyStartDayFilter",
+        "buildTargets",
+        "diffFields",
+        "getTodayKey",
+        "loadActiveTaskTemplates",
+        "loadEquipment",
+        "main",
+        "materiallyEqual",
+        "sanitize",
+        "stableNormalize"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "buildTargets",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadEquipment"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "controlType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "loadEquipment"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "diffFields",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyStartDayFilter",
+        "buildTargets",
+        "getTodayKey",
+        "loadActiveTaskTemplates",
+        "loadEquipment",
+        "main",
+        "sanitize"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "docId",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "loadEquipment"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "explicitEqType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "loadEquipment",
+        "stableNormalize"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "freq",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildComparablePayload",
+        "diffFields",
+        "materiallyEqual"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTodayKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyStartDayFilter",
+        "buildTargets",
+        "loadActiveTaskTemplates",
+        "sanitize",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "loadActiveTaskTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyStartDayFilter",
+        "buildTargets",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "loadEquipment",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildComparablePayload",
+        "stableNormalize"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyStartDayFilter",
+        "buildTargets",
+        "getTodayKey",
+        "loadActiveTaskTemplates",
+        "loadEquipment",
+        "sanitize"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "materiallyEqual",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyStartDayFilter",
+        "buildComparablePayload",
+        "buildTargets",
+        "diffFields",
+        "getTodayKey",
+        "loadActiveTaskTemplates",
+        "loadEquipment",
+        "main",
+        "sanitize"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "sanitize",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "applyStartDayFilter",
+        "buildTargets",
+        "loadActiveTaskTemplates",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "scopedTaskId",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildComparablePayload",
+        "diffFields",
+        "materiallyEqual"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "stableNormalize",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "applyStartDayFilter",
+        "buildComparablePayload",
+        "buildTargets",
+        "diffFields",
+        "getTodayKey",
+        "loadActiveTaskTemplates",
+        "loadEquipment",
+        "main",
+        "materiallyEqual",
+        "sanitize"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "templateEqType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "loadEquipment"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "title",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildTargets",
+        "loadEquipment"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "toLegacyId",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "applyStartDayFilter",
+        "buildTargets",
+        "loadActiveTaskTemplates",
+        "sanitize"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "type",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildComparablePayload",
+        "diffFields",
+        "materiallyEqual",
+        "stableNormalize"
+      ],
+      "selectors": [],
+      "collections": [
+        "onboarding_answers"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "source_file": "public/scripts/delete-task-templates.cjs",
+  "module": "general",
+  "imports": [
+    "../../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "deleteTaskTemplatesForCompany",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

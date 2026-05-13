@@ -1,0 +1,1653 @@
+{
+  "source_file": "public/modules/egenkontrol/afvigelser.html",
+  "module": "deviations",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "deviations",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "actionNeedsNote",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "escapeHtml",
+        "getCardStateClass",
+        "getClosedFilteredAlerts",
+        "getFilterLabel",
+        "getOpenFilteredAlerts",
+        "renderLists",
+        "renderReferenceBox",
+        "scrollToRelevantSection",
+        "setActiveFilter",
+        "updateFilterUi",
+        "updateSectionVisibility"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "activate",
+      "type": "const_function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getDateFromTimestampLike",
+        "normalizeAlert",
+        "normalizeDeviation",
+        "setActiveFilter"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "bindActionButtons",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "activate",
+        "bindReopenButtons",
+        "bindStatFilters",
+        "getSaveSuccessMessage",
+        "loadAlerts",
+        "normalizeAlert",
+        "redirectBackToRutiner",
+        "reopenAlert",
+        "saveAlertState",
+        "setActiveFilter",
+        "setAlertLoading"
+      ],
+      "selectors": [
+        ".reopen-alert-btn",
+        ".save-alert-btn, .save-awaiting-btn, .resolve-alert-btn",
+        ".stat-box.is-clickable",
+        ".task-item",
+        "button"
+      ],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "bindCaseStatusFields",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "clearCorrectiveAction",
+        "getCorrectiveActionLabel",
+        "getCorrectiveNote",
+        "getSaveSuccessMessage",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "redirectBackToRutiner",
+        "resetTaskInstanceFromCancelledAlert",
+        "saveAlertState",
+        "setAlertLoading"
+      ],
+      "selectors": [
+        "button",
+        "input, textarea"
+      ],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "bindCorrectiveFields",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindCaseStatusFields",
+        "clearCorrectiveAction",
+        "getCorrectiveNote",
+        "getSaveSuccessMessage",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "redirectBackToRutiner",
+        "resetTaskInstanceFromCancelledAlert",
+        "saveAlertState",
+        "setAlertLoading",
+        "toggleCorrectiveExtra"
+      ],
+      "selectors": [
+        "button",
+        "input, textarea"
+      ],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "bindFoldDelegation",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "formatDateKey",
+        "formatTimestampValue",
+        "getAfvigelsesTypeLabel",
+        "getAlvorlighedLabel",
+        "getDateFromTimestampLike",
+        "getSortableTime",
+        "getTodayKey",
+        "readInitialFilter"
+      ],
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "bindReopenButtons",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "activate",
+        "bindStatFilters",
+        "getDateFromTimestampLike",
+        "loadAlerts",
+        "normalizeAlert",
+        "normalizeDeviation",
+        "reopenAlert",
+        "setActiveFilter",
+        "setAlertLoading"
+      ],
+      "selectors": [
+        ".reopen-alert-btn",
+        ".stat-box.is-clickable",
+        ".task-item",
+        "button"
+      ],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "bindStatFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "activate",
+        "getDateFromTimestampLike",
+        "normalizeAlert",
+        "normalizeDeviation",
+        "setActiveFilter"
+      ],
+      "selectors": [
+        ".stat-box.is-clickable"
+      ],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "buildAlertPayloadFromContext",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureFollowUpAlertExists",
+        "findAlertByTaskInstanceId",
+        "formatAreaLabel",
+        "getTaskInstance",
+        "getTodayKey",
+        "loadAlerts",
+        "scrollToHighlightedCard"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "buildCorrectiveDocumentation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "getAreaName",
+        "getCardStateClass",
+        "getClosedFilteredAlerts",
+        "getCorrectiveActionLabel",
+        "getDefaultCorrectiveNote",
+        "getFilterLabel",
+        "getMachineName",
+        "getOpenFilteredAlerts",
+        "getSpecificLabel",
+        "updateFilterUi",
+        "updateKpis",
+        "updateSectionVisibility"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "clearCorrectiveAction",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindCaseStatusFields",
+        "bindCorrectiveFields",
+        "getSaveSuccessMessage",
+        "getSelectedCaseStatus",
+        "initializeCorrectiveExtras",
+        "redirectBackToRutiner",
+        "resetTaskInstanceFromCancelledAlert",
+        "setAlertLoading",
+        "toggleCorrectiveExtra"
+      ],
+      "selectors": [
+        "[data-extra-for]",
+        "button",
+        "input, textarea"
+      ],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "enrichAlertsWithTaskContext",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAlertPayloadFromContext",
+        "findAlertByTaskInstanceId",
+        "getSortableTime",
+        "getTaskInstance"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "ensureFollowUpAlertExists",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindStatFilters",
+        "buildAlertPayloadFromContext",
+        "enrichAlertsWithTaskContext",
+        "fetchAllDeviationSources",
+        "findAlertByTaskInstanceId",
+        "getProfileCompanyId",
+        "getSortableTime",
+        "getTaskInstance",
+        "loadAlerts",
+        "normalizeAlert",
+        "normalizeDeviation",
+        "normalizeLocationIds",
+        "renderLists",
+        "renderReferenceBox",
+        "resolveLocationForUser",
+        "scrollToHighlightedCard",
+        "scrollToRelevantSection",
+        "toLegacyId",
+        "updateFilterUi",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 52,
+      "calls": [
+        "formatAreaLabel",
+        "formatDateKey",
+        "formatTimestampValue",
+        "getAfvigelsesTypeLabel",
+        "getAlvorlighedLabel",
+        "getDateFromTimestampLike",
+        "getReadableTaskReference",
+        "getSortableTime",
+        "getStatusLabel",
+        "getTodayKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "fetchAllDeviationSources",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "enrichAlertsWithTaskContext",
+        "findAlertByTaskInstanceId",
+        "tryScopedQuery"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "findAlertByTaskInstanceId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAlertPayloadFromContext",
+        "formatAreaLabel",
+        "getSortableTime",
+        "getTaskInstance"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "formatAreaLabel",
+      "type": "function",
+      "approx_occurrences": 9,
+      "calls": [
+        "escapeHtml",
+        "getAreaName",
+        "getAreaType",
+        "getMachineName",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSpecificLabel",
+        "getVisningsTitel",
+        "renderAreaInfo"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDateKey",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatAreaLabel",
+        "formatTimestampValue",
+        "getAfvigelsesTypeLabel",
+        "getAlvorlighedLabel",
+        "getDateFromTimestampLike",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSortableTime",
+        "getStatusLabel",
+        "getTodayKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatTimestampValue",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatAreaLabel",
+        "getAfvigelsesTypeLabel",
+        "getAlvorlighedLabel",
+        "getAreaName",
+        "getDateFromTimestampLike",
+        "getMachineName",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSortableTime",
+        "getSpecificLabel",
+        "getStatusLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAfvigelsesTypeLabel",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatAreaLabel",
+        "getAreaName",
+        "getAreaType",
+        "getMachineName",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSpecificLabel",
+        "getStatusLabel",
+        "renderAreaInfo"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAlvorlighedLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatAreaLabel",
+        "getAfvigelsesTypeLabel",
+        "getAreaName",
+        "getAreaType",
+        "getMachineName",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSpecificLabel",
+        "getStatusLabel",
+        "renderAreaInfo"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAreaName",
+      "type": "function",
+      "approx_occurrences": 9,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getAreaType",
+        "getContextGuide",
+        "getMachineName",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSpecificLabel",
+        "getVisningsBeskrivelse",
+        "getVisningsTitel",
+        "renderAreaInfo"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAreaType",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getAreaName",
+        "getContextGuide",
+        "getMachineName",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSpecificLabel",
+        "getVisningsBeskrivelse",
+        "getVisningsTitel",
+        "renderAreaInfo"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCardStateClass",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getClosedFilteredAlerts",
+        "getFilterLabel",
+        "getOpenFilteredAlerts",
+        "renderLists",
+        "renderReferenceBox",
+        "scrollToRelevantSection",
+        "setActiveFilter",
+        "updateFilterUi",
+        "updateSectionVisibility"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getClosedFilteredAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getFilterLabel",
+        "getReadableInstanceReference",
+        "renderLists",
+        "renderReferenceBox",
+        "scrollToRelevantSection",
+        "setActiveFilter",
+        "updateFilterUi",
+        "updateSectionVisibility"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getContextGuide",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getAreaName",
+        "getAreaType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCorrectiveActionLabel",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "getAreaName",
+        "getCardStateClass",
+        "getDefaultCorrectiveNote",
+        "getMachineName",
+        "getOpenFilteredAlerts",
+        "getSpecificLabel",
+        "requiresDetailedCorrectiveNote",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCorrectiveNote",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "bindCaseStatusFields",
+        "bindCorrectiveFields",
+        "clearCorrectiveAction",
+        "getSaveSuccessMessage",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "initializeCorrectiveExtras",
+        "setAlertLoading",
+        "toggleCorrectiveExtra"
+      ],
+      "selectors": [
+        "[data-extra-for]",
+        "button",
+        "input, textarea"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getDateFromTimestampLike",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "formatAreaLabel",
+        "formatTimestampValue",
+        "getAfvigelsesTypeLabel",
+        "getAlvorlighedLabel",
+        "getAreaName",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSortableTime",
+        "getSpecificLabel",
+        "getStatusLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDefaultCorrectiveNote",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "getAreaName",
+        "getCardStateClass",
+        "getCorrectiveActionLabel",
+        "getMachineName",
+        "getOpenFilteredAlerts",
+        "getSpecificLabel",
+        "requiresDetailedCorrectiveNote",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getFilterLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getReadableInstanceReference",
+        "renderCorrectiveActionBox",
+        "renderLists",
+        "renderReferenceBox",
+        "scrollToRelevantSection",
+        "setActiveFilter",
+        "updateFilterUi",
+        "updateSectionVisibility"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getMachineName",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getAreaName",
+        "getAreaType",
+        "getContextGuide",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSpecificLabel",
+        "getVisningsBeskrivelse",
+        "getVisningsTitel",
+        "renderAreaInfo"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getOpenFilteredAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getClosedFilteredAlerts",
+        "getFilterLabel",
+        "renderLists",
+        "renderReferenceBox",
+        "scrollToRelevantSection",
+        "setActiveFilter",
+        "updateFilterUi",
+        "updateSectionVisibility"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProfileCompanyId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindFoldDelegation",
+        "escapeHtml",
+        "formatDateKey",
+        "getStoredLocationId",
+        "readFollowUpContext",
+        "readInitialFilter",
+        "resolveLocationForUser"
+      ],
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getReadableInstanceReference",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getAreaName",
+        "getAreaType",
+        "getContextGuide",
+        "getMachineName",
+        "getReadableTaskReference",
+        "getSpecificLabel",
+        "getVisningsBeskrivelse",
+        "getVisningsTitel",
+        "renderAreaInfo"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getReadableTaskReference",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getAreaName",
+        "getAreaType",
+        "getMachineName",
+        "getReadableInstanceReference",
+        "getSpecificLabel",
+        "getVisningsBeskrivelse",
+        "getVisningsTitel",
+        "renderAreaInfo"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSaveSuccessMessage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "getCorrectiveActionLabel",
+        "getCorrectiveNote",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "redirectBackToRutiner",
+        "requiresDetailedCorrectiveNote",
+        "resetTaskInstanceFromCancelledAlert",
+        "saveAlertState"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getSelectedCaseStatus",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "actionNeedsNote",
+        "bindCaseStatusFields",
+        "bindCorrectiveFields",
+        "clearCorrectiveAction",
+        "getCorrectiveNote",
+        "getSaveSuccessMessage",
+        "getSelectedCorrectiveAction",
+        "initializeCorrectiveExtras",
+        "setAlertLoading",
+        "toggleCorrectiveExtra"
+      ],
+      "selectors": [
+        "[data-extra-for]",
+        "button",
+        "input, textarea"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getSelectedCorrectiveAction",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "actionNeedsNote",
+        "bindCaseStatusFields",
+        "bindCorrectiveFields",
+        "clearCorrectiveAction",
+        "getCorrectiveNote",
+        "getSaveSuccessMessage",
+        "getSelectedCaseStatus",
+        "initializeCorrectiveExtras",
+        "setAlertLoading",
+        "toggleCorrectiveExtra"
+      ],
+      "selectors": [
+        "[data-extra-for]",
+        "button",
+        "input, textarea"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getSeverityBadge",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "escapeHtml",
+        "getAlvorlighedLabel",
+        "getAreaName",
+        "getCorrectiveActionLabel",
+        "getDefaultCorrectiveNote",
+        "getMachineName",
+        "getSpecificLabel",
+        "requiresDetailedCorrectiveNote",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSortableTime",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "formatAreaLabel",
+        "getAfvigelsesTypeLabel",
+        "getAlvorlighedLabel",
+        "getAreaName",
+        "getAreaType",
+        "getDateFromTimestampLike",
+        "getMachineName",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSpecificLabel",
+        "getStatusLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSpecificLabel",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getAreaName",
+        "getAreaType",
+        "getContextGuide",
+        "getMachineName",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getVisningsBeskrivelse",
+        "getVisningsTitel",
+        "renderAreaInfo"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStatusBadge",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "escapeHtml",
+        "getAlvorlighedLabel",
+        "getAreaName",
+        "getCorrectiveActionLabel",
+        "getDefaultCorrectiveNote",
+        "getMachineName",
+        "getSeverityBadge",
+        "getSpecificLabel",
+        "getStatusLabel",
+        "requiresDetailedCorrectiveNote"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStatusLabel",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getAreaName",
+        "getAreaType",
+        "getMachineName",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSpecificLabel",
+        "renderAreaInfo"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStoredLocationId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindFoldDelegation",
+        "escapeHtml",
+        "getProfileCompanyId",
+        "readFollowUpContext",
+        "readInitialFilter",
+        "resolveLocationForUser"
+      ],
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getTaskInstance",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAlertPayloadFromContext",
+        "ensureFollowUpAlertExists",
+        "findAlertByTaskInstanceId",
+        "formatAreaLabel",
+        "getTodayKey",
+        "scrollToHighlightedCard"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getTodayKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatAreaLabel",
+        "formatTimestampValue",
+        "getAfvigelsesTypeLabel",
+        "getAlvorlighedLabel",
+        "getAreaName",
+        "getDateFromTimestampLike",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSortableTime",
+        "getStatusLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getVisningsBeskrivelse",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getAreaName",
+        "getAreaType",
+        "getContextGuide"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getVisningsTitel",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getAreaName",
+        "getAreaType",
+        "getContextGuide",
+        "getMachineName",
+        "getSpecificLabel",
+        "getVisningsBeskrivelse"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "initializeCorrectiveExtras",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindCaseStatusFields",
+        "bindCorrectiveFields",
+        "clearCorrectiveAction",
+        "getSaveSuccessMessage",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "redirectBackToRutiner",
+        "resetTaskInstanceFromCancelledAlert",
+        "saveAlertState",
+        "setAlertLoading",
+        "toggleCorrectiveExtra"
+      ],
+      "selectors": [
+        "[data-extra-for]",
+        "button",
+        "input, textarea"
+      ],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "loadAlerts",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "bindStatFilters",
+        "enrichAlertsWithTaskContext",
+        "ensureFollowUpAlertExists",
+        "fetchAllDeviationSources",
+        "getProfileCompanyId",
+        "getSortableTime",
+        "normalizeAlert",
+        "normalizeDeviation",
+        "normalizeLocationIds",
+        "renderLists",
+        "renderReferenceBox",
+        "resolveLocationForUser",
+        "scrollToHighlightedCard",
+        "scrollToRelevantSection",
+        "toLegacyId",
+        "updateFilterUi",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "normalizeAlert",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDateFromTimestampLike",
+        "normalizeDeviation"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    },
+    {
+      "name": "normalizeDeviation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "fetchAllDeviationSources",
+        "getDateFromTimestampLike",
+        "tryScopedQuery"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "normalizeLocationIds",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindFoldDelegation",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "pushValue",
+        "readFollowUpContext",
+        "readInitialFilter",
+        "resolveLocationForUser"
+      ],
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "pushValue",
+      "type": "const_function",
+      "approx_occurrences": 3,
+      "calls": [
+        "bindFoldDelegation",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "readFollowUpContext",
+        "readInitialFilter",
+        "resolveLocationForUser"
+      ],
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "readFollowUpContext",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindFoldDelegation",
+        "escapeHtml",
+        "formatDateKey",
+        "getDateFromTimestampLike",
+        "getTodayKey",
+        "readInitialFilter"
+      ],
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "readInitialFilter",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindFoldDelegation",
+        "escapeHtml",
+        "formatDateKey",
+        "formatTimestampValue",
+        "getAlvorlighedLabel",
+        "getDateFromTimestampLike",
+        "getSortableTime",
+        "getTodayKey",
+        "readFollowUpContext"
+      ],
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "redirectBackToRutiner",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "getCorrectiveActionLabel",
+        "getCorrectiveNote",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "requiresDetailedCorrectiveNote",
+        "saveAlertState"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderAreaInfo",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "getAreaName",
+        "getAreaType",
+        "getContextGuide",
+        "getMachineName",
+        "getReadableInstanceReference",
+        "getReadableTaskReference",
+        "getSpecificLabel",
+        "getVisningsBeskrivelse",
+        "getVisningsTitel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderClosedAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "bindReopenButtons",
+        "clearCorrectiveAction",
+        "escapeHtml",
+        "formatDateKey",
+        "getAfvigelsesTypeLabel",
+        "getCardStateClass",
+        "getClosedFilteredAlerts",
+        "getCorrectiveNote",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "getSeverityBadge",
+        "getStatusBadge",
+        "getVisningsBeskrivelse",
+        "getVisningsTitel",
+        "renderAreaInfo",
+        "renderClosedHistory",
+        "renderLists",
+        "renderOpenAlerts",
+        "toggleCorrectiveExtra",
+        "updateFilterUi"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "renderClosedHistory",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateKey",
+        "formatTimestampValue",
+        "getAfvigelsesTypeLabel",
+        "getCardStateClass",
+        "getCorrectiveActionLabel",
+        "getOpenFilteredAlerts",
+        "getSeverityBadge",
+        "getStatusBadge",
+        "getStatusLabel",
+        "getVisningsBeskrivelse",
+        "getVisningsTitel",
+        "renderAreaInfo",
+        "renderContextGuide",
+        "renderCorrectiveActionBox",
+        "renderOpenAlerts"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "renderContextGuide",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "escapeHtml",
+        "getAlvorlighedLabel",
+        "getContextGuide",
+        "getCorrectiveActionLabel",
+        "getDefaultCorrectiveNote",
+        "getSeverityBadge",
+        "getStatusBadge",
+        "getStatusLabel",
+        "requiresDetailedCorrectiveNote"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderCorrectiveActionBox",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "escapeHtml"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderLists",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "actionNeedsNote",
+        "bindCaseStatusFields",
+        "bindCorrectiveFields",
+        "clearCorrectiveAction",
+        "getCorrectiveNote",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "initializeCorrectiveExtras",
+        "renderClosedAlerts",
+        "renderOpenAlerts",
+        "setAlertLoading",
+        "toggleCorrectiveExtra",
+        "updateFilterUi"
+      ],
+      "selectors": [
+        "[data-extra-for]",
+        "button",
+        "input, textarea"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderOpenAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindActionButtons",
+        "bindCaseStatusFields",
+        "bindCorrectiveFields",
+        "escapeHtml",
+        "formatDateKey",
+        "getAfvigelsesTypeLabel",
+        "getCardStateClass",
+        "getClosedFilteredAlerts",
+        "getOpenFilteredAlerts",
+        "getSeverityBadge",
+        "getStatusBadge",
+        "getVisningsBeskrivelse",
+        "getVisningsTitel",
+        "initializeCorrectiveExtras",
+        "renderAreaInfo",
+        "renderClosedAlerts",
+        "renderContextGuide",
+        "renderCorrectiveActionBox"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "renderReferenceBox",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getReadableInstanceReference",
+        "renderCorrectiveActionBox"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "reopenAlert",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "activate",
+        "bindActionButtons",
+        "bindReopenButtons",
+        "bindStatFilters",
+        "getSaveSuccessMessage",
+        "loadAlerts",
+        "redirectBackToRutiner",
+        "saveAlertState",
+        "setActiveFilter",
+        "setAlertLoading"
+      ],
+      "selectors": [
+        ".reopen-alert-btn",
+        ".save-alert-btn, .save-awaiting-btn, .resolve-alert-btn",
+        ".stat-box.is-clickable",
+        ".task-item",
+        "button"
+      ],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "requiresDetailedCorrectiveNote",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "getAreaName",
+        "getCardStateClass",
+        "getClosedFilteredAlerts",
+        "getCorrectiveActionLabel",
+        "getDefaultCorrectiveNote",
+        "getFilterLabel",
+        "getMachineName",
+        "getOpenFilteredAlerts",
+        "getSpecificLabel",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "resetTaskInstanceFromCancelledAlert",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "getCorrectiveActionLabel",
+        "getCorrectiveNote",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "redirectBackToRutiner",
+        "requiresDetailedCorrectiveNote",
+        "saveAlertState"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "resolveLocationForUser",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindFoldDelegation",
+        "escapeHtml",
+        "formatDateKey",
+        "getStoredLocationId",
+        "readFollowUpContext",
+        "readInitialFilter"
+      ],
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "saveAlertState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "getCorrectiveActionLabel",
+        "getCorrectiveNote",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "requiresDetailedCorrectiveNote"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "scrollToHighlightedCard",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindStatFilters",
+        "enrichAlertsWithTaskContext",
+        "ensureFollowUpAlertExists",
+        "fetchAllDeviationSources",
+        "getProfileCompanyId",
+        "getSortableTime",
+        "loadAlerts",
+        "normalizeAlert",
+        "normalizeDeviation",
+        "normalizeLocationIds",
+        "renderLists",
+        "renderReferenceBox",
+        "resolveLocationForUser",
+        "scrollToRelevantSection",
+        "toLegacyId",
+        "updateFilterUi",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "scrollToRelevantSection",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getReadableInstanceReference",
+        "renderCorrectiveActionBox",
+        "renderLists",
+        "renderReferenceBox",
+        "setActiveFilter",
+        "updateFilterUi"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setActiveFilter",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getReadableInstanceReference",
+        "renderCorrectiveActionBox",
+        "renderLists",
+        "renderReferenceBox",
+        "scrollToRelevantSection",
+        "updateFilterUi"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setAlertLoading",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "actionNeedsNote",
+        "buildCorrectiveDocumentation",
+        "getCorrectiveActionLabel",
+        "getCorrectiveNote",
+        "getSaveSuccessMessage",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "redirectBackToRutiner",
+        "requiresDetailedCorrectiveNote",
+        "resetTaskInstanceFromCancelledAlert",
+        "saveAlertState"
+      ],
+      "selectors": [
+        "button",
+        "input, textarea"
+      ],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "toggleCorrectiveExtra",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "actionNeedsNote",
+        "bindCaseStatusFields",
+        "bindCorrectiveFields",
+        "clearCorrectiveAction",
+        "getSaveSuccessMessage",
+        "getSelectedCaseStatus",
+        "getSelectedCorrectiveAction",
+        "initializeCorrectiveExtras",
+        "resetTaskInstanceFromCancelledAlert",
+        "setAlertLoading"
+      ],
+      "selectors": [
+        "[data-extra-for]",
+        "button",
+        "input, textarea"
+      ],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "toLegacyId",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "bindFoldDelegation",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "normalizeLocationIds",
+        "pushValue",
+        "readFollowUpContext",
+        "readInitialFilter",
+        "resolveLocationForUser"
+      ],
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "tryScopedQuery",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "enrichAlertsWithTaskContext",
+        "fetchAllDeviationSources",
+        "findAlertByTaskInstanceId"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "updateFilterUi",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getFilterLabel",
+        "getReadableInstanceReference",
+        "renderCorrectiveActionBox",
+        "renderLists",
+        "renderReferenceBox",
+        "scrollToRelevantSection",
+        "setActiveFilter",
+        "updateSectionVisibility"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateKpis",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "actionNeedsNote",
+        "getCardStateClass",
+        "getClosedFilteredAlerts",
+        "getFilterLabel",
+        "getOpenFilteredAlerts",
+        "renderLists",
+        "renderReferenceBox",
+        "scrollToRelevantSection",
+        "setActiveFilter",
+        "updateFilterUi",
+        "updateSectionVisibility"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateSectionVisibility",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatAreaLabel",
+        "getFilterLabel",
+        "getReadableInstanceReference",
+        "renderCorrectiveActionBox",
+        "renderLists",
+        "renderReferenceBox",
+        "scrollToRelevantSection",
+        "setActiveFilter",
+        "updateFilterUi"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "source_file": "public/seed-data/resetDailyData.js",
+  "module": "general",
+  "imports": [
+    "child_process",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [
+    "alerts_without_deviation_creation"
+  ],
+  "functions": [
+    {
+      "name": "deleteCollectionDocuments",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteCollectionDocuments"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_instances"
+      ]
+    }
+  ]
+}

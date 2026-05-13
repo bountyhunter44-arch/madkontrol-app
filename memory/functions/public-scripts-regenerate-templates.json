@@ -1,0 +1,27 @@
+{
+  "source_file": "public/scripts/regenerate-templates.cjs",
+  "module": "general",
+  "imports": [
+    "../../functions/admin/generateEgenkontrolFromRiskAnalysis.js",
+    "../../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "regenerateTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

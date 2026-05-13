@@ -1,0 +1,27 @@
+{
+  "source_file": "public/modules/egenkontrol/syncAndGenerateEgenkontrolForDate.js",
+  "module": "general",
+  "imports": [
+    "./generateDailyTaskInstances.js",
+    "./generateVerificationInstances.js",
+    "./syncControlTemplatesToFirestore.js"
+  ],
+  "exports": [
+    "syncAndGenerateEgenkontrolForDate"
+  ],
+  "collections": [],
+  "flags": [
+    "startDayForLocation"
+  ],
+  "risks": [],
+  "functions": [
+    {
+      "name": "syncAndGenerateEgenkontrolForDate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

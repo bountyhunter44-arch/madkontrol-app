@@ -1,0 +1,93 @@
+{
+  "source_file": "public/modules/water/technician.html",
+  "module": "general",
+  "imports": [
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [
+    "users",
+    "water_systems"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getUserCtx",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadSystems",
+        "n",
+        "showStatus",
+        "v"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "loadSystems",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getUserCtx",
+        "n",
+        "showStatus",
+        "v"
+      ],
+      "selectors": [],
+      "collections": [
+        "water_systems"
+      ]
+    },
+    {
+      "name": "n",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "getUserCtx",
+        "loadSystems",
+        "showStatus",
+        "v"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "showStatus",
+      "type": "function",
+      "approx_occurrences": 9,
+      "calls": [
+        "getUserCtx",
+        "loadSystems",
+        "n",
+        "v"
+      ],
+      "selectors": [],
+      "collections": [
+        "users",
+        "water_systems"
+      ]
+    },
+    {
+      "name": "v",
+      "type": "function",
+      "approx_occurrences": 13,
+      "calls": [
+        "getUserCtx",
+        "loadSystems",
+        "n",
+        "showStatus"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

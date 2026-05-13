@@ -1,0 +1,190 @@
+{
+  "project": "madkontrol-app",
+  "version": "1.0",
+  "createdAt": "2026-01-01",
+  "modules": [
+    {
+      "name": "cooling",
+      "description": "Nedkølingsflow inkl. overlay, inline runs og deviation",
+      "files": [
+        "public/modules/egenkontrol/rutiner.html",
+        "public/core/cooling-overlay.js",
+        "functions/admin/completeTaskEntryWithCooling.js"
+      ],
+      "functions": [
+        {
+          "name": "appendCoolingRunCard",
+          "file": "rutiner.html",
+          "type": "ui_render",
+          "depends_on": [
+            "coolingSessionMap",
+            ".cooling-runs-list[data-instance-id]"
+          ],
+          "called_by": [
+            "handleTaskAction"
+          ],
+          "risk": [
+            "fejler hvis container mangler"
+          ]
+        },
+        {
+          "name": "handleAbort",
+          "file": "cooling-overlay.js",
+          "type": "flow_control",
+          "risk": [
+            "opretter ikke deviation",
+            "rydder kun state"
+          ]
+        },
+        {
+          "name": "finishRun",
+          "file": "cooling-overlay.js",
+          "type": "flow_control",
+          "risk": [
+            "sætter status til pending",
+            "opretter kun alerts"
+          ]
+        }
+      ],
+      "flows": [
+        {
+          "name": "cooling_run",
+          "steps": [
+            "startCoolingRun",
+            "finishRun",
+            "saveTask",
+            "saveRoutineTask"
+          ],
+          "expected": [
+            "task.status = failed ved fejl",
+            "deviation oprettes",
+            "vises i afvigelser"
+          ],
+          "current_issues": [
+            "abort laver ikke deviation",
+            "alerts bruges i stedet",
+            "status bliver pending"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rutiner",
+      "description": "Rendering af task-kort og handlinger",
+      "files": [
+        "public/modules/egenkontrol/rutiner.html"
+      ],
+      "functions": [
+        {
+          "name": "renderTasks",
+          "type": "ui_render",
+          "responsibility": "Renderer alle task kort"
+        },
+        {
+          "name": "renderRoutineAnswerGroups",
+          "type": "ui_render",
+          "risk": [
+            "showIf grupper rendres ikke korrekt",
+            "tom placeholder returneres"
+          ]
+        },
+        {
+          "name": "handleRoutineAnswer",
+          "type": "ui_logic",
+          "risk": [
+            "bygger ikke DOM op igen",
+            "kun display toggle"
+          ]
+        }
+      ],
+      "ui": [
+        {
+          "element": "cooling button",
+          "selector": "button[data-action='cooling_add_run']"
+        },
+        {
+          "element": "sitti button",
+          "key": "ok_sitti",
+          "risk": [
+            "renderes ikke hvis showIf ikke opfyldt ved første render"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "deviations",
+      "description": "Afvigelser og håndtering",
+      "files": [
+        "functions/index.js",
+        "public/modules/egenkontrol/afvigelser-new.html"
+      ],
+      "functions": [
+        {
+          "name": "saveRoutineTask",
+          "type": "backend_callable",
+          "risk": [
+            "opretter kun alerts",
+            "opretter ikke deviations"
+          ]
+        },
+        {
+          "name": "completeTaskEntryWithCooling",
+          "type": "backend_helper",
+          "note": "kan oprette deviations korrekt",
+          "risk": [
+            "bruges ikke i nuværende flow"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "scheduler",
+      "description": "Generering af dagens opgaver",
+      "files": [
+        "functions/index.js"
+      ],
+      "functions": [
+        {
+          "name": "startDayForLocation",
+          "type": "backend_core",
+          "responsibility": "opretter task_instances"
+        }
+      ]
+    }
+  ],
+  "data": {
+    "collections": [
+      "task_templates",
+      "task_instances",
+      "verification_instances",
+      "daily_runs",
+      "deviations",
+      "alerts",
+      "companies",
+      "locations"
+    ],
+    "status_values": [
+      "pending",
+      "completed",
+      "failed",
+      "overdue"
+    ]
+  },
+  "known_bugs": [
+    {
+      "name": "cooling not visible",
+      "cause": "missing container or old runtime",
+      "severity": "high"
+    },
+    {
+      "name": "cooling no deviation",
+      "cause": "abort does not persist",
+      "severity": "critical"
+    },
+    {
+      "name": "sitti buttons missing",
+      "cause": "showIf rendering bug",
+      "severity": "high"
+    }
+  ]
+}

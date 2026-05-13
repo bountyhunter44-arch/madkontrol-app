@@ -1,0 +1,55 @@
+{
+  "source_file": "public/scripts/repair-guide-mapping.cjs",
+  "module": "general",
+  "imports": [
+    "../../functions/guideResolver",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "repairInstances",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "repairTemplates",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "repairTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "repairInstances"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "repairInstances",
+        "repairTemplates"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

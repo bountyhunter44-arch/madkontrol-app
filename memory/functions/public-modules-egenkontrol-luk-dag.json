@@ -1,0 +1,44 @@
+{
+  "source_file": "public/modules/egenkontrol/luk-dag.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [
+    "daily_runs",
+    "deviations",
+    "task_entries",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "isTaskCompletedForClosure",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadDayStatus",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "isTaskCompletedForClosure"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs",
+        "deviations",
+        "task_entries",
+        "task_instances"
+      ]
+    }
+  ]
+}

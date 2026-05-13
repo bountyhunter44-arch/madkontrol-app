@@ -1,0 +1,29 @@
+{
+  "name": "cooling",
+  "files": [
+    "functions/admin/completeTaskEntryWithCooling.js",
+    "functions/egenkontrol/evaluators/coolingEvaluator.js",
+    "functions/egenkontrol/models/coolingHistoryModel.js",
+    "public/core/cooling-overlay.js",
+    "public/modules/egenkontrol/rutiner-cooling-ui.js",
+    "scripts/migrate-cooling-history.js"
+  ],
+  "total_functions": 50,
+  "flags": [
+    "completeTaskEntryWithCooling",
+    "cooling_run_finish",
+    "saveRoutineTask"
+  ],
+  "collections": [
+    "activeCoolingRuns",
+    "alerts",
+    "cooling_history",
+    "deviations",
+    "task_entries",
+    "task_instances",
+    "users"
+  ],
+  "risks": [
+    "abort_may_only_clear_state"
+  ]
+}

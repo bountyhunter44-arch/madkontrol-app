@@ -1,0 +1,25 @@
+{
+  "source_file": "functions/test-v2-dry-run.js",
+  "module": "general",
+  "imports": [
+    "./egenkontrol/adapters/onboardingAdapter",
+    "./egenkontrol/builders/templateBuilder",
+    "./egenkontrol/generators/taskGenerator",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "testV2DryRun",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

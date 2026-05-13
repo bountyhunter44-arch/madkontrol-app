@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profit-Balance Dashboard | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import app, { auth, db } from "/core/firebase-config.js";
+    import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    let currentUser = null;
+    let userSettings = {};
+    let profitChart = null;
+
+    // External market factors (simulated - would come from API in production)
+    let externalFactors = {
+      fuelIndex: 1.15,        // 15% above baseline
+      freightSurcharge: 1.08  // 8% surcharge
+    };
+
+    // Internal performance metrics
+    let internalMetrics = {
+      scanningActivity: 0,
+      fifoCompliance: 0,
+      zeroDeviations: 0,
+      totalScore: 0
+    };
+
+    setupAuthGate({
+      appName: "Madkontrollen Pro - Profit Dashboard",
+      onAuthenticated: async ({ user, profile }) => {
+        currentUser = user;
+        userSettings = profile || {};
+
+        if (!userSettings.hasInventoryModule || !userSettings.hasProfitDashboard) {
+          document.getElementById("locked-view").style.display = "block";
+          document.getElementById("active-view").style.display = "none";
+          return;
+        }
+
+        document.getElementById("locked-view").style.display = "none";
+        document.getElementById("active-view").style.display = "block";
+        
+        await loadDashboardData();
+        initializeProfitChart();
+        startRealtimeUpdates();
+      },
+      onSignedOut: async () => {
+        document.getElementById("locked-view").style.display = "block";
+        document.getElementById("active-view").style.display = "none";
+      }
+    });
+
+    async function loadDashboardData() {
+      await Promise.all([
+        calculateScanningActivity(),
+        calculateFifoCompliance(),
+        calculateDeviationScore()
+      ]);
+
+      updateProfitSlider();
+      updateMetricsDisplay();
+    }
+
+    async function calculateScanningActivity() {
+      const last30Days = new Date();
+      last30Days.setDate(last30Days.getDate() - 30);
+
+      const q = query(
+        collection(db, "inventory_transactions"),
+        where("companyId", "==", userSettings.companyId),
+        where("locationId", "==", userSettings.locationId),
+        where("performedAt", ">=", last30Days)
+      );
+
+      const snapshot = await getDocs(q);
+      const transactionCount = snapshot.size;
+
+      // Score: 0-100 based on transaction frequency
+      // Target: 10 transactions per day = 300 per month = 100 score
+      internalMetrics.scanningActivity = Math.min(100, (transactionCount / 300) * 100);
+    }
+
+    async function calculateFifoCompliance() {
+      const last30Days = new Date();
+      last30Days.setDate(last30Days.getDate() - 30);
+
+      const q = query(
+        collection(db, "inventory_transactions"),
+        where("companyId", "==", userSettings.companyId),
+        where("locationId", "==", userSettings.locationId),
+        where("type", "==", "scan_out"),
+        where("performedAt", ">=", last30Days)
+      );
+
+      const snapshot = await getDocs(q);
+      const transactions = snapshot.docs.map(d => d.data());
+
+      if (transactions.length === 0) {
+        internalMetrics.fifoCompliance = 100;
+        return;
+      }
+
+      const violations = transactions.filter(t => t.fifoWarningTriggered === true).length;
+      const complianceRate = ((transactions.length - violations) / transactions.length) * 100;
+
+      internalMetrics.fifoCompliance = complianceRate;
+    }
+
+    async function calculateDeviationScore() {
+      const last30Days = new Date();
+      last30Days.setDate(last30Days.getDate() - 30);
+
+      const q = query(
+        collection(db, "deviations"),
+        where("companyId", "==", userSettings.companyId),
+        where("locationId", "==", userSettings.locationId),
+        where("createdAt", ">=", last30Days)
+      );
+
+      const snapshot = await getDocs(q);
+      const deviations = snapshot.docs.map(d => d.data());
+
+      if (deviations.length === 0) {
+        internalMetrics.zeroDeviations = 100;
+        return;
+      }
+
+      // Score inversely proportional to deviation count
+      // 0 deviations = 100, 10+ deviations = 0
+      const score = Math.max(0, 100 - (deviations.length * 10));
+      internalMetrics.zeroDeviations = score;
+    }
+
+    function updateProfitSlider() {
+      // Calculate external pressure (negative impact)
+      const externalPressure = (externalFactors.fuelIndex - 1) * 50 + 
+                               (externalFactors.freightSurcharge - 1) * 50;
+
+      // Calculate internal counterweight (positive impact)
+      const internalScore = (
+        internalMetrics.scanningActivity * 0.4 +
+        internalMetrics.fifoCompliance * 0.3 +
+        internalMetrics.zeroDeviations * 0.3
+      );
+
+      internalMetrics.totalScore = internalScore;
+
+      // Net position: -100 (full loss) to +100 (full profit)
+      const netPosition = internalScore - externalPressure;
+      const sliderPosition = Math.max(-100, Math.min(100, netPosition));
+
+      // Update slider visual
+      const slider = document.getElementById("profit-slider");
+      const indicator = document.getElementById("slider-indicator");
+      const percentage = ((sliderPosition + 100) / 200) * 100;
+
+      indicator.style.left = `${percentage}%`;
+
+      // Update color based on position
+      if (sliderPosition < -30) {
+        slider.className = "profit-slider loss";
+        indicator.className = "slider-indicator loss";
+      } else if (sliderPosition < 30) {
+        slider.className = "profit-slider neutral";
+        indicator.className = "slider-indicator neutral";
+      } else {
+        slider.className = "profit-slider profit";
+        indicator.className = "slider-indicator profit";
+      }
+
+      // Update position text
+      document.getElementById("slider-value").textContent = sliderPosition.toFixed(0);
+
+      // Update graph based on slider position
+      updateProfitChart(sliderPosition);
+    }
+
+    function updateMetricsDisplay() {
+      document.getElementById("scanning-score").textContent = Math.round(internalMetrics.scanningActivity);
+      document.getElementById("fifo-score").textContent = Math.round(internalMetrics.fifoCompliance);
+      document.getElementById("deviation-score").textContent = Math.round(internalMetrics.zeroDeviations);
+      document.getElementById("total-score").textContent = Math.round(internalMetrics.totalScore);
+
+      document.getElementById("fuel-index").textContent = `${((externalFactors.fuelIndex - 1) * 100).toFixed(1)}%`;
+      document.getElementById("freight-surcharge").textContent = `${((externalFactors.freightSurcharge - 1) * 100).toFixed(1)}%`;
+    }
+
+    function initializeProfitChart() {
+      const ctx = document.getElementById("profit-chart").getContext("2d");
+
+      profitChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: generateMonthLabels(12),
+          datasets: [
+            {
+              label: "Med Madkontrollen",
+              data: [],
+              borderColor: "#10b981",
+              backgroundColor: "rgba(16, 185, 129, 0.1)",
+              borderWidth: 3,
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: "Konkurrenter uden system",
+              data: [],
+              borderColor: "#ef4444",
+              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              borderWidth: 2,
+              borderDash: [5, 5],
+              tension: 0.4,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: "top"
+            },
+            tooltip: {
+              mode: "index",
+              intersect: false,
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${context.parsed.y.toFixed(0)} kr`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return value.toLocaleString("da-DK") + " kr";
+                }
+              },
+              title: {
+                display: true,
+                text: "Bundlinje (Akkumuleret besparelse)"
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: "Måned"
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateProfitChart(sliderPosition) {
+      if (!profitChart) return;
+
+      const months = 12;
+      const baselineSavings = 5000; // kr per month baseline
+      
+      // Slope based on slider position
+      // -100 = negative growth, 0 = flat, +100 = strong growth
+      const growthFactor = 1 + (sliderPosition / 100) * 0.5; // -50% to +50%
+
+      const withMadkontrolData = [];
+      const withoutMadkontrolData = [];
+
+      let cumulativeWithMadkontrol = 0;
+      let cumulativeWithout = 0;
+
+      for (let i = 0; i < months; i++) {
+        // With Madkontrollen: grows based on slider position
+        const monthlySavings = baselineSavings * growthFactor * (1 + i * 0.05);
+        cumulativeWithMadkontrol += monthlySavings;
+        withMadkontrolData.push(cumulativeWithMadkontrol);
+
+        // Without Madkontrollen: flat or declining
+        const monthlyLoss = baselineSavings * 0.3 * (1 - i * 0.02);
+        cumulativeWithout += monthlyLoss;
+        withoutMadkontrolData.push(cumulativeWithout);
+      }
+
+      profitChart.data.datasets[0].data = withMadkontrolData;
+      profitChart.data.datasets[1].data = withoutMadkontrolData;
+      profitChart.update();
+
+      // Update savings display
+      const totalSavings = cumulativeWithMadkontrol - cumulativeWithout;
+      document.getElementById("total-savings").textContent = totalSavings.toLocaleString("da-DK", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
+    }
+
+    function generateMonthLabels(count) {
+      const months = ["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"];
+      const labels = [];
+      const now = new Date();
+      
+      for (let i = 0; i < count; i++) {
+        const monthIndex = (now.getMonth() + i) % 12;
+        labels.push(months[monthIndex]);
+      }
+      
+      return labels;
+    }
+
+    function startRealtimeUpdates() {
+      // Refresh data every 60 seconds
+      setInterval(async () => {
+        await loadDashboardData();
+      }, 60000);
+    }
+
+    // Simulate external factor changes (in production, fetch from API)
+    window.simulateMarketChange = function() {
+      externalFactors.fuelIndex = 1 + Math.random() * 0.3; // 0-30% increase
+      externalFactors.freightSurcharge = 1 + Math.random() * 0.15; // 0-15% increase
+      
+      updateProfitSlider();
+      updateMetricsDisplay();
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 40px;
+      color: #fff;
+    }
+
+    .page-header h1 {
+      font-size: 42px;
+      font-weight: 800;
+      margin: 0 0 12px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .page-header p {
+      font-size: 18px;
+      opacity: 0.9;
+      margin: 0;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    }
+
+    .card h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 24px;
+    }
+
+    .profit-slider-container {
+      grid-column: 1 / -1;
+    }
+
+    .profit-slider {
+      position: relative;
+      height: 80px;
+      background: linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #10b981 100%);
+      border-radius: 40px;
+      margin-bottom: 20px;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .slider-indicator {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      transition: left 0.5s ease;
+      cursor: pointer;
+    }
+
+    .slider-indicator.loss {
+      border: 4px solid #ef4444;
+      color: #ef4444;
+    }
+
+    .slider-indicator.neutral {
+      border: 4px solid #fbbf24;
+      color: #fbbf24;
+    }
+
+    .slider-indicator.profit {
+      border: 4px solid #10b981;
+      color: #10b981;
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    .slider-label {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .slider-label.loss {
+      color: #ef4444;
+    }
+
+    .slider-label.profit {
+      color: #10b981;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      padding: 20px;
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .metric-value.good {
+      color: #10b981;
+    }
+
+    .metric-value.bad {
+      color: #ef4444;
+    }
+
+    .external-factors {
+      padding: 20px;
+      background: #fef3c7;
+      border: 2px solid #fbbf24;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .external-factors h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #92400e;
+      margin: 0 0 12px;
+    }
+
+    .factor-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #fde68a;
+    }
+
+    .factor-item:last-child {
+      border-bottom: none;
+    }
+
+    .factor-label {
+      font-size: 14px;
+      color: #78350f;
+    }
+
+    .factor-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ef4444;
+    }
+
+    .chart-container {
+      grid-column: 1 / -1;
+      position: relative;
+      height: 400px;
+    }
+
+    .savings-display {
+      text-align: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+
+    .savings-display h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #065f46;
+      margin: 0 0 8px;
+    }
+
+    .savings-amount {
+      font-size: 48px;
+      font-weight: 800;
+      color: #059669;
+    }
+
+    .savings-unit {
+      font-size: 20px;
+      color: #047857;
+      margin-left: 8px;
+    }
+
+    #locked-view {
+      display: none;
+      text-align: center;
+      padding: 100px 20px;
+      color: #fff;
+    }
+
+    .locked-icon {
+      font-size: 80px;
+      margin-bottom: 24px;
+    }
+
+    .locked-message h2 {
+      font-size: 36px;
+      font-weight: 800;
+      margin: 0 0 16px;
+    }
+
+    .locked-message p {
+      font-size: 18px;
+      opacity: 0.9;
+      margin: 0 0 32px;
+      line-height: 1.6;
+    }
+
+    .upgrade-btn {
+      display: inline-block;
+      padding: 16px 32px;
+      background: #fff;
+      color: #667eea;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      transition: all 0.2s;
+    }
+
+    .upgrade-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 30px rgba(0,0,0,0.3);
+    }
+
+    #active-view {
+      display: none;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="locked-view">
+      <div class="locked-icon">🔒</div>
+      <div class="locked-message">
+        <h2>Profit-Balance Dashboard</h2>
+        <p>Dette avancerede økonomiske dashboard kræver opgradering til Intelligent Lager & Profit-modul.<br>
+        Få indsigt i din bundlinje og se hvordan Madkontrollen skaber værdi i realtid.</p>
+        <button class="upgrade-btn">Opgrader til Premium</button>
+      </div>
+    </div>
+
+    <div id="active-view">
+      <div class="page-header">
+        <h1>💰 Profit-Balance Dashboard</h1>
+        <p>Økonomisk harmoni mellem markedspres og operationel excellence</p>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card profit-slider-container">
+          <h2>⚖️ Profit-Balance Slider</h2>
+          
+          <div class="profit-slider" id="profit-slider">
+            <div class="slider-indicator" id="slider-indicator">
+              <span id="slider-value">0</span>
+            </div>
+          </div>
+
+          <div class="slider-labels">
+            <div class="slider-label loss">📉 Tab</div>
+            <div class="slider-label profit">📈 Profit</div>
+          </div>
+
+          <div class="external-factors">
+            <h3>⚠️ Ydre Markedspres (Negativ påvirkning)</h3>
+            <div class="factor-item">
+              <span class="factor-label">Brændstofindeks</span>
+              <span class="factor-value" id="fuel-index">+15.0%</span>
+            </div>
+            <div class="factor-item">
+              <span class="factor-label">Fragttillæg</span>
+              <span class="factor-value" id="freight-surcharge">+8.0%</span>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="simulateMarketChange()">🔄 Simuler markedsændring</button>
+            <a href="/modules/lager/scanner.html" class="btn btn-primary">📱 Scan varer for at forbedre score</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>✅ Indre Modvægt (Positiv påvirkning)</h2>
+          
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-label">Scanning Aktivitet</div>
+              <div class="metric-value good" id="scanning-score">0</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">FIFO Overholdelse</div>
+              <div class="metric-value good" id="fifo-score">0</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Nul Afvigelser</div>
+              <div class="metric-value good" id="deviation-score">0</div>
+            </div>
+          </div>
+
+          <div class="metric-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-color: #3b82f6;">
+            <div class="metric-label">Total Performance Score</div>
+            <div class="metric-value" style="color: #1e40af;" id="total-score">0</div>
+          </div>
+        </div>
+
+        <div class="card chart-container">
+          <h2>📊 Den Voksende Bundlinje</h2>
+          <canvas id="profit-chart"></canvas>
+          
+          <div class="savings-display">
+            <h3>Akkumuleret besparelse vs. konkurrenter</h3>
+            <div>
+              <span class="savings-amount" id="total-savings">0</span>
+              <span class="savings-unit">kr</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

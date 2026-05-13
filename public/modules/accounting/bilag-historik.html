@@ -1,0 +1,949 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bilag historik | Madkontrollen Pro</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        :root{
+            --bg:#f4f7f3;
+            --panel:#ffffff;
+            --panel-soft:#f8fbf8;
+            --border:#dbe7db;
+            --text:#182118;
+            --muted:#667267;
+            --green:#2e7d32;
+            --green-soft:#e8f5e9;
+            --green-dark:#1f5a23;
+            --blue:#1565c0;
+            --blue-soft:#eaf3ff;
+            --amber:#b7791f;
+            --amber-soft:#fff6df;
+            --shadow:0 18px 42px rgba(19,39,20,0.08);
+        }
+
+        *{ box-sizing:border-box; }
+
+        body{
+            margin:0;
+            font-family:"Inter", sans-serif;
+            color:var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(46,125,50,0.08), transparent 28%),
+                linear-gradient(180deg, #f8fbf8 0%, var(--bg) 100%);
+        }
+
+        .page-shell{
+            padding:30px 18px 80px;
+        }
+
+        .container{
+            max-width:1450px;
+            margin:0 auto;
+        }
+
+        .topbar{
+            margin-bottom:24px;
+        }
+
+        .topbar-inner{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:16px;
+            flex-wrap:wrap;
+            background:rgba(255,255,255,.92);
+            border:1px solid rgba(219,231,219,0.9);
+            border-radius:24px;
+            padding:16px 20px;
+            box-shadow:var(--shadow);
+        }
+
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            font-weight:800;
+        }
+
+        .brand-mark{
+            width:42px;
+            height:42px;
+            border-radius:14px;
+            display:grid;
+            place-items:center;
+            background:linear-gradient(135deg, var(--green), #49a04e);
+            color:#fff;
+            box-shadow:0 12px 24px rgba(46,125,50,.24);
+        }
+
+        .nav{
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+
+        .nav a{
+            text-decoration:none;
+            color:var(--muted);
+            background:#fff;
+            border:1px solid var(--border);
+            padding:10px 14px;
+            border-radius:999px;
+            font-weight:700;
+        }
+
+        .nav a.active{
+            background:linear-gradient(135deg, var(--green), #49a04e);
+            color:#fff;
+            border-color:transparent;
+        }
+
+        .hero{
+            display:grid;
+            grid-template-columns:1.2fr .8fr;
+            gap:22px;
+            margin-bottom:24px;
+        }
+
+        .card{
+            background:rgba(255,255,255,.94);
+            border:1px solid rgba(219,231,219,0.92);
+            border-radius:24px;
+            box-shadow:var(--shadow);
+        }
+
+        .hero-card{
+            padding:28px;
+        }
+
+        .eyebrow{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            background:var(--green-soft);
+            color:var(--green-dark);
+            border-radius:999px;
+            padding:8px 12px;
+            font-size:.8rem;
+            font-weight:800;
+            text-transform:uppercase;
+        }
+
+        .hero-card h1{
+            margin:16px 0 10px;
+            font-size:clamp(1.8rem, 3vw, 2.7rem);
+            line-height:1.05;
+        }
+
+        .hero-card p{
+            margin:0;
+            color:var(--muted);
+            line-height:1.65;
+        }
+
+        .hero-actions{
+            margin-top:20px;
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+        }
+
+        .btn{
+            appearance:none;
+            border:none;
+            border-radius:16px;
+            padding:12px 18px;
+            font:inherit;
+            font-weight:800;
+            cursor:pointer;
+            text-decoration:none;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;
+        }
+
+        .btn-primary{
+            background:linear-gradient(135deg, var(--green), #49a04e);
+            color:#fff;
+            box-shadow:0 14px 28px rgba(46,125,50,0.22);
+        }
+
+        .btn-secondary{
+            background:#fff;
+            color:var(--text);
+            border:1px solid var(--border);
+        }
+
+        .stats{
+            padding:22px;
+            display:grid;
+            gap:14px;
+        }
+
+        .stats-grid{
+            display:grid;
+            grid-template-columns:repeat(2, 1fr);
+            gap:12px;
+        }
+
+        .stat{
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+            border-radius:18px;
+            padding:16px;
+        }
+
+        .stat-label{
+            color:var(--muted);
+            font-size:.84rem;
+            font-weight:700;
+            margin-bottom:8px;
+        }
+
+        .stat-value{
+            font-size:1.7rem;
+            font-weight:800;
+            line-height:1;
+        }
+
+        .tip{
+            padding:14px 16px;
+            border-radius:18px;
+            background:linear-gradient(180deg, #eef6ff 0%, #f6fbff 100%);
+            border:1px solid #d5e4f8;
+            color:#1f4f8c;
+            line-height:1.55;
+            font-weight:600;
+        }
+
+        .toolbar,
+        .table-panel{
+            padding:18px;
+        }
+
+        .toolbar{
+            display:grid;
+            grid-template-columns:1.2fr repeat(3, .7fr) auto;
+            gap:14px;
+            align-items:center;
+            margin-bottom:18px;
+        }
+
+        .field,
+        select{
+            width:100%;
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:12px 14px;
+            font:inherit;
+            background:#fff;
+            color:var(--text);
+            outline:none;
+        }
+
+        .field:focus,
+        select:focus{
+            border-color:#94c197;
+            box-shadow:0 0 0 4px rgba(46,125,50,0.08);
+        }
+
+        .table-head{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-bottom:14px;
+        }
+
+        .table-head h2{
+            margin:0;
+            font-size:1.18rem;
+        }
+
+        .table-head p{
+            margin:4px 0 0;
+            color:var(--muted);
+        }
+
+        .history-table{
+            width:100%;
+            border-collapse:separate;
+            border-spacing:0 10px;
+        }
+
+        .history-table th{
+            text-align:left;
+            color:var(--muted);
+            font-size:.85rem;
+            padding:0 12px 6px;
+        }
+
+        .history-table td{
+            background:#fff;
+            border-top:1px solid var(--border);
+            border-bottom:1px solid var(--border);
+            padding:14px 12px;
+            vertical-align:top;
+        }
+
+        .history-table td:first-child{
+            border-left:1px solid var(--border);
+            border-top-left-radius:16px;
+            border-bottom-left-radius:16px;
+        }
+
+        .history-table td:last-child{
+            border-right:1px solid var(--border);
+            border-top-right-radius:16px;
+            border-bottom-right-radius:16px;
+        }
+
+        .chip{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:7px 11px;
+            border-radius:999px;
+            font-size:.8rem;
+            font-weight:800;
+            border:1px solid var(--border);
+            background:#f3f7f3;
+            color:#425043;
+        }
+
+        .chip-green{ background:var(--green-soft); color:var(--green-dark); border-color:#cfe6d1; }
+        .chip-blue{ background:var(--blue-soft); color:#16549c; border-color:#cfe0fa; }
+        .chip-amber{ background:var(--amber-soft); color:#8a6115; border-color:#ecd28b; }
+
+        .action-btn{
+            border:none;
+            background:#fff;
+            color:var(--text);
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:10px 12px;
+            font:inherit;
+            font-weight:800;
+            cursor:pointer;
+        }
+
+        .drawer{
+            position:fixed;
+            top:0;
+            right:0;
+            width:min(520px, 100%);
+            height:100vh;
+            background:#fff;
+            border-left:1px solid var(--border);
+            box-shadow:-10px 0 30px rgba(17, 28, 18, 0.12);
+            transform:translateX(100%);
+            transition:transform .22s ease;
+            z-index:100;
+            display:flex;
+            flex-direction:column;
+        }
+
+        .drawer.open{
+            transform:translateX(0);
+        }
+
+        .drawer-head{
+            padding:22px 20px 16px;
+            border-bottom:1px solid var(--border);
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            align-items:flex-start;
+        }
+
+        .drawer-title{
+            font-size:1.2rem;
+            font-weight:800;
+            margin:0;
+        }
+
+        .drawer-sub{
+            margin:6px 0 0;
+            color:var(--muted);
+            line-height:1.5;
+        }
+
+        .drawer-close{
+            border:none;
+            background:#fff;
+            border:1px solid var(--border);
+            width:40px;
+            height:40px;
+            border-radius:12px;
+            cursor:pointer;
+            font-size:1.1rem;
+            font-weight:800;
+        }
+
+        .drawer-body{
+            padding:18px 20px 24px;
+            overflow:auto;
+            display:grid;
+            gap:16px;
+        }
+
+        .detail-card{
+            border:1px solid var(--border);
+            border-radius:18px;
+            padding:16px;
+            background:linear-gradient(180deg, #fff 0%, #fbfdfb 100%);
+        }
+
+        .detail-card h3{
+            margin:0 0 12px;
+            font-size:1rem;
+        }
+
+        .detail-list{
+            display:grid;
+            gap:10px;
+        }
+
+        .detail-item{
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            padding:10px 12px;
+            border-radius:14px;
+            border:1px solid var(--border);
+            background:#fff;
+            font-size:.94rem;
+        }
+
+        .empty-state{
+            padding:40px 18px;
+            text-align:center;
+            color:var(--muted);
+            border:1px dashed var(--border);
+            border-radius:20px;
+            background:#fbfdfb;
+        }
+
+        .backdrop{
+            position:fixed;
+            inset:0;
+            background:rgba(19,39,20,0.24);
+            opacity:0;
+            pointer-events:none;
+            transition:opacity .22s ease;
+            z-index:90;
+        }
+
+        .backdrop.open{
+            opacity:1;
+            pointer-events:auto;
+        }
+
+        @media (max-width: 1120px){
+            .hero{
+                grid-template-columns:1fr;
+            }
+
+            .toolbar{
+                grid-template-columns:1fr 1fr;
+            }
+        }
+
+        @media (max-width: 780px){
+            .page-shell{
+                padding:18px 12px 60px;
+            }
+
+            .toolbar,
+            .stats-grid{
+                grid-template-columns:1fr;
+            }
+
+            .history-table{
+                display:block;
+                overflow:auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <div class="container">
+            <header class="topbar">
+                <div class="topbar-inner">
+                    <div class="brand">
+                        <div class="brand-mark">📚</div>
+                        <span>Madkontrollen Pro · Bilag historik</span>
+                    </div>
+
+                    <nav class="nav">
+                        <a href="/dashboard">Dashboard</a>
+                        <a href="/modules/accounting/bilag.html">Bilag indbakke</a>
+                        <a href="/modules/accounting/bilag-godkend.html">Godkendelse</a>
+                        <a href="/modules/accounting/bilag-historik.html" class="active">Historik</a>
+                    </nav>
+                </div>
+            </header>
+
+            <section class="hero">
+                <div class="card hero-card">
+                    <span class="eyebrow">Arkiv og sporbarhed</span>
+                    <h1>Historik over behandlede og godkendte bilag</h1>
+                    <p>
+                        Her kan du søge i tidligere bilag, se forslagene fra bon-AI, kontrollere bogføringskladden
+                        og få sporbarhed på hvem der godkendte hvad.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a class="btn btn-secondary" href="/modules/accounting/bilag.html">Til indbakke</a>
+                        <a class="btn btn-primary" href="/modules/accounting/bilag-godkend.html">Til godkendelse</a>
+                    </div>
+                </div>
+
+                <aside class="card stats">
+                    <div class="stats-grid">
+                        <div class="stat">
+                            <div class="stat-label">Godkendte bilag</div>
+                            <div class="stat-value" id="statApproved">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Samlet beløb</div>
+                            <div class="stat-value" id="statTotal">0 kr.</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Med AI fallback</div>
+                            <div class="stat-value" id="statAi">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Lav confidence</div>
+                            <div class="stat-value" id="statLow">0</div>
+                        </div>
+                    </div>
+
+                    <div class="tip">
+                        Historikken gør det lettere at lære systemet op senere, så bon-AI kan foreslå samme behandling ved lignende køb.
+                    </div>
+                </aside>
+            </section>
+
+            <section class="card toolbar">
+                <input class="field" id="searchInput" type="search" placeholder="Søg leverandør, bilags-id, konto eller note..." />
+
+                <select id="statusFilter">
+                    <option value="all">Alle statusser</option>
+                    <option value="approved">Kun godkendte</option>
+                    <option value="awaiting_approval">Afventer</option>
+                    <option value="ready_for_review">Klar til review</option>
+                </select>
+
+                <select id="confidenceFilter">
+                    <option value="all">Alle confidence</option>
+                    <option value="high">Høj</option>
+                    <option value="medium">Mellem</option>
+                    <option value="low">Lav</option>
+                </select>
+
+                <select id="aiFilter">
+                    <option value="all">AI og regler</option>
+                    <option value="ai">Kun AI fallback</option>
+                    <option value="rules">Kun regelmotor</option>
+                </select>
+
+                <button class="btn btn-secondary" id="resetBtn">Nulstil demo-data</button>
+            </section>
+
+            <section class="card table-panel">
+                <div class="table-head">
+                    <div>
+                        <h2>Bilagshistorik</h2>
+                        <p>Klik på et bilag for at se fuld detaljevisning</p>
+                    </div>
+                </div>
+
+                <div id="tableMount"></div>
+            </section>
+        </div>
+    </main>
+
+    <div class="backdrop" id="backdrop" onclick="closeDrawer()"></div>
+
+    <aside class="drawer" id="drawer">
+        <div class="drawer-head">
+            <div>
+                <h2 class="drawer-title" id="drawerTitle">Bilag</h2>
+                <p class="drawer-sub" id="drawerSub">Detaljer</p>
+            </div>
+            <button class="drawer-close" onclick="closeDrawer()">×</button>
+        </div>
+
+        <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+
+    <script>
+        const STORAGE_KEY = "mkp_accounting_v1";
+
+        function createDemoReceipts() {
+            return [
+                {
+                    id: "BIL-2026-0001",
+                    supplier: "INCO Cash & Carry",
+                    source: "mobile",
+                    uploadedAt: "2026-03-14 08:12",
+                    date: "2026-03-14",
+                    total: 1845.50,
+                    vat: 369.10,
+                    currency: "DKK",
+                    status: "approved",
+                    confidence: 94,
+                    ocrStatus: "done",
+                    parserStatus: "done",
+                    supplierMatch: "exact",
+                    ruleEngine: "matched_previous_purchase",
+                    aiFallback: false,
+                    accountSuggestion: "Varekøb / fødevarer",
+                    accountNo: "4010",
+                    paymentMethod: "Kort",
+                    note: "Høj sikkerhed. Matcher tidligere købsmønster og leverandørprofil.",
+                    approvedAt: "14-03-2026 14:10",
+                    approvedBy: "Admin",
+                    draftLines: [
+                        { label: "4010 Varekøb / fødevarer", amount: "1.476,40 kr." },
+                        { label: "5820 Købsmoms", amount: "369,10 kr." },
+                        { label: "5825 Bank / kort", amount: "-1.845,50 kr." }
+                    ]
+                },
+                {
+                    id: "BIL-2026-0002",
+                    supplier: "Nemlig.com Erhverv",
+                    source: "email",
+                    uploadedAt: "2026-03-14 09:04",
+                    date: "2026-03-14",
+                    total: 682.00,
+                    vat: 136.40,
+                    currency: "DKK",
+                    status: "awaiting_approval",
+                    confidence: 81,
+                    ocrStatus: "done",
+                    parserStatus: "done",
+                    supplierMatch: "strong",
+                    ruleEngine: "category_rule",
+                    aiFallback: false,
+                    accountSuggestion: "Varekøb / kolonial",
+                    accountNo: "4020",
+                    paymentMethod: "Faktura",
+                    note: "Regelmotor har foreslået samme konto som sidste 4 lignende bilag.",
+                    draftLines: [
+                        { label: "4020 Varekøb / kolonial", amount: "545,60 kr." },
+                        { label: "5820 Købsmoms", amount: "136,40 kr." },
+                        { label: "7600 Kreditorer", amount: "-682,00 kr." }
+                    ]
+                },
+                {
+                    id: "BIL-2026-0003",
+                    supplier: "Ukendt leverandør",
+                    source: "dragdrop",
+                    uploadedAt: "2026-03-14 10:28",
+                    date: "2026-03-13",
+                    total: 129.00,
+                    vat: 0,
+                    currency: "DKK",
+                    status: "ready_for_review",
+                    confidence: 47,
+                    ocrStatus: "done",
+                    parserStatus: "partial",
+                    supplierMatch: "none",
+                    ruleEngine: "failed",
+                    aiFallback: true,
+                    accountSuggestion: "Manuel vurdering",
+                    accountNo: "0000",
+                    paymentMethod: "Ukendt",
+                    note: "Leverandør og moms er usikre. Sendes til manuel kontrol.",
+                    draftLines: [
+                        { label: "Ukendt konto", amount: "129,00 kr." },
+                        { label: "Moms ikke fastlagt", amount: "0,00 kr." },
+                        { label: "Afventer bruger", amount: "-129,00 kr." }
+                    ]
+                },
+                {
+                    id: "BIL-2026-0004",
+                    supplier: "Dagrofa Foodservice",
+                    source: "pos",
+                    uploadedAt: "2026-03-14 11:42",
+                    date: "2026-03-14",
+                    total: 3249.75,
+                    vat: 649.95,
+                    currency: "DKK",
+                    status: "approved",
+                    confidence: 89,
+                    ocrStatus: "done",
+                    parserStatus: "done",
+                    supplierMatch: "exact",
+                    ruleEngine: "matched_previous_purchase",
+                    aiFallback: false,
+                    accountSuggestion: "Varekøb / køl og frost",
+                    accountNo: "4030",
+                    paymentMethod: "Faktura",
+                    note: "Konto og moms ser konsistent ud. Klar til godkendelse.",
+                    approvedAt: "14-03-2026 15:05",
+                    approvedBy: "Admin",
+                    draftLines: [
+                        { label: "4030 Varekøb / køl og frost", amount: "2.599,80 kr." },
+                        { label: "5820 Købsmoms", amount: "649,95 kr." },
+                        { label: "7600 Kreditorer", amount: "-3.249,75 kr." }
+                    ]
+                },
+                {
+                    id: "BIL-2026-0006",
+                    supplier: "AO Johansen",
+                    source: "email",
+                    uploadedAt: "2026-03-14 13:02",
+                    date: "2026-03-12",
+                    total: 1187.50,
+                    vat: 237.50,
+                    currency: "DKK",
+                    status: "approved",
+                    confidence: 72,
+                    ocrStatus: "done",
+                    parserStatus: "done",
+                    supplierMatch: "medium",
+                    ruleEngine: "ai_assisted",
+                    aiFallback: true,
+                    accountSuggestion: "Drift / vedligehold",
+                    accountNo: "5310",
+                    paymentMethod: "Faktura",
+                    note: "AI fallback brugt pga. blandet varelinje. Kræver godkendelse.",
+                    approvedAt: "14-03-2026 15:33",
+                    approvedBy: "Admin",
+                    draftLines: [
+                        { label: "5310 Drift / vedligehold", amount: "950,00 kr." },
+                        { label: "5820 Købsmoms", amount: "237,50 kr." },
+                        { label: "7600 Kreditorer", amount: "-1.187,50 kr." }
+                    ]
+                }
+            ];
+        }
+
+        function getStore() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) return JSON.parse(raw);
+
+            const initial = { receipts: createDemoReceipts() };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+            return initial;
+        }
+
+        function saveStore(store) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+        }
+
+        function resetStore() {
+            const store = { receipts: createDemoReceipts() };
+            saveStore(store);
+            return store;
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat("da-DK", {
+                style: "currency",
+                currency: "DKK"
+            }).format(Number(value || 0));
+        }
+
+        function chipStatus(status) {
+            if (status === "approved") return `<span class="chip chip-green">Godkendt</span>`;
+            if (status === "awaiting_approval") return `<span class="chip chip-blue">Afventer</span>`;
+            return `<span class="chip chip-amber">Review</span>`;
+        }
+
+        function filterReceipts(receipts) {
+            const q = document.getElementById("searchInput").value.trim().toLowerCase();
+            const status = document.getElementById("statusFilter").value;
+            const confidence = document.getElementById("confidenceFilter").value;
+            const ai = document.getElementById("aiFilter").value;
+
+            return receipts.filter(item => {
+                const text = [
+                    item.id,
+                    item.supplier,
+                    item.accountNo,
+                    item.accountSuggestion,
+                    item.note
+                ].join(" ").toLowerCase();
+
+                const matchesQ = !q || text.includes(q);
+                const matchesStatus = status === "all" || item.status === status;
+
+                let matchesConfidence = true;
+                if (confidence === "high") matchesConfidence = item.confidence >= 85;
+                if (confidence === "medium") matchesConfidence = item.confidence >= 60 && item.confidence < 85;
+                if (confidence === "low") matchesConfidence = item.confidence < 60;
+
+                let matchesAi = true;
+                if (ai === "ai") matchesAi = !!item.aiFallback;
+                if (ai === "rules") matchesAi = !item.aiFallback;
+
+                return matchesQ && matchesStatus && matchesConfidence && matchesAi;
+            });
+        }
+
+        function updateStats(receipts) {
+            const approved = receipts.filter(r => r.status === "approved");
+            const approvedTotal = approved.reduce((sum, item) => sum + Number(item.total || 0), 0);
+
+            document.getElementById("statApproved").textContent = approved.length;
+            document.getElementById("statTotal").textContent = formatMoney(approvedTotal);
+            document.getElementById("statAi").textContent = approved.filter(r => r.aiFallback).length;
+            document.getElementById("statLow").textContent = approved.filter(r => r.confidence < 60).length;
+        }
+
+        function render() {
+            const store = getStore();
+            const receipts = store.receipts;
+            updateStats(receipts);
+
+            const filtered = filterReceipts(receipts);
+            const mount = document.getElementById("tableMount");
+
+            if (!filtered.length) {
+                mount.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Ingen bilag matcher filtrene</h3>
+                        <p>Prøv en anden kombination af søgning og filtre.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            mount.innerHTML = `
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Bilag</th>
+                            <th>Dato</th>
+                            <th>Total</th>
+                            <th>Konto</th>
+                            <th>Confidence</th>
+                            <th>Status</th>
+                            <th>Handling</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(item => `
+                            <tr>
+                                <td>
+                                    <strong>${item.supplier}</strong><br>
+                                    <span style="color:var(--muted);">${item.id}</span>
+                                </td>
+                                <td>${item.date}</td>
+                                <td><strong>${formatMoney(item.total)}</strong><br><span style="color:var(--muted);">Moms: ${formatMoney(item.vat)}</span></td>
+                                <td>${item.accountNo} · ${item.accountSuggestion}</td>
+                                <td>
+                                    <span class="chip ${item.confidence >= 85 ? "chip-green" : item.confidence >= 60 ? "chip-blue" : "chip-amber"}">
+                                        ${item.confidence}%
+                                    </span>
+                                </td>
+                                <td>${chipStatus(item.status)}</td>
+                                <td>
+                                    <button class="action-btn" onclick="openDrawer('${item.id}')">Se detaljer</button>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function openDrawer(id) {
+            const store = getStore();
+            const item = store.receipts.find(r => r.id === id);
+            if (!item) return;
+
+            document.getElementById("drawerTitle").textContent = item.supplier;
+            document.getElementById("drawerSub").textContent = `${item.id} · ${item.date} · ${formatMoney(item.total)}`;
+
+            document.getElementById("drawerBody").innerHTML = `
+                <div class="detail-card">
+                    <h3>Bilagsdata</h3>
+                    <div class="detail-list">
+                        <div class="detail-item"><span>Bilags-id</span><strong>${item.id}</strong></div>
+                        <div class="detail-item"><span>Leverandør</span><strong>${item.supplier}</strong></div>
+                        <div class="detail-item"><span>Dato</span><strong>${item.date}</strong></div>
+                        <div class="detail-item"><span>Total</span><strong>${formatMoney(item.total)}</strong></div>
+                        <div class="detail-item"><span>Moms</span><strong>${formatMoney(item.vat)}</strong></div>
+                        <div class="detail-item"><span>Betalingsmåde</span><strong>${item.paymentMethod}</strong></div>
+                        <div class="detail-item"><span>Kilde</span><strong>${item.source}</strong></div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h3>Bon-AI analyse</h3>
+                    <div class="detail-list">
+                        <div class="detail-item"><span>Confidence</span><strong>${item.confidence}%</strong></div>
+                        <div class="detail-item"><span>OCR status</span><strong>${item.ocrStatus}</strong></div>
+                        <div class="detail-item"><span>Parser status</span><strong>${item.parserStatus}</strong></div>
+                        <div class="detail-item"><span>Leverandørmatch</span><strong>${item.supplierMatch}</strong></div>
+                        <div class="detail-item"><span>Regelmotor</span><strong>${item.ruleEngine}</strong></div>
+                        <div class="detail-item"><span>AI fallback</span><strong>${item.aiFallback ? "Ja" : "Nej"}</strong></div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h3>Bogføringskladde</h3>
+                    <div class="detail-list">
+                        ${item.draftLines.map(line => `
+                            <div class="detail-item">
+                                <span>${line.label}</span>
+                                <strong>${line.amount}</strong>
+                            </div>
+                        `).join("")}
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h3>Godkendelse og noter</h3>
+                    <div class="detail-list">
+                        <div class="detail-item"><span>Status</span><strong>${item.status}</strong></div>
+                        <div class="detail-item"><span>Godkendt af</span><strong>${item.approvedBy || "—"}</strong></div>
+                        <div class="detail-item"><span>Godkendt tidspunkt</span><strong>${item.approvedAt || "—"}</strong></div>
+                    </div>
+                    <div style="margin-top:12px;padding:14px 16px;border-radius:16px;background:#fbfdfb;border:1px solid var(--border);color:var(--muted);line-height:1.6;">
+                        ${item.note}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById("drawer").classList.add("open");
+            document.getElementById("backdrop").classList.add("open");
+        }
+
+        function closeDrawer() {
+            document.getElementById("drawer").classList.remove("open");
+            document.getElementById("backdrop").classList.remove("open");
+        }
+
+        document.getElementById("searchInput").addEventListener("input", render);
+        document.getElementById("statusFilter").addEventListener("change", render);
+        document.getElementById("confidenceFilter").addEventListener("change", render);
+        document.getElementById("aiFilter").addEventListener("change", render);
+
+        document.getElementById("resetBtn").addEventListener("click", () => {
+            resetStore();
+            render();
+            closeDrawer();
+        });
+
+        render();
+    </script>
+</body>
+</html>
+

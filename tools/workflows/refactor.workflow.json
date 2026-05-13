@@ -1,0 +1,121 @@
+{
+  "id": "refactor-workflow",
+  "name": "Refactoring Workflow",
+  "type": "refactor",
+  "version": "1.0.0",
+  "description": "Standard workflow for refactoring code",
+  "steps": [
+    {
+      "order": 1,
+      "action": "Identify refactor target",
+      "description": "Identify code that needs refactoring and why",
+      "requiredTools": ["code_search", "grep"],
+      "checkpoints": [
+        "Target code identified",
+        "Reason for refactor clear",
+        "Scope defined"
+      ]
+    },
+    {
+      "order": 2,
+      "action": "Check dependencies",
+      "description": "Check registries for dependencies and usage",
+      "requiredTools": ["grep", "dependency-map.json"],
+      "checkpoints": [
+        "All dependencies identified",
+        "All usages found",
+        "Impact assessed"
+      ]
+    },
+    {
+      "order": 3,
+      "action": "Design refactor",
+      "description": "Plan refactoring approach",
+      "requiredTools": ["Windsurf", "ChatGPT"],
+      "checkpoints": [
+        "Approach documented",
+        "Breaking changes identified",
+        "Migration plan created"
+      ]
+    },
+    {
+      "order": 4,
+      "action": "Create tests",
+      "description": "Create tests to verify behavior before/after",
+      "requiredTools": ["browser", "test framework"],
+      "checkpoints": [
+        "Tests created",
+        "Tests pass before refactor",
+        "Coverage adequate"
+      ]
+    },
+    {
+      "order": 5,
+      "action": "Implement refactor",
+      "description": "Make refactoring changes",
+      "requiredTools": ["Windsurf"],
+      "checkpoints": [
+        "Code refactored",
+        "Behavior preserved",
+        "Tests still pass"
+      ]
+    },
+    {
+      "order": 6,
+      "action": "Update dependencies",
+      "description": "Update all code that depends on refactored code",
+      "requiredTools": ["Windsurf", "grep"],
+      "checkpoints": [
+        "All dependencies updated",
+        "No broken references",
+        "Tests pass"
+      ]
+    },
+    {
+      "order": 7,
+      "action": "Update registries",
+      "description": "Update registries to reflect refactored code",
+      "requiredTools": ["text editor"],
+      "checkpoints": [
+        "Registries updated",
+        "Dependencies remapped",
+        "Documentation updated"
+      ]
+    },
+    {
+      "order": 8,
+      "action": "Deploy and verify",
+      "description": "Deploy refactored code and verify",
+      "requiredTools": ["firebase CLI", "browser"],
+      "checkpoints": [
+        "Deployed successfully",
+        "All tests pass",
+        "No regressions"
+      ]
+    },
+    {
+      "order": 9,
+      "action": "Log refactor",
+      "description": "Document refactoring and rationale",
+      "requiredTools": ["text editor"],
+      "checkpoints": [
+        "Refactor logged",
+        "Rationale documented",
+        "Lessons learned noted"
+      ]
+    }
+  ],
+  "prerequisites": [
+    "Clear refactoring goal",
+    "Dependencies understood",
+    "Tests in place"
+  ],
+  "verification": [
+    "Behavior preserved",
+    "All tests pass",
+    "No regressions",
+    "Registries updated",
+    "Documentation complete"
+  ],
+  "tags": ["refactor", "code-quality", "standard"]
+}

@@ -1,0 +1,137 @@
+{
+  "source_file": "public/modules/admin/control-center.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildSeoStructure",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "fillDemoContent",
+        "setListOutput",
+        "slugify",
+        "titleCase"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "fillDemoContent",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSeoStructure",
+        "getStoredLocationId",
+        "normalizeLocationIds",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStoredLocationId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSeoStructure",
+        "setListOutput",
+        "slugify",
+        "titleCase",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeLocationIds",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSeoStructure",
+        "getStoredLocationId",
+        "pushValue",
+        "setListOutput",
+        "slugify",
+        "titleCase",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "pushValue",
+      "type": "const_function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildSeoStructure",
+        "getStoredLocationId",
+        "setListOutput",
+        "slugify",
+        "titleCase",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setListOutput",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildSeoStructure",
+        "fillDemoContent",
+        "slugify",
+        "titleCase"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSeoStructure",
+        "setListOutput",
+        "titleCase"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "titleCase",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildSeoStructure",
+        "setListOutput",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "userIsResponsible",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSeoStructure",
+        "setListOutput",
+        "slugify",
+        "titleCase"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

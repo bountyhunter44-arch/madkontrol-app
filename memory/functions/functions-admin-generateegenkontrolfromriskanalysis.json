@@ -1,0 +1,268 @@
+{
+  "source_file": "functions/admin/generateEgenkontrolFromRiskAnalysis.js",
+  "module": "general",
+  "imports": [
+    "../guideLibrary",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [
+    "generateEgenkontrolFromRiskAnalysis"
+  ],
+  "collections": [
+    "equipment",
+    "risks",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildAggregatedTemplate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getExistingTemplatesByKeys",
+        "inferAggregatedControlType",
+        "inferAggregatedCorrectiveAction",
+        "inferAggregatedDescription",
+        "inferAggregatedFrequency",
+        "inferAggregatedLimits",
+        "inferAggregatedRequirements",
+        "inferAggregatedTemplateName",
+        "inferAggregatedUnit",
+        "inferTemplateType"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "companyId",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getExistingTemplatesByKeys",
+        "inferAggregatedControlType",
+        "inferAggregatedCorrectiveAction",
+        "inferAggregatedDescription",
+        "inferAggregatedFrequency",
+        "inferAggregatedLimits",
+        "inferAggregatedRequirements",
+        "inferAggregatedTemplateName",
+        "inferAggregatedUnit",
+        "inferTemplateType"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "dedupeKey",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "inferAggregatedCategory",
+        "normalizeText",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "generateEgenkontrolFromRiskAnalysis",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAggregatedTemplate",
+        "getExistingTemplatesByKeys",
+        "inferAggregatedCategory"
+      ],
+      "selectors": [],
+      "collections": [
+        "risks"
+      ]
+    },
+    {
+      "name": "getExistingTemplatesByKeys",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAggregatedTemplate",
+        "generateEgenkontrolFromRiskAnalysis",
+        "inferAggregatedCategory"
+      ],
+      "selectors": [],
+      "collections": [
+        "risks",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "inferAggregatedCategory",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "normalizeText"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "inferAggregatedControlType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "inferAggregatedCorrectiveAction",
+        "inferAggregatedLimits",
+        "inferAggregatedUnit"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "inferAggregatedCorrectiveAction",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAggregatedTemplate",
+        "inferAggregatedControlType",
+        "inferAggregatedDescription",
+        "inferAggregatedFrequency",
+        "inferAggregatedLimits",
+        "inferAggregatedRequirements",
+        "inferAggregatedTemplateName",
+        "inferAggregatedUnit",
+        "inferTemplateType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "inferAggregatedDescription",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "inferAggregatedFrequency"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "inferAggregatedFrequency",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "inferAggregatedControlType",
+        "inferAggregatedCorrectiveAction",
+        "inferAggregatedLimits",
+        "inferAggregatedUnit"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "inferAggregatedLimits",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAggregatedTemplate",
+        "inferAggregatedCorrectiveAction",
+        "inferAggregatedRequirements"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "inferAggregatedRequirements",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAggregatedTemplate",
+        "getExistingTemplatesByKeys",
+        "inferAggregatedControlType",
+        "inferAggregatedCorrectiveAction",
+        "inferAggregatedDescription",
+        "inferAggregatedFrequency",
+        "inferAggregatedLimits",
+        "inferAggregatedTemplateName",
+        "inferAggregatedUnit",
+        "inferTemplateType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "inferAggregatedTemplateName",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "inferAggregatedDescription"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "inferAggregatedUnit",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "inferAggregatedCorrectiveAction",
+        "inferAggregatedLimits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "inferTemplateType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "inferAggregatedDescription",
+        "inferAggregatedTemplateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeText",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "dedupeKey",
+        "inferAggregatedCategory",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateEgenkontrolFromRiskAnalysis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "dedupeKey",
+        "inferAggregatedCategory",
+        "normalizeText"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

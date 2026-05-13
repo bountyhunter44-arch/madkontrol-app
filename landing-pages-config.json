@@ -1,0 +1,26 @@
+{
+  "pages": [
+    {
+      "slug": "aroi-d",
+      "companyName": "Aroi D",
+      "city": "Hvidovre",
+      "category": "Thai restaurant",
+      "title": "Thai restaurant i Hvidovre | Aroi D",
+      "metaDescription": "Aroi D i Hvidovre tilbyder autentisk thai mad og takeaway.",
+      "h1": "Thai restaurant i Hvidovre",
+      "intro": "Autentisk thai restaurant i Hvidovre med fokus på kvalitet og smag.",
+      "sections": [
+        {
+          "heading": "Friske råvarer",
+          "text": "Vi bruger kun friske ingredienser i alle vores retter."
+        },
+        {
+          "heading": "Hurtig takeaway",
+          "text": "Bestil nemt og hurtigt til afhentning."
+        }
+      ],
+      "orderingUrl": "#",
+      "isLive": true
+    }
+  ]
+}

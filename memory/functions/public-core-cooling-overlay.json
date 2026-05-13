@@ -1,0 +1,753 @@
+{
+  "source_file": "public/core/cooling-overlay.js",
+  "module": "cooling",
+  "imports": [
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [
+    "getActiveCoolingRun",
+    "getActiveCoolingRuns",
+    "initCoolingOverlay",
+    "startCoolingRun",
+    "updateCoolingRunData"
+  ],
+  "collections": [
+    "activeCoolingRuns",
+    "users"
+  ],
+  "flags": [
+    "cooling_run_finish",
+    "saveRoutineTask"
+  ],
+  "risks": [
+    "abort_may_only_clear_state"
+  ],
+  "functions": [
+    {
+      "name": "applyPos",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildCardHTML",
+        "esc",
+        "formatElapsed",
+        "getElapsedMs",
+        "getOrigin",
+        "getPhase",
+        "makeDraggable",
+        "onEnd",
+        "onMove",
+        "onStart",
+        "savePos"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildCardHTML",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "esc",
+        "formatElapsed",
+        "getCoolingMethodLabel",
+        "getElapsedMs",
+        "getPhase"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildMinimizedHTML",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "esc",
+        "formatElapsed",
+        "getElapsedMs",
+        "getPhase",
+        "loadRunsRaw",
+        "startPanelTimer"
+      ],
+      "selectors": [
+        ".mk-phase-icon"
+      ],
+      "collections": []
+    },
+    {
+      "name": "buildPanelHTML",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildCardHTML",
+        "buildMinimizedHTML",
+        "esc",
+        "getElapsedMs",
+        "getPhase"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "deleteRun",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "deleteRunFromFirestore",
+        "esc",
+        "formatElapsed",
+        "getElapsedMs",
+        "getOrigin",
+        "getPhase",
+        "getSavedPos",
+        "loadRunsRaw",
+        "makeDraggable",
+        "onEnd",
+        "onMove",
+        "onStart",
+        "savePos",
+        "saveRunsRaw"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    },
+    {
+      "name": "deleteRunFromFirestore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "esc",
+        "formatElapsed",
+        "getElapsedMs",
+        "getOrigin",
+        "getPhase",
+        "getSavedPos",
+        "makeDraggable",
+        "onEnd",
+        "onMove",
+        "onStart",
+        "savePos"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    },
+    {
+      "name": "esc",
+      "type": "function",
+      "approx_occurrences": 27,
+      "calls": [
+        "applyPos",
+        "deleteRun",
+        "deleteRunFromFirestore",
+        "formatElapsed",
+        "getCoolingMethodLabel",
+        "getElapsedMs",
+        "getPhase",
+        "getSavedPos",
+        "loadRuns",
+        "loadRunsRaw",
+        "savePos",
+        "saveRunsRaw",
+        "upsertRun",
+        "writeRunToFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    },
+    {
+      "name": "finishRun",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getCoolingMethodLabel",
+        "handleFinish",
+        "loadRunsRaw"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatElapsed",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "applyPos",
+        "deleteRun",
+        "deleteRunFromFirestore",
+        "getCoolingMethodLabel",
+        "getElapsedMs",
+        "getOrigin",
+        "getPhase",
+        "getSavedPos",
+        "loadRuns",
+        "loadRunsRaw",
+        "makeDraggable",
+        "savePos",
+        "saveRunsRaw",
+        "upsertRun",
+        "writeRunToFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    },
+    {
+      "name": "getActiveCoolingRun",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getActiveCoolingRuns",
+        "getElapsedMs",
+        "initCoolingOverlay",
+        "loadRuns",
+        "loadRunsRaw",
+        "renderPanel",
+        "saveRunsRaw"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns",
+        "users"
+      ]
+    },
+    {
+      "name": "getActiveCoolingRuns",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getElapsedMs",
+        "initCoolingOverlay",
+        "loadRuns",
+        "loadRunsRaw",
+        "renderPanel",
+        "saveRunsRaw"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns",
+        "users"
+      ]
+    },
+    {
+      "name": "getCoolingMethodLabel",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "applyPos",
+        "deleteRun",
+        "deleteRunFromFirestore",
+        "getOrigin",
+        "getSavedPos",
+        "loadRuns",
+        "loadRunsRaw",
+        "makeDraggable",
+        "onMove",
+        "onStart",
+        "savePos",
+        "saveRunsRaw",
+        "upsertRun",
+        "writeRunToFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    },
+    {
+      "name": "getElapsedMs",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "applyPos",
+        "deleteRun",
+        "deleteRunFromFirestore",
+        "getCoolingMethodLabel",
+        "getOrigin",
+        "getPhase",
+        "getSavedPos",
+        "loadRuns",
+        "loadRunsRaw",
+        "makeDraggable",
+        "onStart",
+        "savePos",
+        "saveRunsRaw",
+        "upsertRun",
+        "writeRunToFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    },
+    {
+      "name": "getOrigin",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "esc",
+        "formatElapsed",
+        "getElapsedMs",
+        "getPhase",
+        "onEnd",
+        "onMove",
+        "onStart",
+        "savePos"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getPhase",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "applyPos",
+        "deleteRun",
+        "deleteRunFromFirestore",
+        "getCoolingMethodLabel",
+        "getOrigin",
+        "getSavedPos",
+        "loadRuns",
+        "loadRunsRaw",
+        "makeDraggable",
+        "onStart",
+        "savePos",
+        "saveRunsRaw",
+        "upsertRun",
+        "writeRunToFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    },
+    {
+      "name": "getSavedPos",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "esc",
+        "formatElapsed",
+        "getElapsedMs",
+        "getOrigin",
+        "getPhase",
+        "makeDraggable",
+        "onEnd",
+        "onMove",
+        "onStart",
+        "savePos"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleAbort",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteRun",
+        "getCoolingMethodLabel",
+        "loadRunsRaw",
+        "renderPanel",
+        "startCoolingRun"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleFinish",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteRun",
+        "finishRun",
+        "getCoolingMethodLabel",
+        "handleAbort",
+        "loadRunsRaw"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "initCoolingOverlay",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getElapsedMs",
+        "loadRuns",
+        "loadRunsRaw",
+        "renderPanel",
+        "saveRunsRaw"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns",
+        "users"
+      ]
+    },
+    {
+      "name": "loadRuns",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyPos",
+        "deleteRun",
+        "deleteRunFromFirestore",
+        "getOrigin",
+        "getSavedPos",
+        "loadRunsRaw",
+        "makeDraggable",
+        "onEnd",
+        "onMove",
+        "onStart",
+        "savePos",
+        "saveRunsRaw",
+        "upsertRun",
+        "writeRunToFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    },
+    {
+      "name": "loadRunsRaw",
+      "type": "function",
+      "approx_occurrences": 16,
+      "calls": [
+        "applyPos",
+        "deleteRun",
+        "deleteRunFromFirestore",
+        "getOrigin",
+        "getSavedPos",
+        "makeDraggable",
+        "onEnd",
+        "onMove",
+        "onStart",
+        "savePos",
+        "saveRunsRaw",
+        "upsertRun",
+        "writeRunToFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    },
+    {
+      "name": "makeDraggable",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "esc",
+        "formatElapsed",
+        "getElapsedMs",
+        "getOrigin",
+        "getPhase",
+        "onEnd",
+        "onMove",
+        "onStart",
+        "savePos"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "note",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "deleteRun",
+        "finishRun",
+        "getCoolingMethodLabel",
+        "handleAbort",
+        "loadRunsRaw"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "onEnd",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildCardHTML",
+        "esc",
+        "formatElapsed",
+        "getCoolingMethodLabel",
+        "getElapsedMs",
+        "getPhase",
+        "onMove",
+        "onStart",
+        "savePos"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "onMove",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "esc",
+        "formatElapsed",
+        "getCoolingMethodLabel",
+        "getElapsedMs",
+        "getPhase",
+        "onEnd",
+        "onStart",
+        "savePos"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "onStart",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "esc",
+        "formatElapsed",
+        "getCoolingMethodLabel",
+        "getElapsedMs",
+        "getOrigin",
+        "getPhase",
+        "onEnd",
+        "onMove",
+        "savePos"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderPanel",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "buildMinimizedHTML",
+        "buildPanelHTML",
+        "finishRun",
+        "getCoolingMethodLabel",
+        "getSavedPos",
+        "handleAbort",
+        "handleFinish",
+        "loadRunsRaw",
+        "makeDraggable",
+        "startPanelTimer"
+      ],
+      "selectors": [
+        ".mk-cr-abort",
+        ".mk-cr-detail",
+        ".mk-cr-finish",
+        ".mk-cr-row",
+        ".mk-cr-toggle",
+        ".mk-minpill"
+      ],
+      "collections": []
+    },
+    {
+      "name": "rid",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildCardHTML",
+        "finishRun",
+        "getCoolingMethodLabel",
+        "handleAbort",
+        "handleFinish",
+        "loadRunsRaw"
+      ],
+      "selectors": [
+        ".mk-cr-abort",
+        ".mk-cr-finish"
+      ],
+      "collections": []
+    },
+    {
+      "name": "savePos",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "esc",
+        "formatElapsed",
+        "getElapsedMs",
+        "getOrigin",
+        "getPhase",
+        "makeDraggable",
+        "onEnd",
+        "onMove",
+        "onStart"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "saveRunsRaw",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "deleteRun",
+        "deleteRunFromFirestore",
+        "getElapsedMs",
+        "getOrigin",
+        "getSavedPos",
+        "loadRunsRaw",
+        "makeDraggable",
+        "onEnd",
+        "onMove",
+        "onStart",
+        "savePos",
+        "upsertRun",
+        "writeRunToFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    },
+    {
+      "name": "startCoolingRun",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getActiveCoolingRun",
+        "getActiveCoolingRuns",
+        "getElapsedMs",
+        "initCoolingOverlay",
+        "loadRuns",
+        "loadRunsRaw",
+        "renderPanel",
+        "saveRunsRaw",
+        "updateCoolingRunData",
+        "upsertRun"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns",
+        "users"
+      ]
+    },
+    {
+      "name": "startPanelTimer",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatElapsed",
+        "getElapsedMs",
+        "getPhase",
+        "loadRunsRaw",
+        "renderPanel"
+      ],
+      "selectors": [
+        ".mk-mpill-icon",
+        ".mk-phase-icon",
+        ".mk-phase-lbl"
+      ],
+      "collections": []
+    },
+    {
+      "name": "updateCoolingRunData",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getActiveCoolingRun",
+        "getActiveCoolingRuns",
+        "getElapsedMs",
+        "initCoolingOverlay",
+        "loadRuns",
+        "loadRunsRaw",
+        "renderPanel",
+        "saveRunsRaw"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns",
+        "users"
+      ]
+    },
+    {
+      "name": "upsertRun",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "deleteRun",
+        "deleteRunFromFirestore",
+        "getElapsedMs",
+        "getOrigin",
+        "getPhase",
+        "getSavedPos",
+        "loadRunsRaw",
+        "makeDraggable",
+        "onEnd",
+        "onMove",
+        "onStart",
+        "savePos",
+        "saveRunsRaw",
+        "writeRunToFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    },
+    {
+      "name": "writeRunToFirestore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyPos",
+        "buildCardHTML",
+        "deleteRun",
+        "deleteRunFromFirestore",
+        "formatElapsed",
+        "getElapsedMs",
+        "getOrigin",
+        "getPhase",
+        "getSavedPos",
+        "loadRunsRaw",
+        "makeDraggable",
+        "onEnd",
+        "onMove",
+        "onStart",
+        "savePos",
+        "saveRunsRaw"
+      ],
+      "selectors": [],
+      "collections": [
+        "activeCoolingRuns"
+      ]
+    }
+  ]
+}

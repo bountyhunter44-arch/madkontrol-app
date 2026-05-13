@@ -1,0 +1,35 @@
+{
+  "module": "dashboard",
+  "files": [
+    {
+      "source_file": "public/dashboard.html",
+      "selectors": [
+        ".task-action-btn",
+        ".task-actions",
+        ".task-ai-preview",
+        ".task-camera-btn[data-open-camera][data-instance-id]",
+        ".task-photo-thumb",
+        "[data-guide-toggle]",
+        "button[data-ai-approve]",
+        "style[data-toast-styles]"
+      ]
+    },
+    {
+      "source_file": "public/modules/egenkontrol/process-dashboard.js",
+      "selectors": [
+        "#form-add-measurement",
+        "#form-complete-cooling",
+        "#form-complete-reheating",
+        "#form-start-cooling",
+        ".btn-add-measurement",
+        ".btn-complete-cooling",
+        ".btn-complete-reheating",
+        ".btn-recovery-disposal",
+        ".btn-recovery-reheating",
+        ".btn-start-new-cooling",
+        ".mkp-modal-overlay",
+        ".modal-close"
+      ]
+    }
+  ]
+}

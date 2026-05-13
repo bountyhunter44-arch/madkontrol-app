@@ -1,0 +1,27 @@
+{
+  "source_file": "public/scripts/check-task-templates.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "fs",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "source_file": "public/scripts/seed-firestore-from-scratch.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildUserDoc",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "log",
+        "seed"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "log",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "buildUserDoc",
+        "seed"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "seed",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildUserDoc",
+        "log"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    }
+  ]
+}

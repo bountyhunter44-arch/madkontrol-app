@@ -1,0 +1,48 @@
+{
+  "source_file": "public/modules/egenkontrol/rapport-view.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "reports"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 13,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadReport",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "renderReport"
+      ],
+      "selectors": [],
+      "collections": [
+        "reports"
+      ]
+    },
+    {
+      "name": "renderReport",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

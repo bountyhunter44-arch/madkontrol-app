@@ -1,0 +1,135 @@
+{
+  "source_file": "functions/generateComprehensiveHaccp.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "generateComprehensiveHaccp",
+    "generateTaskTemplatesFromKcps"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "calculateDueAt",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "determineFormType",
+        "parseFrequency"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "category",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "determineFormType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateAllergenKcp",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateCleaningKcp"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateBaseKcps",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateCleaningKcp",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateIndustrySpecificKcps"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateComprehensiveHaccp",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "generateAllergenKcp",
+        "generateBaseKcps",
+        "generateCleaningKcp",
+        "generateIndustrySpecificKcps",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateIndustrySpecificKcps",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateTaskTemplatesFromKcps",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "calculateDueAt",
+        "determineFormType",
+        "parseFrequency"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "parseFrequency",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "determineFormType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeString",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "generateAllergenKcp",
+        "generateBaseKcps",
+        "generateCleaningKcp",
+        "generateComprehensiveHaccp",
+        "generateIndustrySpecificKcps"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "title",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

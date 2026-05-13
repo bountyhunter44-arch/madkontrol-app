@@ -1,0 +1,71 @@
+{
+  "source_file": "public/modules/egenkontrol/riskAnalysisMasterLibrary.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "RISK_ANALYSIS_MASTER",
+    "getRiskBlockByKey",
+    "getRiskBlocksByPageGroup",
+    "listAllRiskKeys",
+    "uniqueStrings"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getRiskBlockByKey",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getRiskBlocksByPageGroup",
+        "listAllRiskKeys",
+        "normalizeList",
+        "uniqueStrings"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getRiskBlocksByPageGroup",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "listAllRiskKeys",
+        "normalizeList",
+        "uniqueStrings"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "listAllRiskKeys",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "normalizeList",
+        "uniqueStrings"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeList",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "uniqueStrings",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "normalizeList"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

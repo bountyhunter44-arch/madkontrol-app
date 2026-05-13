@@ -1,0 +1,113 @@
+{
+  "source_file": "scripts/delete-global-manual-deviations.js",
+  "module": "deviations",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "deviations",
+    "task_entries"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "collectManualAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "collectManualDeviations",
+        "collectManualTaskEntries",
+        "deleteRefs",
+        "main",
+        "uniqueRefsFromSnapshots"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations",
+        "task_entries"
+      ]
+    },
+    {
+      "name": "collectManualDeviations",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "collectManualAlerts",
+        "collectManualTaskEntries",
+        "deleteRefs",
+        "main",
+        "uniqueRefsFromSnapshots"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations"
+      ]
+    },
+    {
+      "name": "collectManualTaskEntries",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "collectManualAlerts",
+        "collectManualDeviations",
+        "deleteRefs",
+        "main",
+        "uniqueRefsFromSnapshots"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "task_entries"
+      ]
+    },
+    {
+      "name": "deleteRefs",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "collectManualAlerts",
+        "collectManualDeviations",
+        "collectManualTaskEntries",
+        "main"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "collectManualAlerts",
+        "collectManualDeviations",
+        "collectManualTaskEntries",
+        "deleteRefs"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "uniqueRefsFromSnapshots",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "collectManualAlerts",
+        "collectManualDeviations",
+        "collectManualTaskEntries",
+        "deleteRefs",
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations",
+        "task_entries"
+      ]
+    }
+  ]
+}

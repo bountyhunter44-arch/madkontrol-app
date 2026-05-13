@@ -1,0 +1,48 @@
+{
+  "source_file": "scripts/setup-customer.js",
+  "module": "general",
+  "imports": [
+    "firebase/app",
+    "firebase/auth",
+    "firebase/firestore",
+    "readline"
+  ],
+  "exports": [],
+  "collections": [
+    "companies",
+    "locations",
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "question",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "setupCustomer"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations",
+        "users"
+      ]
+    },
+    {
+      "name": "setupCustomer",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "question"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations",
+        "users"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "source_file": "scripts/cleanupDuplicateTaskInstances.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "attachments",
+    "daily_reports",
+    "task_entries",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [
+    "alerts_without_deviation_creation"
+  ],
+  "functions": [
+    {
+      "name": "checkReferences",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "fallbackKey",
+        "main",
+        "primaryKey",
+        "score"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "attachments",
+        "daily_reports",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "fallbackKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "checkReferences",
+        "main",
+        "normalizeTitle",
+        "primaryKey",
+        "score"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "attachments",
+        "daily_reports",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "hasLocalData",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "checkReferences",
+        "main"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "checkReferences",
+        "fallbackKey",
+        "primaryKey",
+        "score"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "normalizeTitle",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "checkReferences",
+        "fallbackKey",
+        "main",
+        "primaryKey",
+        "score"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "attachments",
+        "daily_reports",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "primaryKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "checkReferences",
+        "fallbackKey",
+        "main",
+        "normalizeTitle",
+        "score"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "attachments",
+        "daily_reports",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "score",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "checkReferences",
+        "fallbackKey",
+        "main",
+        "primaryKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "attachments",
+        "daily_reports",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "status",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "main"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

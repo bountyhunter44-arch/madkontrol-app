@@ -1,0 +1,148 @@
+{
+  "source_file": "public/seed-data/generateRiskProfile.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "activity_profiles",
+    "deviations",
+    "risk_profiles"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "calculateActivityScore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateComplianceScore",
+        "getDeviationStats",
+        "getReducedControlFrequency",
+        "getRiskGroup",
+        "getStandardControlFrequency",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "activity_profiles",
+        "deviations"
+      ]
+    },
+    {
+      "name": "calculateComplianceScore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateActivityScore",
+        "getDeviationStats",
+        "getReducedControlFrequency",
+        "getRiskGroup",
+        "getStandardControlFrequency",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "activity_profiles",
+        "risk_profiles"
+      ]
+    },
+    {
+      "name": "getDeviationStats",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateActivityScore",
+        "calculateComplianceScore",
+        "getReducedControlFrequency",
+        "getRiskGroup",
+        "getStandardControlFrequency",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "activity_profiles",
+        "deviations",
+        "risk_profiles"
+      ]
+    },
+    {
+      "name": "getReducedControlFrequency",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateActivityScore",
+        "calculateComplianceScore",
+        "getDeviationStats",
+        "getRiskGroup",
+        "getStandardControlFrequency",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "activity_profiles",
+        "deviations",
+        "risk_profiles"
+      ]
+    },
+    {
+      "name": "getRiskGroup",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateActivityScore",
+        "calculateComplianceScore",
+        "getDeviationStats",
+        "getReducedControlFrequency",
+        "getStandardControlFrequency",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "activity_profiles",
+        "deviations",
+        "risk_profiles"
+      ]
+    },
+    {
+      "name": "getStandardControlFrequency",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateActivityScore",
+        "calculateComplianceScore",
+        "getDeviationStats",
+        "getReducedControlFrequency",
+        "getRiskGroup",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "activity_profiles",
+        "deviations",
+        "risk_profiles"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateActivityScore",
+        "calculateComplianceScore",
+        "getDeviationStats",
+        "getReducedControlFrequency",
+        "getRiskGroup",
+        "getStandardControlFrequency"
+      ],
+      "selectors": [],
+      "collections": [
+        "activity_profiles",
+        "risk_profiles"
+      ]
+    }
+  ]
+}

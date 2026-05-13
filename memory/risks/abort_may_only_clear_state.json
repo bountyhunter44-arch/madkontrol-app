@@ -1,0 +1,13 @@
+{
+  "risk": "abort_may_only_clear_state",
+  "occurrences": [
+    {
+      "source_file": "functions/scripts/generateMemorySeed.js",
+      "module": "general"
+    },
+    {
+      "source_file": "public/core/cooling-overlay.js",
+      "module": "cooling"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "source_file": "scripts/delete-all-task-instances.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "deleteCollectionInBatches",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteCollectionInBatches"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    }
+  ]
+}

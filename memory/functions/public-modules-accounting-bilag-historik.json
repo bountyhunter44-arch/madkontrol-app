@@ -1,0 +1,164 @@
+{
+  "source_file": "public/modules/accounting/bilag-historik.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "chipStatus",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "filterReceipts",
+        "formatMoney",
+        "getStore",
+        "render",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "closeDrawer",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "render",
+        "resetStore"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createDemoReceipts",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "filterReceipts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatMoney",
+        "getStore",
+        "render",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatMoney",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "chipStatus",
+        "filterReceipts",
+        "getStore",
+        "render",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStore",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "chipStatus",
+        "createDemoReceipts",
+        "filterReceipts",
+        "formatMoney",
+        "render",
+        "resetStore",
+        "saveStore",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "openDrawer",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "closeDrawer",
+        "formatMoney",
+        "getStore"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "render",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "chipStatus",
+        "filterReceipts",
+        "formatMoney",
+        "getStore",
+        "openDrawer",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "resetStore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "chipStatus",
+        "createDemoReceipts",
+        "filterReceipts",
+        "formatMoney",
+        "getStore",
+        "render",
+        "saveStore",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "saveStore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "chipStatus",
+        "createDemoReceipts",
+        "filterReceipts",
+        "formatMoney",
+        "getStore",
+        "render",
+        "resetStore",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateStats",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "chipStatus",
+        "filterReceipts",
+        "formatMoney",
+        "getStore",
+        "openDrawer",
+        "render"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

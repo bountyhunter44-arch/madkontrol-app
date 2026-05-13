@@ -1,0 +1,1656 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Risikoanalyse | Madkontrollen Pro</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        .page-shell{
+            padding-bottom:40px;
+        }
+
+        .risk-hero{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:20px;
+            margin-bottom:20px;
+        }
+
+        .risk-hero-card{
+            padding:26px;
+            position:relative;
+            overflow:hidden;
+        }
+
+        .risk-hero-card::after{
+            content:"";
+            position:absolute;
+            right:-50px;
+            top:-60px;
+            width:230px;
+            height:230px;
+            background:radial-gradient(circle, rgba(46,125,50,.13) 0%, rgba(46,125,50,0) 72%);
+            pointer-events:none;
+        }
+
+        .risk-hero-card > *{
+            position:relative;
+            z-index:1;
+        }
+
+        .risk-stats-card{
+            padding:22px;
+            display:grid;
+            gap:14px;
+            align-content:start;
+        }
+
+        .risk-stats-grid{
+            display:grid;
+            grid-template-columns:repeat(2, 1fr);
+            gap:12px;
+        }
+
+        .risk-stat{
+            border:1px solid var(--border);
+            background:var(--panel-2, #f8fbf8);
+            border-radius:18px;
+            padding:16px;
+        }
+
+        .risk-stat-label{
+            font-size:.82rem;
+            color:var(--muted);
+            font-weight:700;
+            margin-bottom:8px;
+        }
+
+        .risk-stat-value{
+            font-size:1.55rem;
+            font-weight:800;
+            line-height:1;
+        }
+
+        .risk-note{
+            border:1px solid #d5e4f8;
+            background:linear-gradient(180deg, #f5f9ff 0%, #eef5ff 100%);
+            border-radius:18px;
+            padding:16px;
+            color:#24518b;
+            font-weight:600;
+            line-height:1.55;
+            width:100%;
+            box-sizing:border-box;
+            font:inherit;
+            resize:vertical;
+            min-height:72px;
+        }
+
+        .risk-kontrol-input{
+            width:100%;
+            box-sizing:border-box;
+            font:inherit;
+            resize:vertical;
+            min-height:60px;
+            margin-top:8px;
+            border:1px solid #d5e4d5;
+            background:linear-gradient(180deg, #f5fff5 0%, #eefbee 100%);
+            border-radius:14px;
+            padding:12px 14px;
+            color:#1f5a23;
+            font-weight:600;
+            line-height:1.55;
+        }
+
+        .risk-save-btn{
+            margin-top:10px;
+        }
+
+        .risk-cancel-btn{
+            margin-top:10px;
+            margin-left:8px;
+        }
+
+        .risk-new-card{
+            border:2px dashed #4a90d9;
+            background:#f0f7ff;
+        }
+        /* Collapse */
+        .risk-card-head{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            cursor:pointer;
+            user-select:none;
+            gap:8px;
+        }
+        .risk-card-head h3{
+            margin:0;
+            font-size:16px;
+            font-weight:700;
+            color:#1a2e1a;
+            flex:1;
+        }
+        .risk-card-chevron{
+            font-size:11px;
+            color:#9aaa9a;
+            flex-shrink:0;
+            transition:transform .2s;
+        }
+        .risk-card.is-open .risk-card-chevron{ transform:rotate(90deg); }
+        .risk-card-body{ display:none; margin-top:14px; }
+        .risk-card.is-open .risk-card-body{ display:block; }
+
+        .risk-title-input{
+            width:100%;
+            box-sizing:border-box;
+            font:inherit;
+            padding:10px 14px;
+            border:1px solid #b8d0ee;
+            border-radius:10px;
+            margin-top:4px;
+            font-size:1.05em;
+            font-weight:700;
+        }
+
+        .risk-beskrivelse-input{
+            width:100%;
+            box-sizing:border-box;
+            font:inherit;
+            resize:vertical;
+            min-height:60px;
+            margin-top:4px;
+            padding:10px 14px;
+            border:1px solid #b8d0ee;
+            border-radius:10px;
+        }
+
+        .risk-content-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:20px;
+            align-items:start;
+        }
+
+        .section-card{
+            padding:22px;
+        }
+
+        .accordion-stack{
+            display:grid;
+            gap:20px;
+        }
+
+        .accordion-card{
+            overflow:hidden;
+        }
+
+        .accordion-toggle{
+            width:100%;
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:16px;
+            padding:0;
+            border:none;
+            background:transparent;
+            font:inherit;
+            color:inherit;
+            text-align:left;
+            cursor:pointer;
+        }
+
+        .accordion-toggle-main{
+            min-width:0;
+            flex:1;
+        }
+
+        .accordion-toggle-main h2{
+            margin:0;
+            font-size:1.22rem;
+        }
+
+        .accordion-toggle-main p{
+            margin:6px 0 0;
+            color:var(--muted);
+            line-height:1.55;
+        }
+
+        .accordion-toggle-side{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            flex-wrap:wrap;
+            justify-content:flex-end;
+        }
+
+        .accordion-toggle-icon{
+            width:36px;
+            height:36px;
+            display:grid;
+            place-items:center;
+            border-radius:999px;
+            border:1px solid var(--border);
+            background:#fff;
+            font-size:1rem;
+            font-weight:900;
+            color:var(--green-dark, #1f5a23);
+            transition:transform .18s ease, background .18s ease;
+        }
+
+        .accordion-card.is-open .accordion-toggle-icon{
+            transform:rotate(180deg);
+            background:var(--green-soft, #e8f5e9);
+        }
+
+        .accordion-content{
+            display:none;
+            margin-top:18px;
+        }
+
+        .accordion-card.is-open .accordion-content{
+            display:block;
+        }
+
+        .accordion-subgrid{
+            display:grid;
+            gap:16px;
+        }
+
+        .section-head{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:16px;
+            flex-wrap:wrap;
+            margin-bottom:16px;
+        }
+
+        .section-head h2{
+            margin:0;
+            font-size:1.22rem;
+        }
+
+        .section-head p{
+            margin:6px 0 0;
+            color:var(--muted);
+            line-height:1.55;
+        }
+
+        .risk-chip{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:8px 12px;
+            border-radius:999px;
+            font-size:.82rem;
+            font-weight:800;
+            border:1px solid var(--border);
+            background:#f3f7f3;
+            color:#425043;
+            white-space:nowrap;
+        }
+
+        .risk-chip-green{
+            background:var(--green-soft, #e8f5e9);
+            color:var(--green-dark, #1f5a23);
+            border-color:#cde4cf;
+        }
+
+        .risk-chip-blue{
+            background:#eaf3ff;
+            color:#19528f;
+            border-color:#d2e2fa;
+        }
+
+        .risk-chip-amber{
+            background:#fff6df;
+            color:#865d16;
+            border-color:#eed89a;
+        }
+
+        .risk-chip-red{
+            background:#fdecec;
+            color:#a02525;
+            border-color:#f1c8c8;
+        }
+
+        .table-wrap{
+            width:100%;
+            overflow:auto;
+        }
+
+        .risk-table{
+            width:100%;
+            min-width:720px;
+            border-collapse:separate;
+            border-spacing:0 10px;
+        }
+
+        .risk-table th{
+            text-align:left;
+            color:var(--muted);
+            font-size:.86rem;
+            padding:0 12px 6px;
+        }
+
+        .risk-table td{
+            background:#fff;
+            border-top:1px solid var(--border);
+            border-bottom:1px solid var(--border);
+            padding:14px 12px;
+            vertical-align:top;
+        }
+
+        .risk-table td:first-child{
+            border-left:1px solid var(--border);
+            border-top-left-radius:16px;
+            border-bottom-left-radius:16px;
+        }
+
+        .risk-table td:last-child{
+            border-right:1px solid var(--border);
+            border-top-right-radius:16px;
+            border-bottom-right-radius:16px;
+        }
+
+        .stack{
+            display:grid;
+            gap:16px;
+        }
+
+        .list{
+            display:grid;
+            gap:10px;
+        }
+
+        .list-item{
+            display:flex;
+            gap:10px;
+            align-items:flex-start;
+            padding:10px 12px;
+            border:1px solid var(--border);
+            background:#fff;
+            border-radius:14px;
+            line-height:1.5;
+        }
+
+        .list-item .icon{
+            color:var(--green, #2e7d32);
+            font-weight:900;
+            margin-top:1px;
+            flex-shrink:0;
+        }
+
+        .profile-grid{
+            display:grid;
+            gap:10px;
+        }
+
+        .profile-row{
+            display:flex;
+            justify-content:space-between;
+            gap:14px;
+            padding:10px 12px;
+            border:1px solid var(--border);
+            border-radius:14px;
+            background:#fff;
+            line-height:1.45;
+        }
+
+        .profile-row span:first-child{
+            color:var(--muted);
+            font-weight:700;
+        }
+
+        .profile-row strong{
+            text-align:right;
+        }
+
+        .empty-state{
+            padding:44px 22px;
+            text-align:center;
+            color:var(--muted);
+        }
+
+        .muted{
+            color:var(--muted);
+            line-height:1.6;
+        }
+
+        .success-box{
+            margin-top:16px;
+            padding:14px 16px;
+            border-radius:16px;
+            border:1px solid #cde4cf;
+            background:linear-gradient(180deg, #f3fbf3 0%, #ecf8ed 100%);
+            color:var(--green-dark, #1f5a23);
+            font-weight:700;
+            line-height:1.5;
+        }
+
+        .warning-box{
+            margin-top:16px;
+            padding:14px 16px;
+            border-radius:16px;
+            border:1px solid #eed89a;
+            background:linear-gradient(180deg, #fffaf0 0%, #fff5df 100%);
+            color:#7a5714;
+            font-weight:700;
+            line-height:1.5;
+        }
+
+        .template-card{
+            border:1px solid var(--border);
+            border-radius:18px;
+            background:#fff;
+            padding:16px;
+        }
+
+        .template-card-head{
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            flex-wrap:wrap;
+            align-items:flex-start;
+            margin-bottom:10px;
+        }
+
+        .template-card-head h4{
+            margin:0;
+            font-size:1rem;
+            line-height:1.3;
+        }
+
+        .template-meta{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            margin-bottom:12px;
+        }
+
+        .template-fields{
+            display:grid;
+            gap:8px;
+            margin-top:12px;
+        }
+
+        .template-field{
+            padding:10px 12px;
+            border:1px solid var(--border);
+            border-radius:12px;
+            background:var(--panel-2, #f8fbf8);
+            font-size:.92rem;
+        }
+
+        .template-rule-list{
+            display:grid;
+            gap:8px;
+            margin-top:12px;
+        }
+
+        .template-rule{
+            padding:10px 12px;
+            border:1px solid #d5e4f8;
+            border-radius:12px;
+            background:#f8fbff;
+            color:#244f88;
+            font-size:.9rem;
+            line-height:1.45;
+        }
+
+        .template-frequency-editor{
+            margin-top:14px;
+            padding:14px;
+            border:1px solid var(--border);
+            border-radius:14px;
+            background:#f9fbf7;
+            display:grid;
+            gap:12px;
+        }
+
+        .template-frequency-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:12px;
+        }
+
+        .template-frequency-field{
+            display:grid;
+            gap:6px;
+        }
+
+        .template-frequency-field label{
+            font-size:.85rem;
+            font-weight:700;
+            color:var(--muted);
+        }
+
+        .template-frequency-field input{
+            width:100%;
+            padding:10px 12px;
+            border:1px solid var(--border);
+            border-radius:10px;
+            font:inherit;
+            background:#fff;
+        }
+
+        .template-frequency-actions{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            flex-wrap:wrap;
+        }
+
+        .template-frequency-help{
+            font-size:.86rem;
+            color:var(--muted);
+            line-height:1.45;
+        }
+
+        .hero-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            margin-top:18px;
+        }
+
+        .startday-hero{
+            position:relative;
+            overflow:hidden;
+            border-radius:32px;
+            padding:28px;
+            margin-bottom:20px;
+            color:#fff;
+            background:
+                radial-gradient(circle at top right, rgba(255,255,255,.12) 0%, transparent 26%),
+                linear-gradient(135deg,#17361a 0%, #245c2b 52%, #2e7d32 100%);
+            box-shadow:0 20px 50px rgba(31,90,35,.22);
+        }
+
+        .startday-hero::after{
+            content:"";
+            position:absolute;
+            right:-90px;
+            bottom:-90px;
+            width:260px;
+            height:260px;
+            border-radius:50%;
+            background:rgba(255,255,255,.08);
+            pointer-events:none;
+        }
+
+        .startday-hero-grid{
+            position:relative;
+            z-index:1;
+            display:grid;
+            grid-template-columns:minmax(0, 1.1fr) minmax(280px, .9fr);
+            gap:20px;
+            align-items:stretch;
+        }
+
+        .startday-eyebrow{
+            display:inline-flex;
+            align-items:center;
+            gap:10px;
+            padding:10px 14px;
+            border-radius:999px;
+            background:rgba(255,255,255,.12);
+            border:1px solid rgba(255,255,255,.16);
+            font-size:13px;
+            font-weight:800;
+            margin-bottom:16px;
+        }
+
+        .startday-hero h1{
+            margin:0 0 10px;
+            font-size:42px;
+            line-height:1.02;
+            letter-spacing:-0.03em;
+            max-width:760px;
+            color:#fff;
+        }
+
+        .startday-hero p{
+            margin:0;
+            max-width:760px;
+            color:rgba(255,255,255,.88);
+            line-height:1.65;
+            font-size:16px;
+        }
+
+        .startday-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:12px;
+            margin-top:24px;
+        }
+
+        .startday-actions .btn{
+            min-height:54px;
+            padding:14px 20px;
+        }
+
+        .startday-side{
+            background:rgba(255,255,255,.12);
+            border:1px solid rgba(255,255,255,.16);
+            border-radius:24px;
+            padding:18px;
+            backdrop-filter:blur(6px);
+        }
+
+        .startday-side-title{
+            margin:0 0 12px;
+            font-size:13px;
+            font-weight:800;
+            letter-spacing:.08em;
+            text-transform:uppercase;
+            color:rgba(255,255,255,.76);
+        }
+
+        .startday-side-list{
+            display:grid;
+            gap:10px;
+        }
+
+        .startday-side-item{
+            padding:12px 14px;
+            border-radius:16px;
+            background:rgba(255,255,255,.1);
+            border:1px solid rgba(255,255,255,.12);
+        }
+
+        .startday-side-item strong{
+            display:block;
+            font-size:14px;
+            margin-bottom:4px;
+            color:#fff;
+        }
+
+        .startday-side-item span{
+            display:block;
+            font-size:13px;
+            line-height:1.5;
+            color:rgba(255,255,255,.78);
+        }
+
+        @media (max-width: 1120px){
+            .risk-hero,
+            .risk-content-grid,
+            .startday-hero-grid{
+                grid-template-columns:1fr;
+            }
+        }
+
+        @media (max-width: 780px){
+            .risk-stats-grid{
+                grid-template-columns:1fr 1fr;
+            }
+
+            .table-wrap{
+                overflow:visible;
+            }
+
+            .risk-table{
+                min-width:0;
+                border-spacing:0;
+            }
+
+            .risk-table thead{
+                display:none;
+            }
+
+            .risk-table tbody{
+                display:grid;
+                gap:12px;
+            }
+
+            .risk-table tr{
+                display:grid;
+                gap:8px;
+                padding:12px;
+                border:1px solid var(--border);
+                border-radius:14px;
+                background:#fff;
+            }
+
+            .risk-table td{
+                display:grid;
+                grid-template-columns:minmax(92px, 110px) minmax(0, 1fr);
+                gap:10px;
+                border:none;
+                padding:0;
+                background:transparent;
+            }
+
+            .risk-table td::before{
+                content:attr(data-label);
+                color:var(--muted);
+                font-size:.78rem;
+                font-weight:700;
+            }
+
+            .risk-table td:first-child,
+            .risk-table td:last-child{
+                border:none;
+                border-radius:0;
+            }
+
+            .profile-row{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+
+            .profile-row strong{
+                text-align:left;
+            }
+        }
+
+        @media (max-width: 620px){
+            .risk-stats-grid{
+                grid-template-columns:1fr;
+            }
+
+            .risk-hero-card,
+            .section-card,
+            .risk-stats-card{
+                padding:18px;
+            }
+
+            .startday-hero{
+                padding:22px;
+                border-radius:24px;
+            }
+
+            .startday-hero h1{
+                font-size:32px;
+            }
+
+            .startday-actions{
+                flex-direction:column;
+            }
+
+            .startday-actions .btn{
+                width:100%;
+            }
+
+            .accordion-toggle,
+            .accordion-toggle-side{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="headerMount"></div>
+
+    <main class="page-shell">
+        <div class="container app-layout">
+            <div id="sidebarMount"></div>
+
+            <section class="page-content">
+                <section class="startday-hero">
+                    <div class="startday-hero-grid">
+                        <div>
+                            <div class="startday-eyebrow">Risikoanalyse • HACCP</div>
+
+                            <h1>Få overblik over virksomhedens risikoanalyse</h1>
+
+                            <p>
+                                Her samles virksomhedens farer, kontrolpunkter og dokumentation i ét fælles HACCP-grundlag.
+                                Brug analysen til at vedligeholde egenkontrolgrundlaget og holde materialet klart til print
+                                og tilsyn.
+                            </p>
+
+                            <div class="startday-actions">
+                                <a class="btn btn-primary" href="/modules/egenkontrol/rutiner.html">Gå til rutiner</a>
+                                <a class="btn btn-secondary" href="/modules/egenkontrol/rapporter.html">Se rapporter</a>
+                            </div>
+                        </div>
+
+                        <aside class="startday-side">
+                            <p class="startday-side-title">Risikoanalyse-pakken</p>
+
+                            <div class="startday-side-list">
+                                <div class="startday-side-item">
+                                    <strong>HACCP-grundlag</strong>
+                                    <span>Samlet struktur for virksomhedens farer, processer og kritiske kontrolpunkter.</span>
+                                </div>
+
+                                <div class="startday-side-item">
+                                    <strong>Kontrolpunkter</strong>
+                                    <span>Overblik over de vigtigste steder, hvor driften skal styres og dokumenteres.</span>
+                                </div>
+
+                                <div class="startday-side-item">
+                                    <strong>Dokumentation</strong>
+                                    <span>Noter, vurderinger og tilføjelser holdes samlet med analysen for den aktive lokation.</span>
+                                </div>
+
+                                <div class="startday-side-item">
+                                    <strong>Klar til print / tilsyn</strong>
+                                    <span>Materialet er bygget til at kunne vises, printes og bruges ved kontrolbesøg.</span>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </section>
+
+                <div id="riskAnalysisStatusMount"></div>
+                <div style="margin-top:20px;margin-bottom:4px;">
+                    <button type="button" class="btn btn-primary" id="add-risk-card-btn">+ Tilføj kort</button>
+                </div>
+                <div id="risk-container" style="margin-top:12px;"></div>
+            </section>
+        </div>
+    </main>
+
+    <script type="module">
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("RISIKOANALYSE: DOM loaded");
+});
+        import { setupAuthGate } from "/core/auth.js";
+        import { loadLayout } from "/core/layout.js";
+        import { renderRiskAnalysisHtml } from "/modules/egenkontrol/riskAnalysisHtmlRenderer.js";
+        import { RISK_ANALYSIS_STYLES } from "/modules/egenkontrol/riskAnalysisStyles.js";
+        import { RISK_ANALYSIS_LIBRARY } from "/modules/egenkontrol/risk-analysis-library.js";
+        import app, { db } from "/core/firebase-config.js";
+        import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import {
+            loadOnboardingFromFirestore,
+            getExistingRiskAnalysis,
+            saveRiskAnalysisDocument,
+            ensureRiskAnalysisForLocation
+        } from "/modules/egenkontrol/riskAnalysisService.js";
+
+        // ── State ────────────────────────────────────────────────────────────
+        const state = {
+            companyId:      "",
+            locationId:     "",
+            locationName:   "",
+            companyLegacyId: "",
+            locationLegacyId: "",
+            onboarding:     null,
+            riskAnalysis:   null,
+            riskNotes:      {},
+            customCards:    [],
+            refs:           {}
+        };
+
+        const PROFILE_KEY    = "mkp_egenkontrol_company_profile_v1";
+        const ONBOARDING_KEY = "mkp_egenkontrol_onboarding_v1";
+
+        let openAccordionId = "microbiological";
+
+        // ── Styles ───────────────────────────────────────────────────────────
+        function mountRiskAnalysisStyles() {
+            if (document.getElementById("risk-analysis-injected-styles")) return;
+            const style = document.createElement("style");
+            style.id = "risk-analysis-injected-styles";
+            style.textContent = RISK_ANALYSIS_STYLES;
+            document.head.appendChild(style);
+        }
+
+        // ── DOM refs ─────────────────────────────────────────────────────────
+        function cacheDom() {
+            state.refs.statusMount    = document.getElementById("riskAnalysisStatusMount");
+            state.refs.accordionMount = document.getElementById("riskAnalysisAccordionMount");
+            state.refs.documentMount  = document.getElementById("riskAnalysisDocumentMount");
+            state.refs.todayLabel     = document.getElementById("todayLabel");
+            state.refs.locationLabel  = document.getElementById("locationLabel");
+            bindRiskContainer();
+        }
+
+        // ── Helpers ──────────────────────────────────────────────────────────
+        function safeJsonParse(raw) {
+            try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+        }
+
+        function escapeHtml(value = "") {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;");
+        }
+
+        function resolveCompanyAndLocation(profile = {}) {
+            const companyId  = String(profile.companyId  || profile.organizationId || "").trim();
+            const locationId = String(
+                profile.primaryLocationId || profile.locationId ||
+                (Array.isArray(profile.locationIds) ? profile.locationIds[0] : "") || ""
+            ).trim();
+            if (companyId && locationId) {
+                console.log("🧭 Active context:", { companyId, locationId });
+            }
+            return { companyId, locationId };
+        }
+
+        // ── localStorage ─────────────────────────────────────────────────────
+        function readOnboardingFromLocalStorage() {
+            // 1. Onboarding draft (mkp_egenkontrol_onboarding_v1 → { step, data })
+            const draft = safeJsonParse(localStorage.getItem(ONBOARDING_KEY));
+            if (draft?.data && typeof draft.data === "object" && draft.data.companyName) {
+                return draft.data;
+            }
+            // 2. Company profile saved at onboarding completion
+            const profile = safeJsonParse(localStorage.getItem(PROFILE_KEY));
+            if (profile && typeof profile === "object" && profile.companyName) {
+                return profile;
+            }
+            return null;
+        }
+
+function updateHeroHeader() {
+            if (state.refs.todayLabel) {
+                state.refs.todayLabel.textContent = new Date().toLocaleDateString("da-DK");
+            }
+
+            if (state.refs.locationLabel) {
+                const locationLabel =
+                    String(state.locationDisplayName || "").trim() ||
+                    String(state.locationName || "").trim() ||
+                    String(state.locationId || "").trim() ||
+                    "-";
+                state.refs.locationLabel.textContent = locationLabel;
+            }
+        }
+
+        async function loadReadableLocationName() {
+            if (!state.companyId || !state.locationId) return;
+
+            try {
+                const locationSnap = await getDoc(
+                    doc(db, "companies", state.companyId, "locations", state.locationId)
+                );
+                const locationData = locationSnap.exists() ? (locationSnap.data() || {}) : {};
+
+                state.locationName =
+                    String(locationData.displayName || "").trim() ||
+                    state.locationId;
+            } catch (error) {
+                console.warn("[risikoanalyse] Kunne ikke hente læsbart lokationsnavn:", error);
+                state.locationName = state.locationId;
+            }
+        }
+
+        // ── Loading / empty states ────────────────────────────────────────────
+        function renderLoadingState() {
+            if (!state.refs.statusMount) return;
+            state.refs.statusMount.innerHTML = `
+                <section class="panel empty-state">
+                    <div class="eyebrow">Et øjeblik</div>
+                    <h1>Indlæser risikoanalyse&hellip;</h1>
+                </section>
+            `;
+            if (state.refs.accordionMount) state.refs.accordionMount.innerHTML = "";
+            if (state.refs.documentMount)  state.refs.documentMount.innerHTML  = "";
+        }
+
+        function renderEmptyState(message = "Risikoanalyse kunne ikke indlæses.") {
+            if (!state.refs.statusMount) return;
+            state.refs.statusMount.innerHTML = `
+                <section class="panel empty-state">
+                    <h1>Ingen risikoanalyse fundet</h1>
+                    <p>${escapeHtml(message)}</p>
+                    <div style="margin-top:18px;">
+                        <a class="btn btn-primary" href="/modules/egenkontrol/onboarding.html">Gå til onboarding</a>
+                    </div>
+                </section>
+            `;
+            if (state.refs.accordionMount) state.refs.accordionMount.innerHTML = "";
+            if (state.refs.documentMount)  state.refs.documentMount.innerHTML  = "";
+        }
+
+        // ── Accordion section renderer ────────────────────────────────────────
+        function renderHazardSection(section) {
+            const cls = String(section.classification || "").toLowerCase();
+            const badge = cls
+                ? `<span class="risk-badge risk-badge-${escapeHtml(cls)}">${escapeHtml(section.classification)}</span>`
+                : "";
+
+            const listHtml = (items = []) => items.length
+                ? `<ul class="risk-list">${items.map(i => `<li>${escapeHtml(i)}</li>`).join("")}</ul>`
+                : `<p class="risk-empty">Ingen registreret.</p>`;
+
+            return `
+                <article class="risk-section">
+                    <div class="risk-section-meta">${badge}</div>
+                    <h3 class="risk-section-title">${escapeHtml(section.title)}</h3>
+                    <div class="risk-section-body">${escapeHtml(section.body || "").replace(/\n/g, "<br>")}</div>
+                    <div class="risk-grid">
+                        <div class="risk-card"><h4>Produkter</h4>${listHtml(section.products)}</div>
+                        <div class="risk-card"><h4>Ingredienser</h4>${listHtml(section.ingredients)}</div>
+                        <div class="risk-card risk-card-full"><h4>Kontroller</h4>${listHtml(section.controls)}</div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderSummaryRows(items = []) {
+            if (!items.length) return `<p class="muted">Ingen kontrolpunkter.</p>`;
+            return `
+                <div class="risk-summary-table">
+                    ${items.map(item => `
+                        <div class="risk-summary-row">
+                            <div class="risk-summary-title">
+                                <strong>${escapeHtml(item.title)}</strong>
+                            </div>
+                            <div class="risk-summary-classification">${escapeHtml(item.classification || "")}</div>
+                            <div class="risk-summary-controls">
+                                ${(item.controls || []).map(c => `<span class="risk-chip">${escapeHtml(c)}</span>`).join("")}
+                            </div>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
+        }
+
+        function renderAccordionCard({ id, title, badgeText, badgeCls, count, content }) {
+            const isOpen = openAccordionId === id;
+            return `
+                <section class="panel section-card accordion-card ${isOpen ? "is-open" : ""}"
+                         data-accordion-card="${escapeHtml(id)}">
+                    <button class="accordion-toggle" type="button"
+                            data-accordion-toggle="${escapeHtml(id)}"
+                            aria-expanded="${isOpen}">
+                        <div class="accordion-toggle-main">
+                            <h2>${escapeHtml(title)}</h2>
+                        </div>
+                        <div class="accordion-toggle-side">
+                            <span class="risk-chip ${escapeHtml(badgeCls)}">${escapeHtml(badgeText)}</span>
+                            <span class="risk-chip">${escapeHtml(String(count))} sektioner</span>
+                            <span class="accordion-toggle-icon" aria-hidden="true">⌄</span>
+                        </div>
+                    </button>
+                    <div class="accordion-content" ${isOpen ? "" : "hidden"}>
+                        ${content}
+                    </div>
+                </section>
+            `;
+        }
+
+        function bindAccordions(container) {
+            container.querySelectorAll("[data-accordion-toggle]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const id = btn.getAttribute("data-accordion-toggle");
+                    openAccordionId = openAccordionId === id ? "" : id;
+                    container.querySelectorAll("[data-accordion-card]").forEach(card => {
+                        const isOpen = card.getAttribute("data-accordion-card") === openAccordionId;
+                        card.classList.toggle("is-open", isOpen);
+                        card.querySelector("[data-accordion-toggle]")
+                            ?.setAttribute("aria-expanded", String(isOpen));
+                        const content = card.querySelector(".accordion-content");
+                        if (content) content.hidden = !isOpen;
+                    });
+                });
+            });
+        }
+
+        // ── renderRiskAccordions ──────────────────────────────────────────────
+        function renderRiskAccordions(riskAnalysis) {
+            const pages = Array.isArray(riskAnalysis?.pages) ? riskAnalysis.pages : [];
+
+            const microPage   = pages.find(p => p.pageType === "hazard_group" && p.pageGroup === "microbiological");
+            const chemPage    = pages.find(p => p.pageType === "hazard_group" && p.pageGroup === "chemical");
+            const physPage    = pages.find(p => p.pageType === "hazard_group" && p.pageGroup === "physical");
+            const summaryPage = pages.find(p => p.pageType === "summary");
+
+            const accordions = [
+                {
+                    id:        "microbiological",
+                    title:     "Mikrobiologiske sundhedsfarer",
+                    badgeText: "Mikrobiologisk",
+                    badgeCls:  "risk-chip-red",
+                    count:     (microPage?.sections || []).length,
+                    content:   (microPage?.sections || []).length
+                        ? microPage.sections.map(renderHazardSection).join("")
+                        : `<p class="muted">Ingen mikrobiologiske sundhedsfarer registreret.</p>`
+                },
+                {
+                    id:        "chemical",
+                    title:     "Kemiske sundhedsfarer",
+                    badgeText: "Kemisk",
+                    badgeCls:  "risk-chip-amber",
+                    count:     (chemPage?.sections || []).length,
+                    content:   (chemPage?.sections || []).length
+                        ? chemPage.sections.map(renderHazardSection).join("")
+                        : `<p class="muted">Ingen kemiske sundhedsfarer registreret.</p>`
+                },
+                {
+                    id:        "physical",
+                    title:     "Fysiske sundhedsfarer",
+                    badgeText: "Fysisk",
+                    badgeCls:  "risk-chip-blue",
+                    count:     (physPage?.sections || []).length,
+                    content:   (physPage?.sections || []).length
+                        ? physPage.sections.map(renderHazardSection).join("")
+                        : `<p class="muted">Ingen fysiske sundhedsfarer registreret.</p>`
+                },
+                {
+                    id:        "summary",
+                    title:     "Oversigt over kontrolpunkter",
+                    badgeText: "Kontrolpunkter",
+                    badgeCls:  "risk-chip-green",
+                    count:     (summaryPage?.items || []).length,
+                    content:   summaryPage
+                        ? renderSummaryRows(summaryPage.items || [])
+                        : `<p class="muted">Ingen oversigt tilgængelig.</p>`
+                }
+            ];
+
+            if (!state.refs.accordionMount) return;
+            state.refs.accordionMount.innerHTML = `
+                <div class="accordion-stack">
+                    ${accordions.map(renderAccordionCard).join("")}
+                </div>
+            `;
+            bindAccordions(state.refs.accordionMount);
+        }
+
+        // ── renderHaccpDocument ───────────────────────────────────────────────
+        function renderHaccpDocument(riskAnalysis) {
+            if (!state.refs.documentMount) return;
+            state.refs.documentMount.innerHTML = `
+                <div style="margin-top:32px;">
+                    <div class="section-head" style="margin-bottom:18px;">
+                        <div>
+                            <span class="eyebrow">Samlet dokument</span>
+                            <h2 style="margin:6px 0 0;">HACCP-dokument</h2>
+                            <p style="margin:4px 0 0; color:var(--muted);">
+                                Den komplette risikoanalyse klar til gennemgang ved kontrolbesøg.
+                            </p>
+                        </div>
+                    </div>
+                    ${renderRiskAnalysisHtml(riskAnalysis, localStorage.getItem("userLanguage") || "da")}
+                </div>
+            `;
+        }
+
+        // ── render hero stats ─────────────────────────────────────────────────
+        function renderHeroStats(riskAnalysis, onboarding) {
+            const meta         = riskAnalysis.meta || {};
+            const companyName  = onboarding?.companyName || onboarding?.companyType || "Virksomheden";
+            const restaurantType = riskAnalysis.restaurantType || onboarding?.companyType || "";
+
+            return `
+                <section class="risk-hero">
+                    <div class="panel risk-hero-card">
+                        <span class="eyebrow">Automatisk genereret</span>
+                        <h1>Risikoanalyse for ${escapeHtml(companyName)}</h1>
+                        <p>
+                            Analysen er opbygget fra onboarding-svarene og udgør virksomhedens
+                            egenkontrolgrundlag. Brug den til dokumentation ved kontrolbesøg.
+                        </p>
+                        <div class="hero-actions">
+                            <a class="btn btn-secondary" href="/modules/egenkontrol/onboarding.html">Ret onboarding</a>
+                            <a class="btn btn-secondary" href="/modules/egenkontrol/rutiner.html">Gå til rutiner</a>
+                        </div>
+                    </div>
+
+                    <aside class="panel risk-stats-card">
+                        <div class="risk-stats-grid">
+                            <div class="risk-stat">
+                                <div class="risk-stat-label">Sektioner i alt</div>
+                                <div class="risk-stat-value">${escapeHtml(String(meta.totalSections ?? 0))}</div>
+                            </div>
+                            <div class="risk-stat">
+                                <div class="risk-stat-label">Mikrobiologiske</div>
+                                <div class="risk-stat-value">${escapeHtml(String(meta.microbiologicalCount ?? 0))}</div>
+                            </div>
+                            <div class="risk-stat">
+                                <div class="risk-stat-label">Kemiske</div>
+                                <div class="risk-stat-value">${escapeHtml(String(meta.chemicalCount ?? 0))}</div>
+                            </div>
+                            <div class="risk-stat">
+                                <div class="risk-stat-label">Fysiske</div>
+                                <div class="risk-stat-value">${escapeHtml(String(meta.physicalCount ?? 0))}</div>
+                            </div>
+                        </div>
+                        <div class="risk-note">
+                            ${escapeHtml(restaurantType ? `Analysetype: ${restaurantType}` : "Analysen er gemt i Firestore og kan tilgås ved næste besøg.")}
+                        </div>
+                    </aside>
+                </section>
+            `;
+        }
+
+        // ── Firestore helpers ───────────────────────────────────────
+        function getRiskNoteRef(companyId, locationId, itemId) {
+            return doc(db, "companies", companyId, "locations", locationId, "risk_notes", itemId);
+        }
+
+        async function loadRiskNotes() {
+            if (!state.companyId || !state.locationId) return;
+            const ids = RISK_ANALYSIS_LIBRARY.map(item => item.id).filter(Boolean);
+            const results = await Promise.all(
+                ids.map(id => getDoc(getRiskNoteRef(state.companyId, state.locationId, id)).catch(() => null))
+            );
+            state.riskNotes = {};
+            results.forEach((snap, i) => {
+                if (snap?.exists()) state.riskNotes[ids[i]] = snap.data();
+            });
+        }
+
+        async function saveRiskNote(itemId, supplementaryControlsText, noteText) {
+            const auth = getAuth(app);
+            const ref  = getRiskNoteRef(state.companyId, state.locationId, itemId);
+            await setDoc(ref, {
+                itemId,
+                supplementaryControlsText,
+                noteText,
+                updatedAt: serverTimestamp(),
+                updatedBy: auth.currentUser?.uid || null
+            });
+            // Update local cache
+            state.riskNotes[itemId] = { itemId, supplementaryControlsText, noteText };
+        }
+
+        // ── Custom cards (user-created) ────────────────────────────────────
+        async function loadCustomCards() {
+            if (!state.companyId || !state.locationId) return;
+            try {
+                const col  = collection(db, "companies", state.companyId, "locations", state.locationId, "risk_custom_cards");
+                const snap = await getDocs(col);
+                state.customCards = [];
+                snap.forEach(d => { state.customCards.push(d.data()); });
+            } catch (e) {
+                console.warn("loadCustomCards fejl:", e);
+            }
+        }
+
+        async function saveCustomCard(itemId, title, beskrivelse, supplementaryControlsText, noteText) {
+            const auth = getAuth(app);
+            const uid  = auth.currentUser?.uid || null;
+            const ref  = doc(db, "companies", state.companyId, "locations", state.locationId, "risk_custom_cards", itemId);
+            const isNew = !state.customCards.find(c => c.itemId === itemId);
+            await setDoc(ref, {
+                itemId,
+                title,
+                beskrivelse,
+                supplementaryControlsText,
+                noteText,
+                active: true,
+                ...(isNew ? { createdAt: serverTimestamp(), createdBy: uid } : {}),
+                updatedAt: serverTimestamp(),
+                updatedBy: uid
+            }, { merge: true });
+            const idx   = state.customCards.findIndex(c => c.itemId === itemId);
+            const entry = { itemId, title, beskrivelse, supplementaryControlsText, noteText, active: true };
+            if (idx >= 0) state.customCards[idx] = entry;
+            else          state.customCards.push(entry);
+        }
+
+        function renderCustomCards() {
+            const container = document.getElementById("risk-container");
+            if (!container) return;
+            container.querySelectorAll(".risk-card-custom").forEach(el => el.remove());
+            state.customCards.forEach(card => {
+                const div = document.createElement("div");
+                div.className = "risk-card risk-card-custom";
+                div.dataset.itemId = card.itemId;
+                div.dataset.custom = "true";
+                div.innerHTML = `
+                    <div class="risk-card-head">
+                        <h3>${escapeHtml(card.title || "")}</h3>
+                        <span class="risk-card-chevron">&#9654;</span>
+                    </div>
+                    <div class="risk-card-body">
+                        <div><strong>Beskrivelse:</strong><br>${escapeHtml(card.beskrivelse || "")}</div>
+                        <div>
+                            <strong>Supplerende kontroller:</strong><br>
+                            <textarea class="risk-kontrol-input" data-id="${escapeHtml(card.itemId)}" placeholder="Tilføj supplerende kontroller...">${escapeHtml(card.supplementaryControlsText || "")}</textarea>
+                        </div>
+                        <div>
+                            <strong>Egen note:</strong><br>
+                            <textarea class="risk-note" data-id="${escapeHtml(card.itemId)}">${escapeHtml(card.noteText || "")}</textarea>
+                            <button type="button" class="btn btn-secondary risk-save-btn" data-id="${escapeHtml(card.itemId)}">Gem</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function showNewCardForm() {
+            const container = document.getElementById("risk-container");
+            if (!container) return;
+            if (container.querySelector(".risk-new-card")) {
+                container.querySelector(".risk-new-card").scrollIntoView({ behavior: "smooth" });
+                return;
+            }
+            const newId = `custom_${Date.now()}`;
+            const div   = document.createElement("div");
+            div.className  = "risk-card risk-new-card";
+            div.dataset.newId = newId;
+            div.innerHTML = `
+                <h3 style="margin-bottom:12px;">Nyt risikokort</h3>
+                <div style="margin-bottom:12px;">
+                    <label><strong>Titel</strong></label><br>
+                    <input type="text" class="risk-title-input" placeholder="Kortets titel..." />
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label><strong>Beskrivelse</strong></label><br>
+                    <textarea class="risk-beskrivelse-input" placeholder="Beskriv risikoen..."></textarea>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label><strong>Supplerende kontroller</strong></label><br>
+                    <textarea class="risk-kontrol-input" placeholder="Tilføj supplerende kontroller..."></textarea>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label><strong>Egen note</strong></label><br>
+                    <textarea class="risk-note" placeholder="Tilføj en note..."></textarea>
+                    <button type="button" class="btn btn-primary risk-save-new-btn" data-new-id="${escapeHtml(newId)}">Gem kort</button>
+                    <button type="button" class="btn btn-secondary risk-cancel-btn">Annuller</button>
+                </div>
+            `;
+            container.insertBefore(div, container.firstChild);
+            div.scrollIntoView({ behavior: "smooth" });
+        }
+
+        // ── bindRiskContainer ─────────────────────────────────────────────
+        function bindRiskContainer() {
+            const rc = document.getElementById("risk-container");
+            if (rc) {
+                rc.addEventListener("click", e => {
+                    const head = e.target.closest(".risk-card-head");
+                    if (head) head.closest(".risk-card")?.classList.toggle("is-open");
+                });
+            }
+            document.getElementById("add-risk-card-btn")?.addEventListener("click", showNewCardForm);
+
+            const container = document.getElementById("risk-container");
+            if (!container) return;
+            container.addEventListener("click", async (e) => {
+                // Save new custom card
+                const saveNewBtn = e.target.closest(".risk-save-new-btn");
+                if (saveNewBtn) {
+                    const formCard = saveNewBtn.closest(".risk-new-card");
+                    if (!formCard) return;
+                    const newId    = formCard.dataset.newId;
+                    const title    = formCard.querySelector(".risk-title-input")?.value.trim() ?? "";
+                    if (!title) { alert("Titel er påkrævet."); return; }
+                    const beskrivelse    = formCard.querySelector(".risk-beskrivelse-input")?.value ?? "";
+                    const supplementary  = formCard.querySelector(".risk-kontrol-input")?.value   ?? "";
+                    const note           = formCard.querySelector(".risk-note")?.value             ?? "";
+                    saveNewBtn.disabled    = true;
+                    saveNewBtn.textContent = "Gemmer...";
+                    try {
+                        await saveCustomCard(newId, title, beskrivelse, supplementary, note);
+                        formCard.remove();
+                        renderCustomCards();
+                    } catch (err) {
+                        console.error("saveCustomCard fejl:", err);
+                        saveNewBtn.textContent = "Fejl – prøv igen";
+                        saveNewBtn.disabled    = false;
+                    }
+                    return;
+                }
+
+                // Cancel new card
+                const cancelBtn = e.target.closest(".risk-cancel-btn");
+                if (cancelBtn) {
+                    cancelBtn.closest(".risk-new-card")?.remove();
+                    return;
+                }
+
+                // Save existing card (library or custom)
+                const btn = e.target.closest(".risk-save-btn");
+                if (!btn) return;
+                const id   = btn.getAttribute("data-id");
+                const card = container.querySelector(`.risk-card[data-item-id="${id}"]`);
+                if (!card) { console.warn("risk-card ikke fundet for id:", id); return; }
+                const supplementaryControlsText = card.querySelector(".risk-kontrol-input")?.value ?? "";
+                const noteText                  = card.querySelector(".risk-note")?.value           ?? "";
+                btn.disabled    = true;
+                btn.textContent = "Gemmer...";
+                try {
+                    if (card.dataset.custom === "true") {
+                        const existing = state.customCards.find(c => c.itemId === id);
+                        await saveCustomCard(id, existing?.title || "", existing?.beskrivelse || "", supplementaryControlsText, noteText);
+                    } else {
+                        await saveRiskNote(id, supplementaryControlsText, noteText);
+                    }
+                    btn.textContent = "Gemt ✓";
+                    setTimeout(() => { btn.textContent = "Gem"; btn.disabled = false; }, 1500);
+                } catch (err) {
+                    console.error("Firestore gem fejl:", err);
+                    btn.textContent = "Fejl – prøv igen";
+                    btn.disabled    = false;
+                }
+            });
+        }
+
+        // ── resolveKontrollerFromOnboarding ───────────────────────────────────
+        function resolveKontrollerFromOnboarding(item, onboarding) {
+            // Hardcoded kontroller on the item take priority
+            if (Array.isArray(item.kontroller) && item.kontroller.length) {
+                return item.kontroller;
+            }
+            if (!onboarding) return [];
+            const fridgeCount  = Math.max(0, Number(onboarding.antalKoeleskabe || onboarding.fridgeCount)  || 0);
+            const freezerCount = Math.max(0, Number(onboarding.antalFrysere   || onboarding.freezerCount) || 0);
+            switch (item.kontrolType) {
+                case "COOLING_UNITS":      return Array.from({ length: fridgeCount },  (_, i) => `Køleskab ${i + 1}`);
+                case "FREEZER_UNITS":      return Array.from({ length: freezerCount }, (_, i) => `Fryser ${i + 1}`);
+                case "RECEIVING_ONLY":     return ["Varemodtagelse"];
+                case "HEATING_PROCESS":    return ["Opvarmning til min. 75°C"];
+                case "HOT_HOLDING":        return ["Varmholdelse (+65°C)"];
+                case "COOLING_PROCESS":    return ["Nedkøling til under 10°C inden for 4 timer"];
+                case "DISHWASHER_TEMP":    return ["Opvaskemaskine temperaturkontrol"];
+                case "LABELING":           return ["Datomærkning"];
+                case "TIME_CONTROL":       return ["Tidsstyring"];
+                case "STORAGE_SEPARATION": return ["Adskillelse af råvarer og færdigretter"];
+                case "GENERAL_STORAGE":    return ["Opbevaring og temperaturkontrol"];
+                default:                   return [];
+            }
+        }
+
+        // ── normalizeRiskItems ────────────────────────────────────────────────
+        function getCanonicalRiskKey(item) {
+            const id    = String(item?.id    || "").trim().toLowerCase();
+            const title = String(item?.title || "").trim().toLowerCase();
+            const source = id || title;
+            if (!source) return "";
+            if (source.includes("skadedyr"))                                              return "skadedyr";
+            if (source.includes("vedligeholdelse"))                                       return "vedligeholdelse";
+            if (source.includes("personlig_hygiejne") || source.includes("personlig hygiejne")) return "personlig_hygiejne";
+            if (source.includes("affald"))                                                return "affald";
+            if (source.includes("allergen"))                                              return "allergener";
+            if (source.includes("datomærkning") || source.includes("holdbarhed"))        return "datomaerkning_holdbarhed";
+            if (source.includes("adskillelse") || source.includes("krydskontaminering")) return "adskillelse_krydskontaminering";
+            if (source.includes("rengoering") || source.includes("rengøring"))           return "rengoering";
+            if (source.includes("koel") || source.includes("køl"))                       return "koelekontrol";
+            if (source.includes("frost"))                                                 return "frostkontrol";
+            return source;
+        }
+
+        function normalizeRiskItems(items) {
+            const seen = new Map();
+            const score = i => (
+                (i?.beskrivelse                      ? 1 : 0) +
+                ((i?.kontroller?.length   || 0) > 0  ? 1 : 0) +
+                ((i?.ingredienser?.length || 0) > 0  ? 1 : 0) +
+                ((i?.produkter?.length    || 0) > 0  ? 1 : 0)
+            );
+            for (const item of items || []) {
+                const key = getCanonicalRiskKey(item);
+                if (!key) continue;
+                const existing = seen.get(key);
+                if (!existing || score(item) > score(existing)) seen.set(key, item);
+            }
+            return Array.from(seen.values());
+        }
+
+        // ── renderRiskAnalysis ────────────────────────────────────────────────
+        function renderRiskAnalysis(items, onboarding) {
+            const container = document.getElementById("risk-container");
+            if (!container) return;
+
+            const dedupedItems = normalizeRiskItems(items);
+            console.log("TOTAL RISK ITEMS:", items.length, "→ after dedup:", dedupedItems.length);
+            console.log("ONBOARDING:", onboarding);
+            console.log("FIRST ITEM:", dedupedItems[0]);
+
+            container.innerHTML = dedupedItems.map(item => {
+                const autoKontroller = resolveKontrollerFromOnboarding(item, onboarding);
+                const saved          = state.riskNotes[item.id] || {};
+                const savedManual    = saved.supplementaryControlsText ?? "";
+                const savedNote      = saved.noteText     ?? "";
+                const autoListHtml   = autoKontroller.length
+                    ? `<ul>${autoKontroller.map(k => `<li>${escapeHtml(k)}</li>`).join("")}</ul>`
+                    : `<p class="text-muted">Ingen automatiske kontroller</p>`;
+                return `
+                    <div class="risk-card" data-item-id="${escapeHtml(item.id || "")}">
+                        <div class="risk-card-head">
+                            <h3>${escapeHtml(item.title || "")}</h3>
+                            <span class="risk-card-chevron">&#9654;</span>
+                        </div>
+                        <div class="risk-card-body">
+                        <div>
+                            <strong>Beskrivelse:</strong><br>
+                            ${escapeHtml(item.beskrivelse || "")}
+                        </div>
+
+                        ${Array.isArray(item.produkter) && item.produkter.length ? `
+                            <div>
+                                <strong>Produkter:</strong><br>
+                                ${item.produkter.map(x => escapeHtml(x)).join(", ")}
+                            </div>
+                        ` : ""}
+
+                        ${Array.isArray(item.ingredienser) && item.ingredienser.length ? `
+                            <div>
+                                <strong>Ingredienser:</strong><br>
+                                ${item.ingredienser.map(x => escapeHtml(x)).join(", ")}
+                            </div>
+                        ` : ""}
+
+                        <div>
+                            <strong>Automatiske kontroller:</strong>
+                            ${autoListHtml}
+                        </div>
+
+                        <div>
+                            <strong>Supplerende kontroller:</strong><br>
+                            <textarea
+                                class="risk-kontrol-input"
+                                data-id="${escapeHtml(item.id || "")}"
+                                placeholder="Tilføj supplerende kontroller..."
+                            >${escapeHtml(savedManual)}</textarea>
+                        </div>
+
+                        <div>
+                            <strong>Egen note:</strong><br>
+                            <textarea data-id="${escapeHtml(item.id || "")}" class="risk-note">${escapeHtml(savedNote)}</textarea>
+                            <button type="button" class="btn btn-secondary risk-save-btn" data-id="${escapeHtml(item.id || "")}">Gem</button>
+                        </div>
+                        </div><!-- /risk-card-body -->
+                    </div>
+                `;
+            }).join("");
+        }
+
+        // ── render ────────────────────────────────────────────────────────────
+        function render() {
+            if (state.refs.statusMount) {
+                if (state.riskAnalysis) {
+                    state.refs.statusMount.innerHTML = renderHeroStats(state.riskAnalysis, state.onboarding);
+                } else {
+                    state.refs.statusMount.innerHTML = "";
+                }
+            }
+            renderRiskAnalysis(RISK_ANALYSIS_LIBRARY, state.onboarding);
+            renderCustomCards();
+        }
+
+        // ── Data loading ──────────────────────────────────────────────────────
+        async function loadLiveRiskData({ companyId, locationId, localOnboarding }) {
+            // Load onboarding for display purposes only
+            let onboarding = await loadOnboardingFromFirestore(companyId, locationId).catch(() => null);
+
+            if (!onboarding) {
+                onboarding = localOnboarding || null;
+            }
+
+            // FÆLLES LOADER: Læs KUN fra Firestore - ingen lokal generering
+            const riskAnalysis = await getExistingRiskAnalysis(companyId, locationId).catch((err) => {
+                console.error('[loadLiveRiskData] Error loading risk analysis:', err);
+                return null;
+            });
+
+            if (!riskAnalysis) {
+                console.warn('[loadLiveRiskData] No risk analysis found in Firestore');
+            }
+
+            return { onboarding, riskAnalysis };
+        }
+
+        // ── Auth callback ─────────────────────────────────────────────────────
+        async function onAuthenticated(user, profile) {
+            console.log("👤 onAuthenticated uid:", user?.uid, "profile:", JSON.stringify({ companyId: profile?.companyId, organizationId: profile?.organizationId, locationId: profile?.locationId, primaryLocationId: profile?.primaryLocationId, locationIds: profile?.locationIds }));
+            const { companyId, locationId } = resolveCompanyAndLocation(profile || {});
+            state.companyId        = companyId;
+            state.locationId       = locationId;
+            state.companyLegacyId  = companyId.replace(/_/g, "-");
+            state.locationLegacyId = locationId.replace(/_/g, "-");
+
+            const localOnboarding = readOnboardingFromLocalStorage();
+
+            renderLoadingState();
+
+            const { onboarding, riskAnalysis } = await loadLiveRiskData({
+                companyId,
+                locationId,
+                localOnboarding
+            });
+
+            state.onboarding   = onboarding;
+            state.riskAnalysis = riskAnalysis;
+            await loadReadableLocationName();
+            updateHeroHeader();
+
+            await loadRiskNotes().catch(err => console.warn("loadRiskNotes fejl:", err));
+            await loadCustomCards().catch(err => console.warn("loadCustomCards fejl:", err));
+
+            render();
+        }
+
+        // ── initPage ──────────────────────────────────────────────────────────
+        async function initPage() {
+            mountRiskAnalysisStyles();
+            await loadLayout();
+            cacheDom();
+
+            await setupAuthGate({
+                appName: "Madkontrollen Pro",
+                onAuthenticated: async ({ user, profile }) => {
+                    await onAuthenticated(user, profile);
+                },
+                onSignedOut: () => {
+                    state.onboarding   = null;
+                    state.riskAnalysis = null;
+                    renderEmptyState("Log ind for at se risikoanalysen.");
+                }
+            });
+        }
+
+
+        initPage();
+    </script>
+</body>
+</html>
+
+
+
+

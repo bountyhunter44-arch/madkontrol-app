@@ -1,0 +1,71 @@
+{
+  "source_file": "public/scripts/migrate-guides-v2.cjs",
+  "module": "general",
+  "imports": [
+    "../../functions/guideResolver",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "dryRun",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "executeMigration"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "executeMigration",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "dryRun",
+        "migrateTaskInstances",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "migrateTaskInstances",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "dryRun",
+        "executeMigration",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "dryRun",
+        "executeMigration",
+        "migrateTaskInstances"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

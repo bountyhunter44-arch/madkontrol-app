@@ -1,0 +1,16 @@
+{
+  "name": "firebase",
+  "files": [
+    "firebase.json",
+    "public/core/firebase-config.js",
+    "public/firebase-config.json",
+    "public/scripts/call-firebase-function.cjs",
+    "public/scripts/firebase.js"
+  ],
+  "total_functions": 1,
+  "flags": [
+    "saveRoutineTask"
+  ],
+  "collections": [],
+  "risks": []
+}

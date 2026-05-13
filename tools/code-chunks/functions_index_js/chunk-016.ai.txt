@@ -1,0 +1,506 @@
+
+FILE: functions/index.js
+CHUNK: 016
+
+--- CODE START ---
+  }
+});
+
+exports.addCoolingMeasurement = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  const { processId, temperature, note } = data;
+
+  if (!processId || temperature === undefined) {
+    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+  }
+
+  try {
+    return await processInstances.addCoolingMeasurement({
+      processId,
+      temperature,
+      note,
+      userId: context.auth.uid
+    });
+  } catch (error) {
+    console.error("Add cooling measurement fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+exports.completeCoolingProcess = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  const { processId, endTemperature, note } = data;
+
+  if (!processId || endTemperature === undefined) {
+    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+  }
+
+  try {
+    return await processInstances.completeCoolingProcess({
+      processId,
+      endTemperature,
+      note,
+      userId: context.auth.uid
+    });
+  } catch (error) {
+    console.error("Complete cooling process fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+exports.startReheatingProcess = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  const { companyId, locationId, failedCoolingProcessId } = data;
+
+  if (!companyId || !locationId || !failedCoolingProcessId) {
+    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+  }
+
+  try {
+    return await processInstances.startReheatingProcess({
+      companyId,
+      locationId,
+      userId: context.auth.uid,
+      failedCoolingProcessId
+    });
+  } catch (error) {
+    console.error("Start reheating process fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+exports.completeReheatingProcess = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  const { processId, endTemperature, note } = data;
+
+  if (!processId || endTemperature === undefined) {
+    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+  }
+
+  try {
+    return await processInstances.completeReheatingProcess({
+      processId,
+      endTemperature,
+      note,
+      userId: context.auth.uid
+    });
+  } catch (error) {
+    console.error("Complete reheating process fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+exports.disposeCoolingProcess = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  const { processId, disposalReason } = data;
+
+  if (!processId) {
+    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+  }
+
+  try {
+    return await processInstances.disposeCoolingProcess({
+      processId,
+      disposalReason,
+      userId: context.auth.uid
+    });
+  } catch (error) {
+    console.error("Dispose cooling process fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+exports.startNewCoolingFromReheating = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  const { reheatingProcessId } = data;
+
+  if (!reheatingProcessId) {
+    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+  }
+
+  try {
+    return await processInstances.startNewCoolingFromReheating({
+      reheatingProcessId,
+      userId: context.auth.uid
+    });
+  } catch (error) {
+    console.error("Start new cooling from reheating fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+exports.loadActiveProcessInstances = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  const { locationId } = data;
+
+  if (!locationId) {
+    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+  }
+
+  try {
+    return await processInstances.loadActiveProcessInstances({ locationId });
+  } catch (error) {
+    console.error("Load active process instances fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+// Demo Mode - DEVELOPER ONLY (not for production customers)
+exports.enableDemoMode = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  // CRITICAL: Demo mode is DEVELOPER ONLY
+  guardDangerousOperation(context, "enableDemoMode");
+
+  try {
+    const userDoc = await db.collection("users").doc(context.auth.uid).get();
+    const userData = userDoc.data();
+
+    const result = await demoMode.enableDemoMode({
+      userId: context.auth.uid,
+      userData
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Enable demo mode fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+exports.disableDemoMode = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  try {
+    const userDoc = await db.collection("users").doc(context.auth.uid).get();
+    const userData = userDoc.data();
+
+    const result = await demoMode.disableDemoMode({
+      userId: context.auth.uid,
+      userData
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Disable demo mode fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+// Soft Archive - Safe alternative to hard delete
+exports.startNewPeriod = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  const { companyId, locationId, periodName } = data;
+
+  if (!companyId || !locationId) {
+    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+  }
+
+  // CRITICAL: Verify user owns this company/location
+  const userDoc = await db.collection("users").doc(context.auth.uid).get();
+  const userData = userDoc.data();
+
+  if (!userData) {
+    throw new functions.https.HttpsError("not-found", "Brugerprofil ikke fundet");
+  }
+
+  // Check company ownership
+  const userCompanyId = userData.companyId || userData.organizationId;
+  if (userCompanyId !== companyId) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Du kan kun starte ny periode for din egen virksomhed"
+    );
+  }
+
+  // Check role - only owner or location_admin
+  const userRole = String(userData.role || "").toLowerCase();
+  if (userRole !== "owner" && userRole !== "location_admin") {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Kun owner eller location_admin kan starte ny periode"
+    );
+  }
+
+  // Check location access
+  const userLocationIds = userData.locationIds || [];
+  if (!userLocationIds.includes(locationId)) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Du har ikke adgang til denne lokation"
+    );
+  }
+
+  try {
+    const result = await softArchive.startNewPeriod({
+      companyId,
+      locationId,
+      periodName,
+      startedBy: context.auth.uid
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Start new period fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+exports.archiveCompany = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  // CRITICAL: This is a dangerous operation - guard it
+  guardDangerousOperation(context, "archiveCompany");
+
+  const { companyId, reason } = data;
+
+  if (!companyId) {
+    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+  }
+
+  try {
+    const result = await softArchive.archiveCompany({
+      companyId,
+      reason,
+      archivedBy: context.auth.uid
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Archive company fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+exports.restoreCompany = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+  }
+
+  // CRITICAL: This is a dangerous operation - guard it
+  guardDangerousOperation(context, "restoreCompany");
+
+  const { companyId } = data;
+
+  if (!companyId) {
+    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+  }
+
+  try {
+    const result = await softArchive.restoreCompany({
+      companyId,
+      restoredBy: context.auth.uid
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Restore company fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+exports.closeDailyRun = closeDailyRun;
+
+exports.cleanupTaskTemplates = functions.https.onCall(async (data, context) => {
+  if (!context.auth?.uid) {
+    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+  }
+
+  const companyId = sanitizeString(data?.companyId || "", 120);
+  const locationId = sanitizeString(data?.locationId || "", 120);
+
+  if (!companyId || !locationId) {
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+  }
+
+  try {
+    const templatesRef = db.collection("task_templates");
+    const snapshot = await templatesRef
+      .where("companyId", "==", companyId)
+      .where("locationId", "==", locationId)
+      .get();
+
+    if (snapshot.empty) {
+      return { deleted: 0, message: "Ingen templates fundet." };
+    }
+
+    const batch = db.batch();
+    snapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+
+    return {
+      deleted: snapshot.size,
+      message: `Slettet ${snapshot.size} task templates.`
+    };
+  } catch (error) {
+    console.error("cleanupTaskTemplates fejl:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+exports.lookupCvr = functions.https.onCall(async (data, context) => {
+  const cvr = String(data?.cvr || "").replace(/\D/g, "");
+
+  if (!/^\d{8}$/.test(cvr)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "CVR skal være 8 cifre."
+    );
+  }
+
+  try {
+    const response = await fetch(`https://cvrapi.dk/api?search=${cvr}&country=dk`);
+    const result = await response.json();
+
+    if (!response.ok || !result || result.error) {
+      throw new Error(result?.error || "CVR-opslag fejlede.");
+    }
+
+    return {
+      name: result.name || "",
+      address: result.address || "",
+      zip: result.zipcode || "",
+      city: result.city || "",
+      leader: ""
+    };
+  } catch (error) {
+    console.error("lookupCvr fejl:", error);
+    throw new functions.https.HttpsError(
+      "internal",
+      error?.message || "Kunne ikke hente CVR-data."
+    );
+  }
+});
+
+// Manual risk analysis generator for existing onboardings
+exports.manualGenerateRiskAnalysis = functions.https.onCall(async (data, context) => {
+  console.log("🔥 manualGenerateRiskAnalysis START");
+
+  try {
+    const payload =
+      data?.companyId || data?.locationId
+        ? data
+        : data?.data?.companyId || data?.data?.locationId
+          ? data.data
+          : {};
+
+    const companyId = sanitizeString(payload?.companyId || "", 120);
+    const locationId = sanitizeString(payload?.locationId || "", 120);
+
+    console.log("companyId:", companyId, "locationId:", locationId);
+
+    if (!companyId || !locationId) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "companyId og locationId er påkrævet."
+      );
+    }
+
+    // Load profile from haccp_snapshots (query by field, not doc ID)
+    const snapshotQuery = await db.collection("haccp_snapshots")
+      .where("companyId", "==", companyId)
+      .where("locationId", "==", locationId)
+      .limit(1)
+      .get();
+
+    if (snapshotQuery.empty) {
+      throw new functions.https.HttpsError(
+        "not-found",
+        `Ingen HACCP snapshot fundet for ${companyId} / ${locationId}`
+      );
+    }
+
+    const snapshot = snapshotQuery.docs[0].data();
+    const profile = snapshot?.profile || snapshot || {};
+
+    console.log("📦 Loading buildStructuredHaccpData...");
+    const { buildStructuredHaccpData } = require("./provisioning");
+
+    if (!buildStructuredHaccpData) {
+      throw new Error("buildStructuredHaccpData not found in provisioning module");
+    }
+
+    const controlPoints = buildStructuredHaccpData(profile);
+    console.log(`📊 Generated ${controlPoints.length} control points`);
+
+    await db
+      .collection("companies")
+      .doc(companyId)
+      .collection("locations")
+      .doc(locationId)
+      .collection("risk_analysis")
+      .doc("current")
+      .set({
+        status: "generated",
+        onboardingSnapshot: profile,
+        controlPoints: controlPoints,
+        totalControlPoints: controlPoints.length,
+        generatedBy: "manualGenerateRiskAnalysis",
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+
+    console.log(`✅ Risk analysis saved: ${controlPoints.length} control points`);
+
+    return {
+      ok: true,
+      companyId,
+      locationId,
+      totalControlPoints: controlPoints.length
+    };
+  } catch (error) {
+    console.error("❌ manualGenerateRiskAnalysis FAILED:", error?.message);
+    console.error("❌ stack:", error?.stack || null);
+
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+
+    throw new functions.https.HttpsError(
+      "internal",
+      error?.message || "manualGenerateRiskAnalysis crashed"
+    );
+  }
+});
+
+// ─── WATER MODULE ──────────────────────────────────────────────────────────
+// FJERNET: water-module er slettet, vandkontrol deaktiveret
+
+// ─── AUDIT TOOLS ───────────────────────────────────────────────────────────
+// FJERNET: auditCompanyLocation.js eksisterer ikke
+// const { auditCompanyLocationIntegrity } = require("./auditCompanyLocation");
+// exports.auditCompanyLocationIntegrity = auditCompanyLocationIntegrity;
+
+// ─── ONBOARDING FIX ────────────────────────────────────────────────────────
+--- CODE END ---

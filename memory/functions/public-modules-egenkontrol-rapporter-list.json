@@ -1,0 +1,37 @@
+{
+  "source_file": "public/modules/egenkontrol/rapporter-list.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "reports"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "createReportCard",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadReports",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createReportCard"
+      ],
+      "selectors": [],
+      "collections": [
+        "reports"
+      ]
+    }
+  ]
+}

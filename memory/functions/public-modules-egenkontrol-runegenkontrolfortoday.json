@@ -1,0 +1,35 @@
+{
+  "source_file": "public/modules/egenkontrol/runEgenkontrolForToday.js",
+  "module": "general",
+  "imports": [
+    "./syncAndGenerateEgenkontrolForDate.js"
+  ],
+  "exports": [
+    "runEgenkontrolForToday"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getTodayDateKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "runEgenkontrolForToday"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "runEgenkontrolForToday",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getTodayDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

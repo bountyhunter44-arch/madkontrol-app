@@ -1,0 +1,30 @@
+{
+  "source_file": "scripts/inspect-onboarding.cjs",
+  "module": "onboarding",
+  "imports": [
+    "../node_modules/firebase-admin",
+    "../serviceAccountKey.json"
+  ],
+  "exports": [],
+  "collections": [
+    "companies",
+    "locations",
+    "onboarding_sessions"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations",
+        "onboarding_sessions"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "source_file": "scripts/cleanupLegacyTaskTemplates.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [
+    "alerts_without_deviation_creation"
+  ],
+  "functions": [
+    {
+      "name": "groupKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "main",
+        "score"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "groupKey",
+        "score"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "score",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "groupKey",
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "title",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "groupKey",
+        "main",
+        "score"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

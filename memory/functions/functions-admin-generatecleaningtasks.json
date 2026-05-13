@@ -1,0 +1,266 @@
+{
+  "source_file": "functions/admin/generateCleaningTasks.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [
+    "generateCleaningTasks"
+  ],
+  "collections": [
+    "equipment",
+    "onboarding_answers",
+    "tasks"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildBaseCleaningTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEquipmentCleaningTasks",
+        "comparableTask",
+        "shouldAddRule"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildEquipmentCleaningTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentFromOnboarding",
+        "comparableTask",
+        "dedupeByKey",
+        "generateCleaningTasks",
+        "getEquipmentByLocation",
+        "getOnboardingByLocation",
+        "upsertTask"
+      ],
+      "selectors": [],
+      "collections": [
+        "tasks"
+      ]
+    },
+    {
+      "name": "buildEquipmentFromOnboarding",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentCleaningTasks",
+        "prettyEquipmentName",
+        "shouldAddAllergenCleaning",
+        "shouldAddEventCleaning",
+        "shouldAddRule"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "comparableTask",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentCleaningTasks",
+        "buildEquipmentFromOnboarding",
+        "dedupeByKey",
+        "generateCleaningTasks",
+        "getEquipmentByLocation",
+        "getOnboardingByLocation",
+        "run",
+        "upsertTask"
+      ],
+      "selectors": [],
+      "collections": [
+        "tasks"
+      ]
+    },
+    {
+      "name": "dedupeByKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentFromOnboarding",
+        "getEquipmentByLocation",
+        "getOnboardingByLocation",
+        "prettyEquipmentName",
+        "shouldAddAllergenCleaning",
+        "shouldAddEventCleaning",
+        "shouldAddRule"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "generateCleaningTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentCleaningTasks",
+        "buildEquipmentFromOnboarding",
+        "dedupeByKey",
+        "getEquipmentByLocation",
+        "getOnboardingByLocation",
+        "run",
+        "upsertTask"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEquipmentByLocation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentCleaningTasks",
+        "buildEquipmentFromOnboarding",
+        "prettyEquipmentName",
+        "shouldAddAllergenCleaning",
+        "shouldAddEventCleaning",
+        "shouldAddRule"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "getOnboardingByLocation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentFromOnboarding",
+        "getEquipmentByLocation",
+        "prettyEquipmentName",
+        "shouldAddAllergenCleaning",
+        "shouldAddEventCleaning",
+        "shouldAddRule"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "prettyEquipmentName",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentCleaningTasks",
+        "shouldAddAllergenCleaning",
+        "shouldAddEventCleaning",
+        "shouldAddRule"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateCleaningTasks"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldAddAllergenCleaning",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentCleaningTasks",
+        "shouldAddEventCleaning",
+        "shouldAddRule"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldAddEventCleaning",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentCleaningTasks",
+        "comparableTask",
+        "shouldAddAllergenCleaning",
+        "shouldAddRule"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldAddRule",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentCleaningTasks",
+        "comparableTask",
+        "shouldAddAllergenCleaning",
+        "shouldAddEventCleaning"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentFromOnboarding",
+        "dedupeByKey",
+        "getEquipmentByLocation",
+        "getOnboardingByLocation",
+        "prettyEquipmentName",
+        "shouldAddAllergenCleaning",
+        "shouldAddEventCleaning",
+        "shouldAddRule"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "upsertTask",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildBaseCleaningTasks",
+        "buildEquipmentCleaningTasks",
+        "buildEquipmentFromOnboarding",
+        "comparableTask",
+        "dedupeByKey",
+        "generateCleaningTasks",
+        "getEquipmentByLocation",
+        "getOnboardingByLocation",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "tasks"
+      ]
+    }
+  ]
+}

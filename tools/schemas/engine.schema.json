@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Engine Schema",
+  "description": "Schema for documenting core engines",
+  "type": "object",
+  "required": ["id", "name", "location", "purpose"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the engine"
+    },
+    "name": {
+      "type": "string",
+      "description": "Engine name (e.g., rutine-engine, deviation-engine)"
+    },
+    "location": {
+      "type": "object",
+      "required": ["file"],
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "File path relative to project root"
+        },
+        "lineStart": {"type": "number"},
+        "lineEnd": {"type": "number"}
+      }
+    },
+    "purpose": {
+      "type": "string",
+      "description": "What this engine does"
+    },
+    "firestoreCollections": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Firestore collections this engine interacts with"
+    },
+    "helpers": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Helper functions used by this engine"
+    },
+    "criticalRules": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Rules that must never be changed"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
+}

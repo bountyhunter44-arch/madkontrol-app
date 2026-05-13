@@ -1,0 +1,151 @@
+{
+  "source_file": "public/seed-data/generateDailyTasks.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "operating_overrides",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "generateDailyTaskInstances",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getOperatingOverride",
+        "getTodayKey",
+        "resolveOperatingState"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getDateKey",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "generateDailyTaskInstances",
+        "getOperatingOverride",
+        "getTodayKey",
+        "normalizeDateKey",
+        "parseDateValue",
+        "resolveOperatingState",
+        "shouldGenerateToday"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "getOperatingOverride",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateDailyTaskInstances",
+        "getTodayKey",
+        "normalizeDateKey",
+        "resolveOperatingState"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getTodayKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateDailyTaskInstances",
+        "getDateKey",
+        "getOperatingOverride",
+        "normalizeDateKey",
+        "parseDateValue",
+        "resolveOperatingState",
+        "shouldGenerateToday"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "normalizeDateKey",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "generateDailyTaskInstances",
+        "getDateKey",
+        "getOperatingOverride",
+        "getTodayKey",
+        "parseDateValue",
+        "resolveOperatingState",
+        "shouldGenerateToday"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "parseDateValue",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "generateDailyTaskInstances",
+        "getDateKey",
+        "getOperatingOverride",
+        "getTodayKey",
+        "normalizeDateKey",
+        "resolveOperatingState",
+        "shouldGenerateToday"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "resolveOperatingState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateDailyTaskInstances",
+        "getOperatingOverride",
+        "getTodayKey",
+        "normalizeDateKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "shouldGenerateToday",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "generateDailyTaskInstances",
+        "getOperatingOverride",
+        "getTodayKey",
+        "normalizeDateKey",
+        "resolveOperatingState"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_instances"
+      ]
+    }
+  ]
+}

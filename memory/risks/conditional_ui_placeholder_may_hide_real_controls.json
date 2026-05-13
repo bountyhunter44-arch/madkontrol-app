@@ -1,0 +1,13 @@
+{
+  "risk": "conditional_ui_placeholder_may_hide_real_controls",
+  "occurrences": [
+    {
+      "source_file": "functions/scripts/generateMemorySeed.js",
+      "module": "general"
+    },
+    {
+      "source_file": "public/modules/egenkontrol/rutiner.html",
+      "module": "rutiner"
+    }
+  ]
+}

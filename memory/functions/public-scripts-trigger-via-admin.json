@@ -1,0 +1,30 @@
+{
+  "source_file": "public/scripts/trigger-via-admin.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "locations",
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "triggerRegeneration",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "locations",
+        "task_instances",
+        "task_templates"
+      ]
+    }
+  ]
+}

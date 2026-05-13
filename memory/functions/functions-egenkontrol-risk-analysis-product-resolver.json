@@ -1,0 +1,155 @@
+{
+  "source_file": "functions/egenkontrol/risk-analysis-product-resolver.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "applyRestaurantProfileToRiskItems"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "applyRestaurantProfileToRiskItems",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "mergeIngredients",
+        "mergeProducts",
+        "normalizeArray"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "findPreset",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "applyRestaurantProfileToRiskItems",
+        "getCustomIngredients",
+        "getCustomProducts",
+        "getRestaurantType",
+        "mergeIngredients",
+        "mergeProducts",
+        "normalizeArray",
+        "uniqueList"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCustomIngredients",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyRestaurantProfileToRiskItems",
+        "findPreset",
+        "getCustomProducts",
+        "getRestaurantType",
+        "mergeIngredients",
+        "mergeProducts",
+        "normalizeArray",
+        "uniqueList"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCustomProducts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyRestaurantProfileToRiskItems",
+        "findPreset",
+        "getCustomIngredients",
+        "getRestaurantType",
+        "mergeIngredients",
+        "mergeProducts",
+        "normalizeArray",
+        "uniqueList"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getRestaurantType",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "normalizeText"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "mergeIngredients",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyRestaurantProfileToRiskItems",
+        "findPreset",
+        "getCustomIngredients",
+        "getRestaurantType",
+        "mergeProducts",
+        "normalizeArray",
+        "uniqueList"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "mergeProducts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyRestaurantProfileToRiskItems",
+        "findPreset",
+        "getCustomIngredients",
+        "getCustomProducts",
+        "getRestaurantType",
+        "mergeIngredients",
+        "normalizeArray",
+        "uniqueList"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeArray",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getRestaurantType",
+        "normalizeText",
+        "uniqueList"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeText",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getRestaurantType",
+        "normalizeArray",
+        "uniqueList"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "uniqueList",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "getRestaurantType",
+        "normalizeArray",
+        "normalizeText"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "source_file": "functions/startDayForLocation.js",
+  "module": "scheduler",
+  "imports": [],
+  "exports": [
+    "startDayForLocation"
+  ],
+  "collections": [
+    "areas",
+    "daily_runs",
+    "equipment",
+    "task_instances"
+  ],
+  "flags": [
+    "startDayForLocation"
+  ],
+  "risks": [],
+  "functions": [
+    {
+      "name": "scopedTitle",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "templateTitle",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "title",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "areas",
+        "equipment"
+      ]
+    }
+  ]
+}

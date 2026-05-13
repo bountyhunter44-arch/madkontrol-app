@@ -1,0 +1,63 @@
+{
+  "source_file": "functions/egenkontrol/operationalTemplateReference.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin"
+  ],
+  "exports": [
+    "createTaskTemplate",
+    "generateOperationalTemplates",
+    "generateTemperatureTemplates"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "createTaskTemplate",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "generateOperationalTemplates",
+        "generateTemperatureTemplates",
+        "getGuideKeyFromUnit"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateOperationalTemplates",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "createTaskTemplate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateTemperatureTemplates",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "createTaskTemplate",
+        "generateOperationalTemplates",
+        "getGuideKeyFromUnit"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getGuideKeyFromUnit",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createTaskTemplate",
+        "generateOperationalTemplates",
+        "generateTemperatureTemplates"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

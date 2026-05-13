@@ -1,0 +1,26 @@
+{
+  "source_file": "public/scripts/delete-daily-runs.cjs",
+  "module": "general",
+  "imports": [
+    "../../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "daily_runs"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "deleteDailyRunsForCompany",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    }
+  ]
+}

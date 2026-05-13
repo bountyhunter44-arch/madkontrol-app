@@ -1,0 +1,9 @@
+
+FILE: functions/index.js
+CHUNK: 017
+
+--- CODE START ---
+// FJERNET: fixOnboardingStructure.js eksisterer ikke
+// const { fixOnboardingStructure } = require("./fixOnboardingStructure");
+// exports.fixOnboardingStructure = fixOnboardingStructure;
+--- CODE END ---

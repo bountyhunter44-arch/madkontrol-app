@@ -1,0 +1,33 @@
+{
+  "source_file": "public/components/risk-analysis-card.js",
+  "module": "general",
+  "imports": [
+    "/modules/egenkontrol/risk-analysis-library.js"
+  ],
+  "exports": [
+    "loadRiskAnalysisCard"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "injectStyles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadRiskAnalysisCard",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "injectStyles"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

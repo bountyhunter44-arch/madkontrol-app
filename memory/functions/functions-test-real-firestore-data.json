@@ -1,0 +1,31 @@
+{
+  "source_file": "functions/test-real-firestore-data.js",
+  "module": "general",
+  "imports": [
+    "./egenkontrol/adapters/onboardingAdapter",
+    "./egenkontrol/builders/templateBuilder",
+    "./egenkontrol/generators/taskGenerator",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "locations",
+    "risk_analyses"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "testWithRealFirestoreData",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "locations",
+        "risk_analyses"
+      ]
+    }
+  ]
+}

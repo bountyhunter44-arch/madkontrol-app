@@ -1,0 +1,40 @@
+{
+  "source_file": "public/seed-data/importTaskEntries.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_entries"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getTodayKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_entries"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getTodayKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_entries"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "source_file": "public/modules/egenkontrol/generateControlTemplates.js",
+  "module": "general",
+  "imports": [
+    "./controlDefinitionRegistry.js",
+    "./controlLibraryHelpers.js"
+  ],
+  "exports": [
+    "generateControlTemplates"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "generateControlTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

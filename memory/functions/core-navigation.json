@@ -1,0 +1,76 @@
+{
+  "source_file": "core/navigation.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "NAVIGATION_ITEMS",
+    "getNavigationForUser",
+    "initNavigation",
+    "injectNavigationStyles",
+    "renderNavigation"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getNavigationForUser",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "injectNavigationStyles",
+        "renderNavItem",
+        "renderNavigation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "initNavigation",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "injectNavigationStyles",
+        "renderNavigation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "injectNavigationStyles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "initNavigation",
+        "renderNavigation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderNavigation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getNavigationForUser",
+        "initNavigation",
+        "injectNavigationStyles",
+        "renderNavItem"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderNavItem",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "initNavigation",
+        "injectNavigationStyles",
+        "renderNavigation"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

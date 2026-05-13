@@ -1,0 +1,202 @@
+[
+    {
+        "id": "wheat_flour",
+        "name": "Hvedemel",
+        "categoryId": "dry_goods",
+        "baseUnit": "kg",
+        "allergens": ["gluten"],
+        "vatRate": 25,
+        "sortOrder": 10,
+        "active": true
+    },
+    {
+        "id": "sugar",
+        "name": "Sukker",
+        "categoryId": "dry_goods",
+        "baseUnit": "kg",
+        "allergens": [],
+        "vatRate": 25,
+        "sortOrder": 20,
+        "active": true
+    },
+    {
+        "id": "salt",
+        "name": "Salt",
+        "categoryId": "spices",
+        "baseUnit": "kg",
+        "allergens": [],
+        "vatRate": 25,
+        "sortOrder": 30,
+        "active": true
+    },
+    {
+        "id": "butter",
+        "name": "Smør",
+        "categoryId": "dairy",
+        "baseUnit": "kg",
+        "allergens": ["milk"],
+        "vatRate": 25,
+        "sortOrder": 40,
+        "active": true
+    },
+    {
+        "id": "milk",
+        "name": "Mælk",
+        "categoryId": "dairy",
+        "baseUnit": "l",
+        "allergens": ["milk"],
+        "vatRate": 25,
+        "sortOrder": 50,
+        "active": true
+    },
+    {
+        "id": "cream",
+        "name": "Fløde",
+        "categoryId": "dairy",
+        "baseUnit": "l",
+        "allergens": ["milk"],
+        "vatRate": 25,
+        "sortOrder": 60,
+        "active": true
+    },
+    {
+        "id": "egg",
+        "name": "Æg",
+        "categoryId": "dairy",
+        "baseUnit": "stk",
+        "allergens": ["eggs"],
+        "vatRate": 25,
+        "sortOrder": 70,
+        "active": true
+    },
+    {
+        "id": "chicken_breast",
+        "name": "Kyllingebryst",
+        "categoryId": "meat",
+        "baseUnit": "kg",
+        "allergens": [],
+        "vatRate": 25,
+        "sortOrder": 80,
+        "active": true
+    },
+    {
+        "id": "beef",
+        "name": "Oksekød",
+        "categoryId": "meat",
+        "baseUnit": "kg",
+        "allergens": [],
+        "vatRate": 25,
+        "sortOrder": 90,
+        "active": true
+    },
+    {
+        "id": "tomato",
+        "name": "Tomat",
+        "categoryId": "vegetables",
+        "baseUnit": "kg",
+        "allergens": [],
+        "vatRate": 25,
+        "sortOrder": 100,
+        "active": true
+    },
+    {
+        "id": "onion",
+        "name": "Løg",
+        "categoryId": "vegetables",
+        "baseUnit": "kg",
+        "allergens": [],
+        "vatRate": 25,
+        "sortOrder": 110,
+        "active": true
+    },
+    {
+        "id": "lettuce",
+        "name": "Salat",
+        "categoryId": "vegetables",
+        "baseUnit": "stk",
+        "allergens": [],
+        "vatRate": 25,
+        "sortOrder": 120,
+        "active": true
+    },
+    {
+        "id": "potato",
+        "name": "Kartofler",
+        "categoryId": "vegetables",
+        "baseUnit": "kg",
+        "allergens": [],
+        "vatRate": 25,
+        "sortOrder": 130,
+        "active": true
+    },
+    {
+        "id": "cheddar",
+        "name": "Cheddar ost",
+        "categoryId": "dairy",
+        "baseUnit": "kg",
+        "allergens": ["milk"],
+        "vatRate": 25,
+        "sortOrder": 140,
+        "active": true
+    },
+    {
+        "id": "mozzarella",
+        "name": "Mozzarella",
+        "categoryId": "dairy",
+        "baseUnit": "kg",
+        "allergens": ["milk"],
+        "vatRate": 25,
+        "sortOrder": 150,
+        "active": true
+    },
+    {
+        "id": "olive_oil",
+        "name": "Olivenolie",
+        "categoryId": "oils_fats",
+        "baseUnit": "l",
+        "allergens": [],
+        "vatRate": 25,
+        "sortOrder": 160,
+        "active": true
+    },
+    {
+        "id": "rapeseed_oil",
+        "name": "Rapsolie",
+        "categoryId": "oils_fats",
+        "baseUnit": "l",
+        "allergens": [],
+        "vatRate": 25,
+        "sortOrder": 170,
+        "active": true
+    },
+    {
+        "id": "burger_bun",
+        "name": "Burgerbolle",
+        "categoryId": "bakery",
+        "baseUnit": "stk",
+        "allergens": ["gluten"],
+        "vatRate": 25,
+        "sortOrder": 180,
+        "active": true
+    },
+    {
+        "id": "pizza_dough",
+        "name": "Pizzadej",
+        "categoryId": "bakery",
+        "baseUnit": "stk",
+        "allergens": ["gluten"],
+        "vatRate": 25,
+        "sortOrder": 190,
+        "active": true
+    },
+    {
+        "id": "mayonnaise",
+        "name": "Mayonnaise",
+        "categoryId": "sauces_dressings",
+        "baseUnit": "kg",
+        "allergens": ["eggs"],
+        "vatRate": 25,
+        "sortOrder": 200,
+        "active": true
+    }
+]

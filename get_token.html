@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Madkontrollen Token Login</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+  <h2>🔑 Madkontrollen Login (få token)</h2>
+
+  <input id="email" placeholder="Email"><br><br>
+  <input id="password" type="password" placeholder="Password"><br><br>
+
+  <button onclick="login()">Login</button>
+
+  <h3>Token:</h3>
+  <textarea id="output" rows="15" cols="100" style="font-family: monospace; font-size: 10px;"></textarea>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAmwnoJ9RpxjS_3u8t2Dfa6QB_Q-ctbsjQ",
+      authDomain: "madkontrollen.firebaseapp.com",
+      projectId: "madkontrollen",
+      storageBucket: "madkontrollen.firebasestorage.app",
+      messagingSenderId: "937588793415",
+      appId: "1:937588793415:web:7bf372dff6e98c9bad9162"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    async function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
+        const token = await userCred.user.getIdToken();
+
+        document.getElementById("output").value = token;
+        console.log("TOKEN:", token);
+      } catch (err) {
+        alert("Fejl: " + err.message);
+        document.getElementById("output").value = "Fejl: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>

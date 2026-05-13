@@ -1,0 +1,27 @@
+{
+  "source_file": "public/scripts/test-equipment-maintenance-mapping.cjs",
+  "module": "general",
+  "imports": [
+    "../../functions/guideLibrary",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "testEquipmentMaintenanceMapping",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

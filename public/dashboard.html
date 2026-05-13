@@ -1,0 +1,2839 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/process-cards.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body data-page="dashboard">
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a href="dashboard.html" class="brand" aria-label="Madkontrollen Pro">
+        <img src="images/logo.svg" class="brand-logo" alt="Madkontrollen Pro logo">
+      </a>
+
+      <div class="topbar-info" aria-label="Virksomhedsoplysninger">
+        <div class="topbar-info-item"><strong>Virksomhed:</strong> <span id="topbarCompanyName">…</span></div>
+        <div class="topbar-info-item"><strong>Adresse:</strong> <span id="topbarLocation">…</span></div>
+        <div class="topbar-info-item"><strong>Email:</strong> <span id="topbarEmail">…</span></div>
+        <div class="topbar-info-item"><strong>Tlf.:</strong> <span id="topbarPhone">…</span></div>
+      </div>
+      <!-- Location switcher skjult men funktionel -->
+      <select id="locationSwitcher" class="location-switcher" aria-label="Vælg lokation" style="display:none"></select>
+      <div id="languageSwitcherContainer" style="flex:0 0 auto;margin-left:auto;"></div>
+    </div>
+  </header>
+
+  <main class="page-shell dashboard-page">
+    <div class="container app-layout">
+      <aside class="dashboard-sidebar">
+        <nav class="sidebar" aria-label="Egenkontrol navigation">
+          <div class="sidebar-inner">
+            <div class="sidebar-group">
+              <div class="sidebar-label">Egenkontrol</div>
+
+              <a href="dashboard.html" class="sidebar-link active" aria-current="page">
+                <span class="sidebar-badge">DB</span>
+                <span>Dashboard</span>
+              </a>
+
+              <a href="modules/egenkontrol/rutiner.html" class="sidebar-link">
+                <span class="sidebar-badge">RU</span>
+                <span>Rutiner</span>
+              </a>
+
+              <a href="modules/egenkontrol/afvigelser.html" class="sidebar-link">
+                <span class="sidebar-badge">AF</span>
+                <span>Afvigelser</span>
+              </a>
+
+              <a href="modules/egenkontrol/risikoanalyse.html" class="sidebar-link">
+                <span class="sidebar-badge">RI</span>
+                <span>Risikoanalyse</span>
+              </a>
+
+              <a href="/modules/egenkontrol/rapporter.html?mode=authority" class="sidebar-link">
+                <span class="sidebar-badge">MR</span>
+                <span>Myndighedsrapport</span>
+              </a>
+
+              <a href="modules/core/billed-arkiv.html" class="sidebar-link">
+                <span class="sidebar-badge">BA</span>
+                <span>Billedarkiv</span>
+              </a>
+
+              <a href="kontrol.html" class="sidebar-link">
+                <span class="sidebar-badge">KM</span>
+                <span>Kontrol-mode</span>
+              </a>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      <div class="dashboard-main">
+        <section class="section section-keep-mobile">
+          <div class="panel panel-large">
+            <div class="section-header">
+              <div>
+                <h2>Dashboard overblik</h2>
+                <p>Dashboardet er et administrativt statuscenter for <strong id="locationLabelTop">denne lokation</strong>. Det daglige arbejde udføres i Rutiner, og rapportering håndteres via Myndighedsrapport og Risikoanalyse.</p>
+              </div>
+            </div>
+
+            <div class="operating-status-wrap">
+              <div id="operatingStatusBanner" class="operating-status-banner" data-mode="open">
+                <div class="operating-status-main">
+                  <div class="operating-status-label">
+                    <span>Statuscenter</span>
+                    <span id="statsLiveBadge" class="operating-meta-pill">Live</span>
+                  </div>
+                  <h3 id="operatingStatusTitle" class="operating-status-title">Åben for drift</h3>
+                  <p id="operatingStatusText" class="operating-status-text">Dashboardet viser status, afvigelser og rapportadgang. Selve registreringerne sker i rutinemodulet.</p>
+                  <div id="operatingStatusMeta" class="operating-status-meta"></div>
+                </div>
+
+                <div id="operatingAdminBox" class="operating-admin-box hidden-for-non-admin">
+                  <p class="operating-admin-title">Driftstatus</p>
+                  <p class="operating-admin-text">Skift kun status herfra, når hele lokationen skal være åben, lukket eller i ferie-mode.</p>
+                  <div class="operating-admin-actions">
+                    <button id="setOpenBtn" class="btn btn-secondary" type="button">Åben</button>
+                    <button id="setClosedBtn" class="btn btn-secondary" type="button">Lukket</button>
+                    <button id="setVacationBtn" class="btn btn-secondary" type="button">Ferie</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Risk Analysis Card -->
+            <div id="risk-analysis-container" style="margin-bottom: 24px;"></div>
+
+            <div class="module-grid">
+              <article class="team-list-card feature-card">
+                <h3>Dagens status</h3>
+                <p class="team-lead">Samlet overblik over udførte rutiner i dag.</p>
+                <div class="team-user-meta">
+                  <span class="team-meta-pill">Udført: <strong id="kpiTasks">0</strong></span>
+                  <span class="team-meta-pill">Afvigelser: <strong id="kpiAlerts">0</strong></span>
+                  <span class="team-meta-pill">Fuldført: <strong id="kpiCompletion">0%</strong></span>
+                </div>
+              </article>
+
+              <article class="team-list-card feature-card">
+                <h3>Åbne afvigelser</h3>
+                <p class="team-lead">Fejl og hændelser håndteres i afvigelsesmodulet, hvor de skal markeres som løst med forklaring før arkivering.</p>
+                <div class="team-form-actions">
+                  <a href="modules/egenkontrol/afvigelser.html" class="btn btn-secondary">Gå til afvigelser</a>
+                  <a href="/modules/egenkontrol/rapporter.html?mode=authority" class="btn btn-secondary">Åbn myndighedsrapport</a>
+                </div>
+              </article>
+
+              <article class="team-list-card feature-card">
+                <h3>Rapportering</h3>
+                <p class="team-lead">Brug myndighedsrapporten til udskrift og dokumentation med fotos, logfiler, HACCP og lukkede afvigelser.</p>
+                <div class="team-form-actions">
+                  <a href="/modules/egenkontrol/rapporter.html?mode=authority" class="btn btn-secondary">Åbn myndighedsrapport</a>
+                  <a href="modules/egenkontrol/risikoanalyse.html" class="btn btn-secondary">Åbn risikoanalyse</a>
+                </div>
+              </article>
+            </div>
+
+            <div id="dashboardAdminRow" class="dashboard-admin-row hidden-for-non-admin">
+              <div>
+                <strong>Driftstatus for denne lokation</strong>
+                <span id="dashboardAdminRowText">Normal drift er aktiv.</span>
+              </div>
+
+              <div class="dashboard-admin-actions">
+                <button id="setOpenBtnInline" class="btn btn-secondary" type="button">Åben</button>
+                <button id="setClosedBtnInline" class="btn btn-secondary" type="button">Lukket</button>
+                <button id="setVacationBtnInline" class="btn btn-secondary" type="button">Ferie</button>
+                <button id="setDateBtnInline" class="btn btn-secondary" type="button">Ret Dato</button>
+              </div>
+            </div>
+
+            <div id="dashboardStatusNote" class="dashboard-status-note" style="display:none;">
+              Dashboardet viser kun administrativ status.
+            </div>
+          </div>
+        </section>
+
+        <!-- Active Process Instances Section -->
+        <section id="active-processes-section" style="display: none; margin-bottom: 24px;">
+          <div class="panel panel-large">
+            <div class="section-header">
+              <div>
+                <h2>🔥 Aktive processer</h2>
+                <p>Nedkøling og genopvarmning i gang</p>
+              </div>
+            </div>
+            <div id="active-processes-list"></div>
+          </div>
+        </section>
+
+
+        <section class="section" id="upgrade-modules-section">
+          <div class="panel panel-large">
+            <div class="section-header">
+              <div>
+                <h2>💎 Tilgængelige Moduler</h2>
+                <p>Udvid din Madkontrollen Pro med disse kraftfulde moduler</p>
+              </div>
+            </div>
+            <div id="upgrade-modules-container"></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <h2>Hurtige genveje</h2>
+              <p>Gå direkte til de moduler, der bruges til drift, afvigelser og dokumentation.</p>
+            </div>
+          </div>
+
+          <div class="quick-grid">
+            <a href="modules/egenkontrol/rutiner.html" class="quick-link">
+              <strong>Rutiner</strong>
+              <span>Her udfører personalet dagens temperaturkontrol, rengøring og registreringer.</span>
+            </a>
+
+            <a href="modules/egenkontrol/afvigelser.html" class="quick-link">
+              <strong>Afvigelser</strong>
+              <span>Følg op på åbne hændelser og dokumentér løsning og årsag.</span>
+            </a>
+
+            <a href="modules/egenkontrol/risikoanalyse.html" class="quick-link">
+              <strong>Risikoanalyse</strong>
+              <span>Vedligehold HACCP-plan og generér samlet dokumentation til print.</span>
+            </a>
+
+            <a href="/modules/egenkontrol/rapporter.html?mode=authority" class="quick-link quick-link-authority">
+              <strong>Myndighedsrapport</strong>
+              <span>Samler al dokumentation til Fødevarestyrelsen for de sidste 3 måneder.</span>
+            </a>
+
+            <a href="modules/core/billed-arkiv.html" class="quick-link">
+              <strong>Billedarkiv</strong>
+              <span>Se foto-dokumentation fra rutiner, afvigelser og kontroller.</span>
+            </a>
+
+            <a href="modules/seo/generator.html" class="quick-link">
+              <strong>SEO Generator</strong>
+              <span>Generér SEO-tekster, metadata og lokalt indhold direkte fra portalen.</span>
+            </a>
+
+            <a href="kontrol.html" class="quick-link quick-link-highlight">
+              <strong>🛂 Kontrol-mode</strong>
+              <span>Vis dokumentation hurtigt ved kontrolbesøg.</span>
+            </a>
+          </div>
+        </section>
+
+        <section id="teamManagementSection" class="section hidden-for-non-admin">
+          <div class="panel panel-large">
+            <div class="section-header">
+              <div>
+                <h2>Brugere på denne lokation</h2>
+                <p>Ejeren eller admin på lokationen kan oprette ansatte med almindelig medarbejderadgang.</p>
+              </div>
+            </div>
+
+            <div class="team-management-grid">
+              <div class="team-form-card">
+                <h3>Opret medarbejder</h3>
+                <p class="team-lead">Den nye bruger bliver knyttet til den valgte lokation og får adgang som medarbejder/ansat.</p>
+
+                <form id="teamCreateForm" class="team-form">
+                  <div class="team-field">
+                    <label for="teamUserName">Navn</label>
+                    <input id="teamUserName" type="text" autocomplete="name" placeholder="Fx Sofie Jensen" required>
+                  </div>
+
+                  <div class="team-field">
+                    <label for="teamUserEmail">Email</label>
+                    <input id="teamUserEmail" type="email" autocomplete="email" placeholder="Fx sofie@virksomhed.dk" required>
+                  </div>
+
+                  <div class="team-field">
+                    <label for="teamUserPassword">Midlertidigt password</label>
+                    <input id="teamUserPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Mindst 8 tegn" required>
+                    <small>Del det midlertidige password med medarbejderen og bed dem skifte det bagefter.</small>
+                  </div>
+
+                  <div class="team-field">
+                    <label for="teamUserRole">Rollebetegnelse</label>
+                    <select id="teamUserRole">
+                      <option value="medarbejder">Medarbejder</option>
+                      <option value="ansat">Ansat</option>
+                    </select>
+                  </div>
+
+                  <div class="team-form-actions">
+                    <button id="teamCreateSubmit" class="btn btn-secondary" type="submit">Opret bruger</button>
+                  </div>
+
+                  <p id="teamCreateStatus" class="team-status" aria-live="polite"></p>
+                </form>
+              </div>
+
+              <div class="team-list-card">
+                <h3>Lokationens brugere</h3>
+                <p class="team-lead">Listen viser brugere der er tilknyttet den aktuelle lokation eller har adgang på tværs af virksomheden.</p>
+                <div id="teamUserList" class="team-list">
+                  <div class="team-empty">Henter brugere…</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-box">
+      <div>© 2026 Madkontrollen Pro</div>
+      <div>Egenkontrol • HACCP • Kalkulation • Drift</div>
+    </div>
+  </footer>
+
+  <!-- SLET FRA HER -->
+<script type="module">
+  import { setupAuthGate, showProfileErrorState } from "./core/auth.js";
+  import app, { auth, db } from "./core/firebase-config.js";
+  import {
+    resolveLocationIdFromUserData,
+    resolvePrettyCompanyInfo
+  } from "./core/prettyName.js";
+  import { loadRiskAnalysisCard } from "./components/risk-analysis-card.js?v=11";
+  import {
+    ensureRiskAnalysisForLocation,
+    loadOnboardingFromFirestore,
+    loadRiskAnalysisFromFirestore
+  } from "./modules/egenkontrol/riskAnalysisService.js";
+  import { hideUnpurchasedModules } from "./components/module-lock.js";
+  import { 
+    isImpersonating, 
+    getEffectiveCompanyId, 
+    getEffectiveLocationId,
+    renderImpersonationBanner 
+  } from "./core/impersonation.js";
+  // Language switcher
+  import { initLanguageSwitcher, addLanguageSwitcherStyles } from "./modules/i18n/language-switcher.js";
+  try { addLanguageSwitcherStyles(); initLanguageSwitcher(); } catch(e) {}
+  import {
+    collection,
+    getDocs,
+    getDoc,
+    addDoc,
+    doc,
+    setDoc,
+    updateDoc,
+    arrayUnion,
+    serverTimestamp,
+    query,
+    where,
+    orderBy,
+    limit,
+    onSnapshot
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getFunctions,
+    httpsCallable,
+    httpsCallableFromURL
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+  const SETTINGS = {
+    companyId: "",
+    companyLegacyId: "",
+    locationId: "",
+    locationLegacyId: "",
+    createdBy: "",
+    currentUserName: "",
+    currentUserRole: "employee",
+    currentUserLocations: [],
+    currentUserCompanyId: "",
+    companyDisplayName: "",
+    locationDisplayName: ""
+  };
+
+  const functionsClient = getFunctions(app, "us-central1");
+  const getDashboardSnapshotCallable = httpsCallable(functionsClient, "getDashboardSnapshot");
+  const saveRoutineTaskCallable = httpsCallable(functionsClient, "saveRoutineTask");
+  const getCloudinarySignatureCallable = httpsCallable(functionsClient, "getCloudinarySignature");
+  const analyzeCloudinaryAssetCallable = httpsCallable(functionsClient, "analyzeCloudinaryAsset");
+  const listLocationUsersCallable = httpsCallable(functionsClient, "listLocationUsers");
+  const createLocationUserCallable = httpsCallable(functionsClient, "createLocationUser");
+
+  const taskListEl = document.getElementById("taskList");
+  const kpiTasksEl = document.getElementById("kpiTasks");
+  const kpiAlertsEl = document.getElementById("kpiAlerts");
+  const kpiCompletionEl = document.getElementById("kpiCompletion");
+  const locationLabelEl = document.getElementById("locationLabel");
+  const locationLabelTopEl = document.getElementById("locationLabelTop");
+  const locationSwitcherEl = document.getElementById("locationSwitcher");
+  const statsLiveBadgeEl = document.getElementById("statsLiveBadge");
+
+  const operatingStatusBannerEl = document.getElementById("operatingStatusBanner");
+  const operatingStatusTitleEl = document.getElementById("operatingStatusTitle");
+  const operatingStatusTextEl = document.getElementById("operatingStatusText");
+  const operatingStatusMetaEl = document.getElementById("operatingStatusMeta");
+  const operatingAdminBoxEl = document.getElementById("operatingAdminBox");
+  const dashboardStatusNoteEl = document.getElementById("dashboardStatusNote");
+  const dashboardAdminRowEl = document.getElementById("dashboardAdminRow");
+  const dashboardAdminRowTextEl = document.getElementById("dashboardAdminRowText");
+
+  const setOpenBtn = document.getElementById("setOpenBtn");
+  const setClosedBtn = document.getElementById("setClosedBtn");
+  const setVacationBtn = document.getElementById("setVacationBtn");
+
+  const setOpenBtnInline = document.getElementById("setOpenBtnInline");
+  const setClosedBtnInline = document.getElementById("setClosedBtnInline");
+  const setVacationBtnInline = document.getElementById("setVacationBtnInline");
+  const setDateBtnInline = document.getElementById("setDateBtnInline");
+  const teamManagementSectionEl = document.getElementById("teamManagementSection");
+  const teamCreateFormEl = document.getElementById("teamCreateForm");
+  const teamCreateSubmitEl = document.getElementById("teamCreateSubmit");
+  const teamCreateStatusEl = document.getElementById("teamCreateStatus");
+  const teamUserListEl = document.getElementById("teamUserList");
+  const teamUserNameEl = document.getElementById("teamUserName");
+  const teamUserEmailEl = document.getElementById("teamUserEmail");
+  const teamUserPasswordEl = document.getElementById("teamUserPassword");
+  const teamUserRoleEl = document.getElementById("teamUserRole");
+
+  const haccpCompanyNameEl = document.getElementById("haccpCompanyName");
+  const haccpCvrEl = document.getElementById("haccpCvr");
+  const haccpAddressEl = document.getElementById("haccpAddress");
+  const haccpDateEl = document.getElementById("haccpDate");
+  const haccpNarrativeEl = document.getElementById("haccpNarrative");
+  const haccpRiskRowsEl = document.getElementById("haccpRiskRows");
+  const haccpControlRowsEl = document.getElementById("haccpControlRows");
+  const haccpStatusTextEl = document.getElementById("haccpStatusText");
+  const printHaccpBtn = document.getElementById("printHaccpBtn");
+
+  const DEFAULT_HACCP_PROFILE = {
+    companyName: "Aroi-D",
+    cvr: "42405000",
+    address: "Hovedgaden 49, 6973 Ørnhøj"
+  };
+
+  const HACCP_RISK_LIBRARY = [
+    {
+      keywords: ["bakterie", "køl", "køle", "kol", "kole", "fridge", "cold"],
+      risk: "Bakterievækst i kølevarer",
+      control: "Styres via daglig temperaturkontrol af alle 5 køleskabe (Max +5°C).",
+      area: "Kølevarer",
+      requirement: "Maks +5°C i alle køleskabe"
+    },
+    {
+      keywords: ["krydskontamin", "rå fisk", "råt kød", "ra fisk", "rat kod", "cross", "contamin"],
+      risk: "Krydskontaminering (Rå fisk/kød)",
+      control: "Styres via adskilt opbevaring og farvekodede skærebrætter.",
+      area: "Råvarer og produktion",
+      requirement: "Rå fisk/kød holdes adskilt fra spiseklare varer"
+    },
+    {
+      keywords: ["varmhold", "serveringstemperatur", "hot holding", "varm"],
+      risk: "Utilstrækkelig varmholdning",
+      control: "Styres via løbende kontrol af serveringstemperatur (Min +65°C).",
+      area: "Servering",
+      requirement: "Min +65°C ved varmholdning"
+    },
+    {
+      keywords: ["dessert", "holdbar", "dato", "kølekæde", "kolekaede"],
+      risk: "Holdbarhed i desserter",
+      control: "Styres via datomærkning og ubrudt kølekæde.",
+      area: "Desserter og mærkning",
+      requirement: "Datomærkning og ubrudt kølekæde"
+    }
+  ];
+
+  let allInstances = [];
+  let completionCount = 0;
+  let alertCount = 0;
+  let operatingOverride = null;
+  let dashboardLoadInFlight = false;
+  let taskListenerUnsubscribe = null;
+  let operatingButtonsBound = false;
+  let teamFormBound = false;
+  let selectedDateKey = null;
+  const aiSuggestionsByInstance = new Map();
+
+  let operatingState = {
+    isOpen: true,
+    isClosed: false,
+    isVacation: false,
+    reason: "",
+    untilDateKey: null,
+    statusText: "Normal drift"
+  };
+
+  function getTodayKey() {
+    if (selectedDateKey) {
+      return selectedDateKey;
+    }
+
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "Europe/Copenhagen",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    });
+    return formatter.format(now);
+  }
+
+  function getDateKey(date = new Date()) {
+    const formatter = new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "Europe/Copenhagen",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    });
+    return formatter.format(date);
+  }
+
+  function parseDateValue(value) {
+    if (!value) return null;
+
+    if (typeof value === "string") {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value;
+    }
+
+    if (typeof value.toDate === "function") {
+      const parsed = value.toDate();
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    return null;
+  }
+
+  function normalizeDateKey(value) {
+    if (!value) return null;
+
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
+      return value.trim();
+    }
+
+    const parsed = parseDateValue(value);
+    return parsed ? getDateKey(parsed) : null;
+  }
+
+  function getTaskStatusLabel(status) {
+    if (status === "completed") return "Udført";
+    if (status === "failed") return "Afvigelse";
+    if (status === "not_applicable") return "Ikke i brug";
+    if (status === "not_in_use") return "Ikke i brug";
+    if (status === "pending") return "Afventer";
+    if (status === "overdue") return "Gået over tid";
+    return status || "Klar";
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function formatDateDa(dateInput = new Date()) {
+    const parsed = parseDateValue(dateInput) || new Date();
+    return new Intl.DateTimeFormat("da-DK", {
+      timeZone: "Europe/Copenhagen",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).format(parsed);
+  }
+
+  function formatDateTimeDa(value) {
+    const parsed = parseDateValue(value);
+    if (!parsed) return "-";
+
+    return new Intl.DateTimeFormat("da-DK", {
+      timeZone: "Europe/Copenhagen",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(parsed);
+  }
+
+  function getTaskCreatedAt(task) {
+    return task?.createdAt || task?.generatedAt || task?.created_at || null;
+  }
+
+  function getTaskHandledAt(task) {
+    return task?.completedAt || task?.resolvedAt || task?.closedAt || task?.handledAt || null;
+  }
+
+  function normalizeText(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function getReadableTaskReference(taskId) {
+    const raw = String(taskId || "").trim();
+    if (!raw) return "";
+
+    const autoMatch = raw.match(/auto_task_(\d+)/i);
+    if (autoMatch?.[1]) {
+      return `Auto-rutine #${autoMatch[1]}`;
+    }
+
+    const tail = raw.split("__").pop() || raw;
+    const cleaned = tail.replace(/-/g, " ").replace(/\s+/g, " ").trim();
+    if (!cleaned) return "";
+
+    const pretty = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    return pretty.length > 42 ? `${pretty.slice(0, 42)}...` : pretty;
+  }
+
+  function toLegacyId(value = "") {
+    return String(value || "").replace(/_/g, "-");
+  }
+
+  function formatEmploymentRoleLabel(userData = {}) {
+    const raw = String(userData?.employmentRole || userData?.role || "medarbejder").trim().toLowerCase();
+    if (raw === "ansat") return "Ansat";
+    return "Medarbejder";
+  }
+
+  function setTeamStatus(message = "", isError = false) {
+    if (!teamCreateStatusEl) return;
+    teamCreateStatusEl.textContent = message;
+    teamCreateStatusEl.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function renderLocationUsers(users = []) {
+    if (!teamUserListEl) return;
+
+    if (!Array.isArray(users) || !users.length) {
+      teamUserListEl.innerHTML = `<div class="team-empty">Ingen brugere er oprettet på denne lokation endnu.</div>`;
+      return;
+    }
+
+    teamUserListEl.innerHTML = users.map((userData) => {
+      const locationIds = Array.isArray(userData.locationIds)
+        ? userData.locationIds.map((item) => String(item || "").trim()).filter(Boolean)
+        : [];
+      const scopeLabel = locationIds.length > 1
+        ? `${locationIds.length} lokationer`
+        : locationIds[0] === SETTINGS.locationId
+          ? "Denne lokation"
+          : (locationIds[0] || "Alle lokationer");
+
+      return `
+        <article class="team-user-card">
+          <div class="team-user-head">
+            <div>
+              <strong>${escapeHtml(userData.displayName || "Ukendt bruger")}</strong>
+              <span>${escapeHtml(userData.email || "-")}</span>
+            </div>
+            <div class="team-user-meta">
+              <span class="team-meta-pill">${escapeHtml(formatEmploymentRoleLabel(userData))}</span>
+            </div>
+          </div>
+
+          <div class="team-user-meta">
+            <span class="team-meta-pill">Adgang: ${escapeHtml(scopeLabel)}</span>
+            <span class="team-meta-pill">Status: ${escapeHtml(String(userData.status || "active"))}</span>
+            ${userData.createdAt ? `<span class="team-meta-pill">Oprettet: ${escapeHtml(formatDateDa(userData.createdAt))}</span>` : ""}
+          </div>
+        </article>
+      `;
+    }).join("");
+  }
+
+  async function loadLocationUsers() {
+    if (!teamUserListEl) return;
+
+    const responsible = userIsResponsible();
+    if (teamManagementSectionEl) {
+      teamManagementSectionEl.classList.toggle("hidden-for-non-admin", !responsible);
+    }
+
+    if (!responsible || !SETTINGS.companyId || !SETTINGS.locationId) {
+      teamUserListEl.innerHTML = `<div class="team-empty">Kun ejere og admins kan se lokationens brugere.</div>`;
+      return;
+    }
+
+    if (!auth.currentUser) {
+      teamUserListEl.innerHTML = `<div class="team-empty">Venter på authentication...</div>`;
+      return;
+    }
+
+    teamUserListEl.innerHTML = `<div class="team-empty">Henter brugere…</div>`;
+
+    try {
+      // Force token refresh to ensure auth context is sent
+      await auth.currentUser.getIdToken(true);
+      
+      const result = await listLocationUsersCallable({
+        companyId: SETTINGS.companyId,
+        locationId: SETTINGS.locationId
+      });
+
+      renderLocationUsers(Array.isArray(result?.data?.users) ? result.data.users : []);
+    } catch (error) {
+      console.error("Kunne ikke hente lokationsbrugere:", error);
+      teamUserListEl.innerHTML = `<div class="team-empty">Kunne ikke hente brugere for denne lokation.</div>`;
+    }
+  }
+
+  async function handleCreateLocationUser(event) {
+    event.preventDefault();
+
+    if (!userIsResponsible()) {
+      setTeamStatus("Kun ejeren eller admin kan oprette brugere.", true);
+      return;
+    }
+
+    if (!auth.currentUser) {
+      setTeamStatus("Du skal være logget ind for at oprette brugere.", true);
+      return;
+    }
+
+    const displayName = String(teamUserNameEl?.value || "").trim();
+    const email = String(teamUserEmailEl?.value || "").trim();
+    const password = String(teamUserPasswordEl?.value || "").trim();
+    const employmentRole = String(teamUserRoleEl?.value || "medarbejder").trim().toLowerCase();
+
+    if (!displayName || !email || !password) {
+      setTeamStatus("Udfyld navn, email og midlertidigt password.", true);
+      return;
+    }
+
+    if (password.length < 8) {
+      setTeamStatus("Password skal være mindst 8 tegn.", true);
+      return;
+    }
+
+    if (teamCreateSubmitEl) {
+      teamCreateSubmitEl.disabled = true;
+      teamCreateSubmitEl.textContent = "Opretter...";
+    }
+
+    setTeamStatus("Opretter bruger...");
+
+    // Map dansk employmentRole til engelsk role for Firestore security rules
+    // Både "medarbejder" og "ansat" mapper til "employee"
+    const role = "employee";
+
+    try {
+      await createLocationUserCallable({
+        companyId: SETTINGS.companyId,
+        locationId: SETTINGS.locationId,
+        displayName,
+        email,
+        password,
+        role,
+        employmentRole
+      });
+
+      teamCreateFormEl?.reset();
+      if (teamUserRoleEl) {
+        teamUserRoleEl.value = "medarbejder";
+      }
+
+      setTeamStatus(`Brugeren ${displayName} er oprettet på ${SETTINGS.locationId}.`);
+      await loadLocationUsers();
+    } catch (error) {
+      console.error("Kunne ikke oprette lokationsbruger:", error);
+      const errorMsg = error?.message || error?.code || "Kunne ikke oprette brugeren.";
+      if (errorMsg.includes("unauthenticated") || errorMsg.includes("logget ind")) {
+        setTeamStatus("Authentication fejlede. Prøv at genindlæse siden og log ind igen.", true);
+      } else {
+        setTeamStatus(errorMsg, true);
+      }
+    } finally {
+      if (teamCreateSubmitEl) {
+        teamCreateSubmitEl.disabled = false;
+        teamCreateSubmitEl.textContent = "Opret bruger";
+      }
+    }
+  }
+
+  function bindTeamManagement() {
+    if (teamFormBound) return;
+    teamCreateFormEl?.addEventListener("submit", handleCreateLocationUser);
+    teamFormBound = true;
+  }
+
+  function normalizeLocationIds(value) {
+    const values = [];
+
+    const pushValue = (item) => {
+      const normalized = String(item || "").trim();
+      if (normalized) values.push(normalized);
+    };
+
+    if (Array.isArray(value)) {
+      value.forEach(pushValue);
+    } else if (value && typeof value === "object") {
+      if (Array.isArray(value.locationIds)) {
+        value.locationIds.forEach(pushValue);
+      }
+      pushValue(value.primaryLocationId);
+      pushValue(value.locationId);
+    } else {
+      pushValue(value);
+    }
+
+    return [...new Set(values)];
+  }
+
+  function getProfileCompanyId(profile) {
+    return String(profile?.companyId || profile?.organizationId || "").trim();
+  }
+
+  function getStoredLocationId() {
+    try {
+      return String(sessionStorage.getItem("mkp_selected_locationId") || "").trim();
+    } catch {
+      return "";
+    }
+  }
+
+  function setStoredLocationId(locationId) {
+    try {
+      if (locationId) {
+        sessionStorage.setItem("mkp_selected_locationId", locationId);
+      }
+    } catch {
+      // no-op
+    }
+  }
+
+  function getProfileLocationId(profile) {
+    return resolveLocationIdFromUserData(profile || {});
+  }
+
+  async function refreshDashboardPrettyNames({ user, profile }) {
+    const pretty = await resolvePrettyCompanyInfo({
+      uid: user?.uid || "",
+      userData: profile || {},
+      companyId: SETTINGS.companyId,
+      locationId: SETTINGS.locationId
+    });
+
+    SETTINGS.companyDisplayName = pretty.displayCompany || pretty.companyName || SETTINGS.companyId;
+    SETTINGS.locationDisplayName = pretty.displayLocation || pretty.locationName || SETTINGS.locationId;
+
+    if (pretty.companyName === SETTINGS.companyId) {
+      console.warn("[dashboard pretty names] fallback to companyId", {
+        companyId: SETTINGS.companyId,
+        locationId: SETTINGS.locationId
+      });
+    }
+
+    const set = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value || "";
+    };
+
+    // Smart location label: hvis locationName er generisk, brug companyName
+    const genericLocationNames = ["Hovedlokation", "Main location", "Default location", ""];
+    const isGenericLocation = genericLocationNames.includes(pretty.locationName);
+    const smartLocationLabel = isGenericLocation ? pretty.companyName : pretty.locationName;
+
+    set("topbarCompanyName", pretty.displayCompany || pretty.companyName);
+    set("topbarLocation", pretty.address || pretty.displayLocation);
+    set("topbarEmail", pretty.contactEmail || pretty.email);
+    set("topbarPhone", pretty.phone);
+    set("locationLabel", smartLocationLabel);
+    set("locationLabelTop", smartLocationLabel);
+
+    console.log("[dashboard pretty names]", pretty);
+    return pretty;
+  }
+
+  function renderLocationSwitcher() {
+    if (!locationSwitcherEl) return;
+
+    const locationIds = SETTINGS.currentUserLocations.length
+      ? SETTINGS.currentUserLocations
+      : (SETTINGS.locationId ? [SETTINGS.locationId] : []);
+
+    if (locationIds.length === 0) {
+      locationSwitcherEl.innerHTML = '<option value="">Ingen lokationer</option>';
+      locationSwitcherEl.disabled = true;
+      return;
+    }
+
+    locationSwitcherEl.innerHTML = locationIds
+      .map((locationId) => `<option value="${escapeHtml(locationId)}">${escapeHtml(locationId)}</option>`)
+      .join("");
+
+    if (SETTINGS.locationId && locationIds.includes(SETTINGS.locationId)) {
+      locationSwitcherEl.value = SETTINGS.locationId;
+    }
+
+    locationSwitcherEl.disabled = locationIds.length <= 1;
+  }
+
+  async function switchLocation(nextLocationId) {
+    const next = String(nextLocationId || "").trim();
+    if (!next || next === SETTINGS.locationId) return;
+
+    SETTINGS.locationId = next;
+    SETTINGS.locationLegacyId = toLegacyId(next);
+    setStoredLocationId(next);
+
+    await refreshDashboardPrettyNames({
+      user: auth.currentUser,
+      profile: {
+        uid: SETTINGS.createdBy,
+        companyId: SETTINGS.companyId,
+        locationId: SETTINGS.locationId,
+        locationIds: SETTINGS.currentUserLocations,
+        displayName: SETTINGS.currentUserName
+      }
+    });
+
+    selectedDateKey = null;
+    startTaskListener();
+    await loadDashboardData();
+    await loadLocationUsers();
+  }
+
+  function buildHaccpRiskSet(snapshotData = {}) {
+    const rawItems = Array.isArray(snapshotData.controlPoints)
+      ? snapshotData.controlPoints
+      : Array.isArray(snapshotData.hazards)
+      ? snapshotData.hazards
+      : Array.isArray(snapshotData.risks)
+        ? snapshotData.risks
+        : [];
+
+    const sourceText = rawItems
+      .map((item) => {
+        if (typeof item === "string") return normalizeText(item);
+        if (!item || typeof item !== "object") return "";
+        return normalizeText(
+          [
+            item.name,
+            item.title,
+            item.label,
+            item.description,
+            item.category,
+            item.controlArea,
+            item.hazard,
+            item.control,
+            item.controlRequirement,
+            item.routineKey
+          ]
+            .filter(Boolean)
+            .join(" ")
+        );
+      })
+      .join(" ");
+
+    const matched = HACCP_RISK_LIBRARY.filter((entry) =>
+      entry.keywords.some((keyword) => sourceText.includes(keyword))
+    );
+
+    return matched.length ? matched : HACCP_RISK_LIBRARY;
+  }
+
+  function renderHaccpTables(riskSet) {
+    if (haccpRiskRowsEl) {
+      haccpRiskRowsEl.innerHTML = riskSet
+        .map(
+          (item) => `
+            <tr>
+              <td>${escapeHtml(item.risk)}</td>
+              <td>${escapeHtml(item.control)}</td>
+            </tr>
+          `
+        )
+        .join("");
+    }
+
+    if (haccpControlRowsEl) {
+      haccpControlRowsEl.innerHTML = riskSet
+        .map(
+          (item) => `
+            <tr>
+              <td>${escapeHtml(item.area)}</td>
+              <td>${escapeHtml(item.requirement)}</td>
+            </tr>
+          `
+        )
+        .join("");
+    }
+  }
+
+  function renderHaccpNarrative(riskSet) {
+    const lines = riskSet.map((item) => `${item.risk}: ${item.control}`);
+    if (haccpNarrativeEl) {
+      haccpNarrativeEl.value = lines.join("\n");
+    }
+  }
+
+  function pickSnapshotProfile(snapshotData = {}) {
+    const profile = snapshotData.profile && typeof snapshotData.profile === "object"
+      ? snapshotData.profile
+      : {};
+
+    return {
+      companyName:
+        snapshotData.companyName ||
+        profile.companyName ||
+        DEFAULT_HACCP_PROFILE.companyName,
+      cvr:
+        snapshotData.cvr ||
+        profile.cvr ||
+        DEFAULT_HACCP_PROFILE.cvr,
+      address:
+        snapshotData.address ||
+        profile.address ||
+        DEFAULT_HACCP_PROFILE.address,
+      analysisDate: new Date()
+    };
+  }
+
+  function renderHaccpSnapshot(snapshotData = null) {
+    if (!haccpCompanyNameEl || !haccpNarrativeEl) return;
+
+    try {
+      const latest = snapshotData && typeof snapshotData === "object" ? snapshotData : null;
+      const selected = latest || { ...DEFAULT_HACCP_PROFILE };
+      const profile = pickSnapshotProfile(selected);
+      const riskSet = buildHaccpRiskSet(selected);
+
+      haccpCompanyNameEl.value = String(profile.companyName || DEFAULT_HACCP_PROFILE.companyName);
+      haccpCvrEl.value = String(profile.cvr || DEFAULT_HACCP_PROFILE.cvr);
+      haccpAddressEl.value = String(profile.address || DEFAULT_HACCP_PROFILE.address);
+      haccpDateEl.value = formatDateDa(profile.analysisDate);
+
+      renderHaccpNarrative(riskSet);
+      renderHaccpTables(riskSet);
+
+      if (haccpStatusTextEl) {
+        haccpStatusTextEl.textContent = latest
+          ? "Snapshot hentet server-side fra HACCP-data for denne virksomhed."
+          : "Ingen snapshot fundet endnu. Viser standard HACCP-profil.";
+      }
+    } catch (error) {
+      console.error("Kunne ikke vise HACCP snapshot:", error);
+
+      haccpCompanyNameEl.value = DEFAULT_HACCP_PROFILE.companyName;
+      haccpCvrEl.value = DEFAULT_HACCP_PROFILE.cvr;
+      haccpAddressEl.value = DEFAULT_HACCP_PROFILE.address;
+      haccpDateEl.value = formatDateDa(new Date());
+      renderHaccpNarrative(HACCP_RISK_LIBRARY);
+      renderHaccpTables(HACCP_RISK_LIBRARY);
+
+      if (haccpStatusTextEl) {
+        haccpStatusTextEl.textContent = "Kunne ikke vise HACCP-data. Viser standard HACCP-profil i read-only format.";
+      }
+    }
+  }
+
+  async function loadActiveDashboardRiskAnalysis() {
+    try {
+      let riskData = await loadRiskAnalysisFromFirestore(SETTINGS.companyId, SETTINGS.locationId);
+      const hasControlPoints = Array.isArray(riskData?.controlPoints) && riskData.controlPoints.length > 0;
+      if (hasControlPoints) return riskData;
+
+      const onboardingData = await loadOnboardingFromFirestore(SETTINGS.companyId, SETTINGS.locationId);
+      if (!onboardingData) return riskData;
+
+      await ensureRiskAnalysisForLocation({
+        companyId: SETTINGS.companyId,
+        locationId: SETTINGS.locationId,
+        onboardingData
+      });
+
+      return await loadRiskAnalysisFromFirestore(SETTINGS.companyId, SETTINGS.locationId);
+    } catch (error) {
+      console.warn("[dashboard risk] Could not load active risk analysis:", error);
+      return null;
+    }
+  }
+
+  async function fetchDashboardSnapshot() {
+    // Wait for auth state to be ready before proceeding
+    if (!auth.currentUser) {
+      console.error("DEBUG: fetchDashboardSnapshot called before auth ready");
+      return null;
+    }
+    
+    console.log("DEBUG: fetchDashboardSnapshot - auth.currentUser:", auth.currentUser.email);
+    console.log("DEBUG: fetchDashboardSnapshot - calling with:", {
+      companyId: SETTINGS.companyId,
+      locationId: SETTINGS.locationId,
+      dateKey: getTodayKey()
+    });
+    
+    // Ensure we have a fresh auth token
+    try {
+      const token = await auth.currentUser.getIdToken(true);
+      console.log("DEBUG: Got fresh auth token:", token ? "YES" : "NO");
+    } catch (error) {
+      console.error("DEBUG: Failed to get auth token:", error);
+      return null;
+    }
+    
+    const response = await getDashboardSnapshotCallable({
+      companyId: SETTINGS.companyId,
+      locationId: SETTINGS.locationId,
+      dateKey: getTodayKey()
+    });
+
+    return response?.data || {};
+  }
+
+  function userIsResponsible() {
+    const role = String(SETTINGS.currentUserRole || "").trim().toLowerCase();
+    const isAdmin = ["owner", "hq_admin", "location_manager", "admin"].includes(role);
+    if (!isAdmin) return false;
+
+    const companyScope = String(SETTINGS.currentUserCompanyId || "").trim();
+    if (companyScope && ![SETTINGS.companyId, SETTINGS.companyLegacyId].includes(companyScope)) {
+      return false;
+    }
+
+    const allowedLocations = Array.isArray(SETTINGS.currentUserLocations)
+      ? SETTINGS.currentUserLocations.map((item) => String(item || "").trim()).filter(Boolean)
+      : [];
+
+    // Backward compatible: if locationIds are not set yet, keep existing admin behavior.
+    if (!allowedLocations.length) return true;
+
+    return [SETTINGS.locationId, SETTINGS.locationLegacyId].some((id) => allowedLocations.includes(id));
+  }
+
+  async function setReferenceDateFromPrompt() {
+    if (!userIsResponsible()) {
+      alert("Kun admin må ændre visningsdato.");
+      return;
+    }
+
+    const currentSuggestion = selectedDateKey || getDateKey(new Date());
+    const raw = window.prompt(
+      "Ret dato (YYYY-MM-DD). Slet indhold og tryk OK for at gå tilbage til dags dato.",
+      currentSuggestion
+    );
+
+    if (raw === null) return;
+
+    const trimmed = raw.trim();
+
+    if (!trimmed) {
+      selectedDateKey = null;
+    } else {
+      const normalized = normalizeDateKey(trimmed);
+      if (!normalized) {
+        alert("Ugyldig dato. Brug formatet YYYY-MM-DD.");
+        return;
+      }
+      selectedDateKey = normalized;
+    }
+
+    startTaskListener();
+    await loadDashboardData();
+  }
+
+  function getOverrideDocId() {
+    return `${SETTINGS.companyId}__${SETTINGS.locationId}`;
+  }
+
+  function updateKpis(taskCount, doneCount = 0, alerts = 0) {
+    if (kpiTasksEl) kpiTasksEl.textContent = String(taskCount);
+    if (kpiAlertsEl) kpiAlertsEl.textContent = String(alerts);
+    if (kpiCompletionEl) {
+      kpiCompletionEl.textContent =
+        taskCount > 0 ? `${Math.round((doneCount / taskCount) * 100)}%` : "0%";
+    }
+  }
+
+  function isTemperatureTask(taskId) {
+    return ["temperature_fridge", "freezer_temperature"].includes(taskId);
+  }
+
+  function evaluateTaskResult(taskId, entryData, actionType = "complete") {
+    if (actionType === "not_applicable") {
+      return {
+        entryStatus: "not_applicable",
+        instanceStatus: "not_applicable",
+        shouldCreateAlert: false
+      };
+    }
+
+    if (actionType === "missing_cleaning") {
+      return {
+        entryStatus: "missing_cleaning",
+        instanceStatus: "failed",
+        shouldCreateAlert: true
+      };
+    }
+
+    if (actionType === "deviation") {
+      return {
+        entryStatus: "deviation",
+        instanceStatus: "failed",
+        shouldCreateAlert: true
+      };
+    }
+
+    if (taskId === "temperature_fridge" && entryData.valueNumber > 5) {
+      return {
+        entryStatus: "fail",
+        instanceStatus: "failed",
+        shouldCreateAlert: true
+      };
+    }
+
+    if (taskId === "freezer_temperature" && entryData.valueNumber > -18) {
+      return {
+        entryStatus: "fail",
+        instanceStatus: "failed",
+        shouldCreateAlert: true
+      };
+    }
+
+    return {
+      entryStatus: "ok",
+      instanceStatus: "completed",
+      shouldCreateAlert: false
+    };
+  }
+
+  function getTaskType(task = {}) {
+    const combined = [
+      task.taskId,
+      task.title,
+      task.description,
+      task.category,
+      task.area,
+      task.controlPoint,
+      task.riskCategory
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    if (combined.includes("allergen")) return "allergen";
+    if (combined.includes("nedkøl")) return "cooling";
+    if (combined.includes("varemodtag")) return "receiving";
+    if (
+      combined.includes("fryser") ||
+      combined.includes("køl") ||
+      combined.includes("køleskab") ||
+      combined.includes("adskillelse")
+    ) {
+      return "storage";
+    }
+    if (combined.includes("rengør")) return "cleaning";
+
+    return "general";
+  }
+
+  function getGuideContent(task = {}) {
+    const type = getTaskType(task);
+
+    if (type === "cleaning") {
+      return {
+        title: "Guide: Rengøring",
+        purpose: "Kontroller at rengøringspunktet er udført, rent og dokumenteret korrekt.",
+        check: [
+          "Se efter synligt snavs, fedt, madrester og støv.",
+          "Kontroller at korrekt rengøringsmiddel er brugt.",
+          "Vurder om området er tørt, rent og klar til brug.",
+          "Tag foto ved fejl, tvivl eller behov for dokumentation."
+        ],
+        limit: "Området skal være visuelt rent og uden madrester eller fedt.",
+        action: "Ved manglende rengøring vælges 'Mangler rengøring' eller 'Opret afvigelse'.",
+        documentation: "Tilføj kommentar. Tag foto ved fejl eller hvis ledelsen ønsker ekstra dokumentation."
+      };
+    }
+
+    if (type === "cooling") {
+      return {
+        title: "Guide: Nedkøling",
+        purpose: "Sørg for sikker nedkøling, så maden ikke står for længe i farezonen.",
+        check: [
+          "Del maden i mindre portioner eller lave bakker.",
+          "Start nedkøling hurtigt efter tilberedning.",
+          "Registrér tidspunkt og temperatur under forløbet.",
+          "Brug 4-timers reglen som kontrolpunkt for processen."
+        ],
+        limit: "Nedkøling skal ske hurtigt og kontrolleret. Hvis 4-timers reglen ikke kan overholdes, skal der reageres straks.",
+        action: "Ved for langsom nedkøling: stop brug, vurder kassation og opret afvigelse.",
+        documentation: "Skriv kommentar med tid og temperatur. Tag foto af mærkning/beholder ved behov."
+      };
+    }
+
+    if (type === "receiving") {
+      return {
+        title: "Guide: Varemodtagelse",
+        purpose: "Kontroller at varer modtages i korrekt stand, temperatur og emballage.",
+        check: [
+          "Mål temperatur på relevante varer.",
+          "Tjek emballage for skader, brud og lækage.",
+          "Kontroller mærkning og holdbarhedsdato.",
+          "Tag foto ved tvivl, skade eller fejl ved leveringen."
+        ],
+        limit: "Varer må ikke modtages beskadigede, for varme eller uden korrekt mærkning.",
+        action: "Afvis varen eller registrér afvigelse hvis krav ikke er opfyldt.",
+        documentation: "Kommentér levering og tag foto ved fejl. Gem dokumentation på afvigelsen."
+      };
+    }
+
+    if (type === "storage") {
+      return {
+        title: "Guide: Køl, frost og adskillelse",
+        purpose: "Kontroller korrekt opbevaring og adskillelse for at undgå kontaminering.",
+        check: [
+          "Varer må ikke stå direkte på gulv i køl eller fryser.",
+          "Råt og spiseklart skal holdes adskilt.",
+          "Beholdere skal være rene, lukkede og korrekt mærket.",
+          "Allergenvarer skal være tydeligt adskilt fra øvrige varer."
+        ],
+        limit: "Ingen varer direkte på gulv. Ingen risiko for dryp, krydskontaminering eller uklar mærkning.",
+        action: "Flyt varer straks ved fejl og opret afvigelse hvis problemet er væsentligt.",
+        documentation: "Skriv kommentar. Tag foto ved forkert placering, beskadiget emballage eller manglende mærkning."
+      };
+    }
+
+    if (type === "allergen") {
+      return {
+        title: "Guide: Allergener og krydskontaminering",
+        purpose: "Undgå at allergener overføres til andre varer eller retter.",
+        check: [
+          "Brug særskilte redskaber og rene overflader.",
+          "Hold allergenvarer tydeligt adskilt i produktion og opbevaring.",
+          "Kontroller mærkning og emballering.",
+          "Rengør mellem produktioner når der skiftes mellem varer."
+        ],
+        limit: "Der må ikke være risiko for overførsel af allergener til andre produkter.",
+        action: "Stop processen ved tvivl og opret afvigelse hvis adskillelse eller rengøring ikke er korrekt.",
+        documentation: "Tilføj kommentar og foto hvis der er fejl i opbevaring, mærkning eller håndtering."
+      };
+    }
+
+    return {
+      title: "Guide: Rutinekontrol",
+      purpose: "Følg kontrolpunktet og registrér arbejdet korrekt.",
+      check: [
+        "Læs opgavens beskrivelse og kontrolpunkt.",
+        "Kontroller at arbejdet er udført som planlagt.",
+        "Vurder om der er fejl, mangler eller behov for opfølgning.",
+        "Tilføj kommentar hvis der er noget vigtigt at notere."
+      ],
+      limit: "Kontrolpunktet skal være udført korrekt og dokumenteret.",
+      action: "Brug 'Ikke i brug', 'Mangler rengøring' eller 'Opret afvigelse' når standardrutinen ikke kan godkendes.",
+      documentation: "Skriv kommentar og tilføj foto ved behov."
+    };
+  }
+
+  function buildGuideMarkup(task) {
+    const guide = getGuideContent(task);
+
+    return `
+      <div class="task-guide-box" id="guide-${escapeHtml(task.id)}">
+        <h5>${escapeHtml(guide.title)}</h5>
+        <div class="task-guide-grid">
+          <div class="task-guide-item">
+            <strong>Formål</strong>
+            <div>${escapeHtml(guide.purpose)}</div>
+          </div>
+          <div class="task-guide-item">
+            <strong>Grænse / krav</strong>
+            <div>${escapeHtml(guide.limit)}</div>
+          </div>
+          <div class="task-guide-item">
+            <strong>Det skal du kontrollere</strong>
+            <ul class="task-guide-list">
+              ${guide.check.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+            </ul>
+          </div>
+          <div class="task-guide-item">
+            <strong>Hvis noget er forkert</strong>
+            <div>${escapeHtml(guide.action)}</div>
+            <br>
+            <strong>Dokumentation</strong>
+            <div>${escapeHtml(guide.documentation)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function getOperatingOverride() {
+    if (!SETTINGS.companyId || !SETTINGS.locationId) return null;
+
+    const tryQueries = [
+      query(
+        collection(db, "operating_overrides"),
+        where("companyId", "==", SETTINGS.companyId),
+        where("locationId", "==", SETTINGS.locationId),
+        limit(1)
+      ),
+      query(
+        collection(db, "operating_overrides"),
+        where("organizationId", "==", SETTINGS.companyId),
+        where("locationId", "==", SETTINGS.locationId),
+        limit(1)
+      )
+    ];
+
+    for (const q of tryQueries) {
+      try {
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const item = snapshot.docs[0];
+          return {
+            id: item.id,
+            ...item.data()
+          };
+        }
+      } catch (error) {
+        console.warn("Operating override query fejlede:", error);
+      }
+    }
+
+    return null;
+  }
+
+  function resolveOperatingState(data) {
+    const todayKey = getTodayKey();
+
+    if (!data || data.isActive === false) {
+      return {
+        isOpen: true,
+        isClosed: false,
+        isVacation: false,
+        reason: "",
+        untilDateKey: null,
+        statusText: "Normal drift"
+      };
+    }
+
+    const untilDateKey =
+      normalizeDateKey(data.untilDateKey) ||
+      normalizeDateKey(data.until) ||
+      normalizeDateKey(data.endDate);
+
+    const stillValid = !untilDateKey || todayKey <= untilDateKey;
+
+    if (!stillValid) {
+      return {
+        isOpen: true,
+        isClosed: false,
+        isVacation: false,
+        reason: "",
+        untilDateKey,
+        statusText: "Normal drift"
+      };
+    }
+
+    const isClosed = data.closed === true;
+    const isVacation = data.vacation === true;
+    const isOpen = !isClosed && !isVacation;
+
+    let statusText = "Normal drift";
+    if (isClosed) statusText = "Lukket";
+    if (isVacation) statusText = "Ferie";
+
+    return {
+      isOpen,
+      isClosed,
+      isVacation,
+      reason: data.reason || "",
+      untilDateKey,
+      statusText
+    };
+  }
+
+  function applyOperatingStateToUi() {
+    const responsible = userIsResponsible();
+    const isAdminByProfile = String(SETTINGS.currentUserRole || "").trim().toLowerCase() === "admin";
+    const mobileOverrideActive = operatingState.isClosed || operatingState.isVacation;
+
+    document.body.classList.toggle("mobile-override-active", mobileOverrideActive);
+
+    if (operatingAdminBoxEl) {
+      operatingAdminBoxEl.classList.toggle("hidden-for-non-admin", !responsible);
+    }
+
+    if (dashboardAdminRowEl) {
+      dashboardAdminRowEl.classList.toggle("hidden-for-non-admin", !responsible);
+    }
+
+    if (teamManagementSectionEl) {
+      teamManagementSectionEl.classList.toggle("hidden-for-non-admin", !responsible);
+    }
+
+    // Location labels opdateres via loadPrettyNameSources()
+    if (setDateBtnInline) {
+      setDateBtnInline.style.display = isAdminByProfile ? "inline-flex" : "none";
+    }
+
+    if (operatingState.isClosed) {
+      if (operatingStatusBannerEl) operatingStatusBannerEl.dataset.mode = "closed";
+      if (operatingStatusTitleEl) operatingStatusTitleEl.textContent = "Lokationen er lukket";
+      if (operatingStatusTextEl) {
+        operatingStatusTextEl.textContent =
+          "Dagens normale rutiner er sat på pause. Medarbejdere skal ikke mødes af mangler eller røde advarsler i dag.";
+      }
+      if (statsLiveBadgeEl) statsLiveBadgeEl.textContent = "Lukket";
+      if (dashboardStatusNoteEl) {
+        dashboardStatusNoteEl.className = "dashboard-status-note is-closed";
+        dashboardStatusNoteEl.innerHTML =
+          "Lokationen er markeret som <strong>lukket</strong>. Dagens normale handlinger er skjult for medarbejdere, og der vises ingen røde mangler for i dag.";
+      }
+      if (dashboardAdminRowTextEl) {
+        dashboardAdminRowTextEl.textContent = "Lukket mode er aktiv for denne lokation.";
+      }
+    } else if (operatingState.isVacation) {
+      if (operatingStatusBannerEl) operatingStatusBannerEl.dataset.mode = "vacation";
+      if (operatingStatusTitleEl) operatingStatusTitleEl.textContent = "Lokationen er i ferie-mode";
+      if (operatingStatusTextEl) {
+        operatingStatusTextEl.textContent =
+          "Dagens normale rutiner er sat på pause, så medarbejdere ikke bliver forvirrede på ferie- eller pausedage.";
+      }
+      if (statsLiveBadgeEl) statsLiveBadgeEl.textContent = "Ferie";
+      if (dashboardStatusNoteEl) {
+        dashboardStatusNoteEl.className = "dashboard-status-note is-vacation";
+        dashboardStatusNoteEl.innerHTML =
+          "Lokationen er sat i <strong>ferie-mode</strong>. Dagens normale handlinger og mangler skjules for medarbejdere.";
+      }
+      if (dashboardAdminRowTextEl) {
+        dashboardAdminRowTextEl.textContent = "Ferie mode er aktiv for denne lokation.";
+      }
+    } else {
+      if (operatingStatusBannerEl) operatingStatusBannerEl.dataset.mode = "open";
+      if (operatingStatusTitleEl) operatingStatusTitleEl.textContent = "Åben for drift";
+      if (operatingStatusTextEl) {
+        operatingStatusTextEl.textContent =
+          "Dagens rutiner, opgaver og registreringer vises som normalt.";
+      }
+      if (statsLiveBadgeEl) statsLiveBadgeEl.textContent = "Live";
+      if (dashboardStatusNoteEl) {
+        dashboardStatusNoteEl.className = "dashboard-status-note";
+        dashboardStatusNoteEl.innerHTML =
+          "Dashboardet læser dagens opgaver fra <strong>task_instances</strong>, mens gemning og afvigelser håndteres server-side for denne lokation.";
+      }
+      if (dashboardAdminRowTextEl) {
+        dashboardAdminRowTextEl.textContent = "Normal drift er aktiv.";
+      }
+    }
+
+    const meta = [];
+    meta.push(`<span class="operating-meta-pill">Status: ${escapeHtml(operatingState.statusText)}</span>`);
+
+    if (operatingState.reason) {
+      meta.push(`<span class="operating-meta-pill">Årsag: ${escapeHtml(operatingState.reason)}</span>`);
+    }
+
+    if (operatingState.untilDateKey) {
+      meta.push(`<span class="operating-meta-pill">Gælder til: ${escapeHtml(operatingState.untilDateKey)}</span>`);
+    }
+
+    if (responsible) {
+      meta.push(`<span class="operating-meta-pill">Admin: ${escapeHtml(SETTINGS.currentUserName)}</span>`);
+    }
+
+    if (operatingStatusMetaEl) {
+      operatingStatusMetaEl.innerHTML = meta.join("");
+    }
+  }
+
+  function renderTasks(tasks) {
+    const overrideActive = operatingState.isClosed || operatingState.isVacation;
+
+    if (!taskListEl) return;
+
+    if (overrideActive && !tasks.length) {
+      const modeText = operatingState.isClosed ? "lukket" : "ferie";
+      taskListEl.innerHTML = `
+        <div class="empty-box is-operating-override">
+          Lokationen står som <strong>${escapeHtml(modeText)}</strong> i dag.
+          Der vises derfor ingen mangler eller normale dagsopgaver til medarbejdere.
+        </div>
+      `;
+      updateKpis(0, 0, 0);
+      return;
+    }
+
+    if (!tasks.length) {
+      taskListEl.innerHTML = `
+        <div class="empty-box">
+          Ingen dagsopgaver fundet endnu.
+        </div>
+      `;
+      updateKpis(0, 0, overrideActive ? 0 : alertCount);
+      return;
+    }
+
+    const displayTasks = [...tasks].sort((a, b) => {
+      const getClosingRank = (task) => {
+        const haystack = [task?.taskId, task?.title, task?.category, task?.controlPoint]
+          .map((value) => String(value || "").toLowerCase())
+          .join(" ");
+        return haystack.includes("closing") || haystack.includes("lukker") ? 1 : 0;
+      };
+
+      const rankDelta = getClosingRank(a) - getClosingRank(b);
+      if (rankDelta !== 0) return rankDelta;
+
+      const titleA = String(a?.title || a?.taskId || "").toLowerCase();
+      const titleB = String(b?.title || b?.taskId || "").toLowerCase();
+      return titleA.localeCompare(titleB, "da");
+    });
+
+    updateKpis(displayTasks.length, completionCount, overrideActive ? 0 : alertCount);
+
+    taskListEl.innerHTML = displayTasks
+      .map((task) => {
+        const status = String(task.status || "pending");
+        const statusLabel = getTaskStatusLabel(status);
+        const isDone = status === "completed";
+        const isFailed = status === "failed";
+        const isInactive = status === "not_applicable";
+        const indicatorClass = isFailed ? "is-failed" : isInactive ? "is-inactive" : "";
+        const indicatorText = isDone ? "✓" : isFailed ? "!" : isInactive ? "–" : "•";
+        const commentValue = task.latestComment || "";
+        const createdAtLabel = formatDateTimeDa(getTaskCreatedAt(task));
+        const handledAtLabel = formatDateTimeDa(getTaskHandledAt(task));
+
+        return `
+          <div class="task-card">
+            <div class="task-top">
+              <div class="task-top-main">
+                <div class="task-title-wrap">
+                  <h4>${escapeHtml(task.title || task.taskId || "Opgave")}</h4>
+                  <p class="task-type-label">Kontroller</p>
+                </div>
+
+                <div class="task-top-status">
+                  <span class="task-check ${indicatorClass}">${indicatorText}</span>
+                  <span class="task-pill is-status">Status: ${escapeHtml(statusLabel)}</span>
+                </div>
+              </div>
+
+              <div class="task-actions">
+                <button
+                  type="button"
+                  class="task-action-btn complete"
+                  data-action="complete"
+                  data-instance-id="${escapeHtml(task.id)}"
+                  data-task-id="${escapeHtml(task.taskId || "")}" 
+                >
+                  ${isDone ? "Fuldført" : "Gem som udført"}
+                </button>
+
+                <button
+                  type="button"
+                  class="task-action-btn not-used"
+                  data-action="not_applicable"
+                  data-instance-id="${escapeHtml(task.id)}"
+                  data-task-id="${escapeHtml(task.taskId || "")}" 
+                >
+                  Ikke i brug
+                </button>
+
+                <button
+                  type="button"
+                  class="task-action-btn missing"
+                  data-action="missing_cleaning"
+                  data-instance-id="${escapeHtml(task.id)}"
+                  data-task-id="${escapeHtml(task.taskId || "")}" 
+                >
+                  <span class="btn-title">Mangler rengøring</span>
+                  <span class="btn-subtext">Kræver bekræftelse</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="task-action-btn deviation"
+                  data-action="deviation"
+                  data-instance-id="${escapeHtml(task.id)}"
+                  data-task-id="${escapeHtml(task.taskId || "")}" 
+                >
+                  <span class="btn-title">Opret afvigelse</span>
+                  <span class="btn-subtext">Kræver bekræftelse</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="task-camera-btn"
+                  data-open-camera="true"
+                  data-instance-id="${escapeHtml(task.id)}"
+                  data-task-id="${escapeHtml(task.taskId || "")}" 
+                >
+                  Kamera
+                </button>
+              </div>
+            </div>
+
+            <div class="task-bottom">
+              <p class="task-description">${escapeHtml(task.description || "Dagsopgave hentet fra task_instances.")}</p>
+
+              <div class="task-meta">
+                <span class="task-pill">Reference: ${escapeHtml(getReadableTaskReference(task.taskId) || "-")}</span>
+                <span class="task-pill">Frekvens: ${escapeHtml(task.frequency || "daily")}</span>
+                <span class="task-pill">Kategori: ${escapeHtml(task.category || "egenkontrol")}</span>
+                <span class="task-pill">Dato: ${escapeHtml(task.dateKey || task.dueDate || "-")}</span>
+                <span class="task-pill">Oprettet: ${escapeHtml(createdAtLabel)}</span>
+                <span class="task-pill">Behandlet: ${escapeHtml(handledAtLabel)}</span>
+              </div>
+
+              <button
+                type="button"
+                class="task-guide-toggle"
+                data-guide-toggle="${escapeHtml(task.id)}"
+                aria-expanded="false"
+              >
+                ▸ Se guide
+              </button>
+
+              ${buildGuideMarkup(task)}
+
+              <div class="task-comment-box">
+                <label for="comment-${escapeHtml(task.id)}">Kommentar</label>
+                <input
+                  id="comment-${escapeHtml(task.id)}"
+                  class="task-comment"
+                  type="text"
+                  placeholder="Skriv kommentar"
+                  value="${escapeHtml(commentValue)}"
+                >
+              </div>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    bindGuideToggles();
+    bindTaskActionButtons();
+  }
+
+  function bindGuideToggles() {
+    const toggleButtons = document.querySelectorAll("[data-guide-toggle]");
+
+    toggleButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const taskId = button.dataset.guideToggle;
+        const guideEl = document.getElementById(`guide-${taskId}`);
+        if (!guideEl) return;
+
+        const isOpen = guideEl.classList.toggle("is-open");
+        button.setAttribute("aria-expanded", String(isOpen));
+        button.textContent = isOpen ? "▾ Skjul guide" : "▸ Se guide";
+      });
+    });
+  }
+
+  function getCommentForInstance(instanceId) {
+    const input = document.getElementById(`comment-${instanceId}`);
+    return input ? input.value.trim() : "";
+  }
+
+  // Toast notification system
+  function showToast(message, type = "success") {
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${type}`;
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 20px;
+      background: ${type === "success" ? "#1f6e2a" : type === "error" ? "#b42318" : "#2563eb"};
+      color: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 10000;
+      animation: slideIn 0.3s ease-out;
+      max-width: 400px;
+    `;
+    toast.textContent = message;
+    
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+      }
+    `;
+    if (!document.querySelector("style[data-toast-styles]")) {
+      style.setAttribute("data-toast-styles", "true");
+      document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.animation = "slideOut 0.3s ease-in";
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
+  function renderAiPreviewCard(actionEl, { instanceId, imageUrl, aiResult }) {
+    if (!actionEl || !aiResult) return;
+
+    let preview = actionEl.querySelector(".task-ai-preview");
+    if (!preview) {
+      preview = document.createElement("div");
+      preview.className = "task-ai-preview";
+      preview.style.cssText = "margin-top:8px;padding:10px;border:1px solid #d4e3d4;border-radius:10px;background:#f7fbf7;";
+      actionEl.appendChild(preview);
+    }
+
+    const confidencePct = Number.isFinite(Number(aiResult.confidence))
+      ? `${Math.round(Number(aiResult.confidence) * 100)}%`
+      : "-";
+
+    preview.innerHTML = `
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <img src="${imageUrl}" alt="AI preview" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #d7e5d7;" />
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:800;font-size:12px;color:#1f4727;">AI-forslag (${confidencePct})</div>
+          <div style="margin-top:4px;font-size:12px;line-height:1.45;color:#2e3c2f;">${escapeHtml(aiResult.beskrivelse || "")}</div>
+          <button type="button" class="btn btn-secondary" data-ai-approve="${escapeHtml(instanceId)}" style="margin-top:8px;min-height:32px;padding:6px 10px;font-size:12px;">Godkend AI-forslag</button>
+        </div>
+      </div>
+    `;
+
+    const approveBtn = preview.querySelector("button[data-ai-approve]");
+    if (approveBtn) {
+      approveBtn.addEventListener("click", () => {
+        const commentInput = document.getElementById(`comment-${instanceId}`);
+        if (commentInput && aiResult.beskrivelse) {
+          commentInput.value = aiResult.beskrivelse;
+          commentInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        approveBtn.textContent = "AI godkendt";
+        approveBtn.disabled = true;
+      });
+    }
+  }
+
+  function bindTaskActionButtons() {
+    const cameraButtons = document.querySelectorAll(".task-camera-btn[data-open-camera][data-instance-id]");
+    cameraButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const instanceId = button.dataset.instanceId;
+        if (!instanceId) return;
+        const task = allInstances.find((item) => item.id === instanceId) || null;
+
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.capture = "environment";
+
+        input.addEventListener("change", async () => {
+          const file = input.files?.[0];
+          if (!file) return;
+
+          async function optimizeImageForUpload(rawFile) {
+            const maxWidth = 1200; // Max bredde til 1200px for mobil
+            const jpegQuality = 0.80;
+            try {
+              const image = await new Promise((resolve, reject) => {
+                const objectUrl = URL.createObjectURL(rawFile);
+                const img = new Image();
+                img.onload = () => {
+                  URL.revokeObjectURL(objectUrl);
+                  resolve(img);
+                };
+                img.onerror = () => {
+                  URL.revokeObjectURL(objectUrl);
+                  reject(new Error("Kunne ikke laese billedfil."));
+                };
+                img.src = objectUrl;
+              });
+
+              const width = Number(image.naturalWidth || image.width || 0);
+              const height = Number(image.naturalHeight || image.height || 0);
+              if (!width || !height) return rawFile;
+
+              // Resize baseret på bredde (bedre for mobilbilleder)
+              const scale = width > maxWidth ? maxWidth / width : 1;
+              const targetWidth = Math.max(1, Math.round(width * scale));
+              const targetHeight = Math.max(1, Math.round(height * scale));
+
+              const canvas = document.createElement("canvas");
+              canvas.width = targetWidth;
+              canvas.height = targetHeight;
+              const ctx = canvas.getContext("2d");
+              if (!ctx) return rawFile;
+              ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+              const blob = await new Promise((resolve) => {
+                canvas.toBlob((result) => resolve(result), "image/jpeg", jpegQuality);
+              });
+
+              if (!blob || !blob.size) return rawFile;
+              const baseName = String(rawFile.name || "photo").replace(/\.[^/.]+$/, "");
+              return new File([blob], `${baseName}.jpg`, {
+                type: "image/jpeg",
+                lastModified: Date.now()
+              });
+            } catch (_error) {
+              return rawFile;
+            }
+          }
+
+          async function uploadToCloudinaryWithRetry(cloudName, formData, maxAttempts = 3) {
+            let lastError = null;
+            for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 90000);
+              try {
+                const uploadResp = await fetch(
+                  `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`,
+                  { method: "POST", body: formData, signal: controller.signal }
+                );
+
+                const uploadData = await uploadResp.json().catch(() => ({}));
+                if (!uploadResp.ok) {
+                  const cloudErr = String(uploadData?.error?.message || "").trim();
+                  throw new Error(
+                    cloudErr
+                      ? `Upload fejlede (${uploadResp.status}): ${cloudErr}`
+                      : `Upload fejlede (${uploadResp.status})`
+                  );
+                }
+
+                return uploadData;
+              } catch (error) {
+                const isAbort = String(error?.name || "") === "AbortError";
+                const errorText = String(error?.message || "").toLowerCase();
+                const isNetwork = isAbort || errorText.includes("network") || errorText.includes("failed to fetch") || errorText.includes("load failed") || errorText.includes("timeout");
+                const canRetry = attempt < maxAttempts && isNetwork;
+                if (!canRetry) {
+                  lastError = isAbort ? new Error("Upload timeout - forbindelsen er for langsom.") : error;
+                  break;
+                }
+                await new Promise((resolve) => setTimeout(resolve, 1200 * attempt));
+              } finally {
+                clearTimeout(timeoutId);
+              }
+            }
+
+            throw lastError || new Error("Upload fejlede.");
+          }
+
+          const origLabel = button.textContent;
+          button.disabled = true;
+          button.textContent = "Uploader...";
+
+          try {
+            const sigResult = await getCloudinarySignatureCallable({
+              companyId: SETTINGS.companyId,
+              locationId: SETTINGS.locationId,
+              moduleType: "Egenkontrol",
+              itemId: task?.equipmentName || task?.title || task?.taskId || instanceId,
+              taskInstanceId: instanceId,
+              taskId: task?.taskId || ""
+            });
+            const {
+              cloudName,
+              apiKey,
+              timestamp,
+              signature,
+              folder,
+              publicId,
+              tags,
+              context,
+              moduleType,
+              itemId,
+              userId
+            } = sigResult.data;
+
+            const uploadFile = await optimizeImageForUpload(file);
+            const formData = new FormData();
+            formData.append("file", uploadFile);
+            formData.append("api_key", apiKey);
+            formData.append("timestamp", String(timestamp));
+            formData.append("signature", signature);
+            formData.append("folder", folder);
+            formData.append("public_id", publicId);
+            formData.append("tags", tags);
+            formData.append("context", context);
+
+            const uploadData = await uploadToCloudinaryWithRetry(cloudName, formData);
+            const photoUrl = String(uploadData.secure_url || "");
+            const publicIdFromUpload = String(uploadData.public_id || publicId || "");
+            const transformedUrl = photoUrl.includes("/upload/")
+              ? photoUrl.replace("/upload/", "/upload/e_improve,e_sharpen,f_auto,q_auto/")
+              : photoUrl;
+            if (!photoUrl) throw new Error("Intet URL returneret fra Cloudinary.");
+
+            await setDoc(doc(db, "task_instances", instanceId), {
+              photoUrls: arrayUnion(photoUrl),
+              cloudinaryAssets: arrayUnion({
+                secureUrl: photoUrl,
+                optimizedUrl: transformedUrl,
+                publicId: publicIdFromUpload,
+                moduleType: moduleType || "Egenkontrol",
+                itemId: itemId || task?.title || task?.taskId || instanceId,
+                userId: userId || SETTINGS.createdBy,
+                taskId: task?.taskId || "",
+                taskInstanceId: instanceId,
+                createdAtClient: new Date().toISOString()
+              }),
+              lastPhotoAt: serverTimestamp()
+            }, { merge: true });
+
+            let mediaAssetRef = null;
+            try {
+              mediaAssetRef = await addDoc(collection(db, "media_assets"), {
+                userId: SETTINGS.createdBy,
+                companyId: SETTINGS.companyId,
+                organizationId: SETTINGS.companyId,
+                locationId: SETTINGS.locationId,
+                moduleType: moduleType || "Egenkontrol",
+                itemId: itemId || task?.title || task?.taskId || instanceId,
+                secureUrl: photoUrl,
+                optimizedUrl: transformedUrl,
+                publicId: publicIdFromUpload,
+                cloudinaryAssetId: String(uploadData.asset_id || ""),
+                bytes: Number(uploadData.bytes || 0),
+                width: Number(uploadData.width || 0),
+                height: Number(uploadData.height || 0),
+                format: String(uploadData.format || ""),
+                resourceType: String(uploadData.resource_type || "image"),
+                taskId: task?.taskId || "",
+                taskInstanceId: instanceId,
+                sourceCollection: "task_instances",
+                sourceDocId: instanceId,
+                createdByName: SETTINGS.currentUserName || SETTINGS.createdBy,
+                createdAt: serverTimestamp(),
+                createdAtClient: new Date().toISOString()
+              });
+            } catch (mediaError) {
+              console.warn("Kunne ikke gemme media_assets-post, men foto er gemt på task:", mediaError);
+            }
+
+            try {
+              const matchedTask = allInstances.find((item) => item.id === instanceId) || null;
+              const taskText = [matchedTask?.title, matchedTask?.description, matchedTask?.category, matchedTask?.taskType]
+                .map((value) => String(value || "").toLowerCase())
+                .join(" ");
+              const inferredContextType =
+                taskText.includes("dysfagi") || taskText.includes("anret") || taskText.includes("blended")
+                  ? "institution"
+                  : "commercial";
+
+              // Udled specifik opgavekategori til præcis AI-vurdering
+              let taskCategory = "egenkontrol";
+              if (taskText.includes("adskillelse") || taskText.includes("separation") || taskText.includes("kryds") || taskText.includes("farvekod")) {
+                taskCategory = "adskillelse";
+              } else if (taskText.includes("temperatur") || taskText.includes("°c") || taskText.includes("køl") || taskText.includes("frost") || taskText.includes("varmhold")) {
+                taskCategory = "temperatur";
+              } else if (taskText.includes("opbevaring") || taskText.includes("lager") || taskText.includes("hylde") || taskText.includes("fifo")) {
+                taskCategory = "opbevaring";
+              } else if (taskText.includes("modtagelse") || taskText.includes("levering") || taskText.includes("varemodtagelse")) {
+                taskCategory = "modtagelse";
+              } else if (taskText.includes("rengør") || taskText.includes("rengor") || taskText.includes("cleaning") || taskText.includes("hygiejne")) {
+                taskCategory = "rengøring";
+              } else if (matchedTask?.category) {
+                taskCategory = String(matchedTask.category).toLowerCase();
+              }
+
+              const analyzeResp = await analyzeCloudinaryAssetCallable({
+                companyId: SETTINGS.companyId,
+                locationId: SETTINGS.locationId,
+                imageUrl: transformedUrl,
+                moduleType: "egenkontrol",
+                itemId: itemId || matchedTask?.equipmentName || matchedTask?.title || matchedTask?.taskId || instanceId,
+                contextType: inferredContextType,
+                taskTitle: matchedTask?.title || "",
+                taskCategory
+              });
+
+              const aiResult = analyzeResp?.data?.result || null;
+              const routing = analyzeResp?.data?.routing || null;
+              
+              // Security: Verify User_ID matches logged-in user
+              const currentUserId = SETTINGS.createdBy;
+              if (!currentUserId) {
+                throw new Error("Bruger-ID mangler. Log ud og ind igen.");
+              }
+              
+              if (aiResult) {
+                // Check image clarity
+                if (routing?.is_unclear || aiResult.is_unclear) {
+                  showToast(routing?.user_message || "Utydeligt billede – prøv igen for korrekt dokumentation", "error");
+                  console.warn("Billede er utydeligt, confidence:", aiResult.confidence);
+                  return;
+                }
+                
+                aiSuggestionsByInstance.set(instanceId, {
+                  handlingUdfort: aiResult.handling_udfort === true,
+                  beskrivelse: String(aiResult.beskrivelse || "").trim(),
+                  confidence: Number(aiResult.confidence || 0),
+                  category: String(aiResult.kategori || "egenkontrol")
+                });
+
+                // Auto-Fill: Insert AI description into comment field
+                const commentInput = document.getElementById(`comment-${instanceId}`);
+                if (commentInput && aiResult.beskrivelse) {
+                  commentInput.value = String(aiResult.beskrivelse || "");
+                }
+
+                // Auto-Fill: Update task instance with AI data and Cloudinary URL
+                await setDoc(doc(db, "task_instances", instanceId), {
+                  lastAiSuggestion: {
+                    handling_udfort: aiResult.handling_udfort === true,
+                    beskrivelse: String(aiResult.beskrivelse || ""),
+                    confidence: Number(aiResult.confidence || 0),
+                    kategori: String(aiResult.kategori || "egenkontrol"),
+                    routing_suggestion: routing?.suggested_module || "egenkontrol"
+                  },
+                  aiUpdatedAt: serverTimestamp(),
+                  // Security: Verify userId matches before updating
+                  userId: currentUserId,
+                  lastUpdatedBy: currentUserId
+                }, { merge: true });
+
+                if (mediaAssetRef) {
+                  await updateDoc(mediaAssetRef, {
+                    aiSuggestion: {
+                      handling_udfort: aiResult.handling_udfort === true,
+                      beskrivelse: String(aiResult.beskrivelse || ""),
+                      confidence: Number(aiResult.confidence || 0),
+                      kategori: String(aiResult.kategori || "egenkontrol"),
+                      routing_suggestion: routing?.suggested_module || "egenkontrol"
+                    },
+                    aiModel: String(analyzeResp?.data?.model || ""),
+                    analyzedAt: serverTimestamp(),
+                    // Security: Verify userId
+                    userId: currentUserId
+                  });
+                }
+
+                const actionEl = button.closest(".task-actions");
+                if (actionEl) {
+                  renderAiPreviewCard(actionEl, {
+                    instanceId,
+                    imageUrl: transformedUrl,
+                    aiResult
+                  });
+                }
+                
+                // User Feedback: Show success toast
+                const categoryName = routing?.suggested_module === "finance" 
+                  ? "Faktura/Regnskab" 
+                  : routing?.suggested_module === "institution" 
+                    ? "Madanretning/Institution" 
+                    : "Egenkontrol";
+                showToast(`AI har genkendt billedet som ${categoryName} og opdateret din rutine`, "success");
+              }
+            } catch (aiError) {
+              console.warn("AI-analyse fejlede, men billedet er gemt:", aiError);
+              showToast("AI-analyse fejlede, men billedet er gemt", "error");
+            }
+
+            const actionEl = button.closest(".task-actions");
+            if (actionEl && !actionEl.querySelector(".task-photo-thumb")) {
+              const thumb = document.createElement("img");
+              thumb.src = transformedUrl;
+              thumb.alt = "Foto";
+              thumb.className = "task-photo-thumb";
+              thumb.style.cssText = "max-width:100%;max-height:120px;border-radius:8px;margin-top:8px;display:block;";
+              button.insertAdjacentElement("afterend", thumb);
+            }
+
+            button.textContent = "\u2713 Foto gemt";
+          } catch (err) {
+            console.error("Cloudinary upload fejl:", err);
+            button.textContent = origLabel;
+            button.disabled = false;
+            
+            // Detaljeret fejl-logning til mobil debugging
+            let errorDetails = {
+              message: String(err?.message || "Ukendt fejl"),
+              name: err?.name,
+              status: err?.status,
+              stack: err?.stack?.substring(0, 200)
+            };
+            
+            // Prøv at udtrække Cloudinary-fejl hvis muligt
+            if (err?.response && typeof err.response.json === "function") {
+              try {
+                const data = await err.response.json();
+                if (data?.error) errorDetails.cloudinaryError = data.error;
+              } catch {}
+            }
+            
+            // Vis detaljeret fejl på mobil
+            const debugInfo = JSON.stringify(errorDetails, null, 2);
+            console.error("Upload fejl detaljer:", debugInfo);
+            
+            const rawMessage = String(err?.message || "");
+            const userMessage = rawMessage.toLowerCase().includes("permission")
+              ? "Foto kunne ikke gemmes pga. adgangsfejl. Log ud/ind og prøv igen."
+              : rawMessage.toLowerCase().includes("network") || rawMessage.toLowerCase().includes("timeout")
+                ? "Foto upload fejlede pga. netværk/timeout. Tjek forbindelse og prøv igen."
+                : rawMessage
+                  ? `Foto upload fejlede: ${rawMessage}`
+                  : "Foto upload fejlede. Prøv igen.";
+            
+            alert(userMessage + "\n\nTeknisk info:\n" + debugInfo);
+          }
+        });
+
+        input.click();
+      });
+    });
+
+    const buttons = document.querySelectorAll(".task-action-btn");
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", async () => {
+        const instanceId = button.dataset.instanceId;
+        const taskId = button.dataset.taskId;
+        const action = button.dataset.action;
+        const comment = getCommentForInstance(instanceId);
+
+        if ((operatingState.isClosed || operatingState.isVacation) && !userIsResponsible()) {
+          alert("Kan ikke gemme normale dagsopgaver når lukket eller ferie er aktiv.");
+          return;
+        }
+
+        if (action === "not_applicable") {
+          const confirmed = window.confirm("Bekræft at denne rutine ikke er i brug i dag.");
+          if (!confirmed) return;
+        }
+
+        if (action === "missing_cleaning") {
+          const confirmed = window.confirm("Bekræft at rengøring mangler og skal registreres.");
+          if (!confirmed) return;
+        }
+
+        if (action === "deviation") {
+          const confirmed = window.confirm("Bekræft at der skal oprettes en afvigelse for denne opgave.");
+          if (!confirmed) return;
+        }
+
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = "Gemmer...";
+
+        try {
+          await saveTaskEntry(instanceId, taskId, action, comment);
+          await loadDashboardData();
+
+          if (action === "deviation") {
+            window.location.href =
+              `/modules/egenkontrol/afvigelser.html?taskId=${encodeURIComponent(taskId || "")}&instanceId=${encodeURIComponent(instanceId)}`;
+          }
+        } catch (error) {
+          console.error("Fejl ved gemning:", error);
+          alert("Kunne ikke gemme opgaven. Tjek console og Firestore-regler.");
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      });
+    });
+  }
+
+  function getEntryPayload(taskId, actionType = "complete", comment = "") {
+    if (actionType === "not_applicable") {
+      return {
+        entryType: "status",
+        valueNumber: null,
+        valueText: "Ikke i brug",
+        valueBoolean: null,
+        valueOption: "not_applicable",
+        unit: null,
+        comment: comment || "Rutinen er ikke i brug i dag"
+      };
+    }
+
+    if (actionType === "missing_cleaning") {
+      return {
+        entryType: "status",
+        valueNumber: null,
+        valueText: "Mangler rengøring",
+        valueBoolean: false,
+        valueOption: "missing_cleaning",
+        unit: null,
+        comment: comment || "Rengøring mangler"
+      };
+    }
+
+    if (actionType === "deviation") {
+      return {
+        entryType: "status",
+        valueNumber: null,
+        valueText: "Afvigelse oprettet",
+        valueBoolean: false,
+        valueOption: "deviation",
+        unit: null,
+        comment: comment || "Afvigelse oprettet fra dashboard"
+      };
+    }
+
+    if (taskId === "temperature_fridge") {
+      return {
+        entryType: "measurement",
+        valueNumber: 4,
+        valueText: null,
+        valueBoolean: null,
+        valueOption: null,
+        unit: "°C",
+        comment: comment || "Registreret fra dashboard"
+      };
+    }
+
+    if (taskId === "freezer_temperature") {
+      return {
+        entryType: "measurement",
+        valueNumber: -20,
+        valueText: null,
+        valueBoolean: null,
+        valueOption: null,
+        unit: "°C",
+        comment: comment || "Registreret fra dashboard"
+      };
+    }
+
+    return {
+      entryType: "check",
+      valueNumber: null,
+      valueText: null,
+      valueBoolean: true,
+      valueOption: null,
+      unit: null,
+      comment: comment || "Udført fra dashboard"
+    };
+  }
+
+  async function alertAlreadyExists(taskId, alertType = null) {
+    let snapshot;
+
+    try {
+      const alertsQuery = query(
+        collection(db, "alerts"),
+        where("companyId", "==", SETTINGS.companyId),
+        where("locationId", "==", SETTINGS.locationId),
+        where("dateKey", "==", getTodayKey())
+      );
+
+      snapshot = await getDocs(alertsQuery);
+    } catch (error) {
+      const alertsQueryLegacy = query(
+        collection(db, "alerts"),
+        where("organizationId", "==", SETTINGS.companyId),
+        where("locationId", "==", SETTINGS.locationId),
+        where("dateKey", "==", getTodayKey())
+      );
+
+      snapshot = await getDocs(alertsQueryLegacy);
+    }
+
+    const items = snapshot.docs.map((item) => item.data());
+
+    return items.some((item) => {
+      const locationMatch = [SETTINGS.locationId, SETTINGS.locationLegacyId].includes(item.locationId);
+      const taskMatch = item.taskId === taskId;
+      const statusMatch = item.status === "open";
+      const typeMatch = alertType ? item.alertType === alertType : true;
+      return locationMatch && taskMatch && statusMatch && typeMatch;
+    });
+  }
+
+  async function maybeCreateAlert(taskId, entryData, entryId, actionType = "complete") {
+    if (operatingState.isClosed || operatingState.isVacation) return;
+
+    const shouldForceAlert = ["missing_cleaning", "deviation"].includes(actionType);
+    const temperatureBased = isTemperatureTask(taskId);
+
+    if (!shouldForceAlert && !temperatureBased) return;
+
+    const result = evaluateTaskResult(taskId, entryData, actionType);
+    if (!result.shouldCreateAlert) return;
+
+    let title = "Afvigelse registreret";
+    let description = entryData.comment || "Afvigelse oprettet fra dashboard";
+    let alertType = "task_deviation";
+    let severity = "medium";
+
+    if (actionType === "missing_cleaning") {
+      title = "Manglende rengøring registreret";
+      description = entryData.comment || "Rengøring mangler på dagens kontrolpunkt";
+      alertType = "missing_cleaning";
+      severity = "high";
+    } else if (actionType === "deviation") {
+      title = "Afvigelse oprettet fra dashboard";
+      description = entryData.comment || "Der er oprettet afvigelse på denne rutine";
+      alertType = "manual_deviation";
+      severity = "high";
+    } else if (taskId === "temperature_fridge") {
+      title = "Køleskabstemperatur over grænse";
+      description = `Registreret temperatur var ${entryData.valueNumber}°C`;
+      alertType = "temperature_out_of_range";
+      severity = "high";
+    } else if (taskId === "freezer_temperature") {
+      title = "Frysertemperatur over grænse";
+      description = `Registreret temperatur var ${entryData.valueNumber}°C`;
+      alertType = "freezer_temperature_out_of_range";
+      severity = "high";
+    }
+
+    const alreadyExists = await alertAlreadyExists(taskId, alertType);
+    if (alreadyExists) return;
+
+    await addDoc(collection(db, "alerts"), {
+      companyId: SETTINGS.companyId,
+      organizationId: SETTINGS.companyId,
+      locationId: SETTINGS.locationId,
+      taskId,
+      sourceType: "task_entry",
+      sourceId: entryId,
+      alertType,
+      severity,
+      status: "open",
+      title,
+      description,
+      dateKey: getTodayKey(),
+      requiresAction: true,
+      assignedTo: SETTINGS.createdBy,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  }
+
+  async function maybeCreateMissedControlAlerts(tasks) {
+    return tasks;
+  }
+
+  async function saveTaskEntry(instanceId, taskId, actionType = "complete", comment = "") {
+    const baseEntryData = getEntryPayload(taskId, actionType, comment);
+    const result = evaluateTaskResult(taskId, baseEntryData, actionType);
+    const matchedTask = allInstances.find((item) => item.id === instanceId || item.taskId === taskId) || null;
+    const aiSuggestion = aiSuggestionsByInstance.get(instanceId) || null;
+
+    await saveRoutineTaskCallable({
+      companyId: SETTINGS.companyId,
+      locationId: SETTINGS.locationId,
+      unitId: "",
+      taskInstanceId: instanceId,
+      taskId: taskId || matchedTask?.taskId || "",
+      taskDateKey: matchedTask?.dateKey || getTodayKey(),
+      actionType,
+      completedBy: SETTINGS.createdBy,
+      completedByName: SETTINGS.currentUserName || SETTINGS.createdBy,
+      entryData: {
+        entryType: baseEntryData.entryType === "measurement" ? "measurement" : "check",
+        measurementValue: baseEntryData.valueNumber,
+        measurementUnit: baseEntryData.unit || "",
+        valueLabel: baseEntryData.valueText || baseEntryData.valueOption || (baseEntryData.valueBoolean === true ? "Fuldført" : ""),
+        note: baseEntryData.comment || comment || "",
+        handling_udfort: aiSuggestion ? aiSuggestion.handlingUdfort : actionType === "complete",
+        beskrivelse: aiSuggestion?.beskrivelse || baseEntryData.comment || comment || "",
+        ai_source: aiSuggestion ? "vision_ai" : "manual",
+        ai_confidence: aiSuggestion ? aiSuggestion.confidence : null,
+        ai_category: aiSuggestion?.category || "egenkontrol"
+      },
+      result
+    });
+  }
+
+  async function loadTasks() {
+    if (!SETTINGS.companyId) return [];
+
+    const today = getTodayKey();
+
+    let snapshot = null;
+
+    const queryVariants = [
+      {
+        orgField: "companyId",
+        orgValue: SETTINGS.companyId,
+        locationValue: SETTINGS.locationId
+      },
+      {
+        orgField: "companyId",
+        orgValue: SETTINGS.companyId,
+        locationValue: SETTINGS.locationLegacyId
+      },
+      {
+        orgField: "organizationId",
+        orgValue: SETTINGS.companyId,
+        locationValue: SETTINGS.locationId
+      },
+      {
+        orgField: "organizationId",
+        orgValue: SETTINGS.companyId,
+        locationValue: SETTINGS.locationLegacyId
+      }
+    ].filter((variant) => Boolean(variant.orgValue) && Boolean(variant.locationValue));
+
+    let lastError = null;
+    for (const variant of queryVariants) {
+      try {
+        snapshot = await getDocs(
+          query(
+            collection(db, "task_instances"),
+            where(variant.orgField, "==", variant.orgValue),
+            where("locationId", "==", variant.locationValue),
+            where("dateKey", "==", today)
+          )
+        );
+        break;
+      } catch (error) {
+        lastError = error;
+        console.warn("Task query variant fejlede:", variant, error);
+      }
+    }
+
+    if (!snapshot) {
+      throw lastError || new Error("Kunne ikke hente task_instances for lokationen.");
+    }
+
+    const tasks = snapshot.docs
+      .map((item) => ({
+        id: item.id,
+        ...item.data()
+      }))
+      .filter((task) => {
+        const matchesDate =
+          task.dateKey === today ||
+          normalizeDateKey(task.dateKey) === today ||
+          normalizeDateKey(task.dueDate) === today ||
+          normalizeDateKey(task.deadlineAt) === today ||
+          normalizeDateKey(task.scheduledFor) === today;
+
+        return matchesDate;
+      });
+
+    await maybeCreateMissedControlAlerts(tasks);
+
+    allInstances = tasks;
+    completionCount = tasks.filter((task) => task.status === "completed").length;
+    return tasks;
+  }
+
+  async function loadAlerts() {
+    if (!SETTINGS.companyId) {
+      alertCount = 0;
+      return;
+    }
+
+    if (operatingState.isClosed || operatingState.isVacation) {
+      alertCount = 0;
+      return;
+    }
+
+    try {
+      let snapshot;
+
+      try {
+        const alertsQuery = query(
+          collection(db, "alerts"),
+          where("companyId", "==", SETTINGS.companyId),
+          where("locationId", "==", SETTINGS.locationId),
+          where("dateKey", "==", getTodayKey())
+        );
+
+        snapshot = await getDocs(alertsQuery);
+      } catch (error) {
+        const alertsQueryLegacy = query(
+          collection(db, "alerts"),
+          where("organizationId", "==", SETTINGS.companyId),
+          where("locationId", "==", SETTINGS.locationId),
+          where("dateKey", "==", getTodayKey())
+        );
+
+        snapshot = await getDocs(alertsQueryLegacy);
+      }
+
+      const todayAlerts = snapshot.docs.map((item) => item.data());
+
+      alertCount = todayAlerts.length;
+    } catch (error) {
+      console.warn("Kunne ikke hente alerts:", error);
+      alertCount = 0;
+    }
+  }
+
+  async function setOperatingMode(mode) {
+    if (!userIsResponsible()) {
+      alert("Kun ansvarlige brugere må ændre driftstatus.");
+      return;
+    }
+
+    let reason = "";
+    let untilDateKey = "";
+
+    if (mode === "closed") {
+      reason = window.prompt("Hvorfor er lokationen lukket?", operatingState.reason || "Lukket i dag") || "";
+      untilDateKey = window.prompt("Gælder til dato (YYYY-MM-DD)?", getTodayKey()) || getTodayKey();
+    }
+
+    if (mode === "vacation") {
+      reason = window.prompt("Hvad er ferie- eller pauseårsagen?", operatingState.reason || "Ferie") || "";
+      untilDateKey = window.prompt("Gælder til dato (YYYY-MM-DD)?", getTodayKey()) || getTodayKey();
+    }
+
+    const payload = {
+      companyId: SETTINGS.companyId,
+      organizationId: SETTINGS.companyId,
+      locationId: SETTINGS.locationId,
+      updatedBy: SETTINGS.currentUserName || SETTINGS.createdBy,
+      updatedAt: serverTimestamp()
+    };
+
+    if (mode === "open") {
+      payload.isActive = false;
+      payload.closed = false;
+      payload.vacation = false;
+      payload.reason = "";
+      payload.untilDateKey = null;
+    }
+
+    if (mode === "closed") {
+      payload.isActive = true;
+      payload.closed = true;
+      payload.vacation = false;
+      payload.reason = reason.trim();
+      payload.untilDateKey = normalizeDateKey(untilDateKey) || getTodayKey();
+    }
+
+    if (mode === "vacation") {
+      payload.isActive = true;
+      payload.closed = false;
+      payload.vacation = true;
+      payload.reason = reason.trim();
+      payload.untilDateKey = normalizeDateKey(untilDateKey) || getTodayKey();
+    }
+
+    await setDoc(doc(db, "operating_overrides", getOverrideDocId()), payload, { merge: true });
+    await loadDashboardData();
+  }
+
+  function bindOperatingButtons() {
+    if (operatingButtonsBound) return;
+
+    setOpenBtn?.addEventListener("click", () => setOperatingMode("open"));
+    setClosedBtn?.addEventListener("click", () => setOperatingMode("closed"));
+    setVacationBtn?.addEventListener("click", () => setOperatingMode("vacation"));
+
+    setOpenBtnInline?.addEventListener("click", () => setOperatingMode("open"));
+    setClosedBtnInline?.addEventListener("click", () => setOperatingMode("closed"));
+    setVacationBtnInline?.addEventListener("click", () => setOperatingMode("vacation"));
+    setDateBtnInline?.addEventListener("click", () => setReferenceDateFromPrompt());
+    locationSwitcherEl?.addEventListener("change", async (event) => {
+      const target = event.target;
+      await switchLocation(target?.value || "");
+    });
+
+    operatingButtonsBound = true;
+  }
+
+  async function loadOperatingState() {
+    return;
+  }
+
+  function startTaskListener() {
+    if (typeof taskListenerUnsubscribe === "function") {
+      taskListenerUnsubscribe();
+      taskListenerUnsubscribe = null;
+    }
+  }
+
+  async function loadDashboardData() {
+    if (dashboardLoadInFlight) return;
+
+    dashboardLoadInFlight = true;
+    if (taskListEl) {
+      taskListEl.innerHTML = `<div class="loading-box">Henter dagens opgaver…</div>`;
+    }
+
+    try {
+      const [snapshot, activeRiskData] = await Promise.all([
+        fetchDashboardSnapshot(),
+        loadActiveDashboardRiskAnalysis()
+      ]);
+      operatingOverride = snapshot?.operatingOverride || null;
+      operatingState = resolveOperatingState(operatingOverride);
+      applyOperatingStateToUi();
+
+      const tasks = Array.isArray(snapshot?.tasks) ? snapshot.tasks : [];
+      allInstances = tasks;
+      completionCount = tasks.filter((task) => String(task.status || "") === "completed").length;
+      alertCount = Number(snapshot?.alertCount || 0);
+
+      renderTasks(tasks);
+      renderHaccpSnapshot(activeRiskData?.activeSnapshot || activeRiskData || snapshot?.haccpSnapshot || null);
+
+      updateKpis(
+        allInstances.length,
+        completionCount,
+        operatingState.isClosed || operatingState.isVacation ? 0 : alertCount
+      );
+    } catch (error) {
+      console.error("Fejl ved hentning af dashboard-data:", error);
+      if (taskListEl) {
+        taskListEl.innerHTML = `
+          <div class="error-box">
+            Kunne ikke hente dagsopgaver fra Firestore.
+          </div>
+        `;
+      }
+      updateKpis(0, 0, 0);
+    } finally {
+      dashboardLoadInFlight = false;
+    }
+  }
+
+  setupAuthGate({
+    appName: "Madkontrollen Pro",
+    onAuthenticated: async ({ user, profile }) => {
+      console.log("DEBUG: onAuthenticated called with profile:", profile);
+      
+      SETTINGS.createdBy = user.uid;
+      SETTINGS.currentUserName = String(
+        profile?.displayName || user.displayName || user.email || user.uid
+      );
+      SETTINGS.currentUserRole = String(profile?.role || "employee").trim().toLowerCase();
+      SETTINGS.currentUserCompanyId = getProfileCompanyId(profile);
+      SETTINGS.currentUserLocations = normalizeLocationIds(profile);
+      const preferredProfileLocationId = getProfileLocationId(profile);
+      if (preferredProfileLocationId && !SETTINGS.currentUserLocations.includes(preferredProfileLocationId)) {
+        SETTINGS.currentUserLocations.unshift(preferredProfileLocationId);
+      }
+
+      console.log("DEBUG: SETTINGS after profile parsing:", {
+        currentUserCompanyId: SETTINGS.currentUserCompanyId,
+        currentUserLocations: SETTINGS.currentUserLocations,
+        currentUserRole: SETTINGS.currentUserRole
+      });
+
+      console.log("DEBUG: Full profile object:", profile);
+
+      // Check for impersonation mode (super-admin viewing as another company)
+      if (isImpersonating()) {
+        SETTINGS.companyId = getEffectiveCompanyId(SETTINGS.currentUserCompanyId);
+        SETTINGS.locationId = getEffectiveLocationId(SETTINGS.currentUserLocations[0]);
+        
+        // Render impersonation banner
+        renderImpersonationBanner();
+      } else {
+        // Require valid companyId from user profile - no fallback to demo data
+        if (!SETTINGS.currentUserCompanyId) {
+          console.error("User profile missing companyId/organizationId. Profile:", profile);
+          showProfileErrorState("Din brugerprofil mangler firma-information. Kontakt support for at få rettet din profil.");
+          return;
+        }
+        
+        SETTINGS.companyId = SETTINGS.currentUserCompanyId;
+        
+        const storedLocation = getStoredLocationId();
+        const profileLocationId = getProfileLocationId(profile);
+        const firstAllowedLocation = profileLocationId || SETTINGS.currentUserLocations[0];
+        
+        if (!firstAllowedLocation) {
+          console.error("User profile missing locationId");
+          showProfileErrorState("Din brugerprofil mangler lokations-information. Kontakt support for at få rettet din profil.");
+          return;
+        }
+        
+        const selectedLocation = SETTINGS.currentUserLocations.includes(storedLocation)
+          ? storedLocation
+          : firstAllowedLocation;
+
+        SETTINGS.locationId = selectedLocation;
+        setStoredLocationId(selectedLocation);
+      }
+
+      console.log("DEBUG: Final SETTINGS:", {
+        companyId: SETTINGS.companyId,
+        locationId: SETTINGS.locationId
+      });
+
+      SETTINGS.companyLegacyId = toLegacyId(SETTINGS.companyId);
+      SETTINGS.locationLegacyId = toLegacyId(SETTINGS.locationId);
+
+      await refreshDashboardPrettyNames({ user, profile });
+
+      renderLocationSwitcher();
+
+      bindOperatingButtons();
+      bindTeamManagement();
+      startTaskListener();
+      await loadDashboardData();
+      await loadLocationUsers();
+
+      // Load risk analysis from onboarding
+      await loadRiskAnalysisCard(db, SETTINGS.companyId, SETTINGS.locationId);
+
+      // Hide unpurchased modules and show upgrade cards
+      hideUnpurchasedModules(profile);
+    },
+    onSignedOut: async () => {
+      selectedDateKey = null;
+      allInstances = [];
+      completionCount = 0;
+      alertCount = 0;
+
+      if (typeof taskListenerUnsubscribe === "function") {
+        taskListenerUnsubscribe();
+        taskListenerUnsubscribe = null;
+      }
+
+      if (taskListEl) {
+        taskListEl.innerHTML = `<div class="loading-box">Log ind for at se dashboardet.</div>`;
+      }
+
+      if (haccpStatusTextEl) {
+        haccpStatusTextEl.textContent = "Log ind for at hente HACCP-data fra Firebase.";
+      }
+
+      if (locationSwitcherEl) {
+        locationSwitcherEl.innerHTML = "";
+      }
+
+      if (teamUserListEl) {
+        teamUserListEl.innerHTML = `<div class="team-empty">Log ind som ejer eller admin for at se lokationens brugere.</div>`;
+      }
+
+      setTeamStatus("");
+
+      updateKpis(0, 0, 0);
+    }
+  });
+
+  printHaccpBtn?.addEventListener("click", () => {
+    window.print();
+  });
+</script>
+
+  <!-- Process Instances -->
+  <script type="module" src="core/processInstances.js"></script>
+  <script src="modules/egenkontrol/process-dashboard.js"></script>
+</body>
+</html>
+

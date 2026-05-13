@@ -1,0 +1,264 @@
+{
+  "source_file": "public/modules/accounting/bilag.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "createDemoReceipts",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "engineLabel",
+        "filterReceipts",
+        "formatMoney",
+        "getStore",
+        "resetStore",
+        "saveStore",
+        "statusChipClass",
+        "statusLabel",
+        "supplierMatchLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "engineLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "filterReceipts",
+        "getStore",
+        "markApproved",
+        "moveToApproval",
+        "render",
+        "saveStore",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "filterReceipts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getStore",
+        "markApproved",
+        "moveToApproval",
+        "render",
+        "saveStore",
+        "statusChipClass",
+        "statusLabel",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatMoney",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "engineLabel",
+        "filterReceipts",
+        "getStore",
+        "moveToApproval",
+        "statusChipClass",
+        "statusLabel",
+        "supplierMatchLabel",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStore",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "createDemoReceipts",
+        "engineLabel",
+        "filterReceipts",
+        "formatMoney",
+        "resetStore",
+        "saveStore",
+        "statusChipClass",
+        "statusLabel",
+        "supplierMatchLabel",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "markApproved",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "engineLabel",
+        "filterReceipts",
+        "formatMoney",
+        "getStore",
+        "render",
+        "saveStore",
+        "statusChipClass",
+        "statusLabel",
+        "supplierMatchLabel",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "moveToApproval",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "engineLabel",
+        "filterReceipts",
+        "formatMoney",
+        "getStore",
+        "markApproved",
+        "render",
+        "saveStore",
+        "statusChipClass",
+        "statusLabel",
+        "supplierMatchLabel",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "render",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "engineLabel",
+        "filterReceipts",
+        "formatMoney",
+        "getStore",
+        "statusChipClass",
+        "statusLabel",
+        "supplierMatchLabel",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "resetStore",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "createDemoReceipts",
+        "engineLabel",
+        "filterReceipts",
+        "formatMoney",
+        "saveStore",
+        "statusChipClass",
+        "statusLabel",
+        "supplierMatchLabel",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "saveStore",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "createDemoReceipts",
+        "engineLabel",
+        "filterReceipts",
+        "formatMoney",
+        "resetStore",
+        "statusChipClass",
+        "statusLabel",
+        "supplierMatchLabel",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "statusChipClass",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "engineLabel",
+        "filterReceipts",
+        "getStore",
+        "markApproved",
+        "moveToApproval",
+        "render",
+        "saveStore",
+        "supplierMatchLabel",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "statusLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "engineLabel",
+        "filterReceipts",
+        "getStore",
+        "markApproved",
+        "moveToApproval",
+        "render",
+        "saveStore",
+        "statusChipClass",
+        "supplierMatchLabel",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "supplierMatchLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "engineLabel",
+        "filterReceipts",
+        "getStore",
+        "markApproved",
+        "moveToApproval",
+        "render",
+        "saveStore",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateStats",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "engineLabel",
+        "filterReceipts",
+        "formatMoney",
+        "getStore",
+        "markApproved",
+        "moveToApproval",
+        "render",
+        "saveStore",
+        "statusChipClass",
+        "statusLabel",
+        "supplierMatchLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

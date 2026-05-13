@@ -1,0 +1,40 @@
+{
+  "source_file": "public/scripts/audit-semantic-mappings.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "auditSemanticMappings",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getExpectedGuideKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getExpectedGuideKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "auditSemanticMappings"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

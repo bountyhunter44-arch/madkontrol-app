@@ -1,0 +1,26 @@
+{
+  "source_file": "public/seed-data/importTasks.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "tasks"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "importTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "tasks"
+      ]
+    }
+  ]
+}

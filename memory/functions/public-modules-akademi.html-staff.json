@@ -1,0 +1,63 @@
+{
+  "source_file": "public/modules/akademi.html/staff.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "applyFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadSharedPartials",
+        "normalize",
+        "setupStaffFilters"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadSharedPartials",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyFilters",
+        "normalize",
+        "setupStaffFilters"
+      ],
+      "selectors": [
+        ".staff-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "normalize",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "applyFilters",
+        "loadSharedPartials",
+        "setupStaffFilters"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setupStaffFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyFilters",
+        "loadSharedPartials",
+        "normalize"
+      ],
+      "selectors": [
+        ".staff-card"
+      ],
+      "collections": []
+    }
+  ]
+}

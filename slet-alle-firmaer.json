@@ -1,0 +1,30 @@
+{
+  "dryRun": true,
+  "allowAllCompanies": false,
+  "targetCompanyIds": [
+    "onboarding_aroi-d"
+  ],
+  "collectionsByCompanyId": [
+    "task_templates",
+    "task_instances",
+    "verification_instances",
+    "onboarding_answers",
+    "haccp_snapshots",
+    "live_user_profiles",
+    "daily_reports",
+    "daily_runs",
+    "deviations",
+    "egenkontrol_programs",
+    "equipment",
+    "media_assets",
+    "operating_overrides",
+    "program_sections"
+  ],
+  "collectionsByOrganizationId": [],
+  "collectionsByLocationId": [],
+  "deleteUsersDocs": false,
+  "deleteAuthUsers": false,
+  "cleanupUserCompanyFields": false,
+  "cleanupCompanyFields": [],
+  "cleanupLocationFields": []
+}

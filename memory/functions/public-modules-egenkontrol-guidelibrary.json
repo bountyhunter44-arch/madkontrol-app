@@ -1,0 +1,42 @@
+{
+  "source_file": "public/modules/egenkontrol/guideLibrary.js",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getGuideByKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getGuideForTask"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getGuideForTask",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getGuideByKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "mapCategoryToGuideKey",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getGuideByKey",
+        "getGuideForTask"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

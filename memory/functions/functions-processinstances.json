@@ -1,0 +1,188 @@
+{
+  "source_file": "functions/processInstances.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin"
+  ],
+  "exports": [
+    "addCoolingMeasurement",
+    "completeCoolingProcess",
+    "completeReheatingProcess",
+    "disposeCoolingProcess",
+    "loadActiveProcessInstances",
+    "startCoolingProcess",
+    "startNewCoolingFromReheating",
+    "startReheatingProcess"
+  ],
+  "collections": [
+    "deviations",
+    "process_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "addCoolingMeasurement",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "completeCoolingProcess",
+        "createCoolingDeviation"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "process_instances"
+      ]
+    },
+    {
+      "name": "completeCoolingProcess",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "createCoolingDeviation"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "process_instances"
+      ]
+    },
+    {
+      "name": "completeReheatingProcess",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "createReheatingDeviation",
+        "disposeCoolingProcess",
+        "startNewCoolingFromReheating"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "process_instances"
+      ]
+    },
+    {
+      "name": "createCoolingDeviation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "startReheatingProcess"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "process_instances"
+      ]
+    },
+    {
+      "name": "createReheatingDeviation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "disposeCoolingProcess",
+        "loadActiveProcessInstances",
+        "startCoolingProcess",
+        "startNewCoolingFromReheating"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "process_instances"
+      ]
+    },
+    {
+      "name": "disposeCoolingProcess",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "loadActiveProcessInstances",
+        "startCoolingProcess",
+        "startNewCoolingFromReheating"
+      ],
+      "selectors": [],
+      "collections": [
+        "process_instances"
+      ]
+    },
+    {
+      "name": "durationHours",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "createCoolingDeviation",
+        "startReheatingProcess"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "process_instances"
+      ]
+    },
+    {
+      "name": "loadActiveProcessInstances",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "process_instances"
+      ]
+    },
+    {
+      "name": "overallStatus",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "createCoolingDeviation",
+        "startReheatingProcess"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "process_instances"
+      ]
+    },
+    {
+      "name": "startCoolingProcess",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addCoolingMeasurement",
+        "completeCoolingProcess"
+      ],
+      "selectors": [],
+      "collections": [
+        "process_instances"
+      ]
+    },
+    {
+      "name": "startNewCoolingFromReheating",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "loadActiveProcessInstances",
+        "startCoolingProcess"
+      ],
+      "selectors": [],
+      "collections": [
+        "process_instances"
+      ]
+    },
+    {
+      "name": "startReheatingProcess",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "completeReheatingProcess",
+        "createReheatingDeviation"
+      ],
+      "selectors": [],
+      "collections": [
+        "deviations",
+        "process_instances"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "source_file": "scripts/audit-equipment-units.cjs",
+  "module": "general",
+  "imports": [
+    "../node_modules/firebase-admin",
+    "../serviceAccountKey.json"
+  ],
+  "exports": [],
+  "collections": [
+    "equipment_units",
+    "locations",
+    "onboarding_sessions",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "equipment_units",
+        "locations",
+        "onboarding_sessions",
+        "task_templates"
+      ]
+    }
+  ]
+}

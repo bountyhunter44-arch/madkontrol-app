@@ -1,0 +1,73 @@
+{
+  "source_file": "public/modules/egenkontrol/generators/buildSkemaer.js",
+  "module": "general",
+  "imports": [
+    "./buildPersonalisering.js"
+  ],
+  "exports": [
+    "buildSkemaer",
+    "getCCPSkemaer",
+    "getEnabledSkemaer",
+    "getGAGSkemaer",
+    "getSkemaByType"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildSkemaer",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getCCPSkemaer",
+        "getEnabledSkemaer",
+        "getGAGSkemaer",
+        "getSkemaByType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCCPSkemaer",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getGAGSkemaer"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEnabledSkemaer",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getCCPSkemaer",
+        "getGAGSkemaer",
+        "getSkemaByType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getGAGSkemaer",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSkemaByType",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getCCPSkemaer",
+        "getGAGSkemaer"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

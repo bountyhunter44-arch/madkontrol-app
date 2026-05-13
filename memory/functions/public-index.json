@@ -1,0 +1,117 @@
+{
+  "source_file": "public/index.html",
+  "module": "general",
+  "imports": [
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "closeModal",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "ensureLandingLoginModal",
+        "handleStartDemo",
+        "handleSubmit",
+        "openLandingLoginModal"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "ensureLandingLoginModal",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "closeModal",
+        "handleSubmit"
+      ],
+      "selectors": [
+        "#landingLoginEmail",
+        "#landingLoginForm",
+        "#landingLoginPassword",
+        "#landingLoginStatus",
+        ".login-modal-close"
+      ],
+      "collections": []
+    },
+    {
+      "name": "handleStartDemo",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleSubmit",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "closeModal",
+        "ensureLandingLoginModal",
+        "handleStartDemo",
+        "openLandingLoginModal"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "openCenteredPreview",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureLandingLoginModal"
+      ],
+      "selectors": [
+        ".module-preview-link"
+      ],
+      "collections": []
+    },
+    {
+      "name": "openLandingLoginModal",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "ensureLandingLoginModal",
+        "handleStartDemo"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "showSlide",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "ensureLandingLoginModal",
+        "openCenteredPreview",
+        "startAutoSlider"
+      ],
+      "selectors": [
+        ".module-preview-link"
+      ],
+      "collections": []
+    },
+    {
+      "name": "startAutoSlider",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "ensureLandingLoginModal",
+        "openCenteredPreview",
+        "showSlide"
+      ],
+      "selectors": [
+        ".module-preview-link"
+      ],
+      "collections": []
+    }
+  ]
+}

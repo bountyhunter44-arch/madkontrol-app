@@ -1,0 +1,292 @@
+{
+  "source_file": "public/modules/accounting/bilag-godkend.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "approvalQueue",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "chipForConfidence",
+        "classStatus",
+        "formatMoney",
+        "getSelectedReceipt",
+        "getStore",
+        "labelStatus",
+        "renderQueue",
+        "selectReceipt",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "approveReceipt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "approvalQueue",
+        "getStore",
+        "renderQueue",
+        "saveChanges",
+        "saveStore",
+        "sendBackToInbox"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "chipForConfidence",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "approvalQueue",
+        "classStatus",
+        "getSelectedReceipt",
+        "getStore",
+        "labelStatus",
+        "renderQueue",
+        "selectReceipt",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "classStatus",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "approvalQueue",
+        "chipForConfidence",
+        "formatMoney",
+        "getSelectedReceipt",
+        "getStore",
+        "labelStatus",
+        "renderEditor",
+        "renderQueue",
+        "selectReceipt",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createDemoReceipts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 11,
+      "calls": [
+        "approvalQueue",
+        "approveReceipt",
+        "getStore",
+        "renderQueue",
+        "saveChanges",
+        "saveStore",
+        "sendBackToInbox"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatMoney",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "approvalQueue",
+        "chipForConfidence",
+        "classStatus",
+        "getSelectedReceipt",
+        "getStore",
+        "labelStatus",
+        "renderQueue",
+        "selectReceipt",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSelectedReceipt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "approvalQueue",
+        "chipForConfidence",
+        "classStatus",
+        "formatMoney",
+        "getStore",
+        "labelStatus",
+        "renderEditor",
+        "renderQueue",
+        "selectReceipt",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStore",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "approvalQueue",
+        "chipForConfidence",
+        "classStatus",
+        "createDemoReceipts",
+        "formatMoney",
+        "getSelectedReceipt",
+        "labelStatus",
+        "renderQueue",
+        "saveStore",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "labelStatus",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "approvalQueue",
+        "chipForConfidence",
+        "classStatus",
+        "formatMoney",
+        "getSelectedReceipt",
+        "getStore",
+        "renderEditor",
+        "renderQueue",
+        "selectReceipt",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderEditor",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "chipForConfidence",
+        "classStatus",
+        "escapeHtml",
+        "labelStatus"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderQueue",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "approvalQueue",
+        "chipForConfidence",
+        "classStatus",
+        "formatMoney",
+        "getSelectedReceipt",
+        "getStore",
+        "labelStatus",
+        "renderEditor",
+        "selectReceipt",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "saveChanges",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "approvalQueue",
+        "approveReceipt",
+        "getStore",
+        "renderQueue",
+        "saveStore",
+        "sendBackToInbox"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "saveStore",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "approvalQueue",
+        "chipForConfidence",
+        "classStatus",
+        "formatMoney",
+        "getSelectedReceipt",
+        "getStore",
+        "labelStatus",
+        "renderQueue",
+        "selectReceipt",
+        "updateStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "selectReceipt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "chipForConfidence",
+        "classStatus",
+        "escapeHtml",
+        "labelStatus",
+        "renderEditor",
+        "renderQueue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sendBackToInbox",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getStore",
+        "renderQueue",
+        "saveChanges",
+        "saveStore"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateStats",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "approvalQueue",
+        "chipForConfidence",
+        "classStatus",
+        "formatMoney",
+        "getSelectedReceipt",
+        "getStore",
+        "labelStatus",
+        "renderEditor",
+        "renderQueue",
+        "selectReceipt"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

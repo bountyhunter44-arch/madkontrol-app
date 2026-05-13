@@ -1,0 +1,187 @@
+{
+  "source_file": "scripts/generate-templates-from-onboarding.cjs",
+  "module": "onboarding",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "equipment",
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildControlPackagesFromOnboarding",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getTemplateDefinitionForGuideKey",
+        "normalizeText",
+        "safeArray"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "dedupeByTemplateId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildControlPackagesFromOnboarding",
+        "getTemplateDefinitionForGuideKey",
+        "normalizeText",
+        "safeArray"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateTemplatesFromOnboarding",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildControlPackagesFromOnboarding",
+        "dedupeByTemplateId",
+        "getTemplateDefinitionForGuideKey",
+        "safeArray",
+        "slugify",
+        "upsertTemplatesToFirestore"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getDateKey",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "regenerateTaskInstancesFromTemplates",
+        "safeArray",
+        "shouldGenerateForDate"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getTemplateDefinitionForGuideKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "normalizeText",
+        "safeArray"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "normalizeText",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildControlPackagesFromOnboarding",
+        "dedupeByTemplateId",
+        "getTemplateDefinitionForGuideKey",
+        "safeArray",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "regenerateTaskInstancesFromTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDateKey",
+        "safeArray",
+        "shouldGenerateForDate"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateTemplatesFromOnboarding",
+        "regenerateTaskInstancesFromTemplates",
+        "upsertTemplatesToFirestore"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "safeArray",
+      "type": "function",
+      "approx_occurrences": 18,
+      "calls": [
+        "buildControlPackagesFromOnboarding",
+        "dedupeByTemplateId",
+        "getTemplateDefinitionForGuideKey",
+        "normalizeText",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldGenerateForDate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDateKey",
+        "regenerateTaskInstancesFromTemplates",
+        "safeArray"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildControlPackagesFromOnboarding",
+        "dedupeByTemplateId",
+        "getTemplateDefinitionForGuideKey",
+        "normalizeText",
+        "safeArray"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "upsertTemplatesToFirestore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDateKey",
+        "regenerateTaskInstancesFromTemplates",
+        "safeArray",
+        "shouldGenerateForDate"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

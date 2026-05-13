@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Afvigelser | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import app, { auth, db } from "/core/firebase-config.js";
+    import { collection, query, where, orderBy, getDocs, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    let currentUser = null;
+    let userSettings = {};
+
+    setupAuthGate({
+      appName: "Madkontrollen Pro - Afvigelser",
+      onAuthenticated: async ({ user, profile }) => {
+        currentUser = user;
+        userSettings = profile || {};
+        await loadDeviations();
+      },
+      onSignedOut: async () => {
+        const emptyState = document.getElementById("empty-state");
+        if (emptyState) emptyState.style.display = "block";
+      }
+    });
+
+    async function loadDeviations() {
+      const deviationsList = document.getElementById("deviations-list");
+      const emptyState = document.getElementById("empty-state");
+      
+      if (!userSettings.companyId || !userSettings.locationId) {
+        deviationsList.innerHTML = "";
+        emptyState.style.display = "block";
+        return;
+      }
+
+      const q = query(
+        collection(db, "deviations"),
+        where("companyId", "==", userSettings.companyId),
+        where("locationId", "==", userSettings.locationId),
+        orderBy("createdAt", "desc")
+      );
+
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        deviationsList.innerHTML = "";
+        emptyState.style.display = "block";
+        return;
+      }
+
+      emptyState.style.display = "none";
+      deviationsList.innerHTML = "";
+
+      snapshot.forEach((docSnap) => {
+        const deviation = docSnap.data();
+        const row = createDeviationRow(deviation);
+        deviationsList.appendChild(row);
+      });
+    }
+
+    function createDeviationRow(deviation) {
+      const row = document.createElement("div");
+      row.className = "deviation-row";
+      row.onclick = () => openDeviationDetail(deviation);
+
+      const createdDate = deviation.createdAt?.toDate?.() || new Date(deviation.beforeImage?.detectedAt || Date.now());
+      const dateStr = createdDate.toLocaleDateString("da-DK", { day: "2-digit", month: "short", year: "numeric" });
+      const timeStr = createdDate.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+
+      const type = deviation.taskTitle || deviation.equipmentName || "Ukendt";
+      const status = deviation.status === "approved_for_report" || deviation.status === "resolved"
+        ? "✅ Løst" 
+        : deviation.afterImage 
+          ? "⏳ Afventer godkendelse"
+          : "🚨 Mangler efter-billede";
+
+      const statusClass = deviation.status === "approved_for_report" || deviation.status === "resolved"
+        ? "status-resolved" 
+        : deviation.afterImage 
+          ? "status-pending"
+          : "status-open";
+
+      row.innerHTML = `
+        <div class="deviation-date">
+          <div class="date-day">${dateStr}</div>
+          <div class="date-time">${timeStr}</div>
+        </div>
+        <div class="deviation-type">
+          <div class="type-title">${escapeHtml(type)}</div>
+          <div class="type-desc">${escapeHtml(deviation.areaName || "")}</div>
+        </div>
+        <div class="deviation-status ${statusClass}">
+          ${status}
+        </div>
+        <div class="deviation-arrow">→</div>
+      `;
+
+      return row;
+    }
+
+    function openDeviationDetail(deviation) {
+      const modal = document.getElementById("deviation-modal");
+      const modalContent = document.getElementById("modal-content");
+
+      const beforeImg = deviation.beforeImage?.optimizedUrl || deviation.beforeImage?.imageUrl || "";
+      const afterImg = deviation.afterImage?.optimizedUrl || deviation.afterImage?.imageUrl || "";
+      const aiDescription = deviation.beforeImage?.aiDescription || deviation.aiAnalysis?.beskrivelse || "";
+      const afterDescription = deviation.afterImage?.aiDescription || "";
+      
+      const beforeDate = deviation.beforeImage?.detectedAt 
+        ? new Date(deviation.beforeImage.detectedAt).toLocaleString("da-DK")
+        : "Ukendt";
+      const afterDate = deviation.afterImage?.detectedAt 
+        ? new Date(deviation.afterImage.detectedAt).toLocaleString("da-DK")
+        : "-";
+
+      const measurement = deviation.actualMeasurement 
+        ? `${deviation.actualMeasurement}${deviation.measurementUnit || ""}`
+        : "-";
+      const correctedMeasurement = deviation.correctedMeasurement 
+        ? `${deviation.correctedMeasurement}${deviation.measurementUnit || ""}`
+        : "-";
+
+      const isResolved = deviation.status === "approved_for_report" || deviation.status === "resolved";
+      const hasAfterImage = !!deviation.afterImage;
+
+      modalContent.innerHTML = `
+        <div class="modal-header">
+          <h2>Afvigelse: ${escapeHtml(deviation.taskTitle || "Ukendt")}</h2>
+          <button class="modal-close" onclick="closeDeviationModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="deviation-info-grid">
+            <div class="info-item">
+              <span class="info-label">Udstyr:</span>
+              <span class="info-value">${escapeHtml(deviation.equipmentName || "-")}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Område:</span>
+              <span class="info-value">${escapeHtml(deviation.areaName || "-")}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Alvorlighed:</span>
+              <span class="info-value severity-${deviation.severity || "medium"}">${deviation.severity === "critical" ? "Kritisk" : "Moderat"}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Status:</span>
+              <span class="info-value">${isResolved ? "✅ Løst" : hasAfterImage ? "⏳ Afventer godkendelse" : "🚨 Åben"}</span>
+            </div>
+          </div>
+
+          <div class="images-comparison">
+            <div class="image-section">
+              <h3>FØR (Afvigelse fundet)</h3>
+              ${beforeImg ? `<img src="${beforeImg}" alt="Før-billede" class="deviation-image">` : '<div class="no-image">Intet billede</div>'}
+              <div class="image-meta">
+                <div class="meta-row"><strong>Tidspunkt:</strong> ${beforeDate}</div>
+                <div class="meta-row"><strong>Måling:</strong> ${measurement}</div>
+                <div class="meta-row"><strong>AI Analyse:</strong></div>
+                <div class="ai-description">${escapeHtml(aiDescription)}</div>
+                ${deviation.aiAnalysis?.confidence ? `<div class="meta-row"><strong>Konfidans:</strong> ${Math.round(deviation.aiAnalysis.confidence * 100)}%</div>` : ""}
+              </div>
+            </div>
+
+            <div class="image-section">
+              <h3>EFTER (Udbedret)</h3>
+              ${afterImg ? `<img src="${afterImg}" alt="Efter-billede" class="deviation-image">` : '<div class="no-image">Afventer efter-billede</div>'}
+              ${hasAfterImage ? `
+                <div class="image-meta">
+                  <div class="meta-row"><strong>Tidspunkt:</strong> ${afterDate}</div>
+                  <div class="meta-row"><strong>Måling:</strong> ${correctedMeasurement}</div>
+                  <div class="meta-row"><strong>AI Analyse:</strong></div>
+                  <div class="ai-description">${escapeHtml(afterDescription)}</div>
+                  ${deviation.afterImage?.aiConfidence ? `<div class="meta-row"><strong>Konfidans:</strong> ${Math.round(deviation.afterImage.aiConfidence * 100)}%</div>` : ""}
+                </div>
+              ` : ""}
+            </div>
+          </div>
+
+          ${deviation.resolutionTimeMinutes ? `
+            <div class="resolution-time">
+              ⏱️ Reaktionstid: <strong>${deviation.resolutionTimeMinutes} minutter</strong>
+            </div>
+          ` : ""}
+
+          <div class="manual-note-section">
+            <label for="manual-note">Manuel note til tilsynsrapport:</label>
+            <textarea 
+              id="manual-note" 
+              class="manual-note-input" 
+              placeholder="Tilføj eventuelle kommentarer til tilsynsrapporten..."
+              ${isResolved ? "disabled" : ""}
+            >${escapeHtml(deviation.manualNote || "")}</textarea>
+          </div>
+
+          <div class="modal-actions">
+            ${!isResolved && hasAfterImage ? `
+              <button class="btn btn-primary" onclick="approveDeviation('${deviation.deviationId}')">
+                ✓ Godkend til Rapport
+              </button>
+            ` : ""}
+            ${isResolved ? `
+              <div class="approved-badge">✅ Godkendt og arkiveret</div>
+            ` : ""}
+            <button class="btn btn-secondary" onclick="closeDeviationModal()">Luk</button>
+          </div>
+        </div>
+      `;
+
+      modal.style.display = "flex";
+    }
+
+    window.closeDeviationModal = function() {
+      document.getElementById("deviation-modal").style.display = "none";
+    };
+
+    window.approveDeviation = async function(deviationId) {
+      const manualNote = document.getElementById("manual-note").value.trim();
+      
+      try {
+        await updateDoc(doc(db, "deviations", deviationId), {
+          status: "approved_for_report",
+          manualNote: manualNote,
+          approvedAt: serverTimestamp(),
+          approvedBy: currentUser.uid,
+          updatedAt: serverTimestamp()
+        });
+
+        alert("Afvigelse godkendt og arkiveret til rapport!");
+        closeDeviationModal();
+        await loadDeviations();
+      } catch (error) {
+        console.error("Fejl ved godkendelse:", error);
+        alert("Kunne ikke godkende afvigelse. Prøv igen.");
+      }
+    };
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text || "";
+      return div.innerHTML;
+    }
+
+    window.addEventListener("click", (e) => {
+      const modal = document.getElementById("deviation-modal");
+      if (e.target === modal) {
+        closeDeviationModal();
+      }
+    });
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 0;
+    }
+
+    .deviations-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .deviations-header {
+      margin-bottom: 32px;
+    }
+
+    .deviations-header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #111827;
+      margin: 0 0 8px;
+    }
+
+    .deviations-header p {
+      font-size: 15px;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .deviation-row {
+      display: grid;
+      grid-template-columns: 140px 1fr 220px 40px;
+      gap: 20px;
+      align-items: center;
+      padding: 18px 24px;
+      margin-bottom: 10px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .deviation-row:hover {
+      border-color: #d1d5db;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+
+    .deviation-date {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .date-day {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .date-time {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .deviation-type {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .type-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .type-desc {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .deviation-status {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 20px;
+      text-align: center;
+    }
+
+    .status-open {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .status-resolved {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .deviation-arrow {
+      font-size: 22px;
+      color: #d1d5db;
+      text-align: center;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: #9ca3af;
+    }
+
+    .empty-state h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      color: #6b7280;
+    }
+
+    .empty-state p {
+      font-size: 15px;
+      margin: 0;
+    }
+
+    #deviation-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #modal-content {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 1100px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 28px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #111827;
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 0;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .modal-close:hover {
+      background: #f3f4f6;
+    }
+
+    .modal-body {
+      padding: 28px;
+    }
+
+    .deviation-info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 28px;
+      padding: 20px;
+      background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+      border-radius: 12px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .info-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .severity-critical {
+      color: #dc2626;
+    }
+
+    .severity-medium {
+      color: #d97706;
+    }
+
+    .images-comparison {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 28px;
+      margin-bottom: 28px;
+    }
+
+    .image-section h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 14px;
+    }
+
+    .deviation-image {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 14px;
+    }
+
+    .no-image {
+      width: 100%;
+      height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+      border: 2px dashed #d1d5db;
+      border-radius: 12px;
+      color: #9ca3af;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .image-meta {
+      background: #f9fafb;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 13px;
+    }
+
+    .meta-row {
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    .meta-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .ai-description {
+      padding: 10px 14px;
+      background: #fff;
+      border-left: 3px solid #3b82f6;
+      border-radius: 6px;
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #374151;
+    }
+
+    .resolution-time {
+      padding: 14px 18px;
+      background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+      border: 1px solid #a7f3d0;
+      border-radius: 10px;
+      margin-bottom: 28px;
+      font-size: 14px;
+      color: #065f46;
+    }
+
+    .manual-note-section {
+      margin-bottom: 28px;
+    }
+
+    .manual-note-section label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 10px;
+    }
+
+    .manual-note-input {
+      width: 100%;
+      min-height: 110px;
+      padding: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    .manual-note-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 14px;
+      justify-content: flex-end;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .approved-badge {
+      padding: 12px 24px;
+      background: linear-gradient(180deg, #d1fae5 0%, #a7f3d0 100%);
+      border: 1px solid #86efac;
+      border-radius: 8px;
+      color: #065f46;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="deviations-container">
+    <div class="deviations-header">
+      <h1>Afvigelser</h1>
+      <p>Oversigt over registrerede afvigelser med før/efter dokumentation</p>
+    </div>
+
+    <div id="deviations-list"></div>
+
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <h3>Ingen afvigelser fundet</h3>
+      <p>Der er ingen registrerede afvigelser for denne lokation.</p>
+    </div>
+  </div>
+
+  <div id="deviation-modal">
+    <div id="modal-content"></div>
+  </div>
+</body>
+</html>

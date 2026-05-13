@@ -1,0 +1,474 @@
+{
+  "source_file": "public/modules/platform/unified-core.js",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "addCitizenProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addRecipe",
+        "emit",
+        "nowIso",
+        "on",
+        "persistState",
+        "registerEventFlows",
+        "renderAll",
+        "renderFeatureFlags",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "addRecipe",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "emit",
+        "on",
+        "persistState",
+        "registerEventFlows",
+        "renderAll",
+        "renderFeatureFlags",
+        "renderModuleVisibility",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "allergens",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "computeMargin",
+        "emit",
+        "on",
+        "persistState",
+        "renderCitizenProfiles",
+        "renderFeatureFlags",
+        "renderModuleVisibility",
+        "renderQuickLogs",
+        "renderRecipes",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "applyContext",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "emit",
+        "nowIso",
+        "on",
+        "persistState",
+        "quickLog",
+        "registerEventFlows",
+        "renderAll",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "bindUi",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "emit",
+        "parseIngredientRows",
+        "quickLog",
+        "registerEventFlows",
+        "renderAll",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "computeMargin",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "computeRecipeCost",
+        "emit",
+        "nowIso",
+        "on",
+        "persistState",
+        "quickLog",
+        "registerEventFlows",
+        "renderAll",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "computeRecipeCost",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "computeMargin",
+        "emit",
+        "nowIso",
+        "on",
+        "persistState",
+        "quickLog",
+        "registerEventFlows",
+        "renderAll",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "emit",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "computeMargin",
+        "computeRecipeCost",
+        "nowIso",
+        "on",
+        "persistState",
+        "quickLog",
+        "registerEventFlows",
+        "renderAll",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addCitizenProfile",
+        "applyContext",
+        "computeMargin",
+        "computeRecipeCost",
+        "emit",
+        "nowIso",
+        "on",
+        "persistState",
+        "quickLog",
+        "renderAll",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "nowIso",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "computeMargin",
+        "computeRecipeCost",
+        "emit",
+        "on",
+        "persistState",
+        "quickLog",
+        "registerEventFlows",
+        "renderAll",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "on",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "computeMargin",
+        "computeRecipeCost",
+        "emit",
+        "nowIso",
+        "persistState",
+        "quickLog",
+        "registerEventFlows",
+        "renderAll",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "parseIngredientRows",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "bindUi",
+        "emit",
+        "quickLog",
+        "registerEventFlows",
+        "renderAll",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "persistState",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "computeMargin",
+        "computeRecipeCost",
+        "emit",
+        "nowIso",
+        "on",
+        "quickLog",
+        "registerEventFlows",
+        "renderAll",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "quickLog",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "emit",
+        "nowIso",
+        "on",
+        "persistState",
+        "registerEventFlows",
+        "renderAll",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "registerEventFlows",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "emit",
+        "on",
+        "persistState",
+        "renderCitizenProfiles",
+        "renderFeatureFlags",
+        "renderModuleVisibility",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderAll",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "bindUi",
+        "emit",
+        "parseIngredientRows",
+        "quickLog",
+        "registerEventFlows",
+        "renderCitizenProfiles",
+        "renderEvents",
+        "renderFeatureFlags",
+        "renderModuleVisibility",
+        "renderQuickLogs",
+        "renderRecipes",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderCitizenProfiles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyContext",
+        "bindUi",
+        "computeMargin",
+        "parseIngredientRows",
+        "quickLog",
+        "renderAll",
+        "renderEvents",
+        "renderFeatureFlags",
+        "renderModuleVisibility",
+        "renderQuickLogs",
+        "renderRecipes"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderEvents",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "bindUi",
+        "emit",
+        "parseIngredientRows",
+        "quickLog",
+        "registerEventFlows",
+        "renderAll",
+        "renderCitizenProfiles",
+        "renderFeatureFlags",
+        "renderModuleVisibility",
+        "renderQuickLogs",
+        "renderRecipes",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderFeatureFlags",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyContext",
+        "bindUi",
+        "computeMargin",
+        "parseIngredientRows",
+        "quickLog",
+        "renderAll",
+        "renderCitizenProfiles",
+        "renderEvents",
+        "renderModuleVisibility",
+        "renderQuickLogs",
+        "renderRecipes"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderModuleVisibility",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyContext",
+        "bindUi",
+        "computeMargin",
+        "parseIngredientRows",
+        "quickLog",
+        "renderAll",
+        "renderCitizenProfiles",
+        "renderEvents",
+        "renderFeatureFlags",
+        "renderQuickLogs",
+        "renderRecipes"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderQuickLogs",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "bindUi",
+        "emit",
+        "parseIngredientRows",
+        "quickLog",
+        "renderAll",
+        "renderCitizenProfiles",
+        "renderEvents",
+        "renderFeatureFlags",
+        "renderModuleVisibility",
+        "renderRecipes",
+        "uid"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderRecipes",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "bindUi",
+        "computeMargin",
+        "parseIngredientRows",
+        "quickLog",
+        "renderAll",
+        "renderCitizenProfiles",
+        "renderEvents",
+        "renderFeatureFlags",
+        "renderModuleVisibility",
+        "renderQuickLogs"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "uid",
+      "type": "function",
+      "approx_occurrences": 9,
+      "calls": [
+        "addCitizenProfile",
+        "addRecipe",
+        "applyContext",
+        "computeMargin",
+        "computeRecipeCost",
+        "emit",
+        "nowIso",
+        "on",
+        "persistState",
+        "quickLog",
+        "registerEventFlows",
+        "renderAll"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

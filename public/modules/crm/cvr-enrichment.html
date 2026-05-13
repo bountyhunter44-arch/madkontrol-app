@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CVR Berigelse - Madkontrollen Pro</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f9fcf9;
+      color: #182118;
+      line-height: 1.6;
+    }
+
+    .enrichment-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .enrichment-header {
+      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+      color: #fff;
+      padding: 32px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 16px rgba(46, 125, 50, 0.2);
+    }
+
+    .enrichment-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .enrichment-header p {
+      font-size: 15px;
+      opacity: 0.95;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #d9e4d9;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(16, 24, 16, 0.04);
+    }
+
+    .card-header {
+      font-size: 18px;
+      font-weight: 700;
+      color: #182118;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e8f5e9;
+    }
+
+    .upload-zone {
+      border: 2px dashed #d9e4d9;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #f9fcf9;
+    }
+
+    .upload-zone:hover {
+      border-color: #2e7d32;
+      background: #f2f8f2;
+    }
+
+    .upload-zone.dragging {
+      border-color: #2e7d32;
+      background: #e8f5e9;
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .upload-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: #182118;
+      margin-bottom: 8px;
+    }
+
+    .upload-hint {
+      font-size: 13px;
+      color: #5a6c5a;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #f2f8f2 0%, #e8f5e9 100%);
+      border: 1px solid #d9e4d9;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2e7d32;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #5a6c5a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: 1px solid #d9e4d9;
+      border-radius: 8px;
+      background: #fff;
+      color: #182118;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: #f2f8f2;
+      border-color: #2e7d32;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #2e7d32;
+      color: #fff;
+      border-color: #2e7d32;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #1b5e20;
+    }
+
+    .btn-danger {
+      background: #d32f2f;
+      color: #fff;
+      border-color: #d32f2f;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: #b71c1c;
+    }
+
+    .progress-bar {
+      background: #e8f5e9;
+      border-radius: 8px;
+      height: 32px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      background: linear-gradient(90deg, #2e7d32 0%, #66bb6a 100%);
+      height: 100%;
+      transition: width 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .job-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .job-item {
+      background: #f9fcf9;
+      border: 1px solid #d9e4d9;
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .job-item:hover {
+      background: #f2f8f2;
+      border-color: #2e7d32;
+    }
+
+    .job-item.active {
+      background: #e8f5e9;
+      border-color: #2e7d32;
+      border-width: 2px;
+    }
+
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .job-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #182118;
+    }
+
+    .job-status {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .job-status.pending {
+      background: #fff3e0;
+      color: #e65100;
+    }
+
+    .job-status.running {
+      background: #e3f2fd;
+      color: #0d47a1;
+    }
+
+    .job-status.paused {
+      background: #fce4ec;
+      color: #880e4f;
+    }
+
+    .job-status.completed {
+      background: #e8f5e9;
+      color: #1b5e20;
+    }
+
+    .job-status.failed {
+      background: #ffebee;
+      color: #b71c1c;
+    }
+
+    .job-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: #5a6c5a;
+    }
+
+    .cvr-list {
+      background: #f9fcf9;
+      border: 1px solid #d9e4d9;
+      border-radius: 8px;
+      padding: 16px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .cvr-item {
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+    }
+
+    .cvr-item.pending {
+      background: #fff3e0;
+    }
+
+    .cvr-item.processing {
+      background: #e3f2fd;
+    }
+
+    .cvr-item.completed {
+      background: #e8f5e9;
+    }
+
+    .cvr-item.failed {
+      background: #ffebee;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #5a6c5a;
+    }
+
+    .empty-state h3 {
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: #182118;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #5a6c5a;
+      font-size: 15px;
+    }
+
+    .error-message {
+      background: #ffebee;
+      border: 1px solid #ef5350;
+      border-radius: 8px;
+      padding: 16px;
+      color: #b71c1c;
+      margin-bottom: 16px;
+    }
+
+    .success-message {
+      background: #e8f5e9;
+      border: 1px solid #66bb6a;
+      border-radius: 8px;
+      padding: 16px;
+      color: #1b5e20;
+      margin-bottom: 16px;
+    }
+
+    .info-box {
+      background: #e3f2fd;
+      border: 1px solid #64b5f6;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #0d47a1;
+    }
+
+    .info-box strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="mkpLayoutContainer"></div>
+
+  <main class="enrichment-container">
+    <div class="enrichment-header">
+      <h1>🔎 CVR Berigelse</h1>
+      <p>Importer CVR-numre, berig data via online API, og gem direkte i CRM prospects</p>
+    </div>
+
+    <div class="info-box">
+      <strong>⚠️ Vigtigt om CVR API</strong>
+      Gratis CVR API'er har typisk rate limits. Brug max 50 CVR ad gangen og vent mellem batches.
+      Systemet håndterer automatisk fejl og gemmer status pr. CVR.
+    </div>
+
+    <div class="card" id="uploadCard">
+      <div class="card-header">1. Upload CVR-liste</div>
+      
+      <div class="upload-zone" id="uploadZone">
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">Klik for at vælge fil eller træk og slip</div>
+        <div class="upload-hint">CSV eller TXT fil med CVR-numre (ét pr. linje eller kommasepareret)</div>
+      </div>
+      <input type="file" id="fileInput" class="file-input" accept=".csv,.txt">
+
+      <div id="parseResult" style="display:none; margin-top:24px;">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="totalCvrCount">0</div>
+            <div class="stat-label">Total CVR</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="uniqueCvrCount">0</div>
+            <div class="stat-label">Unikke CVR</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="duplicateCount">0</div>
+            <div class="stat-label">Dubletter fjernet</div>
+          </div>
+        </div>
+
+        <div class="cvr-list" id="cvrPreview"></div>
+
+        <div class="action-buttons" style="margin-top:16px;">
+          <button class="btn btn-primary" id="createJobBtn">Opret berigelse job</button>
+          <button class="btn" id="clearUploadBtn">Ryd</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="jobsCard" style="display:none;">
+      <div class="card-header">2. Berigelse Jobs</div>
+      
+      <div id="jobsList"></div>
+    </div>
+
+    <div class="card" id="jobDetailsCard" style="display:none;">
+      <div class="card-header">3. Job Detaljer</div>
+
+      <div id="jobDetailsContent"></div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import { loadLayout } from "/core/layout.js";
+    import { db } from "/core/firebase-config.js";
+    import {
+      collection,
+      getDocs,
+      doc,
+      addDoc,
+      updateDoc,
+      setDoc,
+      serverTimestamp,
+      query,
+      where,
+      orderBy,
+      limit,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+    let currentUser = null;
+    let currentProfile = null;
+    let parsedCvrs = [];
+    let currentJobId = null;
+    let jobUnsubscribe = null;
+    let itemsUnsubscribe = null;
+
+    const uploadZone = document.getElementById("uploadZone");
+    const fileInput = document.getElementById("fileInput");
+    const parseResult = document.getElementById("parseResult");
+    const totalCvrCountEl = document.getElementById("totalCvrCount");
+    const uniqueCvrCountEl = document.getElementById("uniqueCvrCount");
+    const duplicateCountEl = document.getElementById("duplicateCount");
+    const cvrPreview = document.getElementById("cvrPreview");
+    const createJobBtn = document.getElementById("createJobBtn");
+    const clearUploadBtn = document.getElementById("clearUploadBtn");
+    const jobsCard = document.getElementById("jobsCard");
+    const jobsList = document.getElementById("jobsList");
+    const jobDetailsCard = document.getElementById("jobDetailsCard");
+    const jobDetailsContent = document.getElementById("jobDetailsContent");
+
+    function hasAccess() {
+      if (!currentProfile) return false;
+      const role = currentProfile.role;
+      return ["owner", "admin", "hq_admin", "super-admin"].includes(role);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    uploadZone.addEventListener("click", () => {
+      fileInput.click();
+    });
+
+    uploadZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadZone.classList.add("dragging");
+    });
+
+    uploadZone.addEventListener("dragleave", () => {
+      uploadZone.classList.remove("dragging");
+    });
+
+    uploadZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove("dragging");
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    async function handleFile(file) {
+      if (!file.name.match(/\.(csv|txt)$/i)) {
+        alert("Kun CSV eller TXT filer er tilladt");
+        return;
+      }
+
+      const text = await file.text();
+      parseCvrList(text, file.name);
+    }
+
+    function parseCvrList(text, fileName) {
+      const lines = text.split(/[\n\r,;]+/).map(line => line.trim()).filter(line => line);
+      
+      const cvrNumbers = [];
+      const cvrRegex = /\b\d{8}\b/g;
+
+      lines.forEach(line => {
+        const matches = line.match(cvrRegex);
+        if (matches) {
+          cvrNumbers.push(...matches);
+        }
+      });
+
+      const totalCount = cvrNumbers.length;
+      const uniqueCvrs = [...new Set(cvrNumbers)];
+      const uniqueCount = uniqueCvrs.length;
+      const duplicateCount = totalCount - uniqueCount;
+
+      parsedCvrs = uniqueCvrs;
+
+      totalCvrCountEl.textContent = totalCount;
+      uniqueCvrCountEl.textContent = uniqueCount;
+      duplicateCountEl.textContent = duplicateCount;
+
+      cvrPreview.innerHTML = uniqueCvrs.slice(0, 100).map(cvr => 
+        `<div class="cvr-item pending">${escapeHtml(cvr)}</div>`
+      ).join("") + (uniqueCvrs.length > 100 ? `<div style="text-align:center;padding:8px;color:#5a6c5a;">... og ${uniqueCvrs.length - 100} flere</div>` : "");
+
+      parseResult.style.display = "block";
+      createJobBtn.dataset.fileName = fileName;
+    }
+
+    clearUploadBtn.addEventListener("click", () => {
+      parsedCvrs = [];
+      fileInput.value = "";
+      parseResult.style.display = "none";
+      cvrPreview.innerHTML = "";
+    });
+
+    createJobBtn.addEventListener("click", async () => {
+      if (parsedCvrs.length === 0) {
+        alert("Ingen CVR-numre at berige");
+        return;
+      }
+
+      if (!hasAccess()) {
+        alert("Du har ikke adgang til at oprette berigelse jobs");
+        return;
+      }
+
+      createJobBtn.disabled = true;
+      createJobBtn.textContent = "Opretter job...";
+
+      try {
+        const jobRef = await addDoc(collection(db, "cvr_enrichment_jobs"), {
+          createdBy: currentUser.uid,
+          createdByEmail: currentUser.email,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          status: "pending",
+          totalCount: parsedCvrs.length,
+          uniqueCount: parsedCvrs.length,
+          processedCount: 0,
+          successCount: 0,
+          failedCount: 0,
+          sourceFileName: createJobBtn.dataset.fileName || "upload.csv"
+        });
+
+        const batch = [];
+        for (const cvr of parsedCvrs) {
+          batch.push(
+            setDoc(doc(db, "cvr_enrichment_jobs", jobRef.id, "items", cvr), {
+              cvr: cvr,
+              status: "pending",
+              attempts: 0,
+              createdAt: serverTimestamp()
+            })
+          );
+        }
+
+        await Promise.all(batch);
+
+        parsedCvrs = [];
+        fileInput.value = "";
+        parseResult.style.display = "none";
+
+        await loadJobs();
+        jobsCard.style.display = "block";
+
+        alert(`Job oprettet med ${parsedCvrs.length} CVR-numre`);
+      } catch (error) {
+        console.error("Fejl ved oprettelse af job:", error);
+        alert("Kunne ikke oprette job: " + error.message);
+      } finally {
+        createJobBtn.disabled = false;
+        createJobBtn.textContent = "Opret berigelse job";
+      }
+    });
+
+    async function loadJobs() {
+      try {
+        const q = query(
+          collection(db, "cvr_enrichment_jobs"),
+          orderBy("createdAt", "desc"),
+          limit(20)
+        );
+
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
+          jobsList.innerHTML = '<div class="empty-state"><h3>Ingen jobs endnu</h3><p>Upload en CVR-liste for at komme i gang</p></div>';
+          return;
+        }
+
+        jobsList.innerHTML = snapshot.docs.map(doc => {
+          const job = doc.data();
+          const progress = job.totalCount > 0 ? Math.round((job.processedCount / job.totalCount) * 100) : 0;
+
+          return `
+            <div class="job-item" data-job-id="${doc.id}">
+              <div class="job-header">
+                <div class="job-name">${escapeHtml(job.sourceFileName || doc.id)}</div>
+                <div class="job-status ${job.status}">${job.status}</div>
+              </div>
+              <div class="job-meta">
+                <span>📊 ${job.processedCount}/${job.totalCount} (${progress}%)</span>
+                <span>✅ ${job.successCount} success</span>
+                <span>❌ ${job.failedCount} fejl</span>
+                <span>📅 ${job.createdAt ? new Date(job.createdAt.toDate()).toLocaleDateString("da-DK") : "N/A"}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        document.querySelectorAll(".job-item").forEach(item => {
+          item.addEventListener("click", () => {
+            const jobId = item.dataset.jobId;
+            loadJobDetails(jobId);
+          });
+        });
+      } catch (error) {
+        console.error("Fejl ved indlæsning af jobs:", error);
+        jobsList.innerHTML = `<div class="error-message">Kunne ikke indlæse jobs: ${error.message}</div>`;
+      }
+    }
+
+    async function loadJobDetails(jobId) {
+      currentJobId = jobId;
+
+      document.querySelectorAll(".job-item").forEach(item => {
+        item.classList.remove("active");
+      });
+      document.querySelector(`[data-job-id="${jobId}"]`)?.classList.add("active");
+
+      jobDetailsCard.style.display = "block";
+      jobDetailsContent.innerHTML = '<div class="loading">Indlæser job detaljer...</div>';
+
+      if (jobUnsubscribe) jobUnsubscribe();
+      if (itemsUnsubscribe) itemsUnsubscribe();
+
+      jobUnsubscribe = onSnapshot(doc(db, "cvr_enrichment_jobs", jobId), (snapshot) => {
+        if (!snapshot.exists()) {
+          jobDetailsContent.innerHTML = '<div class="error-message">Job ikke fundet</div>';
+          return;
+        }
+
+        const job = snapshot.data();
+        renderJobDetails(jobId, job);
+      });
+
+      itemsUnsubscribe = onSnapshot(
+        query(collection(db, "cvr_enrichment_jobs", jobId, "items"), limit(500)),
+        (snapshot) => {
+          const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          renderJobItems(items);
+        }
+      );
+    }
+
+    function renderJobDetails(jobId, job) {
+      const progress = job.totalCount > 0 ? Math.round((job.processedCount / job.totalCount) * 100) : 0;
+      const canStart = job.status === "pending" || job.status === "paused";
+      const canPause = job.status === "running";
+
+      jobDetailsContent.innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">${job.totalCount}</div>
+            <div class="stat-label">Total CVR</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${job.processedCount}</div>
+            <div class="stat-label">Behandlet</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${job.successCount}</div>
+            <div class="stat-label">Success</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${job.failedCount}</div>
+            <div class="stat-label">Fejl</div>
+          </div>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width:${progress}%">${progress}%</div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn btn-primary" id="startBatchBtn" ${!canStart ? 'disabled' : ''}>
+            ▶️ Start næste 50
+          </button>
+          <button class="btn" id="pauseJobBtn" ${!canPause ? 'disabled' : ''}>
+            ⏸️ Pause
+          </button>
+          <button class="btn" id="exportResultsBtn">
+            📥 Eksportér resultater
+          </button>
+          <a href="/modules/crm/prospects.html" class="btn">
+            👥 Gå til CRM Prospects
+          </a>
+        </div>
+
+        <div id="jobItemsList"></div>
+      `;
+
+      document.getElementById("startBatchBtn").addEventListener("click", () => startNextBatch(jobId));
+      document.getElementById("pauseJobBtn").addEventListener("click", () => pauseJob(jobId));
+      document.getElementById("exportResultsBtn").addEventListener("click", () => exportResults(jobId));
+    }
+
+    function renderJobItems(items) {
+      const itemsList = document.getElementById("jobItemsList");
+      if (!itemsList) return;
+
+      if (items.length === 0) {
+        itemsList.innerHTML = '<div class="empty-state"><p>Ingen items endnu</p></div>';
+        return;
+      }
+
+      const grouped = {
+        pending: items.filter(i => i.status === "pending"),
+        processing: items.filter(i => i.status === "processing"),
+        completed: items.filter(i => i.status === "completed"),
+        failed: items.filter(i => i.status === "failed")
+      };
+
+      itemsList.innerHTML = `
+        <div class="card-header" style="margin-top:24px;">CVR Items (viser max 500)</div>
+        <div class="cvr-list">
+          ${grouped.processing.map(item => `
+            <div class="cvr-item processing">
+              ${escapeHtml(item.cvr)} - Behandler... (forsøg ${item.attempts})
+            </div>
+          `).join("")}
+          ${grouped.completed.map(item => `
+            <div class="cvr-item completed">
+              ${escapeHtml(item.cvr)} - ✅ ${escapeHtml(item.data?.companyName || "Berige")}
+            </div>
+          `).join("")}
+          ${grouped.failed.map(item => `
+            <div class="cvr-item failed">
+              ${escapeHtml(item.cvr)} - ❌ ${escapeHtml(item.lastError || "Fejl")}
+            </div>
+          `).join("")}
+          ${grouped.pending.slice(0, 50).map(item => `
+            <div class="cvr-item pending">
+              ${escapeHtml(item.cvr)} - Afventer
+            </div>
+          `).join("")}
+          ${grouped.pending.length > 50 ? `<div style="text-align:center;padding:8px;color:#5a6c5a;">... og ${grouped.pending.length - 50} flere afventer</div>` : ""}
+        </div>
+      `;
+    }
+
+    async function startNextBatch(jobId) {
+      const btn = document.getElementById("startBatchBtn");
+      if (!btn) return;
+
+      btn.disabled = true;
+      btn.textContent = "Starter batch...";
+
+      try {
+        await updateDoc(doc(db, "cvr_enrichment_jobs", jobId), {
+          status: "running",
+          updatedAt: serverTimestamp()
+        });
+
+        const functions = getFunctions();
+        const enrichNextCvrBatch = httpsCallable(functions, "enrichNextCvrBatch");
+
+        const result = await enrichNextCvrBatch({
+          jobId: jobId,
+          batchSize: 50
+        });
+
+        console.log("Batch result:", result.data);
+
+        if (result.data.completed) {
+          alert(`Batch færdig! ${result.data.successCount} success, ${result.data.failedCount} fejl`);
+        } else {
+          alert(`Batch færdig! ${result.data.successCount} success, ${result.data.failedCount} fejl. Klik igen for næste batch.`);
+        }
+      } catch (error) {
+        console.error("Fejl ved start af batch:", error);
+        alert("Kunne ikke starte batch: " + error.message);
+        
+        await updateDoc(doc(db, "cvr_enrichment_jobs", jobId), {
+          status: "paused",
+          updatedAt: serverTimestamp()
+        });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "▶️ Start næste 50";
+      }
+    }
+
+    async function pauseJob(jobId) {
+      try {
+        await updateDoc(doc(db, "cvr_enrichment_jobs", jobId), {
+          status: "paused",
+          updatedAt: serverTimestamp()
+        });
+      } catch (error) {
+        console.error("Fejl ved pause:", error);
+        alert("Kunne ikke pause job: " + error.message);
+      }
+    }
+
+    async function exportResults(jobId) {
+      try {
+        const itemsSnapshot = await getDocs(
+          collection(db, "cvr_enrichment_jobs", jobId, "items")
+        );
+
+        const csvLines = ["CVR;Status;Virksomhedsnavn;Adresse;By;Postnummer;Telefon;Email;Website;Fejl"];
+
+        itemsSnapshot.docs.forEach(doc => {
+          const item = doc.data();
+          const data = item.data || {};
+          csvLines.push([
+            item.cvr || "",
+            item.status || "",
+            data.companyName || "",
+            data.address || "",
+            data.city || "",
+            data.zip || "",
+            data.phone || "",
+            data.email || "",
+            data.website || "",
+            item.lastError || ""
+          ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(";"));
+        });
+
+        const csv = csvLines.join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `cvr_enrichment_${jobId}_${Date.now()}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Fejl ved eksport:", error);
+        alert("Kunne ikke eksportere: " + error.message);
+      }
+    }
+
+    setupAuthGate({
+      onAuthenticated: async (user, profile) => {
+        currentUser = user;
+        currentProfile = profile;
+
+        await loadLayout();
+
+        if (!hasAccess()) {
+          document.querySelector(".enrichment-container").innerHTML = `
+            <div class="card">
+              <div class="error-message">
+                <h3>🔒 Ingen adgang</h3>
+                <p>Du har ikke adgang til CVR berigelse.</p>
+                <p style="margin-top:8px;font-size:12px;">Kun owner, admin, hq_admin og super-admin har adgang.</p>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        await loadJobs();
+        jobsCard.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

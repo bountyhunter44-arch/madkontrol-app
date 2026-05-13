@@ -1,0 +1,56 @@
+{
+  "source_file": "functions/egenkontrol/evaluators/coolingEvaluator.js",
+  "module": "cooling",
+  "imports": [],
+  "exports": [
+    "calculateDurationMinutes",
+    "evaluateCoolingControl",
+    "formatEvaluationSummary",
+    "validateCoolingData"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "calculateDurationMinutes",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatEvaluationSummary"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "evaluateCoolingControl",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "calculateDurationMinutes",
+        "validateCoolingData"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatEvaluationSummary",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "validateCoolingData",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateDurationMinutes",
+        "formatEvaluationSummary"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

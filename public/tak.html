@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tak | Madkontrollen Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#eef4ee;
+      --surface:#ffffff;
+      --surface-soft:#f7faf7;
+      --text:#162016;
+      --muted:#617061;
+      --border:#d7e2d7;
+      --green:#2f7d32;
+      --green-dark:#1e5c24;
+      --green-soft:#eaf6eb;
+      --gold:#c78b2a;
+      --gold-soft:#fff5df;
+      --blue:#175cd3;
+      --blue-soft:#ecf3ff;
+      --red:#c0392b;
+      --red-soft:#fff0ee;
+      --shadow:0 24px 60px rgba(18, 32, 18, 0.10);
+      --radius-xl:32px;
+      --radius-lg:24px;
+      --radius-md:18px;
+      --radius-sm:14px;
+    }
+
+    *{box-sizing:border-box;}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:"Inter", system-ui, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(47,125,50,.16), transparent 26%),
+        radial-gradient(circle at 85% 20%, rgba(199,139,42,.14), transparent 18%),
+        linear-gradient(180deg,#f8fbf8 0%, var(--bg) 100%);
+    }
+
+    .page-shell{
+      width:min(1180px, calc(100% - 32px));
+      margin:0 auto;
+      padding:28px 0 56px;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:30px;
+      border-radius:var(--radius-xl);
+      background:linear-gradient(135deg,#17361a 0%, #245d2c 52%, #2f7d32 100%);
+      box-shadow:0 28px 70px rgba(30,92,36,.22);
+      color:#fff;
+    }
+
+    .hero::after{
+      content:"";
+      position:absolute;
+      right:-110px;
+      top:-110px;
+      width:300px;
+      height:300px;
+      border-radius:50%;
+      background:rgba(255,255,255,.08);
+    }
+
+    .hero-grid{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:minmax(0, 1.15fr) minmax(300px, .85fr);
+      gap:22px;
+      align-items:stretch;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.18);
+      font-size:13px;
+      font-weight:800;
+      margin-bottom:18px;
+    }
+
+    .hero h1{
+      margin:0 0 12px;
+      font-size:46px;
+      line-height:1.02;
+      letter-spacing:-.04em;
+      max-width:780px;
+    }
+
+    .hero p{
+      margin:0;
+      max-width:760px;
+      color:rgba(255,255,255,.86);
+      line-height:1.7;
+      font-size:16px;
+    }
+
+    .hero-card{
+      display:grid;
+      gap:14px;
+      align-content:start;
+      padding:20px;
+      border-radius:var(--radius-lg);
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.16);
+      backdrop-filter:blur(10px);
+    }
+
+    .hero-card-label{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-weight:800;
+      color:rgba(255,255,255,.76);
+    }
+
+    .hero-card strong{
+      font-size:28px;
+      line-height:1.1;
+    }
+
+    .hero-card span{
+      color:rgba(255,255,255,.82);
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .progress-shell{
+      margin-top:26px;
+      padding:18px;
+      border-radius:22px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.16);
+    }
+
+    .progress-top{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+
+    .progress-label{
+      font-size:14px;
+      font-weight:800;
+      letter-spacing:.02em;
+    }
+
+    .progress-value{
+      font-size:14px;
+      font-weight:800;
+      color:rgba(255,255,255,.85);
+    }
+
+    .progress-bar{
+      width:100%;
+      height:14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.18);
+      overflow:hidden;
+    }
+
+    .progress-fill{
+      height:100%;
+      width:80%;
+      border-radius:inherit;
+      background:linear-gradient(90deg,#ffe7a9 0%, #ffffff 48%, #d7ffd9 100%);
+      transition:width .45s ease;
+    }
+
+    .status-copy{
+      margin-top:12px;
+      color:rgba(255,255,255,.9);
+      line-height:1.6;
+    }
+
+    .content-grid{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(320px, .78fr);
+      gap:22px;
+      margin-top:22px;
+    }
+
+    .card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius-lg);
+      padding:24px;
+      box-shadow:var(--shadow);
+    }
+
+    .card h2{
+      margin:0 0 8px;
+      font-size:24px;
+      letter-spacing:-.03em;
+    }
+
+    .lead{
+      margin:0 0 18px;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .summary-grid,
+    .points-grid,
+    .checkpoint-list{
+      display:grid;
+      gap:14px;
+    }
+
+    .summary-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .summary-box,
+    .point-card,
+    .checkpoint{
+      border:1px solid var(--border);
+      border-radius:var(--radius-md);
+      background:var(--surface-soft);
+      padding:16px;
+    }
+
+    .summary-box span,
+    .point-card span{
+      display:block;
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .summary-box strong,
+    .point-card strong{
+      font-size:18px;
+      line-height:1.25;
+    }
+
+    .checkpoint{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+    }
+
+    .checkpoint-badge{
+      width:38px;
+      height:38px;
+      flex:0 0 38px;
+      display:grid;
+      place-items:center;
+      border-radius:12px;
+      background:var(--green-soft);
+      color:var(--green-dark);
+      font-weight:800;
+    }
+
+    .checkpoint strong{
+      display:block;
+      margin-bottom:4px;
+      font-size:15px;
+    }
+
+    .checkpoint p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.55;
+      font-size:14px;
+    }
+
+    .cta-card{
+      display:grid;
+      gap:16px;
+      align-content:start;
+      background:linear-gradient(180deg,#fffdf8 0%, #fff8ec 100%);
+      border-color:#f1dfbb;
+    }
+
+    .cta-badge{
+      display:inline-flex;
+      width:max-content;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:var(--gold-soft);
+      color:#8a5b0d;
+      border:1px solid #f0d9a8;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .cta-actions{
+      display:grid;
+      gap:12px;
+    }
+
+    .btn{
+      display:inline-flex;
+      justify-content:center;
+      align-items:center;
+      min-height:54px;
+      padding:14px 18px;
+      border-radius:16px;
+      border:none;
+      text-decoration:none;
+      font:inherit;
+      font-weight:800;
+      cursor:pointer;
+      transition:transform .18s ease, opacity .18s ease, background .18s ease;
+    }
+
+    .btn:hover{transform:translateY(-1px);}
+
+    .btn-primary{
+      background:linear-gradient(180deg,var(--green) 0%, var(--green-dark) 100%);
+      color:#fff;
+      box-shadow:0 14px 26px rgba(47,125,50,.18);
+    }
+
+    .btn-secondary{
+      background:#fff;
+      border:1px solid var(--border);
+      color:var(--text);
+    }
+
+    .btn-danger{
+      background:#fff;
+      border:1px solid #efc2bb;
+      color:var(--red);
+    }
+
+    .btn[aria-disabled="true"],
+    .btn:disabled{
+      opacity:.55;
+      pointer-events:none;
+      transform:none;
+    }
+
+    .cta-note,
+    .foot-note{
+      color:var(--muted);
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .status-pill-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    .status-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      border:1px solid transparent;
+    }
+
+    .status-pill.active{
+      background:var(--green-soft);
+      color:var(--green-dark);
+      border-color:#cfe8d2;
+    }
+
+    .status-pill.info{
+      background:var(--blue-soft);
+      color:var(--blue);
+      border-color:#c9ddff;
+    }
+
+    .status-pill.warn{
+      background:var(--gold-soft);
+      color:#8a5b0d;
+      border-color:#f0d9a8;
+    }
+
+    .status-pill.error{
+      background:var(--red-soft);
+      color:var(--red);
+      border-color:#efc2bb;
+    }
+
+    .auth-box{
+      display:grid;
+      gap:14px;
+      padding:16px;
+      background:var(--green-soft);
+      border:1px solid #cfe8d2;
+      border-radius:var(--radius-md);
+    }
+
+    .auth-box.is-neutral{
+      background:var(--surface-soft);
+      border-color:var(--border);
+    }
+
+    .auth-box.is-error{
+      background:var(--red-soft);
+      border-color:#efc2bb;
+    }
+
+    .auth-meta-label{
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:var(--green-dark);
+      margin:0;
+    }
+
+    .auth-box.is-neutral .auth-meta-label{
+      color:var(--muted);
+    }
+
+    .auth-box.is-error .auth-meta-label{
+      color:var(--red);
+    }
+
+    .auth-row{
+      display:grid;
+      gap:4px;
+    }
+
+    .auth-row strong{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .auth-row div{
+      font-size:15px;
+      font-weight:600;
+      color:var(--text);
+      word-break:break-word;
+    }
+
+    .auth-status{
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:13px;
+      font-weight:700;
+      line-height:1.5;
+      background:rgba(47,125,50,0.10);
+      color:var(--green-dark);
+    }
+
+    .auth-box.is-neutral .auth-status{
+      background:rgba(23,92,211,0.08);
+      color:var(--blue);
+    }
+
+    .auth-box.is-error .auth-status{
+      background:rgba(192,57,43,0.10);
+      color:var(--red);
+    }
+
+    .auth-actions{
+      display:grid;
+      gap:10px;
+    }
+
+    .hidden{
+      display:none !important;
+    }
+
+    @media (max-width:1024px){
+      .hero-grid,
+      .content-grid{grid-template-columns:1fr;}
+    }
+
+    @media (max-width:720px){
+      .page-shell{width:min(100% - 20px, 1180px);padding:16px 0 40px;}
+      .hero{padding:22px;border-radius:24px;}
+      .hero h1{font-size:34px;}
+      .summary-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow">Tak for din bestilling</div>
+          <h1 id="heroTitle">Vi klargør din risikoanalyse og dit dashboard</h1>
+          <p id="heroLead">Din betaling er modtaget. Vi migrerer nu dine onboarding-data, bygger din live profil og lægger dokumentationen klar i dashboardet.</p>
+
+          <div class="progress-shell">
+            <div class="progress-top">
+              <div class="progress-label" id="progressLabel">Generering i gang</div>
+              <div class="progress-value" id="progressValue">80%</div>
+            </div>
+            <div class="progress-bar" aria-hidden="true">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="status-copy" id="statusCopy">Vi starter med at klargøre din live profil og lovpligtige risikoanalyse.</div>
+          </div>
+        </div>
+
+        <aside class="hero-card">
+          <div class="hero-card-label">Lige nu i baggrunden</div>
+          <strong id="heroAsideTitle">Live profil + HACCP snapshot</strong>
+          <span id="heroAsideText">Vi flytter dine onboarding-svar fra draft til aktiv kundeprofil og forbinder materialet direkte med dashboardet.</span>
+          <div class="status-pill-row" id="heroPills">
+            <span class="status-pill active">Betaling godkendt</span>
+            <span class="status-pill info">AI-generering starter</span>
+            <span class="status-pill warn">Dashboard klargøres</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <section class="card">
+        <h2>Din opsummering</h2>
+        <p class="lead">Velkomstflowet fortsætter automatisk herfra. Vi viser de vigtigste oplysninger fra din onboarding, mens systemet færdiggør dokumentationen.</p>
+
+        <div class="summary-grid">
+          <div class="summary-box">
+            <span>Mode</span>
+            <strong id="summaryMode">Restaurant</strong>
+          </div>
+          <div class="summary-box">
+            <span>Virksomhed</span>
+            <strong id="summaryCompany">Madkontrollen Pro kunde</strong>
+          </div>
+          <div class="summary-box">
+            <span>By</span>
+            <strong id="summaryCity">Ikke angivet</strong>
+          </div>
+          <div class="summary-box">
+            <span>Status</span>
+            <strong id="summaryStatus">Afventer færdiggørelse</strong>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;">
+          <h2 style="font-size:20px; margin-bottom:8px;">Kritiske punkter</h2>
+          <p class="lead" style="margin-bottom:14px;">Disse områder bliver fremhævet i din første version af den lovpligtige risikoanalyse.</p>
+          <div class="points-grid" id="criticalPointsList"></div>
+        </div>
+      </section>
+
+      <aside class="card cta-card">
+        <div class="cta-badge">Direkte videre til drift</div>
+        <h2 style="margin-bottom:0;">Se din færdige risikoanalyse</h2>
+        <p class="lead" style="margin:0;">Når klargøringen er færdig, bliver knappen aktiv og fører dig direkte ind i dashboardet, hvor dokumentationen ligger klar til godkendelse.</p>
+
+        <div id="authBox" class="auth-box is-neutral">
+          <p class="auth-meta-label">Login til dashboard</p>
+
+          <div class="auth-row">
+            <strong>Email</strong>
+            <div id="credentialsEmail">Ikke fundet endnu</div>
+          </div>
+
+          <div class="auth-status" id="loginStatus">
+            Vi kontrollerer loginstatus...
+          </div>
+
+          <div class="auth-actions">
+            <button id="manualLoginBtn" class="btn btn-primary hidden" type="button">Log ind</button>
+            <button id="logoutBtn" class="btn btn-danger hidden" type="button">Log ud</button>
+          </div>
+
+          <div style="font-size:13px; color:var(--muted); line-height:1.5;">
+            Når du er logget ind, kan du gå direkte til dit dashboard og din risikoanalyse.
+          </div>
+        </div>
+
+        <div class="checkpoint-list">
+          <div class="checkpoint">
+            <div class="checkpoint-badge">1</div>
+            <div>
+              <strong>Draft flyttes til live</strong>
+              <p>Virksomhedsprofil, onboarding-svar og eventuelle Cloudinary-aktiver kobles til din aktive kundeprofil.</p>
+            </div>
+          </div>
+          <div class="checkpoint">
+            <div class="checkpoint-badge">2</div>
+            <div>
+              <strong>HACCP snapshot genereres</strong>
+              <p>Din første lovpligtige risikoanalyse oprettes og bindes til company/location for dashboardvisning.</p>
+            </div>
+          </div>
+          <div class="checkpoint">
+            <div class="checkpoint-badge">3</div>
+            <div>
+              <strong>Dashboard låses op</strong>
+              <p>Du sendes direkte til din aktive visning, hvor analysen ligger klar til endelig godkendelse.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="cta-actions">
+          <a id="dashboardCta" class="btn btn-primary" href="/modules/egenkontrol/rutiner.html" aria-disabled="true">Gå til rutiner</a>
+          <a class="btn btn-secondary" href="/modules/egenkontrol/onboarding.html">Tilbage til onboarding</a>
+        </div>
+
+        <div class="cta-note" id="ctaNote">Vi aktiverer knappen automatisk, så snart dokumentationen er oprettet.</div>
+        <div class="foot-note" id="errorNote"></div>
+      </aside>
+    </section>
+  </main>
+
+  <script type="module">
+    import app, { auth } from "/core/firebase-config.js";
+    import {
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+    const ONBOARDING_CHECKOUT_SUMMARY_KEY = "mkp_onboarding_checkout_summary_v1";
+    const ONBOARDING_CREDENTIALS_KEY = "mkp_onboarding_credentials_v1";
+
+    const functions = getFunctions(app, "us-central1");
+    const finalizeOnboardingCheckoutProvisioning = httpsCallable(functions, "finalizeOnboardingCheckoutProvisioning");
+
+    const els = {
+      heroTitle: document.getElementById("heroTitle"),
+      heroLead: document.getElementById("heroLead"),
+      heroAsideTitle: document.getElementById("heroAsideTitle"),
+      heroAsideText: document.getElementById("heroAsideText"),
+      heroPills: document.getElementById("heroPills"),
+      progressLabel: document.getElementById("progressLabel"),
+      progressValue: document.getElementById("progressValue"),
+      progressFill: document.getElementById("progressFill"),
+      statusCopy: document.getElementById("statusCopy"),
+      summaryMode: document.getElementById("summaryMode"),
+      summaryCompany: document.getElementById("summaryCompany"),
+      summaryCity: document.getElementById("summaryCity"),
+      summaryStatus: document.getElementById("summaryStatus"),
+      criticalPointsList: document.getElementById("criticalPointsList"),
+      dashboardCta: document.getElementById("dashboardCta"),
+      ctaNote: document.getElementById("ctaNote"),
+      errorNote: document.getElementById("errorNote"),
+      authBox: document.getElementById("authBox"),
+      credentialsEmail: document.getElementById("credentialsEmail"),
+      loginStatus: document.getElementById("loginStatus"),
+      manualLoginBtn: document.getElementById("manualLoginBtn"),
+      logoutBtn: document.getElementById("logoutBtn")
+    };
+
+    const state = {
+      progress: 80,
+      animationTimer: null,
+      finalized: false,
+      autoLoginAttempted: false,
+      autoLoginFailed: false,
+      currentUser: null,
+      dashboardUrl: "/modules/egenkontrol/rutiner.html"
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function safeParseJson(raw, fallback = null) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return fallback;
+      }
+    }
+
+    function firstNameFromProfile(profile, user) {
+      const raw = String(
+        profile?.displayName ||
+        profile?.name ||
+        user?.displayName ||
+        user?.email?.split("@")[0] ||
+        "Velkommen"
+      ).trim();
+      return raw.split(/\s+/)[0] || "Velkommen";
+    }
+
+    function setProgress(value) {
+      state.progress = Math.max(0, Math.min(100, Math.round(value)));
+      els.progressFill.style.width = `${state.progress}%`;
+      els.progressValue.textContent = `${state.progress}%`;
+    }
+
+    function startProgressAnimation() {
+      stopProgressAnimation();
+      state.animationTimer = window.setInterval(() => {
+        if (state.finalized) return;
+        if (state.progress >= 96) return;
+        setProgress(state.progress + 1);
+      }, 240);
+    }
+
+    function stopProgressAnimation() {
+      if (state.animationTimer) {
+        window.clearInterval(state.animationTimer);
+        state.animationTimer = null;
+      }
+    }
+
+    function renderCriticalPoints(points = []) {
+      const safePoints = Array.isArray(points) && points.length
+        ? points
+        : ["Køl", "Opvarmning", "Allergener"];
+
+      els.criticalPointsList.innerHTML = safePoints.map((point, index) => `
+        <article class="point-card">
+          <span>Kritisk punkt ${index + 1}</span>
+          <strong>${escapeHtml(point)}</strong>
+        </article>
+      `).join("");
+    }
+
+    function renderSummary(summary = {}) {
+      els.summaryMode.textContent = String(summary.companyType || "Restaurant");
+      els.summaryCompany.textContent = String(summary.companyName || "Madkontrollen Pro kunde");
+      els.summaryCity.textContent = String(summary.city || "Ikke angivet");
+      renderCriticalPoints(summary.criticalPoints || []);
+    }
+
+    function setHeroPills({ payment = true, generating = true, dashboard = false, error = false } = {}) {
+      const pills = [];
+
+      if (payment) {
+        pills.push('<span class="status-pill active">Betaling godkendt</span>');
+      }
+      if (generating) {
+        pills.push('<span class="status-pill info">AI-generering kører</span>');
+      }
+      if (dashboard) {
+        pills.push('<span class="status-pill active">Dashboard klart</span>');
+      } else if (!error) {
+        pills.push('<span class="status-pill warn">Dashboard klargøres</span>');
+      }
+      if (error) {
+        pills.push('<span class="status-pill error">Kræver opmærksomhed</span>');
+      }
+
+      els.heroPills.innerHTML = pills.join("");
+    }
+
+    function getStoredCredentials() {
+      const raw = localStorage.getItem(ONBOARDING_CREDENTIALS_KEY) || "";
+      const parsed = safeParseJson(raw, null);
+      return {
+        email: String(parsed?.email || "").trim(),
+        password: String(parsed?.password || "")
+      };
+    }
+
+    function clearStoredCredentials() {
+      try {
+        localStorage.removeItem(ONBOARDING_CREDENTIALS_KEY);
+      } catch (_error) {
+        // ignore storage issues
+      }
+    }
+
+    function displayStoredEmail() {
+      const credentials = getStoredCredentials();
+      if (credentials.email) {
+        els.credentialsEmail.textContent = credentials.email;
+      } else if (auth.currentUser?.email) {
+        els.credentialsEmail.textContent = auth.currentUser.email;
+      } else {
+        els.credentialsEmail.textContent = "Ikke fundet endnu";
+      }
+    }
+
+    function applyAuthUiState(mode, message, userEmail = "") {
+      els.authBox.classList.remove("is-neutral", "is-error");
+
+      if (mode === "logged-in") {
+        els.credentialsEmail.textContent = userEmail || auth.currentUser?.email || "Logget ind";
+        els.loginStatus.textContent = message || "Du er logget ind og kan gå videre til dashboardet.";
+        els.manualLoginBtn.classList.add("hidden");
+        els.logoutBtn.classList.remove("hidden");
+        return;
+      }
+
+      if (mode === "error") {
+        els.authBox.classList.add("is-error");
+        els.loginStatus.textContent = message || "Login kunne ikke gennemføres automatisk.";
+        els.manualLoginBtn.classList.remove("hidden");
+        els.logoutBtn.classList.add("hidden");
+        return;
+      }
+
+      els.authBox.classList.add("is-neutral");
+      els.loginStatus.textContent = message || "Du er ikke logget ind endnu.";
+      els.manualLoginBtn.classList.remove("hidden");
+      els.logoutBtn.classList.add("hidden");
+    }
+
+    function renderPendingState(customerName) {
+      els.heroTitle.textContent = `${customerName}, din velkomst er i gang`;
+      els.heroLead.textContent = `${customerName}, vi migrerer nu dine onboarding-data og genererer din lovpligtige risikoanalyse i baggrunden, mens du er landet her.`;
+      els.statusCopy.textContent = `${customerName}, vi genererer din lovpligtige risikoanalyse nu...`;
+      els.summaryStatus.textContent = "Genererer i baggrunden";
+      els.heroAsideTitle.textContent = "Live profil oprettes";
+      els.heroAsideText.textContent = "Vi flytter dine svar, eventuelle Cloudinary-billeder og din første HACCP-version over i din aktive kundeprofil.";
+      setHeroPills({ payment: true, generating: true, dashboard: false, error: false });
+    }
+
+    function renderSuccessState(result) {
+      const summary = result?.summary || {};
+      const customerName = String(summary.customerName || "Velkommen");
+      const routinesUrl = "/modules/egenkontrol/rutiner.html";
+
+      state.finalized = true;
+      stopProgressAnimation();
+      setProgress(100);
+      renderSummary(summary);
+
+      els.progressLabel.textContent = "Klar til godkendelse";
+      els.statusCopy.textContent = `${customerName}, dine rutiner er nu klar til brug.`;
+      els.summaryStatus.textContent = "Færdig og klar i rutiner";
+      els.heroAsideTitle.textContent = "Rutiner er klargjort";
+      els.heroAsideText.textContent = "Din live profil, onboarding-data og HACCP snapshot er nu bundet sammen med din aktive brugerprofil.";
+      setHeroPills({ payment: true, generating: false, dashboard: true, error: false });
+
+      state.dashboardUrl = routinesUrl;
+      els.dashboardCta.setAttribute("aria-disabled", "false");
+      els.dashboardCta.href = state.dashboardUrl;
+      els.ctaNote.textContent = "Knappen er nu aktiv og sender dig direkte til rutiner.";
+      els.errorNote.textContent = "";
+
+      try {
+        const companyId = String(result?.companyId || "").trim();
+        const locationId = String(result?.locationId || "").trim();
+
+        if (auth.currentUser?.uid) {
+          sessionStorage.setItem("mkp_user_uid", String(auth.currentUser.uid));
+        }
+        if (companyId) {
+          sessionStorage.setItem("mkp_user_companyId", companyId);
+        }
+        if (locationId) {
+          sessionStorage.setItem("mkp_user_locationIds", JSON.stringify([locationId]));
+          sessionStorage.setItem("mkp_selected_locationId", locationId);
+        }
+        sessionStorage.setItem("mkp_latest_onboarding_snapshotId", String(result?.snapshotId || ""));
+      } catch (_error) {
+        // ignore storage issues
+      }
+    }
+
+    function renderErrorState(message) {
+      state.finalized = false;
+      stopProgressAnimation();
+      els.progressLabel.textContent = "Kræver opmærksomhed";
+      els.summaryStatus.textContent = "Kunne ikke færdiggøre automatisk";
+      els.statusCopy.textContent = "Vi kunne ikke færdiggøre din onboarding automatisk på takkesiden.";
+      els.ctaNote.textContent = "Du kan prøve igen eller gå direkte til rutiner for at fortsætte manuelt.";
+      els.errorNote.textContent = message;
+      els.dashboardCta.setAttribute("aria-disabled", "false");
+      els.dashboardCta.href = "/modules/egenkontrol/rutiner.html";
+      setHeroPills({ payment: true, generating: false, dashboard: false, error: true });
+    }
+
+    async function ensureSignedInUser() {
+      const credentials = getStoredCredentials();
+      state.autoLoginAttempted = true;
+      displayStoredEmail();
+
+      if (credentials.email && auth.currentUser?.uid) {
+        const currentEmail = String(auth.currentUser.email || "").trim().toLowerCase();
+        const targetEmail = credentials.email.toLowerCase();
+
+        if (currentEmail === targetEmail) {
+          state.currentUser = auth.currentUser;
+          applyAuthUiState("logged-in", `Du er logget ind som ${auth.currentUser.email}.`, auth.currentUser.email);
+          return auth.currentUser;
+        }
+
+        await signOut(auth);
+      }
+
+      if (auth.currentUser?.uid && !credentials.email) {
+        state.currentUser = auth.currentUser;
+        applyAuthUiState("logged-in", `Du er logget ind som ${auth.currentUser.email}.`, auth.currentUser.email);
+        return auth.currentUser;
+      }
+
+      if (!credentials.email || !credentials.password) {
+        state.autoLoginFailed = true;
+        applyAuthUiState("logged-out", "Vi fandt ikke automatisk login. Brug knappen herunder for at logge ind.");
+        return null;
+      }
+
+      applyAuthUiState("logged-out", "Opretter din konto...");
+      return null;
+    }
+
+    async function handleManualLogin() {
+      const credentials = getStoredCredentials();
+
+      if (!credentials.email || !credentials.password) {
+        applyAuthUiState("error", "Vi mangler loginoplysninger. Start onboarding igen eller brug din normale login-side.");
+        return;
+      }
+
+      els.manualLoginBtn.disabled = true;
+      els.manualLoginBtn.textContent = "Logger ind...";
+
+      try {
+        const signedIn = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
+        clearStoredCredentials();
+        state.currentUser = signedIn.user || null;
+        applyAuthUiState("logged-in", `Du er logget ind som ${signedIn.user.email}.`, signedIn.user.email);
+        window.location.href = state.dashboardUrl;
+      } catch (error) {
+        console.error("Manuelt login fejlede:", error);
+        applyAuthUiState("error", "Manuelt login fejlede. Kontrollér om brugeren allerede er oprettet og prøv igen.");
+      } finally {
+        els.manualLoginBtn.disabled = false;
+        els.manualLoginBtn.textContent = "Log ind";
+      }
+    }
+
+    async function handleLogout() {
+      try {
+        await signOut(auth);
+        displayStoredEmail();
+        applyAuthUiState("logged-out", "Du er logget ud. Brug Log ind for at åbne dit dashboard igen.");
+      } catch (error) {
+        console.error("Logout fejlede:", error);
+        applyAuthUiState("error", "Kunne ikke logge ud korrekt. Prøv igen.");
+      }
+    }
+
+    async function clearExistingSessionBeforeFinalize() {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = String(params.get("session_id") || "").trim();
+
+      if (!sessionId) return;
+
+      const existingUser = await new Promise((resolve) => {
+        let unsubscribe = () => {};
+        unsubscribe = onAuthStateChanged(auth, (user) => {
+          unsubscribe();
+          resolve(user || null);
+        }, () => {
+          unsubscribe();
+          resolve(auth.currentUser || null);
+        });
+      });
+
+      if (existingUser?.uid) {
+        await signOut(auth);
+      }
+
+      state.currentUser = null;
+    }
+
+    async function finalizeFromCheckout(user, profile) {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = String(params.get("session_id") || "").trim();
+      const draftId = String(params.get("draftId") || "").trim();
+      const provisioningToken = String(params.get("provisioning_token") || "").trim();
+      const customerName = firstNameFromProfile(profile, user);
+
+      renderPendingState(customerName);
+      startProgressAnimation();
+
+      const storedSummary = safeParseJson(localStorage.getItem(ONBOARDING_CHECKOUT_SUMMARY_KEY) || "null", null);
+      if (storedSummary) {
+        renderSummary(storedSummary);
+      }
+
+      if (!sessionId) {
+        renderErrorState("Mangler session_id i URL'en fra Stripe. Åbn dashboardet direkte eller start onboarding-flowet igen.");
+        return;
+      }
+
+      try {
+        const response = await finalizeOnboardingCheckoutProvisioning({
+          sessionId,
+          draftId,
+          provisioningToken
+        });
+
+        renderSuccessState(response?.data || {});
+
+        // After successful provisioning, sign in the user with stored credentials
+        const credentials = getStoredCredentials();
+        const normalizedStoredEmail = String(credentials.email || "").trim().toLowerCase();
+        const normalizedCurrentEmail = String(auth.currentUser?.email || "").trim().toLowerCase();
+
+        if (credentials.email && credentials.password && !auth.currentUser) {
+          try {
+            const signedIn = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
+            clearStoredCredentials();
+            state.currentUser = signedIn.user || null;
+            applyAuthUiState("logged-in", `Du er logget ind som ${signedIn.user.email}.`, signedIn.user.email);
+            window.location.href = state.dashboardUrl;
+            return;
+          } catch (loginError) {
+            console.error("Auto-login efter provisioning fejlede:", loginError);
+            state.autoLoginAttempted = true;
+            state.autoLoginFailed = true;
+            applyAuthUiState("logged-out", "Konto oprettet. Brug Log ind knappen for at fortsætte.");
+            return;
+          }
+        }
+
+        if (auth.currentUser?.uid && normalizedStoredEmail && normalizedCurrentEmail === normalizedStoredEmail) {
+          state.currentUser = auth.currentUser;
+          clearStoredCredentials();
+          applyAuthUiState("logged-in", `Du er logget ind som ${auth.currentUser.email}.`, auth.currentUser.email);
+          window.location.href = state.dashboardUrl;
+          return;
+        }
+
+        state.autoLoginAttempted = true;
+        state.autoLoginFailed = false;
+        applyAuthUiState("logged-out", "Konto oprettet. Brug Log ind knappen for at fortsætte.");
+      } catch (error) {
+        console.error("Kunne ikke færdiggøre onboarding på takkesiden:", error);
+        renderErrorState(String(error?.message || "Ukendt fejl under færdiggørelse af onboarding."));
+      }
+    }
+
+    els.manualLoginBtn.addEventListener("click", handleManualLogin);
+    els.logoutBtn.addEventListener("click", handleLogout);
+
+    onAuthStateChanged(auth, (user) => {
+      state.currentUser = user || null;
+
+      if (user?.email) {
+        applyAuthUiState("logged-in", `Du er logget ind som ${user.email}.`, user.email);
+      } else if (state.autoLoginAttempted) {
+        if (state.autoLoginFailed) {
+          applyAuthUiState("error", "Automatisk login kunne ikke gennemføres. Brug Log ind for at fortsætte.");
+        } else {
+          applyAuthUiState("logged-out", "Du er ikke logget ind endnu. Brug Log ind for at fortsætte.");
+        }
+      } else {
+        applyAuthUiState("logged-out", "Vi kontrollerer loginstatus...");
+      }
+    });
+
+    displayStoredEmail();
+
+    try {
+      await clearExistingSessionBeforeFinalize();
+      const autoUser = await ensureSignedInUser();
+
+      const userProfile = autoUser?.uid ? {
+        email: autoUser.email || "",
+        displayName: autoUser.displayName || ""
+      } : {
+        email: getStoredCredentials().email || "Gæst",
+        displayName: "Velkommen"
+      };
+
+      await finalizeFromCheckout(autoUser, userProfile);
+    } catch (error) {
+      console.error("Kunne ikke færdiggøre onboarding på takkesiden:", error);
+      renderErrorState(String(error?.message || "Kunne ikke færdiggøre onboarding automatisk. Prøv at genindlæse siden."));
+    }
+  </script>
+</body>
+</html>

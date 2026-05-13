@@ -1,0 +1,26 @@
+{
+  "source_file": "public/seed-data/importActivityProfiles.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "activity_profiles"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "activity_profiles"
+      ]
+    }
+  ]
+}

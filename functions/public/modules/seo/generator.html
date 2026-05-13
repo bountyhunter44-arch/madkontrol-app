@@ -1,0 +1,2228 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEO Hjemmeside Generator | Madkontrollen Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+:root{
+  --bg:#f3f7f2;
+  --panel:#ffffff;
+  --panel-soft:#f7faf7;
+  --text:#172117;
+  --muted:#607060;
+  --border:#dde7dd;
+  --green:#2f7d32;
+  --green-dark:#215b25;
+  --green-soft:#eaf5ea;
+  --shadow:0 18px 45px rgba(20,32,20,.08);
+  --radius-xl:24px;
+  --radius-lg:18px;
+}
+.seo-wrap{max-width:100%;}
+h1{margin:0 0 10px;font-size:40px;line-height:1.05;}
+h2,h3,h4,p{margin-top:0;}
+.lead{margin:0;max-width:980px;color:var(--muted);font-size:16px;line-height:1.6;}
+.generator,.preview{margin-top:28px;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border:1px solid rgba(221,231,221,.95);border-radius:var(--radius-xl);box-shadow:var(--shadow);}
+.generator{padding:28px;}
+.preview{display:none;overflow:hidden;}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;}
+.field-full{grid-column:1/-1;}
+label{display:block;margin:0 0 8px;font-size:14px;font-weight:700;}
+input,select,textarea{width:100%;padding:13px 14px;border:1px solid #cfdccf;border-radius:14px;background:#fff;font:inherit;color:var(--text);transition:border-color .18s ease, box-shadow .18s ease;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#8db58f;box-shadow:0 0 0 4px rgba(47,125,50,.08);}
+textarea{min-height:120px;resize:vertical;}
+.section-title{margin:26px 0 8px;font-size:20px;}
+.help-text{margin:0 0 16px;color:var(--muted);line-height:1.55;}
+.selection-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px;padding:16px 18px;border-radius:16px;background:var(--green-soft);border:1px solid #d7e6d7;}
+.template-output{font-size:14px;font-weight:800;color:var(--green-dark);}
+.auto-note{color:#345634;font-size:14px;line-height:1.55;}
+.primary-btn{margin-top:24px;padding:15px 22px;border:none;border-radius:14px;background:linear-gradient(180deg,var(--green) 0%, var(--green-dark) 100%);color:#fff;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 12px 24px rgba(47,125,50,.18);}
+.templates{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;}
+.template{position:relative;padding:12px;border:1px solid var(--border);border-radius:18px;background:#fcfefc;cursor:pointer;transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;}
+.template:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(25,40,25,.07);}
+.template.active{border-color:#7ca97d;box-shadow:0 0 0 3px rgba(47,125,50,.10);background:#f7fcf7;}
+.template-thumb{height:104px;border-radius:14px;border:1px solid rgba(0,0,0,.05);overflow:hidden;position:relative;margin-bottom:10px;}
+.template-name{font-size:14px;font-weight:800;}
+.template-desc{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.45;}
+.thumb-classic{background:linear-gradient(180deg,#f8faf8 0%,#ffffff 100%);} .thumb-classic::before{content:"";position:absolute;left:10px;right:10px;top:12px;height:14px;background:#2f7d32;border-radius:999px;} .thumb-classic::after{content:"";position:absolute;left:10px;right:10px;bottom:10px;height:48px;background:#edf5ed;border-radius:14px;}
+.thumb-modern{background:linear-gradient(135deg,#101827 0%,#374151 100%);} .thumb-modern::before{content:"";position:absolute;left:12px;right:46px;top:14px;height:10px;background:#fff;border-radius:999px;} .thumb-modern::after{content:"";position:absolute;left:12px;right:12px;bottom:12px;height:44px;background:rgba(255,255,255,.12);border-radius:14px;}
+.thumb-dark{background:linear-gradient(180deg,#0f172a 0%,#020617 100%);} .thumb-dark::before{content:"";position:absolute;left:12px;top:14px;width:60px;height:12px;background:#f59e0b;border-radius:999px;} .thumb-dark::after{content:"";position:absolute;left:12px;right:12px;bottom:12px;height:44px;background:rgba(245,158,11,.14);border-radius:14px;}
+.thumb-street{background:linear-gradient(135deg,#fff7ed 0%,#fde68a 100%);} .thumb-street::before{content:"";position:absolute;left:12px;top:12px;width:70px;height:16px;background:#ea580c;border-radius:8px;} .thumb-street::after{content:"";position:absolute;right:12px;bottom:12px;width:60px;height:60px;background:#fb923c;border-radius:16px;}
+.thumb-minimal{background:#fff;} .thumb-minimal::before{content:"";position:absolute;left:14px;right:14px;top:20px;height:8px;background:#111827;border-radius:999px;} .thumb-minimal::after{content:"";position:absolute;left:14px;right:14px;bottom:14px;height:34px;background:#f3f4f6;border-radius:10px;}
+.thumb-luxury{background:linear-gradient(180deg,#1f2937 0%,#111827 100%);} .thumb-luxury::before{content:"";position:absolute;left:14px;top:14px;width:42px;height:42px;border:2px solid #fbbf24;border-radius:50%;} .thumb-luxury::after{content:"";position:absolute;left:68px;right:12px;bottom:18px;height:12px;background:#fbbf24;border-radius:999px;}
+.thumb-bistro{background:linear-gradient(180deg,#fff1f1 0%,#fff 100%);} .thumb-bistro::before{content:"";position:absolute;left:12px;right:12px;top:14px;height:14px;background:#b91c1c;border-radius:999px;} .thumb-bistro::after{content:"";position:absolute;left:12px;right:12px;bottom:12px;height:44px;background:#fee2e2;border-radius:14px;}
+.thumb-fastfood{background:linear-gradient(135deg,#fff7cc 0%,#fde047 100%);} .thumb-fastfood::before{content:"";position:absolute;left:12px;top:12px;width:54px;height:54px;background:#dc2626;border-radius:16px;} .thumb-fastfood::after{content:"";position:absolute;right:12px;bottom:14px;width:68px;height:12px;background:#ca8a04;border-radius:999px;}
+.thumb-takeaway{background:linear-gradient(180deg,#eff6ff 0%,#dbeafe 100%);} .thumb-takeaway::before{content:"";position:absolute;left:12px;right:12px;top:12px;height:18px;background:#2563eb;border-radius:8px;} .thumb-takeaway::after{content:"";position:absolute;left:22px;bottom:14px;width:52px;height:36px;border:3px solid #2563eb;border-top-width:8px;border-radius:6px;}
+.thumb-foodtruck{background:linear-gradient(180deg,#ecfeff 0%,#cffafe 100%);} .thumb-foodtruck::before{content:"";position:absolute;left:12px;bottom:22px;width:72px;height:32px;background:#0891b2;border-radius:10px;} .thumb-foodtruck::after{content:"";position:absolute;left:20px;bottom:8px;width:18px;height:18px;background:#0f172a;border-radius:50%;box-shadow:40px 0 0 #0f172a;}
+.module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:22px;}
+.module-card{background:#fcfefc;border:1px solid #dde7dd;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;min-width:0;}
+.module-card.recommended-module{border-color:#2f7d32;background:#f7fcf7;box-shadow:0 0 0 2px rgba(47,125,50,.08);}
+.module-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;align-items:start;}
+.module-head strong{font-size:15px;line-height:1.3;flex:1 1 120px;min-width:0;}
+.module-pill{font-size:11px;font-weight:700;padding:5px 9px;border-radius:999px;border:1px solid #f1d59a;background:#fff6e7;color:#9a6700;white-space:nowrap;flex-shrink:0;}
+.module-pill.active{background:#eaf5ea;color:#215b25;border-color:#cfe3cf;}
+.module-price{font-size:24px;font-weight:800;line-height:1;}
+.module-meta{font-size:13px;color:var(--muted);}
+.module-button-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto;}
+.module-button{padding:10px 10px;border:none;border-radius:12px;font-weight:800;cursor:pointer;color:#fff;background:#172117;font-size:13px;text-align:center;white-space:normal;line-height:1.2;}
+.module-button.active{background:#2f7d32;}
+.module-button.secondary{background:#edf4ed;color:#215b25;border:1px solid #d5e5d6;}
+.preview{--theme-primary:#1f7a3d;--theme-secondary:#f8f4ea;--theme-accent:#b91c1c;--theme-text:#1f2937;--theme-hero-overlay:rgba(0,0,0,0.42);}
+.hero-awning{position:absolute;top:0;left:0;width:100%;z-index:6;pointer-events:none;line-height:0;color:var(--theme-primary);}
+.hero-awning svg{display:block;width:100%;height:auto;max-width:none;}
+.preview-hero{position:relative;min-height:520px;background-size:cover;background-position:center;overflow:hidden;padding:0;border-bottom:none;}
+.preview-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.22),var(--theme-hero-overlay));}
+.hero-inner{position:relative;z-index:7;max-width:1200px;margin:0 auto;padding:80px 24px 60px;text-align:center;color:#ffffff;}
+.hero-logo-badge{width:90px;height:90px;margin:0 auto 16px;border-radius:999px;background:rgba(255,255,255,0.94);border:4px solid var(--theme-primary);display:grid;place-items:center;color:var(--theme-primary);font-weight:800;font-size:24px;box-shadow:0 8px 20px rgba(0,0,0,0.18);}
+.hero-title{margin:0;font-size:clamp(36px,6vw,72px);line-height:0.95;font-weight:900;letter-spacing:-0.03em;text-shadow:0 4px 12px rgba(0,0,0,0.3);color:#fff;}
+.hero-subtitle{margin:14px auto 0;max-width:700px;font-size:clamp(18px,2vw,28px);line-height:1.2;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.25);color:#fff;}
+.hero-actions{margin-top:28px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.hero-btn{display:inline-flex;align-items:center;justify-content:center;min-width:160px;padding:14px 22px;border-radius:12px;text-decoration:none;font-weight:800;font-size:16px;transition:transform 0.18s ease,opacity 0.18s ease;box-shadow:0 6px 16px rgba(0,0,0,0.18);border:none;cursor:pointer;}
+.hero-btn:hover{transform:translateY(-2px);opacity:0.96;}
+.hero-btn--primary{background:var(--theme-accent);color:#ffffff;}
+.hero-btn--secondary{background:var(--theme-secondary);color:var(--theme-primary);}
+.hero-btn--ghost{background:var(--theme-primary);color:#ffffff;}
+.hero-btn.hidden{display:none;}
+.stat-mini{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.22);padding:12px 18px;border-radius:10px;text-align:center;min-width:120px;}
+.stat-number{font-size:20px;font-weight:800;color:#fff;margin-bottom:4px;}
+.stat-label{font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.05em;}
+.preview.dark-theme .preview-hero,.preview.luxury-theme .preview-hero{background:linear-gradient(135deg,#162031 0%,#0f172a 100%);}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:999px;background:rgba(255,255,255,.78);border:1px solid rgba(0,0,0,.06);font-size:12px;font-weight:800;letter-spacing:.02em;margin-bottom:16px;}
+.preview.dark-theme,.preview.luxury-theme{background:linear-gradient(180deg,#0f172a 0%,#111827 100%);color:#f8fafc;}
+.preview.dark-theme .hero-badge,.preview.luxury-theme .hero-badge{background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.22);color:#fde68a;}
+.preview.dark-theme .muted,.preview.luxury-theme .muted,.preview.dark-theme #previewSeo,.preview.luxury-theme #previewSeo,.preview.dark-theme #contactInfo,.preview.luxury-theme #contactInfo{color:rgba(255,255,255,.74);}
+.preview.dark-theme .preview-shell,.preview.luxury-theme .preview-shell{background:transparent;}
+.preview.dark-theme .info-card,.preview.dark-theme .menu-item,.preview.dark-theme .seo-card,.preview.dark-theme .feature-card,.preview.luxury-theme .info-card,.preview.luxury-theme .menu-item,.preview.luxury-theme .seo-card,.preview.luxury-theme .feature-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);}
+.preview.modern-theme .preview-hero{background:linear-gradient(135deg,#111827 0%,#374151 100%);}
+.preview.modern-theme{background:linear-gradient(180deg,#f8fbff 0%,#ecf2ff 100%);}
+.preview.modern-theme .hero-badge{background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.25);color:#1d4ed8;}
+.preview.modern-theme .info-card,.preview.modern-theme .menu-item,.preview.modern-theme .seo-card,.preview.modern-theme .feature-card{background:#f8fbff;border-color:#d4def5;}
+.preview.street-theme .preview-hero{background:linear-gradient(135deg,#fff7ed 0%,#fde68a 100%);}
+.preview.street-theme{background:linear-gradient(180deg,#fffaf1 0%,#fff4dc 100%);}
+.preview.street-theme .hero-badge{background:rgba(234,88,12,.12);border-color:rgba(234,88,12,.28);color:#c2410c;}
+.preview.street-theme .info-card,.preview.street-theme .menu-item,.preview.street-theme .seo-card,.preview.street-theme .feature-card{background:#fff7e8;border-color:#f7cf9c;}
+.preview.minimal-theme .preview-hero{background:linear-gradient(135deg,#ffffff 0%,#f3f4f6 100%);}
+.preview.minimal-theme{background:linear-gradient(180deg,#ffffff 0%,#f7f7f8 100%);}
+.preview.minimal-theme .hero-badge{background:#fff;border-color:#d1d5db;color:#111827;}
+.preview.minimal-theme .info-card,.preview.minimal-theme .menu-item,.preview.minimal-theme .seo-card,.preview.minimal-theme .feature-card{background:#fff;border-color:#e5e7eb;}
+.preview.bistro-theme .preview-hero{background:linear-gradient(135deg,#fff1f2 0%,#ffe4e6 100%);}
+.preview.bistro-theme{background:linear-gradient(180deg,#fff7f7 0%,#fff0f0 100%);}
+.preview.bistro-theme .hero-badge{background:rgba(185,28,28,.1);border-color:rgba(185,28,28,.26);color:#991b1b;}
+.preview.bistro-theme .info-card,.preview.bistro-theme .menu-item,.preview.bistro-theme .seo-card,.preview.bistro-theme .feature-card{background:#fff6f6;border-color:#f3c8c8;}
+.preview.fastfood-theme .preview-hero{background:linear-gradient(135deg,#fff7cc 0%,#fde047 100%);}
+.preview.fastfood-theme{background:linear-gradient(180deg,#fffceb 0%,#fff8cf 100%);}
+.preview.fastfood-theme .hero-badge{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.25);color:#b91c1c;}
+.preview.fastfood-theme .info-card,.preview.fastfood-theme .menu-item,.preview.fastfood-theme .seo-card,.preview.fastfood-theme .feature-card{background:#fffbe3;border-color:#f6df8a;}
+.preview.takeaway-theme .preview-hero{background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);}
+.preview.takeaway-theme{background:linear-gradient(180deg,#f5f9ff 0%,#e8f1ff 100%);}
+.preview.takeaway-theme .hero-badge{background:rgba(37,99,235,.1);border-color:rgba(37,99,235,.22);color:#1d4ed8;}
+.preview.takeaway-theme .info-card,.preview.takeaway-theme .menu-item,.preview.takeaway-theme .seo-card,.preview.takeaway-theme .feature-card{background:#f4f8ff;border-color:#cdddff;}
+.preview.foodtruck-theme .preview-hero{background:linear-gradient(135deg,#ecfeff 0%,#cffafe 100%);}
+.preview.foodtruck-theme{background:linear-gradient(180deg,#f4feff 0%,#e0fbff 100%);}
+.preview.foodtruck-theme .hero-badge{background:rgba(8,145,178,.12);border-color:rgba(8,145,178,.24);color:#0e7490;}
+.preview.foodtruck-theme .info-card,.preview.foodtruck-theme .menu-item,.preview.foodtruck-theme .seo-card,.preview.foodtruck-theme .feature-card{background:#effcff;border-color:#b9e9f2;}
+.preview-shell{padding:28px;}
+.preview-main{display:grid;grid-template-columns:1.15fr .85fr;gap:22px;}
+.info-card,.menu-item,.seo-card,.feature-card{background:var(--panel-soft);border:1px solid var(--border);border-radius:18px;padding:18px;}
+.hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:end;}
+#previewTitle{margin:0 0 12px;font-size:36px;line-height:1.08;}
+#previewSeo{max-width:760px;line-height:1.65;}
+.hero-meta{display:grid;gap:12px;}
+.hero-stat-grid,.features,.menu,.seo-grid{display:grid;gap:16px;}
+.hero-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+.features{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:18px;}
+.menu{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:18px;}
+.seo-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:18px;}
+.stat-mini{padding:16px;border-radius:18px;background:rgba(255,255,255,.76);border:1px solid rgba(0,0,0,.05);}
+.preview.dark-theme .stat-mini,.preview.luxury-theme .stat-mini{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);}
+.stat-number{font-size:24px;font-weight:800;line-height:1;margin-bottom:6px;}
+.stat-label,.muted{color:var(--muted);}
+.preview-logo{width:88px;height:88px;border-radius:22px;background:#eef4ee;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:28px;font-weight:800;color:var(--green-dark);margin-bottom:16px;transition:all .25s ease;}
+.preview-logo img{width:100%;height:100%;object-fit:cover;}
+.preview-logo.logo-card{width:72px;height:72px;border-radius:18px;box-shadow:0 12px 24px rgba(0,0,0,.08);}
+.preview-logo.logo-right-middle{margin-left:auto;}
+.sidebar-stack{display:grid;gap:16px;}
+.contact-list{display:grid;gap:10px;margin-top:14px;}
+.contact-item{padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:#fff;font-size:14px;}
+.preview.dark-theme .contact-item,.preview.luxury-theme .contact-item{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);}
+.seo-page-card{cursor:pointer;transition:box-shadow .18s,transform .18s,border-color .18s;}
+.seo-page-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(25,40,25,.09);border-color:#8db58f;}
+.seo-modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,20,10,.55);z-index:9000;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;}
+.seo-modal-overlay.active{display:flex;}
+.seo-modal{background:#fff;border-radius:22px;max-width:760px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(10,20,10,.18);}
+.seo-modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border,#dde7dd);}
+.seo-modal-head h3{margin:0;font-size:13px;font-weight:700;color:var(--muted,#607060);text-transform:uppercase;letter-spacing:.05em;}
+.seo-modal-close{background:none;border:1px solid var(--border,#dde7dd);border-radius:10px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:700;color:var(--muted,#607060);}
+.seo-modal-close:hover{background:#f3f7f2;}
+.seo-lp-hero{background:linear-gradient(135deg,#f2f8f2 0%,#e8f4e8 100%);padding:36px 32px 28px;border-bottom:1px solid #dde7dd;}
+.seo-lp-hero.has-hero-image{position:relative;background-size:cover;background-position:center;background-repeat:no-repeat;border-bottom:none;}
+.seo-lp-hero.has-hero-image::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:0;}
+.seo-lp-hero.has-hero-image>*{position:relative;z-index:1;}
+.seo-lp-hero.has-hero-image .seo-lp-path{color:rgba(255,255,255,.65);}
+.seo-lp-hero.has-hero-image .seo-lp-h1{color:#fff;}
+.seo-lp-hero.has-hero-image .seo-lp-meta{color:rgba(255,255,255,.82);}
+.seo-lp-hero.has-hero-image .seo-lp-cta{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;backdrop-filter:blur(4px);}
+.seo-lp-path{font-size:12px;color:#8aaa8a;font-weight:600;letter-spacing:.03em;margin-bottom:14px;}
+.seo-lp-h1{margin:0 0 14px;font-size:28px;font-weight:900;line-height:1.15;color:#172117;}
+.seo-lp-meta{font-size:15px;color:#456045;line-height:1.6;max-width:560px;margin:0 0 20px;}
+.seo-lp-cta{display:inline-block;padding:12px 22px;background:#2a5c2a;color:#fff;border-radius:12px;font-weight:800;font-size:14px;text-decoration:none;cursor:default;}
+.seo-lp-body{padding:28px 32px;display:grid;gap:22px;}
+.seo-lp-section{border-left:3px solid #c8ddc8;padding-left:16px;}
+.seo-lp-h2{margin:0 0 6px;font-size:18px;font-weight:800;color:#1e3a1e;}
+.seo-lp-h3{margin:0 0 4px;font-size:15px;font-weight:700;color:#345634;}
+.seo-lp-p{margin:0;font-size:14px;color:#607060;line-height:1.6;}
+.seo-lp-meta-bar{margin-top:4px;padding:14px 32px;background:#f7faf7;border-top:1px solid #dde7dd;display:flex;flex-wrap:wrap;gap:6px 20px;align-items:center;}
+.seo-lp-meta-item{font-size:11px;color:#8aaa8a;font-weight:600;}
+.seo-lp-meta-item span{color:#345634;font-weight:700;}
+.seo-lp-maps-link{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#1a73e8;text-decoration:none;padding:4px 10px;border-radius:8px;background:#e8f0fe;border:1px solid #c5d8fc;transition:background .15s;}
+.seo-lp-maps-link:hover{background:#d2e3fc;}
+.seo-field-row{display:grid;gap:4px;}
+.seo-field-label{font-size:12px;font-weight:700;color:var(--muted,#607060);text-transform:uppercase;letter-spacing:.04em;}
+.seo-lp-menu-section{border-left:3px solid #a8c8a8;}
+.seo-lp-dish-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:10px;}
+.seo-lp-dish-card{background:#f7faf7;border:1px solid #dde7dd;border-radius:10px;padding:11px 13px;}
+.seo-lp-dish-card strong{font-size:13px;font-weight:800;color:#1e3a1e;display:block;margin-bottom:4px;}
+.seo-lp-dish-card p{margin:0;font-size:12px;color:#607060;line-height:1.5;}
+.seo-field-value{font-size:14px;color:#172117;line-height:1.5;word-break:break-word;}
+.hidden{display:none !important;}
+.subdomain-card{display:grid;gap:10px;}
+.subdomain-value{font-size:24px;font-weight:800;word-break:break-word;}
+.domain-note{font-size:13px;color:var(--muted);}
+.subdomain-banner{background:linear-gradient(135deg,#1a3a1a 0%,#2f5c2f 100%);border-radius:18px;padding:18px 20px;display:grid;gap:4px;}
+.subdomain-banner-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.55);}
+.subdomain-banner-url{font-size:20px;font-weight:800;color:#fff;word-break:break-all;line-height:1.2;}
+.subdomain-banner-status{font-size:12px;color:rgba(255,255,255,.65);margin-top:2px;}
+@media (max-width:1120px){.templates{grid-template-columns:repeat(2,minmax(0,1fr));}.hero-grid,.preview-main{grid-template-columns:1fr;}}
+@media (max-width:780px){body{padding:18px;}.grid,.templates,.module-grid,.hero-stat-grid,.features,.menu,.seo-grid{grid-template-columns:1fr;}h1{font-size:32px;}#previewTitle{font-size:30px;}.selection-row{flex-direction:column;align-items:flex-start;}.module-button-row{grid-template-columns:1fr;}}
+/* === IMAGE SEARCH PANEL === */
+.img-search-panel{margin-top:20px;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border:1px solid rgba(221,231,221,.95);border-radius:var(--radius-xl);box-shadow:var(--shadow);padding:28px;}
+.img-search-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:20px;}
+.img-search-controls>div{flex:1 1 180px;min-width:140px;}
+.img-search-btn{flex:0 0 auto;padding:13px 22px;border:none;border-radius:14px;background:linear-gradient(180deg,var(--green) 0%,var(--green-dark) 100%);color:#fff;font:inherit;font-weight:800;cursor:pointer;}
+.img-search-btn:disabled{opacity:.55;cursor:not-allowed;}
+.img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:4px;}
+.img-grid-item{position:relative;border-radius:16px;overflow:hidden;cursor:pointer;aspect-ratio:16/9;background:#f3f7f2;border:2px solid transparent;transition:border-color .18s,box-shadow .18s,transform .18s;}
+.img-grid-item:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(25,40,25,.12);}
+.img-grid-item.selected{border-color:#2f7d32;box-shadow:0 0 0 3px rgba(47,125,50,.18);}
+.img-grid-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.img-grid-item .img-credit{position:absolute;bottom:0;left:0;right:0;padding:4px 8px;background:rgba(0,0,0,.45);color:#fff;font-size:10px;line-height:1.3;opacity:0;transition:opacity .18s;}
+.img-grid-item:hover .img-credit,.img-grid-item.selected .img-credit{opacity:1;}
+.img-grid-item .img-check{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:#2f7d32;color:#fff;display:none;align-items:center;justify-content:center;font-size:13px;font-weight:800;}
+.img-grid-item.selected .img-check{display:flex;}
+.img-selected-actions{margin-top:20px;padding:20px;background:var(--green-soft);border:1px solid #d7e6d7;border-radius:18px;display:none;}
+.img-selected-actions.active{display:block;}
+.img-style-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:14px;}
+.img-style-row>div{flex:1 1 200px;}
+.img-enhance-btn,.img-save-btn{flex:0 0 auto;padding:11px 18px;border:none;border-radius:12px;font:inherit;font-weight:800;cursor:pointer;}
+.img-enhance-btn{background:#172117;color:#fff;}
+.img-enhance-btn:disabled,.img-save-btn:disabled{opacity:.55;cursor:not-allowed;}
+.img-save-btn{background:#2f7d32;color:#fff;}
+.img-before-after{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;}
+.img-before-after img{width:100%;border-radius:14px;border:1px solid var(--border);aspect-ratio:16/9;object-fit:cover;}
+.img-before-after .img-ba-label{margin:6px 0 0;font-size:12px;color:var(--muted);font-weight:700;}
+.img-search-empty,.img-grid-loader{grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:14px;}
+@media(max-width:780px){.img-before-after{grid-template-columns:1fr;}}
+.img-loading{margin-top:14px;padding:14px 16px;background:rgba(47,125,50,.07);border-radius:12px;text-align:center;}
+.img-loading-bar{height:3px;border-radius:4px;background:linear-gradient(90deg,var(--green) 0%,var(--green-dark) 100%);transform-origin:left;animation:img-load 1.4s ease-in-out infinite alternate;}
+@keyframes img-load{from{opacity:.35;transform:scaleX(.5);}to{opacity:1;transform:scaleX(1);}}
+.img-loading p{margin:8px 0 0;font-size:13px;color:var(--green-dark);font-weight:600;}
+/* === HERO IMAGE BACKGROUND === */
+.preview-hero.has-hero-image{position:relative;background-size:cover;background-position:center;background-repeat:no-repeat;}
+.preview-hero.has-hero-image::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:0;pointer-events:none;}
+.preview-hero.has-hero-image>*{position:relative;z-index:1;}
+.preview-hero.has-hero-image .hero-badge{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.25);color:#fff;}
+.preview-hero.has-hero-image #previewTitle{color:#fff;}
+.preview-hero.has-hero-image #previewSeo,.preview-hero.has-hero-image .muted{color:rgba(255,255,255,.82);}
+.preview-hero.has-hero-image .subdomain-banner{background:rgba(0,0,0,.5);}
+.preview-hero.has-hero-image .stat-mini{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.22);color:#fff;}
+.preview-hero.has-hero-image .stat-label,.preview-hero.has-hero-image .muted{color:rgba(255,255,255,.70);}
+</style>
+</head>
+<body>
+  <div id="headerMount"></div>
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+      <section class="page-content">
+        <div class="seo-wrap">
+
+          <div class="panel" style="margin-bottom:24px;padding:24px 28px;">
+            <span class="eyebrow">SEO &amp; Hjemmeside</span>
+            <h1 style="margin:8px 0 10px;font-size:28px;font-weight:800;line-height:1.1;">SEO Hjemmeside &amp; Menu Generator</h1>
+            <p class="lead" style="margin:0 0 18px;color:var(--muted,#607060);font-size:15px;line-height:1.6;">Generér SEO-tekster, metadata og lokalt landingsindhold direkte fra portalen. Virksomhedens egne oplysninger fra den aktive forretningsprofil bruges automatisk som udgangspunkt.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;">
+              <div style="padding:11px 15px;background:var(--panel-2,#f8fbf8);border:1px solid var(--border,#dde7dd);border-radius:14px;font-size:14px;font-weight:600;">&#x1F4DD; SEO-titler og meta descriptions</div>
+              <div style="padding:11px 15px;background:var(--panel-2,#f8fbf8);border:1px solid var(--border,#dde7dd);border-radius:14px;font-size:14px;font-weight:600;">&#x1F310; Lokale landingssider</div>
+              <div style="padding:11px 15px;background:var(--panel-2,#f8fbf8);border:1px solid var(--border,#dde7dd);border-radius:14px;font-size:14px;font-weight:600;">&#x1F3EA; Virksomhedsindhold fra portalen</div>
+              <div style="padding:11px 15px;background:var(--panel-2,#f8fbf8);border:1px solid var(--border,#dde7dd);border-radius:14px;font-size:14px;font-weight:600;">&#x1F4F1; Mobiloptimerede sider</div>
+            </div>
+          </div>
+
+          <div class="generator">
+            <div class="grid">
+      <div><label>Restaurant navn</label><input id="name" placeholder="Fx Burger House"></div>
+      <div>
+        <label>Subdomæne</label>
+        <input id="subdomain" placeholder="fx burgerhouse-aarhus">
+        <p id="subdomainStatus" class="help-text" style="display:none;">Indtast subdomæne for live tilgængelighedstjek.</p>
+      </div>
+      <div><label>By</label><input id="city" placeholder="Fx Aarhus"></div>
+      <div><label>Type køkken</label><select id="type"><option>Burger</option><option>Pizza</option><option>Sushi</option><option>Thai restaurant</option><option>Asiatisk fusion</option><option>Restaurant og B&amp;B</option><option>Streetfood</option><option>Café</option><option>Klassisk dansk restaurant</option><option>Italiensk restaurant</option><option>Fransk bistro</option><option>Steakhouse</option><option>Asiatisk restaurant</option><option>Indisk restaurant</option><option>Mellемøstlig restaurant</option><option>Grill og kebab</option><option>Vegansk og vegetarisk</option><option>Frokost og smørrebrød</option><option>Bageri og konditori</option><option>Takeaway</option><option>Fine dining</option><option>Erhvervskøkken</option><option>Institutionskøkken</option><option>Plejehjemskøkken</option><option>Skolekøkken</option></select></div>
+      <div><label>Hvad laver virksomheden</label><input id="offerings" placeholder="Fx burger, takeaway, catering, frokostordning"></div>
+      <div><label>Primært søgeord</label><input id="keyword" placeholder="Fx bedste burger i Aarhus"></div>
+      <div><label>Telefon</label><input id="phone" placeholder="Restaurant telefon"></div>
+      <div><label>Adresse</label><input id="address" placeholder="Gade + nr"></div>
+      <div class="field-full"><label>Beskrivelse</label><textarea id="description" placeholder="Kort beskrivelse af restauranten"></textarea></div>
+      <div><label>Upload logo</label><input id="logoUpload" type="file" accept="image/*"></div>
+      <div><label>Logo placering</label><select id="logoPosition"><option value="card">Som på designkortene</option><option value="left-top">Venstre top</option><option value="right-middle">Højre midte</option></select></div>
+      <div><label>Antal autogenererede sider</label><select id="pageCount"><option value="10">10 sider</option><option value="25">25 sider</option><option value="50" selected>50 sider</option><option value="100">100 sider</option></select></div>
+      <div><label>Eksisterende hjemmeside</label><input id="websiteUrl" placeholder="Fx https://dinrestaurant.dk"></div>
+      <div><label>CTA knap tekst</label><input id="ctaText" placeholder="Fx Bestil nu, Ring til os, Book bord"></div>
+      <div><label>CTA knap link</label><input id="ctaUrl" placeholder="Fx https://... eller tel:20717861"></div>
+      <div class="field-full" style="margin-top:16px;border-top:1px solid #e5e7eb;padding-top:16px;">
+        <h4 style="margin:0 0 12px;font-size:14px;font-weight:700;color:#1f2937;">Theme farver</h4>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div><label style="font-size:13px;">Primær</label><input type="color" id="themePrimary" value="#1f7a3d" style="width:100%;height:40px;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;"></div>
+          <div><label style="font-size:13px;">Sekundær</label><input type="color" id="themeSecondary" value="#f8f4ea" style="width:100%;height:40px;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;"></div>
+          <div><label style="font-size:13px;">Accent</label><input type="color" id="themeAccent" value="#b91c1c" style="width:100%;height:40px;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;"></div>
+        </div>
+      </div>
+      <div class="field-full" style="margin-top:8px;">
+        <button type="button" class="primary-btn" id="aiSuggestBtn" style="padding:11px 18px;font-size:14px;margin:0;">✨ AI forslag</button>
+        <p id="aiSuggestStatus" class="help-text" style="margin:6px 0 0;font-size:12px;display:none;"></p>
+      </div>
+    </div>
+
+    <h3 class="section-title">Moduler ved onboarding</h3>
+    <p class="help-text">Alle moduler præsenteres med det samme og vises som klargjort i kundens brand. De kan være synlige, delvist previewbare og klar til køb, men først fuldt aktive når kunden vælger at købe modulet.</p>
+    <div class="module-grid" id="moduleCards"></div>
+
+    <h3 class="section-title">Standarddesign og designskifte</h3>
+    <p class="help-text">Alle kunder starter i en standard hjemmeside, der følger Madkontrollens egen stil. Efter oprettelse kan de selv klikke over på et andet design, hvis de ønsker mere mørkt, mere moderne, mere takeaway-præget eller andet udtryk.</p>
+    <div class="templates" id="templates">
+      <div class="template active" data-template="classic"><div class="template-thumb thumb-classic"></div><div class="template-name">Standard / Classic</div><div class="template-desc">Starter som Madkontrollens standard stil</div></div>
+      <div class="template" data-template="modern"><div class="template-thumb thumb-modern"></div><div class="template-name">Modern</div><div class="template-desc">Mere premium og moderne layout</div></div>
+      <div class="template" data-template="dark"><div class="template-thumb thumb-dark"></div><div class="template-name">Dark</div><div class="template-desc">Mørkt design til aftenstemning</div></div>
+      <div class="template" data-template="street"><div class="template-thumb thumb-street"></div><div class="template-name">Streetfood</div><div class="template-desc">Farverigt og energisk udtryk</div></div>
+      <div class="template" data-template="minimal"><div class="template-thumb thumb-minimal"></div><div class="template-name">Minimal</div><div class="template-desc">Enkelt og luftigt design</div></div>
+      <div class="template" data-template="luxury"><div class="template-thumb thumb-luxury"></div><div class="template-name">Luxury</div><div class="template-desc">Eksklusivt look til finere steder</div></div>
+      <div class="template" data-template="bistro"><div class="template-thumb thumb-bistro"></div><div class="template-name">Bistro</div><div class="template-desc">Varm og hyggelig bistro-stil</div></div>
+      <div class="template" data-template="fastfood"><div class="template-thumb thumb-fastfood"></div><div class="template-name">Fastfood</div><div class="template-desc">Skabt til hurtige koncepter</div></div>
+      <div class="template" data-template="takeaway"><div class="template-thumb thumb-takeaway"></div><div class="template-name">Takeaway</div><div class="template-desc">Fokus på bestilling og levering</div></div>
+      <div class="template" data-template="foodtruck"><div class="template-thumb thumb-foodtruck"></div><div class="template-name">Foodtruck</div><div class="template-desc">Perfekt til mobile køkkener</div></div>
+    </div>
+
+    <div class="selection-row">
+      <div>
+        <div class="template-output" id="selectedTemplateLabel">Valgt design: Standard / Classic</div>
+        <div class="auto-note">Ved onboarding publiceres siden først som standarddesign på kundens subdomæne. SEO kan derefter genereres som preview, og modulerne kan købes og aktiveres enkeltvis uden at kunden skal starte forfra.</div>
+      </div>
+    </div>
+
+    <button class="primary-btn" id="generateBtn" onclick="generateAndSave()">Generer &amp; Gem</button>
+    <p id="generatorStatus" class="help-text" style="margin-top:10px; margin-bottom:0; font-size:13px;">Log ind som admin for automatisk gemning og oprettelse af live side på kundens subdomæne.</p>
+  </div>
+
+  <div class="img-search-panel" id="imgSearchPanel">
+    <h3 class="section-title" style="margin-top:0;">Billeder til landingsside</h3>
+    <p class="help-text">Søg royalty-free billeder fra Pexels baseret på restaurantkategori. Vælg et billede og forbedr det med AI til brug i din landingsside.</p>
+    <div class="img-search-controls">
+      <div>
+        <label>Kategori</label>
+        <select id="imgCategory">
+          <option value="burger">Burger</option>
+          <option value="pizza">Pizza</option>
+          <option value="sushi">Sushi</option>
+          <option value="thai">Thai restaurant</option>
+          <option value="cafe">Café</option>
+          <option value="asiatisk">Asiatisk</option>
+          <option value="streetfood">Streetfood</option>
+          <option value="finedining">Fine dining</option>
+          <option value="grillkebab">Grill &amp; kebab</option>
+          <option value="vegansk">Vegansk</option>
+          <option value="smørrebrød">Smørrebrød</option>
+          <option value="steakhouse">Steakhouse</option>
+        </select>
+      </div>
+      <div>
+        <label>Søgeord (valgfrit)</label>
+        <input id="imgCustomQuery" placeholder="Fx 'pad thai street food'" autocomplete="off">
+      </div>
+      <button class="img-search-btn" id="imgSearchBtn">&#x1F50D; Søg billeder</button>
+    </div>
+    <div class="img-grid" id="imgGrid">
+      <div class="img-search-empty">Vælg en kategori og klik Søg billeder for at se resultater.</div>
+    </div>
+    <div class="img-selected-actions" id="imgSelectedActions">
+      <strong id="imgSelectedLabel">Valgt billede</strong>
+      <div class="img-style-row">
+        <div>
+          <label>Stil til landingsside</label>
+          <select id="imgStyle">
+            <option value="warm">Varm og moderne</option>
+            <option value="nordic">Lys nordisk café</option>
+            <option value="dark">Mørk premium restaurant</option>
+            <option value="street">Street food vibe</option>
+            <option value="clean">Ren og appetitlig</option>
+          </select>
+        </div>
+        <button class="img-enhance-btn" id="imgEnhanceBtn">&#x2728; Forbedr &amp; Gem</button>
+      </div>
+      <div class="img-loading" id="imgLoading" style="display:none;"><div class="img-loading-bar"></div><p id="imgLoadingText">Behandler billede...</p></div>
+      <div class="img-before-after" id="imgBeforeAfter" style="display:none;">
+        <div>
+          <img id="imgBeforeImg" src="" alt="Original">
+          <p class="img-ba-label">Original (Pexels)</p>
+        </div>
+        <div>
+          <img id="imgAfterImg" src="" alt="Forbedret">
+          <p class="img-ba-label" id="imgAfterLabel">AI-forbedret version</p>
+        </div>
+      </div>
+      <p id="imgSaveStatus" style="margin:10px 0 0;font-size:13px;display:none;"></p>
+    </div>
+  </div>
+
+  <div class="preview" id="preview">
+    <section class="preview-hero">
+      <div id="heroAwning" class="hero-awning" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <div class="hero-logo-badge" id="heroLogo">MK</div>
+        <h1 class="hero-title" id="previewTitle"></h1>
+        <p class="hero-subtitle" id="previewSeo"></p>
+        <div class="hero-actions">
+          <button class="hero-btn hero-btn--primary" id="heroPrimaryCta">Book bord</button>
+          <button class="hero-btn hero-btn--secondary" id="heroSecondaryCta">Se menu</button>
+          <button class="hero-btn hero-btn--ghost" id="heroPhoneCta">Ring nu</button>
+        </div>
+        <div style="margin-top:24px;padding:16px;background:rgba(0,0,0,0.3);border-radius:12px;display:inline-block;">
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);margin-bottom:4px;">Din webadresse</div>
+          <div style="font-size:16px;font-weight:800;color:#fff;" id="subdomainPreview">restaurant.madkontrollen.dk</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px;" id="subdomainStatus">Indtast subdomæne for live tilgængelighedstjek.</div>
+          <button id="activateSubdomainBtn" onclick="activateSubdomain()" style="display:none;margin-top:10px;padding:9px 16px;border:none;border-radius:10px;background:#fff;color:#1a3a1a;font-weight:800;font-size:13px;cursor:pointer;">🚀 Aktiver subdomæne</button>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap;" id="statCards"></div>
+        <div style="display:none;" id="themeBadge"></div>
+      </div>
+    </section>
+
+    <div class="preview-shell">
+      <div class="preview-main">
+        <div>
+          <div class="info-card">
+            <h3>Det hjemmesiden fremhæver</h3>
+            <div class="features" id="featureCards"></div>
+          </div>
+
+          <div class="info-card" style="margin-top:18px;">
+            <h3>Autogenereret menu</h3>
+            <div class="menu" id="menuPreview"></div>
+          </div>
+
+          <div class="info-card" style="margin-top:18px;">
+            <div class="seo-pages-head" id="seoPagesHead" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+              <h3 style="margin:0;">Autogenererede SEO landingssider</h3>
+              <span id="seoPagesChevron" style="font-size:11px;color:#9aaa9a;transition:transform .2s;">&#9654;</span>
+            </div>
+            <div id="seoPagesBody" style="display:none;margin-top:14px;">
+              <div class="seo-grid" id="seoPages"></div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="sidebar-stack">
+          <div class="info-card">
+            <h3>Module status ved onboarding</h3>
+            <div id="moduleStatusList" class="contact-list"></div>
+          </div>
+
+          <div class="info-card">
+            <div class="preview-logo logo-card" id="previewLogo">MK</div>
+            <h3 id="businessName"></h3>
+            <p id="contactInfo" class="muted"></p>
+            <div class="contact-list">
+              <div class="contact-item" id="contactPhone">Telefon: Ikke angivet</div>
+              <div class="contact-item" id="contactAddress">Adresse: Ikke angivet</div>
+              <div class="contact-item" id="contactType">Køkken: Ikke angivet</div>
+              <div class="contact-item" id="contactOfferings">Udbud: Ikke angivet</div>
+              <div class="contact-item" id="contactTemplate">Design: Standard / Classic</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+          <style>
+            .mkp-footer-nav{margin-top:32px;}
+            .mkp-footer-nav-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px;}
+            .mkp-footer-card{display:flex;flex-direction:column;gap:6px;padding:18px 20px;background:#fff;border:1px solid var(--border,#dde7dd);border-radius:18px;text-decoration:none;color:inherit;transition:box-shadow .18s,transform .18s,border-color .18s;}
+            .mkp-footer-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(25,40,25,.08);border-color:#8db58f;}
+            .mkp-footer-card-icon{font-size:26px;line-height:1;}
+            .mkp-footer-card-title{font-size:15px;font-weight:700;color:#172117;}
+            .mkp-footer-card-desc{font-size:13px;color:var(--muted,#607060);line-height:1.45;}
+            @media(max-width:780px){.mkp-footer-nav-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+          </style>
+
+          <section class="mkp-footer-nav">
+            <div class="section-head" style="margin-bottom:4px;">
+              <div>
+                <span class="eyebrow">Portal</span>
+                <h2 style="margin:6px 0 4px;">Flere værktøjer</h2>
+                <p style="margin:0;color:var(--muted,#607060);font-size:14px;">Arbejd videre med dine data i andre moduler</p>
+              </div>
+            </div>
+            <div class="mkp-footer-nav-grid">
+              <a href="/modules/drift/menu.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">🍽️</div>
+                <div class="mkp-footer-card-title">Drift</div>
+                <div class="mkp-footer-card-desc">Daglig driftsstyring, menuer og retter</div>
+              </a>
+              <a href="/modules/kalkulation/index.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">🧮</div>
+                <div class="mkp-footer-card-title">Kalkulation</div>
+                <div class="mkp-footer-card-desc">Opskrifter, priser og menugrundlag</div>
+              </a>
+              <a href="/modules/egenkontrol/rutiner.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">✅</div>
+                <div class="mkp-footer-card-title">Rutiner</div>
+                <div class="mkp-footer-card-desc">Temperaturkontrol, rengøring og registreringer</div>
+              </a>
+              <a href="/modules/egenkontrol/rapporter.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">📊</div>
+                <div class="mkp-footer-card-title">Rapporter</div>
+                <div class="mkp-footer-card-desc">Eksportér logs, fotos og dokumentation</div>
+              </a>
+              <a href="/modules/egenkontrol/risikoanalyse.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">🛡️</div>
+                <div class="mkp-footer-card-title">Risikoanalyse</div>
+                <div class="mkp-footer-card-desc">HACCP-plan og dokumentation til myndighedsbesøg</div>
+              </a>
+              <a href="/modules/core/billed-arkiv.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">🖼️</div>
+                <div class="mkp-footer-card-title">Billedarkiv</div>
+                <div class="mkp-footer-card-desc">Foto-dokumentation fra drift og kontroller</div>
+              </a>
+            </div>
+          </section>
+
+
+<script type="module">
+import { loadLayout } from "/core/layout.js";
+import { setupAuthGate } from "/core/auth.js";
+import app, { db, auth } from "/core/firebase-config.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { runGenerator } from "/modules/seo/generator/generator-runner.js";
+
+let selectedTemplate = "classic";
+let uploadedLogoDataUrl = "";
+let currentUserProfile = null;
+let currentCompanyId = "";
+let currentLocationId = "";
+let savedConfigId = "";
+let subdomainCheckTimer = null;
+let authReady = false;
+let subdomainTouched = false;
+let lastAutoSubdomain = "";
+
+const functionsClient = getFunctions(app, "us-central1");
+const createStripeCheckoutSession = httpsCallable(functionsClient, "createStripeCheckoutSession");
+const checkSubdomainAvailability = httpsCallable(functionsClient, "checkSubdomainAvailability");
+const saveSeoGeneratorConfig = httpsCallable(functionsClient, "saveSeoGeneratorConfig");
+const finalizeSeoCheckoutProvisioning = httpsCallable(functionsClient, "finalizeSeoCheckoutProvisioning");
+const searchRestaurantImagesCallable = httpsCallable(functionsClient, "searchRestaurantImages");
+const saveRestaurantHeroImageCallable = httpsCallable(functionsClient, "saveRestaurantHeroImage");
+const enhanceAndUploadRestaurantImageCallable = httpsCallable(functionsClient, "enhanceAndUploadRestaurantImage");
+const generateSeoAiSuggestionsCallable = httpsCallable(functionsClient, "generateSeoAiSuggestions");
+
+const kitchenTypeModuleMap = {
+  "Skolekøkken": ["ernæring", "kalkulation", "egenkontrol"],
+  "Plejehjemskøkken": ["ernæring", "kalkulation", "egenkontrol"],
+  "Institutionskøkken": ["ernæring", "kalkulation", "egenkontrol"],
+  "Erhvervskøkken": ["ernæring", "kalkulation", "egenkontrol"],
+  "Kantine": ["ernæring", "kalkulation", "egenkontrol"]
+};
+
+const templates = document.querySelectorAll(".template");
+const templateTitles = {classic:"Standard / Classic",modern:"Modern",dark:"Dark",street:"Streetfood",minimal:"Minimal",luxury:"Luxury",bistro:"Bistro",fastfood:"Fastfood",takeaway:"Takeaway",foodtruck:"Foodtruck"};
+const coreSignupData = {businessName:"Århus Burger",subdomain:"aarhus-burger",city:"Aarhus",cuisineType:"Burger",offerings:"burger, takeaway, catering, menuer, frokost",keyword:"bedste burger i Aarhus",phone:"70 12 34 56",address:"Søndergade 24, 8000 Aarhus C",description:"Århus Burger laver saftige burgere, sprøde fritter, takeaway og catering til både hverdag og events i Aarhus.",preferredTemplate:"classic",pageCount:"50",logoPosition:"card"};
+const modules = [
+  {key:"core",addonKey:null,title:"Madkontrollen Kernen",status:"Aktiv",description:"Grundmodulet med stamdata, onboarding og standard hjemmeside.",button:"Aktiv nu",previewButton:"Se indhold",price:"123",locked:false,kind:"base"},
+];
+
+function getModulePriceLabel(module){
+  if (!module) return "";
+  return module.displayPrice || (module.kind === "base" ? module.price : "+" + module.price);
+}
+
+function setGeneratorStatus(text,isError){
+  const el=document.getElementById("generatorStatus");
+  if(!el) return;
+  el.textContent=text || "";
+  el.style.color=isError ? "#b42318" : "#345634";
+}
+
+function setSubdomainStatus(text,isError,showActivateButton){
+  const banner=document.getElementById("subdomainBanner");
+  const el=document.getElementById("subdomainStatus");
+  const btn=document.getElementById("activateSubdomainBtn");
+  if(el){
+    el.textContent=text||"";
+    el.style.color=isError ? "rgba(255,180,180,.9)" : "rgba(255,255,255,.65)";
+  }
+  if(banner){
+    banner.style.borderColor = isError ? "rgba(220,80,80,.5)" : "";
+  }
+  if(btn){
+    btn.style.display = showActivateButton ? "" : "none";
+  }
+}
+
+function getSessionCompanyId(){
+  return String(sessionStorage.getItem("mkp_user_companyId") || "").trim();
+}
+
+function getSessionLocationId(){
+  const selected=String(sessionStorage.getItem("mkp_selected_locationId") || "").trim();
+  if(selected) return selected;
+  try{
+    const list=JSON.parse(sessionStorage.getItem("mkp_user_locationIds") || "[]");
+    if(Array.isArray(list) && list.length) return String(list[0] || "").trim();
+  }catch{}
+  return "";
+}
+
+function getSeoAiInputData(){
+  const topbar = (id) => {
+    const el = document.getElementById(id);
+    const v = el ? el.textContent.trim() : "";
+    return (v && v !== "–") ? v : "";
+  };
+
+  const formValue = (id) => {
+    const el = document.getElementById(id);
+    return el ? String(el.value || "").trim() : "";
+  };
+
+  return {
+    businessName: formValue("name") || topbar("mkpTopbarCompany") || "",
+    address: formValue("address") || topbar("mkpTopbarAddress") || "",
+    city: formValue("city") || "",
+    cuisineType: formValue("type") || "",
+    offerings: formValue("offerings") || "",
+    description: formValue("description") || "",
+    keyword: formValue("keyword") || "",
+    websiteUrl: formValue("websiteUrl") || ""
+  };
+}
+
+async function handleAiSuggestions(){
+  console.log("ENTER AI suggestions handler - preview only, no subdomain activation");
+  const btn = document.getElementById("aiSuggestBtn");
+  const status = document.getElementById("aiSuggestStatus");
+  
+  if(!authReady){
+    status.textContent = "Log ind for at bruge AI forslag.";
+    status.style.color = "#b42318";
+    status.style.display = "block";
+    return;
+  }
+
+  const inputData = getSeoAiInputData();
+  if(!inputData.businessName){
+    status.textContent = "Udfyld mindst restaurantnavn for at få AI forslag.";
+    status.style.color = "#b42318";
+    status.style.display = "block";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "AI analyserer...";
+  status.textContent = inputData.websiteUrl ? "AI analyserer hjemmeside..." : "AI genererer forslag...";
+  status.style.color = "#345634";
+  status.style.display = "block";
+
+  try{
+    const response = await generateSeoAiSuggestionsCallable(inputData);
+    const suggestions = response?.data || {};
+
+    if(suggestions.primaryKeyword){
+      document.getElementById("keyword").value = suggestions.primaryKeyword;
+    }
+    if(suggestions.shortDescription){
+      document.getElementById("description").value = suggestions.shortDescription;
+    }
+
+    const summaryNote = suggestions.extractedWebsiteSummary 
+      ? ` (Analyse: ${suggestions.extractedWebsiteSummary})` 
+      : "";
+    
+    status.textContent = `✓ AI forslag indsat.${summaryNote}`;
+    status.style.color = "#2f7d32";
+    
+    generateSite(false);
+  }catch(error){
+    console.error("AI forslag fejlede:", error);
+    const errorMsg = error?.message || "Kunne ikke generere AI forslag.";
+    status.textContent = errorMsg;
+    status.style.color = "#b42318";
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "✨ AI forslag";
+  }
+}
+
+function buildAutoSubdomain(name){
+  const clean = slugify(name || "");
+  return clean || "restaurant";
+}
+
+function syncSubdomainFromName(force){
+  console.log("syncSubdomainFromName - updating field only, no backend check");
+  const nameInput = document.getElementById("name");
+  const subdomainInput = document.getElementById("subdomain");
+  if(!nameInput || !subdomainInput) return;
+
+  const nextAuto = buildAutoSubdomain(nameInput.value || "");
+  const currentValue = slugify(subdomainInput.value || "");
+
+  if(force || !subdomainTouched || !currentValue || currentValue === lastAutoSubdomain){
+    subdomainInput.value = nextAuto;
+    lastAutoSubdomain = nextAuto;
+    console.log("syncSubdomainFromName - field updated to:", nextAuto, "- no checkSubdomainLive called");
+    return;
+  }
+
+  lastAutoSubdomain = nextAuto;
+}
+
+function buildMetaDescription(name,city,offerings,subdomain,keyword,idx){
+  const i=idx||0;
+  const v=[
+    `Bestil ${keyword} hos ${name} i ${city}. Frisk tilberedt og klar til takeaway. Bestil online eller kom forbi.`,
+    `${name} i ${city} – ${offerings}. Oplev smagen af ${keyword}. Åbent alle ugens dage.`,
+    `Find den bedste ${keyword} i ${city} hos ${name}. Hurtig levering og takeaway tilgængeligt.`,
+    `${name} er ${city}s foretrukne sted for ${offerings}. Søger du ${keyword}? Vi har det.`,
+    `Hos ${name} i ${city} serverer vi ${keyword} med fokus på friske råvarer og autentisk smag.`,
+  ];
+  return v[i%v.length];
+}
+
+function buildLandingPageObjects(name,type,city,keyword,count,subdomain,theme){
+  const dishes=generateMenuByCategory(type);
+  const titles=buildLandingPages(name,type,city,keyword,count,subdomain,dishes);
+  const h2Pool=[
+    `Hvorfor vælge ${name} i ${city}?`,
+    `${name} – din foretrukne ${type.toLowerCase()} i ${city}`,
+    `Oplev ægte ${type.toLowerCase()} hos ${name}`,
+    `${name} i ${city} – kvalitet på dit bord`,
+    `Det bedste sted for ${type.toLowerCase()} i ${city}`,
+  ];
+  const h3Pool=[
+    `Bestil ${type.toLowerCase()} i ${city}`,
+    `Online bestilling – hurtig levering i ${city}`,
+    `Takeaway ${type.toLowerCase()} i ${city} – nem og hurtig`,
+    `God mad til hele familien i ${city}`,
+    `Find os på ${subdomain}.madkontrollen.dk`,
+  ];
+  const sectionOrders=[["intro","menu","why"],["intro","why","menu"],["menu","intro","why"],["why","intro","menu"],["intro","menu","cta"]];
+  return titles.map((title,index)=>{
+    const seed=String(title||"Landing side").replace(`${name} - `,"").replace(/\s+#\d+$/," ").trim();
+    const slug=slugify(seed)||`landing-side-${index+1}`;
+    const metaDescription=buildMetaDescription(name,city,`${type.toLowerCase()} og takeaway`,subdomain,seed,index);
+    const pageMenuItems=_shuffle(dishes).slice(0,3);
+    const d1=pageMenuItems[0]?.name||type;
+    const d2=pageMenuItems[1]?.name||type;
+    const bodyVariants=[
+      `${name} serverer ${type.toLowerCase()} af højeste kvalitet i ${city}. Prøv ${d1} og ${d2} – tilberedt med friske råvarer. Bestil online eller kom forbi.`,
+      `Hos ${name} i ${city} finder du autentisk ${type.toLowerCase()} og et bredt udvalg. Vores ${d1} er en fast favorit. Åben alle ugens dage.`,
+      `Leder du efter ${seed}? ${name} tilbyder frisk, velsmagende ${type.toLowerCase()} i hjertet af ${city}. Prøv ${d1} – og oplev forskellen.`,
+      `${name} i ${city} byder på mere end god mad. ${d1} og ${d2} er signaturretterne der skaber stamgæster. Bestil i dag.`,
+      `Velkommen til ${name} – ${city}s foretrukne ${type.toLowerCase()}. Prøv ${d1} og se selv, hvorfor vi er et populært valg.`,
+    ];
+    return {
+      sourceTitle:title,
+      slug,
+      title:`${name} | ${seed}`,
+      keyword:seed,
+      metaDescription,
+      h1:`${name} - ${seed}`,
+      h2:h2Pool[index%h2Pool.length],
+      h3:h3Pool[index%h3Pool.length],
+      bodyText:bodyVariants[index%bodyVariants.length],
+      menuItems:pageMenuItems,
+      sections:sectionOrders[index%sectionOrders.length],
+      canonicalPath:`/${slug}`,
+      themePrimary:theme?.primary||"#1f7a3d",
+      themeSecondary:theme?.secondary||"#f8f4ea",
+      themeAccent:theme?.accent||"#b91c1c",
+      themeText:theme?.text||"#1f2937"
+    };
+  });
+}
+
+function getGeneratorConfig(){
+  const name=document.getElementById("name").value || "Restaurant navn";
+  const rawSubdomain=document.getElementById("subdomain").value || slugify(name) || "restaurant";
+  const subdomain=slugify(rawSubdomain) || "restaurant";
+  const city=document.getElementById("city").value || "København";
+  const type=document.getElementById("type").value || "Burger";
+  const offerings=document.getElementById("offerings").value || "mad, takeaway og menuer";
+  const keyword=document.getElementById("keyword").value || (`bedste ${type.toLowerCase()} i ${city}`);
+  const phone=document.getElementById("phone").value || "Ikke angivet";
+  const address=document.getElementById("address").value || "Ikke angivet";
+  const description=document.getElementById("description").value || (`${name} er en moderne restaurant i ${city} med fokus på kvalitet, smag og en stærk online profil.`);
+  const logoPosition=document.getElementById("logoPosition").value;
+  const pageCount=parseInt(document.getElementById("pageCount").value,10) || 50;
+  const _sd=generateMenuByCategory(type);
+  const _sf=_sd.slice(0,3).map(d=>d.name).join(", ");
+  const _seoVars=[
+    `${name} i ${city} serverer ${type.toLowerCase()} i særklasse. Prøv ${_sf} – tilberedt med friske råvarer og kærlighed til håndværket. Bestil online eller kom forbi i dag.`,
+    `Oplev autentisk ${type.toLowerCase()} hos ${name} i ${city}. ${_sf} er faste favoritter på menuen. ${offerings?capitalize(offerings)+".":"Takeaway tilgængeligt alle dage."}`,
+    `${type} fra ${name} i ${city} er i en klasse for sig. ${_sf} – bestil nu og smag forskellen selv.`,
+  ];
+  const seoNarrative=_seoVars[(_sf.length+city.length)%3];
+
+  return {
+    businessName:name,
+    subdomain,
+    city,
+    cuisineType:type,
+    offerings,
+    keyword,
+    phone,
+    address,
+    description,
+    logoPosition,
+    pageCount,
+    selectedTemplate,
+    logoDataUrl:uploadedLogoDataUrl || "",
+    seoNarrative,
+    heroImageUrl:imgState.enhancedUrl || "",
+    websiteUrl:document.getElementById("websiteUrl")?.value.trim() || "",
+    ctaText:document.getElementById("ctaText")?.value.trim() || "",
+    ctaUrl:document.getElementById("ctaUrl")?.value.trim() || "",
+    theme:{
+      primary:document.getElementById("themePrimary")?.value || "#1f7a3d",
+      secondary:document.getElementById("themeSecondary")?.value || "#f8f4ea",
+      accent:document.getElementById("themeAccent")?.value || "#b91c1c"
+    },
+    landingPages:buildLandingPageObjects(name,type,city,keyword,pageCount,subdomain,{
+      primary:document.getElementById("themePrimary")?.value || "#1f7a3d",
+      secondary:document.getElementById("themeSecondary")?.value || "#f8f4ea",
+      accent:document.getElementById("themeAccent")?.value || "#b91c1c",
+      text:"#1f2937"
+    })
+  };
+}
+
+let _tokenCache = null;
+let _tokenCachedAt = 0;
+async function getAuthToken(){
+  if(!auth?.currentUser) return null;
+  const now = Date.now();
+  if(_tokenCache && now - _tokenCachedAt < 60000) return _tokenCache;
+  try{
+    _tokenCache = await auth.currentUser.getIdToken(true);
+    _tokenCachedAt = now;
+    return _tokenCache;
+  }catch{
+    _tokenCache = null;
+    _tokenCachedAt = 0;
+    return null;
+  }
+}
+
+function isOnboardingUser(){
+  const id = (currentCompanyId || getSessionCompanyId() || "").toLowerCase();
+  return id.startsWith("onboarding_");
+}
+
+const LS_KEY = "seo_generator_draft";
+
+function saveLocalDraft(){
+  try{
+    const c = getGeneratorConfig();
+    const draft = {
+      businessName: c.businessName,
+      subdomain:    c.subdomain,
+      city:         c.city,
+      cuisineType:  c.cuisineType,
+      offerings:    c.offerings,
+      keyword:      c.keyword,
+      phone:        c.phone,
+      address:      c.address,
+      description:  c.description,
+      logoPosition: c.logoPosition,
+      pageCount:    c.pageCount,
+      selectedTemplate: selectedTemplate,
+      websiteUrl:   c.websiteUrl,
+      ctaText:      c.ctaText,
+      ctaUrl:       c.ctaUrl,
+      logoDataUrl:  c.logoDataUrl || "",
+      heroImageUrl: c.heroImageUrl || "",
+      savedAt:      Date.now()
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(draft));
+  }catch(e){ console.warn("saveLocalDraft:", e); }
+}
+
+function restoreLocalDraft(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return false;
+    const d = JSON.parse(raw);
+    if(!d || !d.businessName) return false;
+    const set = (id, val) => { const el = document.getElementById(id); if(el && val != null && val !== "") el.value = val; };
+    set("name",         d.businessName);
+    set("subdomain",    d.subdomain);
+    set("city",         d.city);
+    set("type",         d.cuisineType);
+    set("offerings",    d.offerings);
+    set("keyword",      d.keyword);
+    set("phone",        d.phone);
+    set("address",      d.address);
+    set("description",  d.description);
+    set("logoPosition", d.logoPosition);
+    set("pageCount",    String(d.pageCount || ""));
+    set("websiteUrl",   d.websiteUrl || "");
+    set("ctaText",      d.ctaText || "");
+    set("ctaUrl",       d.ctaUrl  || "");
+    if(d.heroImageUrl)  imgState.enhancedUrl   = d.heroImageUrl;
+    if(d.logoDataUrl)   uploadedLogoDataUrl     = d.logoDataUrl;
+    if(d.selectedTemplate){
+      selectedTemplate = d.selectedTemplate;
+      document.querySelectorAll(".template").forEach(t =>{
+        t.classList.toggle("active", t.dataset.template === selectedTemplate);
+      });
+      const lbl = document.getElementById("selectedTemplateLabel");
+      if(lbl) lbl.innerText = "Valgt design: " + (templateTitles[selectedTemplate] || selectedTemplate);
+    }
+    return true;
+  }catch(e){ console.warn("restoreLocalDraft:", e); return false; }
+}
+
+async function persistConfig(silent){
+  const companyId=currentCompanyId || getSessionCompanyId();
+  const locationId=currentLocationId || getSessionLocationId();
+  if(!companyId || !locationId || !await getAuthToken()){
+    if(!silent) setGeneratorStatus("Log ind for at gemme konfiguration i Firestore.",true);
+    return "";
+  }
+
+  try{
+    const response=await saveSeoGeneratorConfig({
+      companyId,
+      locationId,
+      configId:savedConfigId || undefined,
+      config:getGeneratorConfig()
+    });
+    const nextId=String(response?.data?.configId || "").trim();
+    if(nextId) savedConfigId=nextId;
+    if(!silent) setGeneratorStatus("Konfiguration gemt i Firestore.",false);
+    return nextId;
+  }catch(error){
+    console.error("Kunne ikke gemme generator-konfiguration:",error);
+    if(!silent) setGeneratorStatus(error?.message || "Kunne ikke gemme konfiguration.",true);
+    return "";
+  }
+}
+
+async function checkSubdomainLive(rawValue){
+  const cleaned=slugify(rawValue || "");
+  const input=document.getElementById("subdomain");
+  if(input && document.activeElement!==input && input.value!==cleaned){
+    input.value=cleaned;
+  }
+
+  if(!cleaned){
+    setSubdomainStatus("",false);
+    return null;
+  }
+
+  if(!authReady){
+    setSubdomainStatus(`Forslag: ${cleaned}.madkontrollen.dk`,false);
+    return null;
+  }
+
+  const finalCompanyId=currentCompanyId || getSessionCompanyId();
+  const finalLocationId=currentLocationId || getSessionLocationId();
+  
+  if(!finalCompanyId || !finalLocationId){
+    setSubdomainStatus(`Forslag: ${cleaned}.madkontrollen.dk (log ind for live tjek).`,false);
+    return null;
+  }
+
+  const requestData = {
+    companyId: finalCompanyId,
+    locationId: finalLocationId,
+    subdomain: cleaned
+  };
+  
+  console.log("SUBDOMAIN REQUEST DATA", JSON.stringify(requestData, null, 2));
+
+  setSubdomainStatus("Tjekker om subdomænet er ledigt...",false);
+  try{
+    const result=await checkSubdomainAvailability(requestData);
+    console.log("SUBDOMAIN RESPONSE", result?.data || result);
+    
+    const responseData = result?.data || result;
+    
+    if(responseData?.available){
+      setSubdomainStatus(`Ledigt: ${cleaned}.madkontrollen.dk`,false);
+    }else{
+      setSubdomainStatus(`Optaget: ${cleaned}.madkontrollen.dk`,true);
+    }
+    
+    return responseData;
+  }catch(error){
+    console.error("SUBDOMAIN ERROR", error);
+    setSubdomainStatus(`${cleaned}.madkontrollen.dk`,false);
+    return { ok: false, error: error?.message || "Subdomain check failed" };
+  }
+}
+
+function setupSubdomainInput(){
+  const input=document.getElementById("subdomain");
+  const nameInput=document.getElementById("name");
+  if(!input) return;
+
+  if(nameInput){
+    nameInput.addEventListener("input",()=>{
+      syncSubdomainFromName(false);
+    });
+
+    nameInput.addEventListener("blur",()=>{
+      syncSubdomainFromName(false);
+    });
+  }
+
+  input.addEventListener("input",()=>{
+    const sanitized=slugify(input.value || "");
+    subdomainTouched = true;
+    if(input.value!==sanitized) input.value=sanitized;
+
+    if(subdomainCheckTimer) clearTimeout(subdomainCheckTimer);
+    subdomainCheckTimer=setTimeout(()=>{
+      checkSubdomainLive(input.value);
+    },500);
+  });
+
+  input.addEventListener("blur",()=>{
+    const sanitized=slugify(input.value || "");
+    if(input.value!==sanitized) input.value=sanitized;
+    if(!sanitized){
+      subdomainTouched = false;
+      syncSubdomainFromName(true);
+      return;
+    }
+    if(sanitized) checkSubdomainLive(sanitized);
+  });
+}
+
+async function handleModulePurchase(module){
+  if(!module || !module.locked || !module.addonKey){
+    setGeneratorStatus("Dette modul er allerede aktivt.",false);
+    return;
+  }
+
+  const companyId=currentCompanyId || getSessionCompanyId();
+  const locationId=currentLocationId || getSessionLocationId();
+
+  if(!companyId || !locationId){
+    setGeneratorStatus("Log ind som admin med company/location adgang før checkout.",true);
+    return;
+  }
+
+  generateSite();
+  const configId=await persistConfig(true);
+  if(!configId){
+    setGeneratorStatus("Kunne ikke gemme konfiguration før checkout.",true);
+    return;
+  }
+
+  const isSeoModule=module.key==="seo";
+  const successPath=isSeoModule
+    ? `/modules/seo/generator.html?checkout=success&session_id={CHECKOUT_SESSION_ID}&configId=${encodeURIComponent(configId)}`
+    : `/modules/business/vision.html?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
+  const cancelPath=isSeoModule
+    ? `/modules/seo/generator.html?checkout=cancel&configId=${encodeURIComponent(configId)}`
+    : "/modules/business/vision.html?checkout=cancel";
+
+  setGeneratorStatus(`Opretter Stripe checkout for ${module.title}...`,false);
+
+  try{
+    const response=await createStripeCheckoutSession({
+      addonKeys:[module.addonKey],
+      companyId,
+      locationId,
+      origin:window.location.origin,
+      successPath,
+      cancelPath,
+      generatorConfigId:configId
+    });
+
+    const checkoutUrl=String(response?.data?.url || "").trim();
+    if(!checkoutUrl){
+      throw new Error("Mangler checkout URL fra backend.");
+    }
+
+    window.location.href=checkoutUrl;
+  }catch(error){
+    console.error("Checkout fejl:",error);
+    setGeneratorStatus(error?.message || "Kunne ikke oprette Stripe checkout.",true);
+  }
+}
+
+async function maybeFinalizeSeoCheckout(){
+  const params=new URLSearchParams(window.location.search);
+  const checkout=params.get("checkout");
+  const sessionId=String(params.get("session_id") || "").trim();
+  const configId=String(params.get("configId") || "").trim() || savedConfigId;
+
+  if(checkout!=="success" || !sessionId || !configId){
+    if(checkout==="cancel"){
+      setGeneratorStatus("Checkout blev annulleret. Preview og konfiguration er stadig gemt.",true);
+    }
+    return;
+  }
+
+  const companyId=currentCompanyId || getSessionCompanyId();
+  const locationId=currentLocationId || getSessionLocationId();
+  if(!companyId || !locationId){
+    setGeneratorStatus("Manglende company/location for at færdiggøre SEO-provisionering.",true);
+    return;
+  }
+
+  setGeneratorStatus("Checkout godkendt. Genererer SEO-sider og metadata...",false);
+
+  try{
+    const response=await finalizeSeoCheckoutProvisioning({
+      sessionId,
+      configId,
+      companyId,
+      locationId
+    });
+
+    const generatedPages=response?.data?.generatedPages || 0;
+    const subdomain=response?.data?.subdomain || getGeneratorConfig().subdomain;
+    setGeneratorStatus(`SEO-modul aktivt. ${generatedPages} sider publiceret til ${subdomain}.madkontrollen.dk`,false);
+
+    params.delete("checkout");
+    params.delete("session_id");
+    const cleanUrl=`${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+    window.history.replaceState({},"",cleanUrl);
+  }catch(error){
+    console.error("SEO-provisionering fejlede:",error);
+    setGeneratorStatus(error?.message || "Kunne ikke færdiggøre SEO-provisionering.",true);
+  }
+}
+
+templates.forEach((t)=>{
+  t.onclick=()=>{
+    templates.forEach((x)=>x.classList.remove("active"));
+    t.classList.add("active");
+    selectedTemplate=t.dataset.template;
+    document.getElementById("selectedTemplateLabel").innerText="Valgt design: "+templateTitles[selectedTemplate];
+    if(document.getElementById("preview").style.display==="block") generateSite();
+  };
+});
+
+document.getElementById("logoUpload").addEventListener("change",(event)=>{
+  const file=event.target.files && event.target.files[0];
+  if(!file){uploadedLogoDataUrl="";return;}
+  const reader=new FileReader();
+  reader.onload=(e)=>{uploadedLogoDataUrl=e.target.result || ""; if(document.getElementById("preview").style.display==="block") generateSite();};
+  reader.readAsDataURL(file);
+});
+
+document.getElementById("type").addEventListener("change",()=>{
+  renderModules();
+  const kitchenToImgCat = {
+    "Thai restaurant":"thai","Sushi":"sushi","Burger":"burger","Pizza":"pizza","Café":"cafe",
+    "Asiatisk fusion":"asiatisk","Asiatisk restaurant":"asiatisk","Streetfood":"streetfood",
+    "Fine dining":"finedining","Grill og kebab":"grillkebab","Vegansk og vegetarisk":"vegansk",
+    "Frokost og smørrebrød":"smørrebrød","Steakhouse":"steakhouse","Takeaway":"burger",
+    "Fastfood":"burger","Italiensk restaurant":"pizza"
+  };
+  const catVal = kitchenToImgCat[document.getElementById("type").value];
+  if (catVal && document.getElementById("imgCategory")) document.getElementById("imgCategory").value = catVal;
+  generateSite();
+});
+
+// Auto-save all form fields with debounce
+let _autoSaveTimer = null;
+function scheduleAutoSave(){
+  if(_autoSaveTimer) clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(()=>{ generateSite(); }, 800);
+}
+["name","city","offerings","keyword","phone","address","description"].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener("input", scheduleAutoSave);
+});
+["logoPosition","pageCount"].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener("change", scheduleAutoSave);
+});
+["websiteUrl","ctaText","ctaUrl"].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener("input", scheduleAutoSave);
+});
+["themePrimary","themeSecondary","themeAccent"].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener("input", scheduleAutoSave);
+});
+
+const nameInputForAutoSubdomain = document.getElementById("name");
+if(nameInputForAutoSubdomain){
+  nameInputForAutoSubdomain.addEventListener("input", ()=>{
+    syncSubdomainFromName(false);
+  });
+}
+
+function capitalize(text){return text ? text.charAt(0).toUpperCase()+text.slice(1) : "";}
+function slugify(text){return (text||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}
+function getTemplateThemeClass(template){
+  const allowed=["classic","modern","dark","street","minimal","luxury","bistro","fastfood","takeaway","foodtruck"];
+  const key=allowed.includes(template) ? template : "classic";
+  return `${key}-theme`;
+}
+// ── MENU ENGINE ────────────────────────────────────────────────────────────
+const _MENU_POOLS={
+  thai:[
+    {n:"Pad Thai",v:["Pad Thai med rejer","Pad Thai klassisk","Pad Thai med kylling","Pad Thai vegetar"]},
+    {n:"Pad Kra Pao",v:["Pad Kra Pao med svinekød","Pad Kra Pao med oksekød","Pad Kra Pao med kylling"]},
+    {n:"Green Curry",v:["Green Curry med kylling","Green Curry med rejer","Grøn karry med grøntsager"]},
+    {n:"Red Curry",v:["Red Curry med andebryst","Rød karry med kylling","Red Curry med tofu"]},
+    {n:"Tom Yum",v:["Tom Yum Goong","Tom Yum med champignon","Tom Yum suppe"]},
+    {n:"Massaman Curry",v:["Massaman Curry med lam","Massaman Curry med oksekød","Massaman med tofu"]},
+    {n:"Som Tam",v:["Som Tam papayasalat","Grøn papayasalat med rejer","Krydret papayasalat"]},
+    {n:"Larb",v:["Larb Moo – krydret hakket svinekød","Larb kylling","Hakket kød med mynte og lime"]},
+    {n:"Khao Man Gai",v:["Khao Man Gai – dampet kylling","Hainanese kyllingeris","Dampet kylling på jasminris"]},
+    {n:"Satay",v:["Kylling satay med jordnøddesauce","Oksekød satay","Satay på spyd med peanut dip"]},
+    {n:"Mango sticky rice",v:["Mango sticky rice","Klekkam mango med kokosmælk","Kokosmælksris med frisk mango"]},
+    {n:"Basil fried rice",v:["Basilikumris med kylling","Stegt ris med thai basilikum og æg","Wok-ris med thai basilikum"]},
+  ],
+  asiatisk:[
+    {n:"Dim Sum",v:["Dim sum kurv 4 stk","Dampet dim sum med rejer","Stegt dim sum"]},
+    {n:"Dumplings",v:["Gyoza med svinekød","Dampet dumplings","Stegt kyllingedumplings"]},
+    {n:"Ramen",v:["Tonkotsu ramen","Miso ramen med chashu","Shoyu ramen med bambusskud"]},
+    {n:"Fried rice",v:["Wok-stegt ris med æg","Yangzhou stegt ris","Kyllingeris fra wok"]},
+    {n:"Spring rolls",v:["Crispy forårsruller","Forårsruller med grøntsager","Vietnamesiske salat-ruller"]},
+    {n:"Kung Pao",v:["Kung Pao kylling","Kung Pao rejer med cashewnødder","Krydret Kung Pao"]},
+    {n:"Mongolian beef",v:["Mongolian beef med forårsløg","Mongolsk oksekød fra wok","Wok-stegt oksekød"]},
+    {n:"Pho",v:["Pho Bo – oksekødssuppe","Pho Ga – kyllingesuppe","Vietnamesisk pho med urter"]},
+    {n:"Char siu",v:["Char siu svinekød","BBQ-svinekød på steamed bao","Cantonese BBQ-svinekød"]},
+    {n:"Bao buns",v:["Steamed bao med kylling","Gua bao med chashu","Dampet bao med pulled pork"]},
+    {n:"Pad woon sen",v:["Glasnudler fra wok med rejer","Pad woon sen med svinekød","Stegt glasnudler"]},
+    {n:"Papaya salat",v:["Grøn papayasalat","Spicy papayasalat med rejer","Papaya- og myntesalat"]},
+  ],
+  burger:[
+    {n:"Classic burger",v:["Classic cheeseburger","American klassiker","Husets signaturburger"]},
+    {n:"Bacon burger",v:["BBQ bacon burger","Smoky bacon double","Crispy bacon med cheddar"]},
+    {n:"Mushroom burger",v:["Svampe-swiss burger","Truffle mushroom burger","Portobello burger med brie"]},
+    {n:"Spicy burger",v:["Hot chili burger","Jalapeño fire burger","Nashville hot chicken burger"]},
+    {n:"Double smash",v:["Double smashburger","Smash & stack med special sauce","Dobbelt smash med karameliseret løg"]},
+    {n:"Veggie burger",v:["Veggie deluxe","Plant-based burger","Svampe og soja-patty burger"]},
+    {n:"Chicken burger",v:["Crispy chicken burger","Grilled chicken deluxe","Buffalo chicken sandwich"]},
+    {n:"BBQ burger",v:["Pulled pork BBQ burger","Smoky BBQ beef","BBQ tower med coleslaw"]},
+    {n:"Truffle burger",v:["Black truffle burger","Luxe truffle & brie burger","Périgord trøffelburger"]},
+    {n:"Fish burger",v:["Crispy fish burger","Sriracha fish sandwich","Beer-battered fish burger"]},
+    {n:"Loaded fries",v:["Loaded cheese fries","Bacon & jalapeño fries","Truffle parmesan fries"]},
+    {n:"Onion rings",v:["Crispy onion rings","Buttermilk onion rings","Beer-battered onion rings"]},
+  ],
+  pizza:[
+    {n:"Margherita",v:["Klassisk margherita","Bufala margherita","Margherita med frisk basilikum"]},
+    {n:"Pepperoni",v:["American pepperoni","Dobbelt pepperoni","Spicy pepperoni pizza"]},
+    {n:"Quattro formaggi",v:["Fire-ost pizza","Quattro formaggi med trøffel","Ost-pizza med gorgonzola"]},
+    {n:"Prosciutto",v:["Prosciutto e rucola","San Daniele prosciutto","Parma ham og rucola pizza"]},
+    {n:"Diavola",v:["Diavola – krydret salami","Spicy Calabrese pizza","Diavola med chili og mozzarella"]},
+    {n:"Funghi",v:["Porcini svampe-pizza","Truffle funghi pizza","Blandet svampe med mozzarella"]},
+    {n:"Calzone",v:["Calzone klassisk","Bagt calzone med ricotta","Calzone con prosciutto e funghi"]},
+    {n:"Vegetariana",v:["Grøntsags-pizza","Seasonal veggie pizza","Primavera pizza med friske grøntsager"]},
+    {n:"Nduja pizza",v:["Spicy nduja pizza","Calabrese nduja med mozzarella","N'duja og honning pizza"]},
+    {n:"Burrata pizza",v:["Frisk burrata pizza","Tomat og burrata","Caprese pizza med burrata"]},
+    {n:"Bistecca",v:["Beef pizza med rucola","Tyndskåret oksekød pizza","Dry-aged beef pizza"]},
+    {n:"Hawai",v:["Hawaii pizza","Skinke og ananas","Tropical pizza med ananas og jalapeño"]},
+  ],
+  café:[
+    {n:"Smørrebrød",v:["Klassisk smørrebrød","Avocado smørrebrød med radisser","Æg og rejer på rugbrød"]},
+    {n:"Sandwich",v:["Grillet kylling sandwich","Club sandwich","BLT sandwich med crispy bacon"]},
+    {n:"Salat",v:["Caesar salat med kylling","Nicoise salat","Sæson-salat med gedeost og nødder"]},
+    {n:"Toast",v:["Grillet ost & tomat toast","Croque monsieur","Skagen toast med rejer"]},
+    {n:"Bowl",v:["Grøntsagsbowl med tahini","Kylling poke bowl","Quinoa superfood bowl"]},
+    {n:"Quiche",v:["Quiche Lorraine","Spinat og feta quiche","Løg og gruyere quiche"]},
+    {n:"Brunch",v:["Brunch-tallerken","Weekend brunch med æg benedict","Full English brunch"]},
+    {n:"Morgenmad",v:["Müsli med yoghurt og bær","Havregrød med topping","Æg scrambled på surdejsbrød"]},
+    {n:"Wraps",v:["Kylling wrap med salsa","Falafel wrap","Pulled pork wrap med coleslaw"]},
+    {n:"Suppe",v:["Dagens suppe med brød","Tomatsuppe med croutons","Linsesuppe med yoghurt"]},
+    {n:"Kage",v:["Hjemmelavet lagkage","Chokoladebrownie","Bananbrød med valnødder"]},
+    {n:"Risotto",v:["Svamperisotto med parmesan","Rejer og citronrisotto","Safranrisotto med grøntsager"]},
+  ],
+  sushi:[
+    {n:"Salmon nigiri",v:["Laks nigiri","Frisk laks nigiri x2","Røget laks nigiri"]},
+    {n:"Tuna nigiri",v:["Tun nigiri","Spicy tun nigiri","Toro tun nigiri x2"]},
+    {n:"Dragon roll",v:["Dragon roll med avocado","Spicy dragon roll 8 stk","Black dragon roll"]},
+    {n:"Rainbow roll",v:["Rainbow roll 8 stk","Regnbue maki","Rainbow uramaki med fisk"]},
+    {n:"Spicy tuna roll",v:["Spicy tun maki 6 stk","Sriracha tun roll","Spicy tun uramaki"]},
+    {n:"California roll",v:["California roll med krabbe","Avocado California roll","Classic uramaki"]},
+    {n:"Tempura roll",v:["Rejer tempura roll","Kylling tempura maki","Crispy tempura uramaki 8 stk"]},
+    {n:"Ebi nigiri",v:["Tigerrejer nigiri","Ebi nigiri x2","Rejer og avocado nigiri"]},
+    {n:"Gyoza",v:["Pan-stegt gyoza 6 stk","Dampet gyoza med ponzu","Gyoza med chili-dip"]},
+    {n:"Edamame",v:["Saltet edamame","Spicy edamame","Hvidløgs-edamame"]},
+    {n:"Miso suppe",v:["Traditionel miso suppe","Hvid miso med tofu og wakame","Rød misossuppe"]},
+    {n:"Chirashi",v:["Chirashi bowl med laks","Chirashi sashimi bowl","Mixed chirashi 9 stk"]},
+  ],
+};
+function _shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function _pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function _poolKey(cat){const c=(cat||'').toLowerCase();return Object.keys(_MENU_POOLS).find(k=>c.includes(k)||k===c.split(/[\s,/]+/)[0])||'burger';}
+const _DISH_DESC={
+  thai:[
+    d=>`${d} – tilberedt med friske thaikrydderier og autentiske smagsoplevelser fra Bangkok.`,
+    d=>`${d} er lavet fra bunden med lokale specialingredienser og bringer Thailand til dit bord.`,
+    d=>`${d} – perfekt balance mellem sødt, krydret og syrligt. En klassiker vi er stolte af.`,
+    d=>`Bliv fortabt i smagen af ${d}, serveret varm direkte fra wokken.`,
+  ],
+  asiatisk:[
+    d=>`${d} – håndlavet med kærlighed og traditionelle asiatiske teknikker.`,
+    d=>`${d} er en favorit med dybe umami-toner og autentisk smagsoplevelse.`,
+    d=>`${d} – friske råvarer og perfekte saucer gør denne ret uforglemmelig.`,
+    d=>`Nyd ${d} frisklavet til dig – serveret med husens specielle dip.`,
+  ],
+  burger:[
+    d=>`${d} – saftigt kød, sprødt topping og husets specialsauce. En klassiker du vil vende tilbage til.`,
+    d=>`${d} er håndlavet af frisk kød og serveres med crispy fries.`,
+    d=>`${d} – grillet til perfektion og sammensat med premium ingredienser.`,
+    d=>`Smagen af ${d} er unik: karameliseret bun, saftigt patty og det perfekte crunch.`,
+  ],
+  pizza:[
+    d=>`${d} – bagt i stenovn ved 450°C for den perfekte napolitanske skorpe.`,
+    d=>`${d} er lavet med San Marzano tomater og frisk fior di latte mozzarella.`,
+    d=>`${d} – håndkastet bund med friske, sæsonbetingede topping og kun det bedste.`,
+    d=>`Nyd ${d} – en klassisk kombination på tyndt, sprødt pizzabund.`,
+  ],
+  café:[
+    d=>`${d} – tilberedt med sæsonens bedste råvarer og kærlighed til detaljen.`,
+    d=>`${d} er en fast favorit – dejlig og nem at nyde i godt selskab.`,
+    d=>`${d} serveres frisklavet med hjemmelavet tilbehør og et smil.`,
+    d=>`Nyd ${d} i hyggelige omgivelser – vores kok sætter altid kvalitet først.`,
+  ],
+  sushi:[
+    d=>`${d} – rullet af vores sushi-chef med dagsfangst af det friskeste fisk.`,
+    d=>`${d} er lavet med premium nori og sushi-ris kogt til absolut perfektion.`,
+    d=>`${d} – en visuel og kulinarisk oplevelse, serveret med wasabi og picklet ingefær.`,
+    d=>`Nyd ${d} og mærk forfriskningen af autentisk japansk sushi-kultur.`,
+  ],
+};
+function generateDishDescription(dish,category){const key=_poolKey(category);return _pick(_DISH_DESC[key]||_DISH_DESC.burger)(dish);}
+function generateMenuByCategory(category){const key=_poolKey(category);const pool=_MENU_POOLS[key]||_MENU_POOLS.burger;const shuffled=_shuffle(pool);const count=6+Math.floor(Math.random()*3);return shuffled.slice(0,count).map(item=>{const dishName=_pick(item.v);return{name:dishName,base:item.n,desc:generateDishDescription(dishName,category)};});}
+function buildMenuItems(type){return generateMenuByCategory(type);}
+function buildFeatures(type,city,offerings,subdomain){return [{title:"Standard under jeres domæne",text:"Siden starter automatisk som "+subdomain+".madkontrollen.dk i Madkontrollens egen stil."},{title:"Moduler klargjort fra start",text:"Alle moduler vises allerede ved onboarding og er forberedt i kundens brand, men aktiveres først ved køb."},{title:"SEO preview uden køb",text:"Kunden kan se værdien og generere SEO preview med det samme, selv hvis SEO modulet endnu ikke er købt."}];}
+function buildLandingPages(name,type,city,keyword,count,subdomain,dishes){const d=dishes||[];const topDish=d[0]?.name||"";const topDish2=d[1]?.name||"";const seeds=[keyword,capitalize(type)+" i "+city,"Takeaway "+city,topDish?topDish+" i "+city:"Restaurant "+city,"Bedste "+type.toLowerCase()+" i "+city,"Billig "+type.toLowerCase()+" til takeaway i "+city,"Familie restaurant i "+city,topDish2?topDish2+" bestilling "+city:"Online bestilling "+city,"Online bestilling "+city,capitalize(type)+" menu i "+city,subdomain+".madkontrollen.dk"];const pages=[];for(let i=0;i<count;i++){const seed=seeds[i%seeds.length];const variant=Math.floor(i/seeds.length)+1;pages.push(name+" - "+seed+(variant>1?" #"+variant:""));}return pages;}
+function renderCards(containerId,items,cardType){const container=document.getElementById(containerId);container.innerHTML="";items.forEach((item)=>{const div=document.createElement("div");div.className=cardType;if(cardType==="menu-item") div.innerHTML="<h3>"+item.name+"</h3><p>"+item.desc+"</p>";if(cardType==="feature-card") div.innerHTML="<h4>"+item.title+"</h4><p>"+item.text+"</p>";if(cardType==="seo-card") div.innerHTML="<h4>SEO side</h4><p>"+item+"</p>";if(cardType==="stat-mini") div.innerHTML="<div class='stat-number'>"+item.number+"</div><div class='stat-label'>"+item.label+"</div>";container.appendChild(div);});}
+
+function getThemePresetForCuisine(type){
+  const themes={
+    "Thai":{primary:"#b91c1c",secondary:"#fef3c7",accent:"#dc2626",text:"#1f2937"},
+    "Sushi":{primary:"#0f172a",secondary:"#f1f5f9",accent:"#dc2626",text:"#1f2937"},
+    "Burger":{primary:"#ca8a04",secondary:"#fef3c7",accent:"#dc2626",text:"#1f2937"},
+    "Pizza":{primary:"#16a34a",secondary:"#fef3c7",accent:"#dc2626",text:"#1f2937"},
+    "Italiensk":{primary:"#16a34a",secondary:"#fef3c7",accent:"#dc2626",text:"#1f2937"},
+    "Cafe":{primary:"#92400e",secondary:"#fef3c7",accent:"#b91c1c",text:"#1f2937"},
+    "Asiatisk":{primary:"#b91c1c",secondary:"#fef3c7",accent:"#dc2626",text:"#1f2937"},
+    "Street Food":{primary:"#ea580c",secondary:"#fff7ed",accent:"#dc2626",text:"#1f2937"},
+    "Fine Dining":{primary:"#0f172a",secondary:"#f8fafc",accent:"#fbbf24",text:"#1f2937"},
+    "Grill/Kebab":{primary:"#b91c1c",secondary:"#fef3c7",accent:"#dc2626",text:"#1f2937"},
+    "Vegansk":{primary:"#16a34a",secondary:"#f0fdf4",accent:"#15803d",text:"#1f2937"},
+    "Smørrebrød":{primary:"#1e40af",secondary:"#eff6ff",accent:"#dc2626",text:"#1f2937"},
+    "Steakhouse":{primary:"#7c2d12",secondary:"#fef3c7",accent:"#dc2626",text:"#1f2937"}
+  };
+  return themes[type]||{primary:"#1f7a3d",secondary:"#f8f4ea",accent:"#b91c1c",text:"#1f2937"};
+}
+
+function applyPreviewTheme(previewEl,config){
+  const theme=config.theme||getThemePresetForCuisine(config.cuisineType);
+  previewEl.style.setProperty("--theme-primary",theme.primary);
+  previewEl.style.setProperty("--theme-secondary",theme.secondary);
+  previewEl.style.setProperty("--theme-accent",theme.accent);
+  previewEl.style.setProperty("--theme-text",theme.text||"#1f2937");
+}
+
+function renderHeroActions(config){
+  const websiteUrl=config.websiteUrl||`https://${config.subdomain}.madkontrollen.dk`;
+  return{
+    primary:{text:"Book bord",href:websiteUrl},
+    secondary:{text:"Se menu",href:websiteUrl},
+    phone:{text:"Ring nu",href:config.phone?`tel:${config.phone}`:"#",show:!!config.phone}
+  };
+}
+
+function renderSeoPages(pages){
+  const container=document.getElementById("seoPages");
+  const head=document.getElementById("seoPagesHead");
+  const body=document.getElementById("seoPagesBody");
+  const chevron=document.getElementById("seoPagesChevron");
+  if(!container) return;
+
+  container.innerHTML="";
+  pages.forEach((page)=>{
+    const card=document.createElement("div");
+    card.className="seo-card seo-page-card";
+    card.innerHTML="<h4 style='margin:0 0 4px;font-size:14px;'>"+escapeHtml(page.keyword)+"</h4><p style='margin:0;font-size:12px;color:#607060;'>"+escapeHtml(page.canonicalPath)+"</p>";
+    card.addEventListener("click",()=>openSeoModal(page));
+    container.appendChild(card);
+  });
+
+  // Fold toggle
+  if(head && !head.dataset.bound){
+    head.dataset.bound="1";
+    head.addEventListener("click",()=>{
+      const open=body.style.display==="grid"||body.style.display==="block";
+      body.style.display=open ? "none" : "grid";
+      chevron.style.transform=open ? "" : "rotate(90deg)";
+    });
+  }
+}
+
+function escapeHtml(v){return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+// SLET FRA HER
+function openSeoModal(page){
+  const config = getGeneratorConfig();
+  let overlay=document.getElementById("seoModalOverlay");
+  if(!overlay){
+    overlay=document.createElement("div");
+    overlay.id="seoModalOverlay";
+    overlay.className="seo-modal-overlay";
+    overlay.innerHTML=`
+      <div class="seo-modal">
+        <div class="seo-modal-head">
+          <h3 id="seoModalTitle"></h3>
+          <button class="seo-modal-close" id="seoModalCloseBtn">&#x2715; Luk</button>
+        </div>
+        <div id="seoModalBody"></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById("seoModalCloseBtn").addEventListener("click",()=>overlay.classList.remove("active"));
+    overlay.addEventListener("click",(e)=>{ if(e.target===overlay) overlay.classList.remove("active"); });
+  }
+
+  document.getElementById("seoModalTitle").textContent=page.canonicalPath||"SEO side";
+
+  const heroImg = imgState.enhancedUrl || "";
+  const heroStyle = document.getElementById("imgStyle")?.value || "warm";
+  const heroStyleLabels = {
+    warm:"Varm og moderne",
+    nordic:"Nordisk",
+    dark:"Mørk premium",
+    street:"Street food",
+    clean:"Ren"
+  };
+
+  const heroBgAttr = heroImg ? ` style="background-image:url('${heroImg}')"` : "";
+  const heroClass = heroImg ? " has-hero-image" : "";
+  const styleNote = heroImg
+    ? `<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:8px;">Stil: ${escapeHtml(heroStyleLabels[heroStyle]||heroStyle)}</div>`
+    : "";
+
+  const phone = config.phone && config.phone !== "Ikke angivet" ? config.phone : "";
+  const address = config.address && config.address !== "Ikke angivet" ? config.address : "";
+  const mapsUrl = address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}` : "";
+  const ctaText = config.ctaText || "Bestil nu";
+  const ctaUrl = config.ctaUrl || "";
+
+  const ctaTag = ctaUrl
+    ? `<a class="seo-lp-cta" href="${escapeHtml(ctaUrl)}" target="_blank" rel="noopener">${escapeHtml(ctaText)} &rarr;</a>`
+    : `<span class="seo-lp-cta">${escapeHtml(ctaText)} &rarr;</span>`;
+
+  const phoneHtml = phone
+    ? `<div class="seo-lp-meta-item">&#128222; <span>${escapeHtml(phone)}</span></div>`
+    : "";
+
+  const addressHtml = address
+    ? `<div class="seo-lp-meta-item">&#128205; <span>${escapeHtml(address)}</span></div>`
+    : "";
+
+  const mapsHtml = mapsUrl
+    ? `<a class="seo-lp-maps-link" href="${mapsUrl}" target="_blank" rel="noopener">&#x1F4CD; Find på Google Maps</a>`
+    : "";
+
+  const _miHtml = (page.menuItems||[])
+    .map(m=>`<div class="seo-lp-dish-card"><strong>${escapeHtml(m.name)}</strong><p>${escapeHtml(m.desc)}</p></div>`)
+    .join("");
+
+  const _menuSec = (page.menuItems && page.menuItems.length)
+    ? `<div class="seo-lp-section seo-lp-menu-section"><div class="seo-lp-h2">🍽 Populære retter</div><div class="seo-lp-dish-grid">${_miHtml}</div></div>`
+    : "";
+
+  const _introSec = page.h2
+    ? `<div class="seo-lp-section"><div class="seo-lp-h2">${escapeHtml(page.h2)}</div><p class="seo-lp-p">${escapeHtml(page.bodyText||page.metaDescription||"")}</p></div>`
+    : "";
+
+  const _whySec = page.h3
+    ? `<div class="seo-lp-section"><div class="seo-lp-h3">${escapeHtml(page.h3)}</div><p class="seo-lp-p">${escapeHtml(page.metaDescription||"")}</p></div>`
+    : "";
+
+  const _ctaSec = ctaUrl
+    ? `<div class="seo-lp-section" style="padding-top:4px">${ctaTag}</div>`
+    : "";
+
+  const _secMap = {
+    intro:_introSec,
+    menu:_menuSec,
+    why:_whySec,
+    cta:_ctaSec
+  };
+
+  const _bodySecs = (page.sections||["intro","menu","why"])
+    .map(s=>_secMap[s]||"")
+    .join("");
+
+  document.getElementById("seoModalBody").innerHTML=`
+    <div class="seo-lp-hero${heroClass}"${heroBgAttr}>
+      <div class="hero-awning" data-awning></div>
+      <div class="seo-lp-path">${escapeHtml(page.canonicalPath||"")} &nbsp;&bull;&nbsp; <em>${escapeHtml(page.title||"")}</em></div>
+      <h1 class="seo-lp-h1">${escapeHtml(page.h1||page.title||"")}</h1>
+      <p class="seo-lp-meta">${escapeHtml(page.metaDescription||"")}</p>
+      ${ctaTag}
+      ${styleNote}
+    </div>
+    <div class="seo-lp-body">${_bodySecs}</div>
+    <div class="seo-lp-meta-bar">
+      <div class="seo-lp-meta-item">Søgeord: <span>${escapeHtml(page.keyword||"")}</span></div>
+      <div class="seo-lp-meta-item">Title tag: <span>${escapeHtml(page.title||"")}</span></div>
+      ${phoneHtml}
+      ${addressHtml}
+      ${mapsHtml}
+    </div>`;
+
+  // Mount canopy/awning after DOM injection, using same config as preview
+  const theme = config.theme || getThemePresetForCuisine(config.cuisineType);
+  const awningEl = document.querySelector('.seo-lp-hero .hero-awning[data-awning]');
+  if (awningEl) {
+    loadHeroAwningInlineInto(awningEl, theme.primary, config.awningType || "default");
+  }
+
+  overlay.classList.add("active");
+}
+
+function getRecommendedModules(){
+  const kitchenType = document.getElementById("type").value || "Burger";
+  const recommended = kitchenTypeModuleMap[kitchenType] || ["seo", "egenkontrol"];
+  return recommended;
+}
+
+function renderModules(){
+  const cards=document.getElementById("moduleCards");
+  const statusList=document.getElementById("moduleStatusList");
+  const recommendedModules = getRecommendedModules();
+  cards.innerHTML="";
+  statusList.innerHTML="";
+  modules.forEach((module)=>{
+    const isRecommended = recommendedModules.includes(module.key);
+    const card=document.createElement("div");
+    card.className="module-card"+(isRecommended && module.locked ? " recommended-module" : "");
+    const recommendedBadge = isRecommended && module.locked ? "<span style='font-size:11px;font-weight:800;color:#2f7d32;margin-left:auto;'>[ANBEFALET]</span>" : "";
+    card.innerHTML="<div class='module-head'><strong>"+module.title+"</strong>"+recommendedBadge+"<span class='module-pill "+(!module.locked?"active":"")+"'>"+module.status+"</span></div><div class='module-price'>"+getModulePriceLabel(module)+"</div><div class='module-meta'>"+(module.kind==="base"?"Grundpakke":"Add-on modul")+"</div><div style='font-size:14px;color:#607060;line-height:1.5;'>"+module.description+"</div>";
+    const row=document.createElement("div");
+    row.className="module-button-row";
+    const previewBtn=document.createElement("button");
+    previewBtn.type="button";
+    previewBtn.className="module-button secondary";
+    previewBtn.textContent=module.previewButton;
+    previewBtn.addEventListener("click",()=>{
+      generateSite();
+      setGeneratorStatus(`${module.title} preview opdateret.`,false);
+    });
+    const buyBtn=document.createElement("button");
+    buyBtn.type="button";
+    buyBtn.className="module-button "+(!module.locked?"active":"");
+    buyBtn.textContent=module.button;
+    buyBtn.addEventListener("click",()=>handleModulePurchase(module));
+    row.appendChild(previewBtn);
+    row.appendChild(buyBtn);
+    card.appendChild(row);
+    cards.appendChild(card);
+
+    const item=document.createElement("div");
+    item.className="contact-item";
+    item.innerHTML="<strong>"+module.title+"</strong><br><span style='color:#607060;'>"+module.status+" · Pris: "+getModulePriceLabel(module)+"</span>";
+    statusList.appendChild(item);
+  });
+}
+function setLogoContent(element,logoSource,fallbackText){element.innerHTML=""; if(logoSource){element.innerHTML="<img src='"+logoSource+"' alt='Logo'>";} else {element.textContent=fallbackText;}}
+function applyLogoPlacement(position,logoSource,fallbackText){const heroLogo=document.getElementById("heroLogo");const previewLogo=document.getElementById("previewLogo");heroLogo.className="preview-logo hidden";previewLogo.className="preview-logo hidden";if(position==="left-top"){heroLogo.className="preview-logo";setLogoContent(heroLogo,logoSource,fallbackText);} else if(position==="right-middle"){previewLogo.className="preview-logo logo-right-middle";setLogoContent(previewLogo,logoSource,fallbackText);} else {previewLogo.className="preview-logo logo-card";setLogoContent(previewLogo,logoSource,fallbackText);}}
+function fillFromCore(){
+  document.getElementById("name").value=coreSignupData.businessName;
+  document.getElementById("subdomain").value=coreSignupData.subdomain;
+  document.getElementById("city").value=coreSignupData.city;
+  document.getElementById("type").value=coreSignupData.cuisineType;
+  document.getElementById("offerings").value=coreSignupData.offerings;
+  document.getElementById("keyword").value=coreSignupData.keyword;
+  document.getElementById("phone").value=coreSignupData.phone;
+  document.getElementById("address").value=coreSignupData.address;
+  document.getElementById("description").value=coreSignupData.description;
+  document.getElementById("pageCount").value=coreSignupData.pageCount;
+  document.getElementById("logoPosition").value=coreSignupData.logoPosition;
+  templates.forEach((x)=>x.classList.remove("active"));
+  const preferredTemplateCard=document.querySelector('[data-template="'+coreSignupData.preferredTemplate+'"]');
+  if(preferredTemplateCard){
+    preferredTemplateCard.classList.add("active");
+    selectedTemplate=coreSignupData.preferredTemplate;
+  }
+  document.getElementById("selectedTemplateLabel").innerText="Valgt design: "+templateTitles[selectedTemplate];
+  subdomainTouched = false;
+  lastAutoSubdomain = slugify(coreSignupData.subdomain || "");
+  generateSite();
+}
+async function generateSite(shouldPersist = false){
+  console.log("ENTER generateSite - shouldPersist:", shouldPersist);
+  renderModules();
+  const config=getGeneratorConfig();
+  const name=config.businessName;
+  const subdomain=config.subdomain;
+  const city=config.city;
+  const type=config.cuisineType;
+  const offerings=config.offerings;
+  const keyword=config.keyword;
+  const phone=config.phone;
+  const address=config.address;
+  const description=config.description;
+  const logoPosition=config.logoPosition;
+  const pageCount=config.pageCount;
+  const seo=config.seoNarrative;
+  document.getElementById("subdomain").value=subdomain;
+
+  const menuItems=buildMenuItems(type,name);
+  const features=buildFeatures(type,city,offerings,subdomain);
+  const landingPages=config.landingPages.map((page)=>`${page.title} (${page.canonicalPath})`);
+  const stats=[
+    {number:String(pageCount),label:"SEO sider"},
+    {number:"100%",label:"Mobiloptimeret"},
+    {number:templateTitles[selectedTemplate]?.split(" / ")[0] || templateTitles[selectedTemplate],label:"Design"}
+  ];
+
+  const preview=document.getElementById("preview");
+  preview.className="preview "+getTemplateThemeClass(selectedTemplate);
+  preview.style.display="block";
+
+  // Apply theme colors based on cuisine type
+  applyPreviewTheme(preview,config);
+
+  // Apply hero background image if one has been selected
+  const heroEl=preview.querySelector('.preview-hero');
+  if(heroEl){
+    const heroImg=config.heroImageUrl||"";
+    if(heroImg){
+      heroEl.style.backgroundImage=`url('${heroImg}')`;
+    }else{
+      heroEl.style.backgroundImage='';
+    }
+  }
+
+  // Load hero awning after hero DOM is ready
+  const theme=config.theme||getThemePresetForCuisine(config.cuisineType);
+  loadHeroAwningInline(theme.primary);
+
+  // Update hero content
+  const initials=name.split(" ").slice(0,2).map((part)=>part.charAt(0).toUpperCase()).join("") || "MK";
+  document.getElementById("heroLogo").textContent=initials;
+  document.getElementById("previewTitle").innerText=name+" - "+type+" i "+city;
+  document.getElementById("previewSeo").innerText=seo;
+  document.getElementById("subdomainPreview").innerText=subdomain+".madkontrollen.dk";
+
+  // Update CTA buttons
+  const actions=renderHeroActions(config);
+  const primaryBtn=document.getElementById("heroPrimaryCta");
+  const secondaryBtn=document.getElementById("heroSecondaryCta");
+  const phoneBtn=document.getElementById("heroPhoneCta");
+  if(primaryBtn){primaryBtn.textContent=actions.primary.text;primaryBtn.onclick=()=>window.open(actions.primary.href,'_blank');}
+  if(secondaryBtn){secondaryBtn.textContent=actions.secondary.text;secondaryBtn.onclick=()=>window.open(actions.secondary.href,'_blank');}
+  if(phoneBtn){
+    phoneBtn.textContent=actions.phone.text;
+    phoneBtn.onclick=()=>window.location.href=actions.phone.href;
+    phoneBtn.className=actions.phone.show?"hero-btn hero-btn--ghost":"hero-btn hero-btn--ghost hidden";
+  }
+
+  // Update contact info in sidebar
+  document.getElementById("businessName").innerText=name;
+  document.getElementById("contactInfo").innerText=description;
+  document.getElementById("contactPhone").innerText="Telefon: "+phone;
+  document.getElementById("contactAddress").innerText="Adresse: "+address;
+  document.getElementById("contactType").innerText="Køkken: "+type;
+  document.getElementById("contactOfferings").innerText="Udbud: "+offerings;
+  document.getElementById("contactTemplate").innerText="Design: "+templateTitles[selectedTemplate]+" · SEO preview aktiv";
+  renderCards("menuPreview",menuItems,"menu-item");
+  renderCards("featureCards",features,"feature-card");
+  renderSeoPages(config.landingPages);
+  renderCards("statCards",stats,"stat-mini");
+
+  // Update logo if uploaded (simplified - logo now in hero badge)
+  if(uploadedLogoDataUrl){
+    const logoEl=document.getElementById("heroLogo");
+    if(logoEl){logoEl.innerHTML="<img src='"+uploadedLogoDataUrl+"' alt='Logo' style='width:100%;height:100%;object-fit:contain;border-radius:999px;'>";}
+  }
+
+  saveLocalDraft();
+  
+  if(shouldPersist){
+    console.log("generateSite: persisting config and checking subdomain");
+    
+    console.log("generateSite: before checkSubdomainLive");
+    const subdomainResult = await checkSubdomainLive(subdomain);
+    console.log("generateSite: after checkSubdomainLive", subdomainResult);
+    
+    console.log("generateSite: validating subdomain result");
+    if(!subdomainResult || !subdomainResult.ok){
+      console.error("generateSite failed: subdomain check returned invalid result", subdomainResult);
+      throw new Error("Subdomain check failed");
+    }
+    console.log("generateSite: subdomain validation passed");
+    
+    console.log("generateSite: before persistConfig");
+    const configId = await persistConfig(false);
+    console.log("generateSite: after persistConfig", configId);
+    
+    if(!configId){
+      console.error("generateSite failed: persistConfig returned no configId");
+      throw new Error("Could not persist config");
+    }
+    
+    console.log("generateSite: returning success");
+  } else {
+    console.log("generateSite: preview only - skipping subdomain check and persist");
+  }
+}
+
+async function generateAndSave(){
+  try {
+    const config = getGeneratorConfig();
+    
+    const result = runGenerator(config);
+    
+    console.log("GENERATED RESULT:", result);
+    
+    if (typeof setGeneratorStatus === "function") {
+      setGeneratorStatus(
+        `✓ Genereret ${result.pages.length} sider + sitemap + robots`,
+        false
+      );
+    }
+    
+  } catch (err) {
+    console.error("Generator fejl:", err);
+    
+    if (typeof setGeneratorStatus === "function") {
+      setGeneratorStatus("❌ Fejl i generator – se console", true);
+    }
+  }
+}
+window.generateAndSave=generateAndSave;
+
+function getThemeForCuisine(cuisineType){
+  const themes = {
+    "Thai": { primary: "#b91c1c", secondary: "#fef3c7", accent: "#dc2626", text: "#1f2937" },
+    "Sushi": { primary: "#0f172a", secondary: "#f1f5f9", accent: "#dc2626", text: "#1f2937" },
+    "Burger": { primary: "#ca8a04", secondary: "#fef3c7", accent: "#dc2626", text: "#1f2937" },
+    "Pizza": { primary: "#16a34a", secondary: "#fef3c7", accent: "#dc2626", text: "#1f2937" },
+    "Italiensk": { primary: "#16a34a", secondary: "#fef3c7", accent: "#dc2626", text: "#1f2937" },
+    "Cafe": { primary: "#92400e", secondary: "#fef3c7", accent: "#b91c1c", text: "#1f2937" },
+    "Asiatisk": { primary: "#b91c1c", secondary: "#fef3c7", accent: "#dc2626", text: "#1f2937" },
+    "Street Food": { primary: "#ea580c", secondary: "#fff7ed", accent: "#dc2626", text: "#1f2937" },
+    "Fine Dining": { primary: "#0f172a", secondary: "#f8fafc", accent: "#fbbf24", text: "#1f2937" },
+    "Grill/Kebab": { primary: "#b91c1c", secondary: "#fef3c7", accent: "#dc2626", text: "#1f2937" },
+    "Vegansk": { primary: "#16a34a", secondary: "#f0fdf4", accent: "#15803d", text: "#1f2937" },
+    "Smørrebrød": { primary: "#1e40af", secondary: "#eff6ff", accent: "#dc2626", text: "#1f2937" },
+    "Steakhouse": { primary: "#7c2d12", secondary: "#fef3c7", accent: "#dc2626", text: "#1f2937" }
+  };
+  return themes[cuisineType] || { primary: "#1f7a3d", secondary: "#f8f4ea", accent: "#b91c1c", text: "#1f2937" };
+}
+
+// SLET FRA HER
+function buildLandingPageConfigFromGenerator() {
+  const config = getGeneratorConfig();
+
+  const businessName = String(config.businessName || "Restaurant").trim();
+  const city = String(config.city || "").trim();
+  const cuisineTypeRaw = String(config.cuisineType || "").trim();
+  const cuisineTypeLower = cuisineTypeRaw.toLowerCase();
+  const offerings = String(config.offerings || "").trim();
+  const phone = String(config.phone || "").trim();
+  const address = String(config.address || "").trim();
+  const subdomain = String(config.subdomain || slugify(businessName) || "restaurant").trim();
+
+  // Build slug from name and city
+  const slug = slugify(`${businessName}-${city}`) || "landing-page";
+
+  // Build SEO texts
+  const title = `${businessName} - ${cuisineTypeRaw} i ${city}`;
+  const h1 = `${businessName} i ${city}`;
+  const metaDescription =
+    String(config.description || "").trim() ||
+    `Bestil ${cuisineTypeLower} fra ${businessName} i ${city}. ${offerings}. Hurtig levering og takeaway.`;
+
+  const intro =
+    String(config.seoNarrative || "").trim() ||
+    `Velkommen til ${businessName} - din lokale ${cuisineTypeLower} restaurant i ${city}.`;
+
+  // Build sections from landing pages or defaults
+  let sections = [];
+  if (Array.isArray(config.landingPages) && config.landingPages.length > 0) {
+    sections = config.landingPages.slice(0, 3).map((page) => ({
+      heading: String(page?.title || "Om os").trim(),
+      text: String(page?.metaDescription || `Læs mere om ${businessName}.`).trim()
+    }));
+  } else {
+    sections = [
+      {
+        heading: `Velkommen til ${businessName}`,
+        text: `Vi serverer autentisk ${cuisineTypeLower} i hjertet af ${city}. ${offerings}.`
+      },
+      {
+        heading: "Bestil Online",
+        text: `Ring til os på ${phone || "vores nummer"} eller besøg os på ${address || "vores adresse"}. Vi glæder os til at servere dig!`
+      }
+    ];
+  }
+
+  // Get theme colors based on cuisine type
+  const theme = config.theme || getThemeForCuisine(cuisineTypeRaw);
+
+  // Generate logo initials
+  const logoInitials =
+    businessName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w.charAt(0).toUpperCase())
+      .join("") || "MK";
+
+  // Build sections HTML
+  const sectionsHtml = sections
+    .map(
+      (s) => `
+    <div class="section">
+      <h2>${escapeHtml(String(s.heading || ""))}</h2>
+      <p>${escapeHtml(String(s.text || ""))}</p>
+    </div>
+  `
+    )
+    .join("");
+
+  return {
+    slug,
+    companyName: businessName,
+    city,
+    category: cuisineTypeRaw,
+    title,
+    metaDescription,
+    h1,
+    intro,
+    sections,
+    sectionsHtml,
+    heroImage: config.heroImageUrl || "",
+    websiteUrl: `https://${subdomain}.madkontrollen.dk`,
+    externalWebsite: config.websiteUrl || "",
+    facebookUrl: "",
+    instagramUrl: "",
+    orderingUrl: `https://${subdomain}.madkontrollen.dk`,
+    phone,
+    address,
+    logoInitials,
+    themePrimary: theme.primary,
+    themeSecondary: theme.secondary,
+    themeAccent: theme.accent,
+    themeText: theme.text,
+    awningType: config.awningType || "default",
+    isLive: true
+  };
+}
+
+
+async function activateSubdomain(){
+  console.log("ENTER activateSubdomain - FULL activation with subdomain check and persist");
+  const btn = document.getElementById("activateSubdomainBtn");
+  const subdomain = document.getElementById("subdomain")?.value;
+  
+  if(!subdomain){
+    setGeneratorStatus("Indtast et subdomæne først.", true);
+    return;
+  }
+  
+  if(btn) btn.disabled = true;
+  setGeneratorStatus("Aktiverer subdomæne...", false);
+  
+  try {
+    await generateSite(true);
+    
+    const landingPageConfig = buildLandingPageConfigFromGenerator();
+    console.log("LANDING PAGE CONFIG:", landingPageConfig);
+    
+    setGeneratorStatus("✓ Subdomæne aktiveret og gemt!", false);
+  } catch(error) {
+    console.error("Subdomain activation error:", error);
+    setGeneratorStatus(error?.message || "Kunne ikke aktivere subdomæne.", true);
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+}
+window.activateSubdomain = activateSubdomain;
+
+window.generateSite=generateSite;
+window.fillFromCore=fillFromCore;
+
+// === IMAGE SEARCH ===
+const IMG_CATEGORIES = {
+  thai:    ["thai restaurant food","pad thai","thai curry","asian street food"],
+  sushi:   ["sushi restaurant","sushi platter","japanese food","maki rolls"],
+  burger:  ["gourmet burger","burger restaurant","burger and fries","craft burger"],
+  pizza:   ["pizza restaurant","fresh pizza","wood fired pizza","italian pizza"],
+  cafe:    ["cafe food","coffee shop food","danish cafe","brunch cafe"],
+  asiatisk:["asian restaurant food","noodle bowl","stir fry","rice bowl"],
+  streetfood:["street food market","food stall","street food vendor","food truck food"],
+  finedining:["fine dining restaurant","plated food elegant","gourmet plating","upscale restaurant"],
+  grillkebab:["kebab restaurant","grilled meat","middle east food","shawarma wrap"],
+  vegansk: ["vegan restaurant food","plant based food","vegetarian dish","healthy salad bowl"],
+  "smørrebrød":["danish open faced sandwich","smørrebrød","nordic cuisine","danish lunch"],
+  steakhouse:["steak restaurant","grilled steak","steakhouse food","ribeye steak"]
+};
+
+const imgState = { photos: [], selected: null, enhancedUrl: "" };
+
+function renderImageGrid(photos) {
+  const grid = document.getElementById("imgGrid");
+  if (!photos || !photos.length) {
+    grid.innerHTML = '<div class="img-search-empty">Ingen billeder fundet. Prøv et andet søgeord.</div>';
+    return;
+  }
+  grid.innerHTML = "";
+  photos.forEach((photo, i) => {
+    const item = document.createElement("div");
+    item.className = "img-grid-item";
+    item.innerHTML = `<img src="${escapeHtml(photo.thumbUrl || photo.url)}" alt="${escapeHtml(photo.alt)}" loading="lazy"><div class="img-credit">\u{1F4F7} ${escapeHtml(photo.photographer)}</div><div class="img-check">&#x2713;</div>`;
+    item.addEventListener("click", () => selectStockImage(i));
+    grid.appendChild(item);
+  });
+}
+
+function selectStockImage(idx) {
+  const photo = imgState.photos[idx];
+  if (!photo) return;
+  imgState.selected = photo;
+  imgState.enhancedUrl = "";
+  document.querySelectorAll(".img-grid-item").forEach((el, i) => el.classList.toggle("selected", i === idx));
+  const actions = document.getElementById("imgSelectedActions");
+  actions.classList.add("active");
+  document.getElementById("imgSelectedLabel").textContent = `Valgt: ${photo.alt} — Foto: ${photo.photographer}`;
+  document.getElementById("imgBeforeAfter").style.display = "none";
+  document.getElementById("imgLoading").style.display = "none";
+  document.getElementById("imgSaveStatus").style.display = "none";
+}
+
+document.getElementById("imgSearchBtn").addEventListener("click", async () => {
+  if (!authReady) { alert("Log ind for at søge billeder."); return; }
+  const btn = document.getElementById("imgSearchBtn");
+  const category = document.getElementById("imgCategory").value;
+  const customQuery = document.getElementById("imgCustomQuery").value.trim();
+  const grid = document.getElementById("imgGrid");
+  const query = customQuery || (IMG_CATEGORIES[category] || ["restaurant food"])[0];
+  btn.disabled = true;
+  btn.textContent = "Søger...";
+  grid.innerHTML = '<div class="img-grid-loader">Henter billeder fra Pexels...</div>';
+  document.getElementById("imgSelectedActions").classList.remove("active");
+  try {
+    const result = await searchRestaurantImagesCallable({ query, perPage: 15 });
+    imgState.photos = result.data?.photos || [];
+    imgState.selected = null;
+    imgState.enhancedUrl = "";
+    renderImageGrid(imgState.photos);
+  } catch (err) {
+    console.error("Billedsøgning fejlede:", err);
+    grid.innerHTML = `<div class="img-search-empty">Fejl: ${escapeHtml(err.message || "Ukendt fejl")}. Kontrollér at PEXELS_API_KEY er sat som Firebase Secret.</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "\uD83D\uDD0D Søg billeder";
+  }
+});
+
+document.getElementById("imgEnhanceBtn").addEventListener("click", async () => {
+  console.log("ENTER improve-and-save image handler - image only, no full site save");
+  const photo = imgState.selected;
+  if (!photo) { alert("Vælg et billede først."); return; }
+  if (!authReady) { alert("Log ind for at behandle billeder."); return; }
+  const companyId = currentCompanyId || getSessionCompanyId();
+  const locationId = currentLocationId || getSessionLocationId();
+  if (!companyId || !locationId) { alert("Log ind som admin for at fortsætte."); return; }
+
+  const btn = document.getElementById("imgEnhanceBtn");
+  const loading = document.getElementById("imgLoading");
+  const loadingText = document.getElementById("imgLoadingText");
+  const status = document.getElementById("imgSaveStatus");
+  const ba = document.getElementById("imgBeforeAfter");
+  const style = document.getElementById("imgStyle").value;
+  const category = document.getElementById("imgCategory").value;
+
+  btn.disabled = true;
+  loading.style.display = "block";
+  ba.style.display = "none";
+  status.style.display = "none";
+
+  const steps = ["Henter billede...", "Optimerer med AI...", "Uploader til sky...", "Gemmer billede..."];
+  let stepIdx = 0;
+  loadingText.textContent = steps[0];
+  const stepTimer = setInterval(() => { stepIdx = (stepIdx + 1) % steps.length; loadingText.textContent = steps[stepIdx]; }, 2200);
+
+  try {
+    const result = await enhanceAndUploadRestaurantImageCallable({
+      url: photo.url,
+      thumbUrl: photo.thumbUrl || "",
+      style, category, companyId, locationId,
+      source: photo.source || "pexels",
+      sourceUrl: photo.sourceUrl || "",
+      photographer: photo.photographer || "",
+      photographerUrl: photo.photographerUrl || "",
+      alt: photo.alt || ""
+    });
+    clearInterval(stepTimer);
+    loading.style.display = "none";
+
+    const enhanced = result.data?.enhanced;
+    const enhancedUrl = result.data?.enhancedUrl || photo.url;
+    imgState.enhancedUrl = enhancedUrl;
+    
+    console.log("Image saved, URL:", enhancedUrl, "- no generateSite() called");
+
+    ba.style.display = "grid";
+    document.getElementById("imgBeforeImg").src = photo.thumbUrl || photo.url;
+    document.getElementById("imgAfterImg").src = enhancedUrl;
+    document.getElementById("imgAfterLabel").textContent = enhanced ? "AI-forbedret version" : "Originalversion";
+
+    status.textContent = enhanced ? "\u2713 Billede forbedret og gemt." : "\u2713 Billede gemt.";
+    status.style.color = "#2f7d32";
+    status.style.display = "block";
+  } catch (err) {
+    clearInterval(stepTimer);
+    loading.style.display = "none";
+    console.error("Billedbehandling fejlede:", err);
+    status.textContent = "Billedet kunne ikke behandles. Prøv igen eller vælg et andet billede.";
+    status.style.color = "#b42318";
+    status.style.display = "block";
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+setupSubdomainInput();
+
+const aiSuggestBtn = document.getElementById("aiSuggestBtn");
+if(aiSuggestBtn){
+  aiSuggestBtn.addEventListener("click", handleAiSuggestions);
+}
+
+async function loadSavedConfig(){
+  if(!currentCompanyId || !currentLocationId || isOnboardingUser()) return false;
+  try {
+    const q = query(
+      collection(db, "seo_generator_configs"),
+      where("companyId", "==", currentCompanyId),
+      where("locationId", "==", currentLocationId),
+      orderBy("updatedAt", "desc"),
+      limit(1)
+    );
+    const snap = await getDocs(q);
+    if(snap.empty) return false;
+    const c = snap.docs[0].data();
+    savedConfigId = snap.docs[0].id;
+
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if(el && val != null && val !== "") el.value = val;
+    };
+    set("name",         c.businessName);
+    set("subdomain",    c.subdomain);
+    set("city",         c.city);
+    set("type",         c.cuisineType);
+    set("offerings",    c.offerings);
+    set("keyword",      c.keyword);
+    set("phone",        c.phone);
+    set("address",      c.address);
+    set("description",  c.description);
+    set("logoPosition", c.logoPosition);
+    set("pageCount",    String(c.pageCount || ""));
+    set("websiteUrl",   c.websiteUrl || "");
+    set("ctaText",      c.ctaText || "");
+    set("ctaUrl",       c.ctaUrl  || "");
+    if(c.theme){
+      set("themePrimary",   c.theme.primary || "#1f7a3d");
+      set("themeSecondary", c.theme.secondary || "#f8f4ea");
+      set("themeAccent",    c.theme.accent || "#b91c1c");
+    }
+
+    if(c.heroImageUrl) imgState.enhancedUrl = c.heroImageUrl;
+    if(c.logoDataUrl)  uploadedLogoDataUrl  = c.logoDataUrl;
+
+    if(c.selectedTemplate) {
+      selectedTemplate = c.selectedTemplate;
+      document.querySelectorAll(".template").forEach(t => {
+        t.classList.toggle("active", t.dataset.template === selectedTemplate);
+      });
+      const lbl = document.getElementById("selectedTemplateLabel");
+      if(lbl) lbl.innerText = "Valgt design: " + (templateTitles[selectedTemplate] || selectedTemplate);
+    }
+
+    subdomainTouched = !!String(c.subdomain || "").trim();
+    lastAutoSubdomain = slugify(c.subdomain || c.businessName || "");
+
+    return true;
+  } catch(e) {
+    console.warn("loadSavedConfig fejl:", e);
+    return false;
+  }
+}
+
+async function prefillFromLiveProfile(){
+  if(!currentCompanyId || !currentLocationId) return;
+
+  const topbar = (id) => {
+    const el = document.getElementById(id);
+    const v = el ? el.textContent.trim() : "";
+    return (v && v !== "–") ? v : "";
+  };
+
+  const setIfEmpty = (id, val) => {
+    if(val && document.getElementById(id) && !document.getElementById(id).value){
+      document.getElementById(id).value = val;
+    }
+  };
+
+  setIfEmpty("name",    topbar("mkpTopbarCompany"));
+  setIfEmpty("phone",   topbar("mkpTopbarPhone"));
+  setIfEmpty("address", topbar("mkpTopbarAddress"));
+
+  try{
+    const snap=await getDoc(doc(db,"live_user_profiles",`${currentCompanyId}__${currentLocationId}__live_profile`));
+    if(snap.exists()){
+      const p=snap.data()?.profile || snap.data() || {};
+      setIfEmpty("name",    p.companyName);
+      setIfEmpty("city",    p.city);
+      setIfEmpty("phone",   p.phone || p.phoneNumber || "");
+      setIfEmpty("address", [p.address, p.zip, p.city].filter(Boolean).join(", "));
+      setIfEmpty("description", p.description || p.businessDescription || "");
+    }
+  }catch(e){
+    console.warn("prefillFromLiveProfile fejl:",e);
+  }
+
+  syncSubdomainFromName(false);
+}
+
+await loadLayout();
+
+await setupAuthGate({
+  appName:"Madkontrollen Pro",
+  onAuthenticated: async ({ profile }) => {
+    currentUserProfile=profile || null;
+    
+    // Get company/location from profile or session (for onboarding users)
+    const sessionCompanyId = getSessionCompanyId() || "";
+    const sessionLocationId = getSessionLocationId() || "";
+    currentCompanyId = String(profile?.companyId || profile?.organizationId || sessionCompanyId).trim();
+    currentLocationId = String(profile?.locationId || sessionLocationId).trim();
+    
+    // Verify user is actually logged in
+    if(!currentCompanyId || !currentLocationId) {
+      setGeneratorStatus("⚠️ Du skal være logget ind for at bruge SEO Generator. Log venligst ind via hovedmenuen.",true);
+      authReady=false;
+      return;
+    }
+    
+    // Validate token is truly alive before enabling CF calls (or allow onboarding users)
+    const token = await getAuthToken();
+    const isOnboarding = (currentCompanyId || "").toLowerCase().startsWith("onboarding_");
+    if(!token && !isOnboarding) {
+      setGeneratorStatus("⚠️ Session udløbet. Log venligst ind igen.",true);
+      authReady=false;
+      return;
+    }
+    
+    authReady=true;
+    setGeneratorStatus("✓ Logget ind som " + (currentUserProfile?.displayName || currentCompanyId),false);
+    
+    const restored = await loadSavedConfig();
+    if(!restored) restoreLocalDraft();
+    await prefillFromLiveProfile();
+    if(restored) generateSite();
+    setTimeout(() => setGeneratorStatus("",false), 3000);
+    await maybeFinalizeSeoCheckout();
+  },
+  onSignedOut: async () => {
+    currentUserProfile=null;
+    currentCompanyId="";
+    currentLocationId="";
+    authReady=false;
+    _tokenCache=null;
+    _tokenCachedAt=0;
+    setGeneratorStatus("⚠️ Du er ikke logget ind. Log venligst ind for at bruge SEO Generator.",true);
+  }
+});
+
+
+async function loadHeroAwningInline(color) {
+  const mount = document.getElementById("heroAwning");
+  if (!mount) return;
+
+  const resolvedColor = color || "#2f6d3a";
+
+  if (!mount.dataset.loaded) {
+    try {
+      const res = await fetch("/images/awnings/awning-base.png", { cache: "no-cache" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const svg = await res.text();
+      mount.innerHTML = svg;
+      mount.dataset.loaded = "true";
+    } catch (err) {
+      console.error("[awning] Failed to load awning SVG:", err);
+      return;
+    }
+  }
+
+  mount.style.color = resolvedColor;
+}
+
+async function loadHeroAwningInlineInto(mount, color, awningType = "default") {
+  if (!mount) return;
+
+  const resolvedColor = color || "#2f6d3a";
+  const awningPath =
+    awningType && awningType !== "default"
+      ? `/images/awnings/${awningType}.svg`
+      : "/images/awnings/awning-base.png";
+
+  if (!mount.dataset.loaded || mount.dataset.awningPath !== awningPath) {
+    try {
+      const res = await fetch(awningPath, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const svg = await res.text();
+      mount.innerHTML = svg;
+      mount.dataset.loaded = "true";
+      mount.dataset.awningPath = awningPath;
+    } catch (err) {
+      console.error("[awning] Failed to load awning SVG into target:", err);
+      return;
+    }
+  }
+
+  mount.style.color = resolvedColor;
+}
+
+// Init
+restoreLocalDraft();
+syncSubdomainFromName(false);
+generateSite();
+</script>
+</body>
+</html>

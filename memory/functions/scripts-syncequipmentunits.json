@@ -1,0 +1,74 @@
+{
+  "source_file": "scripts/syncEquipmentUnits.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "equipment",
+    "onboarding_answers"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "loadCounts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "main",
+        "normalizeEquipmentCounts"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadCounts",
+        "normalizeEquipmentCounts"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "normalizeEquipmentCounts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadCounts",
+        "main",
+        "toPositiveInt"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "toPositiveInt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadCounts",
+        "main",
+        "normalizeEquipmentCounts"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    }
+  ]
+}

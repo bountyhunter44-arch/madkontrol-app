@@ -1,0 +1,26 @@
+{
+  "source_file": "public/scripts/verify-task-instances.cjs",
+  "module": "general",
+  "imports": [
+    "../../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "verifyTaskInstances",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    }
+  ]
+}

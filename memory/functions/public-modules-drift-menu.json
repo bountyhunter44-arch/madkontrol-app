@@ -1,0 +1,167 @@
+{
+  "source_file": "public/modules/drift/menu.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "badgeClass",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "channelLabel",
+        "filteredMenus",
+        "renderMenus",
+        "renderStats"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "channelLabel",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "filteredMenus",
+        "renderMenus",
+        "renderStats",
+        "renderSuggestions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "filteredMenus",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "channelLabel",
+        "renderMenus",
+        "renderStats",
+        "renderSuggestions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadSharedPartials",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "renderAll"
+      ],
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderAll",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "filteredMenus",
+        "loadSharedPartials",
+        "renderEvents",
+        "renderMenus",
+        "renderStats",
+        "renderSuggestions",
+        "renderSummary"
+      ],
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderEvents",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "badgeClass",
+        "channelLabel",
+        "filteredMenus",
+        "loadSharedPartials",
+        "renderAll",
+        "renderMenus",
+        "renderStats",
+        "renderSuggestions",
+        "renderSummary"
+      ],
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderMenus",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "badgeClass",
+        "channelLabel",
+        "renderEvents",
+        "renderSuggestions",
+        "renderSummary"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderStats",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "badgeClass",
+        "channelLabel",
+        "renderEvents",
+        "renderMenus",
+        "renderSuggestions"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderSuggestions",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "badgeClass",
+        "channelLabel",
+        "filteredMenus",
+        "loadSharedPartials",
+        "renderAll",
+        "renderEvents",
+        "renderMenus",
+        "renderStats",
+        "renderSummary"
+      ],
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderSummary",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "channelLabel",
+        "filteredMenus",
+        "loadSharedPartials",
+        "renderAll",
+        "renderEvents",
+        "renderMenus",
+        "renderStats",
+        "renderSuggestions"
+      ],
+      "selectors": [
+        ".sidebar-link, .nav a"
+      ],
+      "collections": []
+    }
+  ]
+}

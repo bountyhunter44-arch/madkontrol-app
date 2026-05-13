@@ -1,0 +1,41 @@
+{
+  "source_file": "scripts/cleanup-database.js",
+  "module": "general",
+  "imports": [
+    "firebase/app",
+    "firebase/firestore"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "daily_runs",
+    "deviations",
+    "equipment",
+    "media_assets",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "cleanupCollection",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "runCleanup"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "runCleanup",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "cleanupCollection"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

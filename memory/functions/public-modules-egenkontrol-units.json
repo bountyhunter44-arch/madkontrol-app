@@ -1,0 +1,453 @@
+{
+  "source_file": "public/modules/egenkontrol/units.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [
+    "companies",
+    "equipment",
+    "locations",
+    "onboarding_answers"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "addUnit",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getDefaultName",
+        "render",
+        "sortUnits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildFallbackUnitsFromCounts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addUnit",
+        "escapeHtml",
+        "getDefaultName",
+        "parseUnitNumber",
+        "removeNewUnit",
+        "render",
+        "renderBlocked",
+        "setUnits",
+        "sortUnits",
+        "toggleUnitActive",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "collectStringValues",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "buildFallbackUnitsFromCounts",
+        "escapeHtml",
+        "getDefaultName",
+        "getProfileCompanyId",
+        "getProfileDisplayName",
+        "getStoredLocationId",
+        "normalizeLocationIds",
+        "parseUnitNumber",
+        "renderBlocked",
+        "setStoredLocationId",
+        "setUnits",
+        "sortUnits",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 14,
+      "calls": [
+        "buildFallbackUnitsFromCounts",
+        "collectStringValues",
+        "getDefaultName",
+        "getProfileCompanyId",
+        "getProfileDisplayName",
+        "getStoredLocationId",
+        "normalizeLocationIds",
+        "parseUnitNumber",
+        "setStatus",
+        "setStoredLocationId",
+        "setUnits",
+        "sortUnits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDefaultName",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "addUnit",
+        "buildFallbackUnitsFromCounts",
+        "escapeHtml",
+        "parseUnitNumber",
+        "removeNewUnit",
+        "render",
+        "renderBlocked",
+        "setUnits",
+        "sortUnits",
+        "toggleUnitActive",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProfileCompanyId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addUnit",
+        "buildFallbackUnitsFromCounts",
+        "escapeHtml",
+        "getDefaultName",
+        "getProfileDisplayName",
+        "getStoredLocationId",
+        "parseUnitNumber",
+        "removeNewUnit",
+        "render",
+        "renderBlocked",
+        "setStoredLocationId",
+        "setUnits",
+        "sortUnits",
+        "toggleUnitActive",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProfileDisplayName",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "addUnit",
+        "buildFallbackUnitsFromCounts",
+        "escapeHtml",
+        "getDefaultName",
+        "getStoredLocationId",
+        "parseUnitNumber",
+        "removeNewUnit",
+        "render",
+        "renderBlocked",
+        "setStoredLocationId",
+        "setUnits",
+        "sortUnits",
+        "toggleUnitActive",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStoredLocationId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addUnit",
+        "buildFallbackUnitsFromCounts",
+        "escapeHtml",
+        "getDefaultName",
+        "parseUnitNumber",
+        "removeNewUnit",
+        "render",
+        "renderBlocked",
+        "setStoredLocationId",
+        "setUnits",
+        "sortUnits",
+        "toggleUnitActive",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleSave",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getDefaultName",
+        "getProfileCompanyId",
+        "getProfileDisplayName",
+        "getStoredLocationId",
+        "loadCompanyAndLocationNames",
+        "loadUnits",
+        "normalizeLocationIds",
+        "renderBlocked",
+        "setStatus",
+        "setStoredLocationId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadCompanyAndLocationNames",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildFallbackUnitsFromCounts",
+        "getDefaultName",
+        "getProfileDisplayName",
+        "handleSave",
+        "loadUnits",
+        "render",
+        "setStatus",
+        "setUnits"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "equipment",
+        "locations",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "loadUnits",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildFallbackUnitsFromCounts",
+        "getDefaultName",
+        "getProfileCompanyId",
+        "getProfileDisplayName",
+        "getStoredLocationId",
+        "handleSave",
+        "loadCompanyAndLocationNames",
+        "normalizeLocationIds",
+        "render",
+        "renderBlocked",
+        "setStatus",
+        "setStoredLocationId",
+        "setUnits"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "onboarding_answers"
+      ]
+    },
+    {
+      "name": "normalizeLocationIds",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildFallbackUnitsFromCounts",
+        "collectStringValues",
+        "escapeHtml",
+        "getDefaultName",
+        "getProfileCompanyId",
+        "getProfileDisplayName",
+        "getStoredLocationId",
+        "parseUnitNumber",
+        "renderBlocked",
+        "setStoredLocationId",
+        "setUnits",
+        "sortUnits",
+        "toggleUnitActive",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "parseUnitNumber",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "addUnit",
+        "buildFallbackUnitsFromCounts",
+        "escapeHtml",
+        "getDefaultName",
+        "removeNewUnit",
+        "render",
+        "renderBlocked",
+        "setUnits",
+        "sortUnits",
+        "toggleUnitActive",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "removeNewUnit",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addUnit",
+        "escapeHtml",
+        "getDefaultName",
+        "render",
+        "sortUnits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "render",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "addUnit",
+        "escapeHtml",
+        "updateName"
+      ],
+      "selectors": [
+        "[data-add-unit]",
+        "[data-unit-name]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderBlocked",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "addUnit",
+        "escapeHtml",
+        "getDefaultName",
+        "removeNewUnit",
+        "render",
+        "sortUnits",
+        "toggleUnitActive",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setStatus",
+      "type": "function",
+      "approx_occurrences": 11,
+      "calls": [
+        "buildFallbackUnitsFromCounts",
+        "collectStringValues",
+        "getDefaultName",
+        "getProfileCompanyId",
+        "getProfileDisplayName",
+        "getStoredLocationId",
+        "normalizeLocationIds",
+        "parseUnitNumber",
+        "renderBlocked",
+        "setStoredLocationId",
+        "setUnits",
+        "sortUnits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setStoredLocationId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addUnit",
+        "buildFallbackUnitsFromCounts",
+        "escapeHtml",
+        "getDefaultName",
+        "parseUnitNumber",
+        "removeNewUnit",
+        "render",
+        "renderBlocked",
+        "setUnits",
+        "sortUnits",
+        "toggleUnitActive",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setUnits",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "addUnit",
+        "escapeHtml",
+        "getDefaultName",
+        "parseUnitNumber",
+        "removeNewUnit",
+        "render",
+        "renderBlocked",
+        "sortUnits",
+        "toggleUnitActive",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sortUnits",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "addUnit",
+        "buildFallbackUnitsFromCounts",
+        "escapeHtml",
+        "getDefaultName",
+        "parseUnitNumber",
+        "removeNewUnit",
+        "render",
+        "renderBlocked",
+        "setUnits",
+        "toggleUnitActive",
+        "updateName"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toggleUnitActive",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "addUnit",
+        "escapeHtml",
+        "getDefaultName",
+        "removeNewUnit",
+        "render",
+        "sortUnits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateName",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addUnit",
+        "escapeHtml",
+        "getDefaultName",
+        "removeNewUnit",
+        "render",
+        "sortUnits",
+        "toggleUnitActive"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

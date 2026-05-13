@@ -1,0 +1,121 @@
+{
+  "source_file": "scripts/audit-task-relations.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin",
+    "fs",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "deriveDateKeyFromId",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatTimestamp",
+        "loadCollection",
+        "looksLikeDeterministicId",
+        "normalizeText",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "formatTimestamp",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "deriveDateKeyFromId",
+        "loadCollection",
+        "looksLikeDeterministicId",
+        "normalizeText",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "loadCollection",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "deriveDateKeyFromId",
+        "formatTimestamp",
+        "looksLikeDeterministicId",
+        "normalizeText",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "looksLikeDeterministicId",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "deriveDateKeyFromId",
+        "formatTimestamp",
+        "loadCollection",
+        "normalizeText",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "normalizeText",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "deriveDateKeyFromId",
+        "formatTimestamp",
+        "loadCollection",
+        "looksLikeDeterministicId",
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deriveDateKeyFromId",
+        "formatTimestamp",
+        "loadCollection",
+        "looksLikeDeterministicId",
+        "normalizeText"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    }
+  ]
+}

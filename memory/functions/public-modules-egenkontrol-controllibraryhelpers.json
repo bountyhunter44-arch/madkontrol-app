@@ -1,0 +1,247 @@
+{
+  "source_file": "public/modules/egenkontrol/controlLibraryHelpers.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "buildProgramAnswerDocument",
+    "buildProgramSectionDocument",
+    "buildTaskTemplateDocument",
+    "buildVerificationTemplateDocument",
+    "evaluateRules",
+    "getFrequencyLabel",
+    "getNextDueDate",
+    "isActiveForDate",
+    "isOperationalDefinition",
+    "isProgramDefinition",
+    "isVerificationDefinition",
+    "shouldGenerateOperationalInstance",
+    "shouldGenerateTaskTemplate",
+    "shouldGenerateVerificationInstance"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildProgramAnswerDocument",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "formatDateKey",
+        "isProgramDefinition",
+        "parseDate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildProgramSectionDocument",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildProgramAnswerDocument",
+        "formatDateKey",
+        "isProgramDefinition",
+        "parseDate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTaskTemplateDocument",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildProgramSectionDocument",
+        "buildVerificationTemplateDocument",
+        "isOperationalDefinition",
+        "isProgramDefinition",
+        "isVerificationDefinition"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildVerificationTemplateDocument",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildProgramAnswerDocument",
+        "buildProgramSectionDocument",
+        "isProgramDefinition",
+        "isVerificationDefinition"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "evaluateRules",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildTaskTemplateDocument",
+        "buildVerificationTemplateDocument",
+        "isOperationalDefinition",
+        "isVerificationDefinition"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDateKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getFrequencyLabel",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildTaskTemplateDocument",
+        "evaluateRules",
+        "isOperationalDefinition"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getNextDueDate",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildTaskTemplateDocument",
+        "evaluateRules",
+        "formatDateKey",
+        "getFrequencyLabel",
+        "isOperationalDefinition",
+        "parseDate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isActiveForDate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "evaluateRules",
+        "formatDateKey",
+        "getFrequencyLabel",
+        "getNextDueDate",
+        "parseDate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isOperationalDefinition",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "isActiveForDate",
+        "isProgramDefinition",
+        "isVerificationDefinition",
+        "parseDate",
+        "shouldGenerateOperationalInstance",
+        "shouldGenerateTaskTemplate",
+        "shouldGenerateVerificationInstance"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isProgramDefinition",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "isActiveForDate",
+        "isOperationalDefinition",
+        "isVerificationDefinition",
+        "parseDate",
+        "shouldGenerateOperationalInstance",
+        "shouldGenerateTaskTemplate",
+        "shouldGenerateVerificationInstance"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isVerificationDefinition",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "isActiveForDate",
+        "isOperationalDefinition",
+        "isProgramDefinition",
+        "parseDate",
+        "shouldGenerateOperationalInstance",
+        "shouldGenerateTaskTemplate",
+        "shouldGenerateVerificationInstance"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "parseDate",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "formatDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldGenerateOperationalInstance",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getNextDueDate",
+        "isActiveForDate",
+        "isOperationalDefinition",
+        "isVerificationDefinition",
+        "parseDate",
+        "shouldGenerateTaskTemplate",
+        "shouldGenerateVerificationInstance"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldGenerateTaskTemplate",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "formatDateKey",
+        "getFrequencyLabel",
+        "getNextDueDate",
+        "isActiveForDate",
+        "isOperationalDefinition",
+        "isVerificationDefinition",
+        "parseDate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldGenerateVerificationInstance",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "formatDateKey",
+        "getFrequencyLabel",
+        "getNextDueDate",
+        "isActiveForDate",
+        "isOperationalDefinition",
+        "isVerificationDefinition",
+        "parseDate",
+        "shouldGenerateTaskTemplate"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

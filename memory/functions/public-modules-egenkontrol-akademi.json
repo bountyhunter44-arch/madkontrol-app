@@ -1,0 +1,33 @@
+{
+  "source_file": "public/modules/egenkontrol/akademi.html",
+  "module": "general",
+  "imports": [
+    "/core/layout.js"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "initPromoRotator",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "render"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "render",
+      "type": "const_function",
+      "approx_occurrences": 2,
+      "calls": [
+        "initPromoRotator"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

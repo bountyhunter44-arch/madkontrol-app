@@ -1,0 +1,6667 @@
+{
+  "generatedAt": "2026-03-29T16:23:02.312Z",
+  "totalCollections": 10,
+  "collections": [
+    {
+      "name": "checkout_sessions",
+      "docCount": 1,
+      "sampledDocs": 1,
+      "fields": [
+        {
+          "name": "provider",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "stripe"
+          ]
+        },
+        {
+          "name": "mode",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "subscription"
+          ]
+        },
+        {
+          "name": "source",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_checkout"
+          ]
+        },
+        {
+          "name": "uid",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "companyId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "locationId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__main"
+          ]
+        },
+        {
+          "name": "addonKeys",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[0 items]"
+          ]
+        },
+        {
+          "name": "onboardingDraftId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "4p5Mfm0nEsCpcnnP8XuX"
+          ]
+        },
+        {
+          "name": "stripeSessionId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "cs_test_a1SiPahjkKLPQCmQa9Kifywgd2erFVGDWJ2hlVr..."
+          ]
+        },
+        {
+          "name": "stripeUrl",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "https://checkout.stripe.com/c/pay/cs_test_a1SiP..."
+          ]
+        },
+        {
+          "name": "createdAt",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:26:17.083Z"
+          ]
+        },
+        {
+          "name": "haccpSnapshotId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "FkUZsIv0rUHrO72b06UO"
+          ]
+        },
+        {
+          "name": "liveProfileId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__onboarding_aroi-d__main__liv..."
+          ]
+        },
+        {
+          "name": "onboardingAnswersId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__onboarding_aroi-d__main__onb..."
+          ]
+        },
+        {
+          "name": "onboardingProvisioned",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "status",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "completed"
+          ]
+        },
+        {
+          "name": "updatedAt",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:28.982Z"
+          ]
+        }
+      ],
+      "status": "few_docs"
+    },
+    {
+      "name": "daily_runs",
+      "docCount": 2,
+      "sampledDocs": 2,
+      "fields": [
+        {
+          "name": "organizationId",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "taskCount",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            18
+          ]
+        },
+        {
+          "name": "createdAt",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:29:12.388Z",
+            "2026-03-29T10:21:44.167Z"
+          ]
+        },
+        {
+          "name": "companyId",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "locationId",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__main"
+          ]
+        },
+        {
+          "name": "dateKey",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "2026-03-28",
+            "2026-03-29"
+          ]
+        },
+        {
+          "name": "updatedAt",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:29:12.388Z",
+            "2026-03-29T10:21:44.167Z"
+          ]
+        }
+      ],
+      "status": "few_docs"
+    },
+    {
+      "name": "haccp_snapshots",
+      "docCount": 1,
+      "sampledDocs": 1,
+      "fields": [
+        {
+          "name": "documentType",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "lovpligtig_risikoanalyse_haccp"
+          ]
+        },
+        {
+          "name": "title",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Lovpligtig Risikoanalyse & HACCP for Aroi-D"
+          ]
+        },
+        {
+          "name": "organizationId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "companyId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "locationId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__main"
+          ]
+        },
+        {
+          "name": "createdBy",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "checkout_guest_4p5Mfm0nEsCpcnnP8XuX"
+          ]
+        },
+        {
+          "name": "companyName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Aroi-D"
+          ]
+        },
+        {
+          "name": "cvr",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "42405000"
+          ]
+        },
+        {
+          "name": "address",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Hovedgaden 49, 6973, Ørnhøj"
+          ]
+        },
+        {
+          "name": "companyType",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Restaurant"
+          ]
+        },
+        {
+          "name": "profile",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{81 keys}"
+          ]
+        },
+        {
+          "name": "profile.companyName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Aroi-D"
+          ]
+        },
+        {
+          "name": "profile.cvr",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "42405000"
+          ]
+        },
+        {
+          "name": "profile.address",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Hovedgaden 49"
+          ]
+        },
+        {
+          "name": "profile.city",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Ørnhøj"
+          ]
+        },
+        {
+          "name": "profile.zip",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "6973"
+          ]
+        },
+        {
+          "name": "profile.companyType",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Restaurant"
+          ]
+        },
+        {
+          "name": "profile.ownerName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.accountEmail",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan@aroid.dk"
+          ]
+        },
+        {
+          "name": "profile.accountPassword",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "RendmigDk1@"
+          ]
+        },
+        {
+          "name": "profile.registrationDate",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.cleaningNotes",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.supplierInput",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.receivesChilledGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.receivesChilledGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.receivesFrozenGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.receivesFrozenGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.receivesFrozenGoodsCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.receivesRoomTempGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.receivesRoomTempGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.storesChilledGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.storesChilledGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.storesChilledGoodsCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.storesFrozenGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.storesFrozenGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.storesFrozenGoodsCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.storesRoomTempGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.storesRoomTempGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.preparesHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.preparesHotFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.preparesHotFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.preparesColdFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.preparesColdFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.preparesColdFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.holdsHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.holdsHotFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.holdsHotFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.coolsHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.coolsHotFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.coolsHotFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.handlesDifferentFoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.handlesDifferentFoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.handlesAllergens",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.handlesAllergensDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "x mel, æg, mælk, sennep, selleri, rejer, tun, s..."
+          ]
+        },
+        {
+          "name": "profile.handlesAllergensCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.sellsPackagedChilled",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.sellsPackagedFrozen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.sellsPackagedRoomTemp",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.sellsUnpackagedChilled",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.sellsUnpackagedRoomTemp",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.sellsFoodWithAllergens",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.sellsFoodWithAllergensDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.packagesOwnFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.packagesOwnFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.transportsChilledGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.transportsFrozenGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.transportsRoomTempGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.transportsHotTakeaway",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.transportsHotTakeawayDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.servesHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.servesColdFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.sellsRawFish",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.makesDesserts",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.packsTakeaway",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasHotHolding",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasDryStorage",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasProductionKitchen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasServingArea",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasToilet",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasDishwashing",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasWarmKitchen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasColdKitchen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasHandwash",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasWashingRoom",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasVegetableRoom",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.hasWalkInFreezer",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.hasWalkInCooler",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.hasSofticeachine",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.hasOvens",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.fridgeCount",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            2
+          ]
+        },
+        {
+          "name": "profile.freezerCount",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            1
+          ]
+        },
+        {
+          "name": "profile.suppliers",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]"
+          ]
+        },
+        {
+          "name": "haccp",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{11 keys}"
+          ]
+        },
+        {
+          "name": "haccp.version",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "3.0_scenario_based"
+          ]
+        },
+        {
+          "name": "haccp.scenarios",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[11 items]"
+          ]
+        },
+        {
+          "name": "haccp.processes",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[20 items]"
+          ]
+        },
+        {
+          "name": "haccp.hazards",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[20 items]"
+          ]
+        },
+        {
+          "name": "haccp.verificationTasks",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[6 items]"
+          ]
+        },
+        {
+          "name": "haccp.documentationRequirements",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[8 items]"
+          ]
+        },
+        {
+          "name": "haccp.taskTemplates",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[24 items]"
+          ]
+        },
+        {
+          "name": "haccp.summary",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{10 keys}"
+          ]
+        },
+        {
+          "name": "haccp.summary.totalScenarios",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            11
+          ]
+        },
+        {
+          "name": "haccp.summary.totalProcesses",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            20
+          ]
+        },
+        {
+          "name": "haccp.summary.totalHazards",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            20
+          ]
+        },
+        {
+          "name": "haccp.summary.totalControlMeasures",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            0
+          ]
+        },
+        {
+          "name": "haccp.summary.totalCCPs",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            8
+          ]
+        },
+        {
+          "name": "haccp.summary.totalCPs",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            12
+          ]
+        },
+        {
+          "name": "haccp.summary.totalVerificationTasks",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            6
+          ]
+        },
+        {
+          "name": "haccp.summary.totalDocumentationRequirements",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            8
+          ]
+        },
+        {
+          "name": "haccp.summary.totalTaskTemplates",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            24
+          ]
+        },
+        {
+          "name": "haccp.summary.totalKcps",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            0
+          ]
+        },
+        {
+          "name": "haccp.kcps",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[7 items]"
+          ]
+        },
+        {
+          "name": "haccp.generatedTasks",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[14 items]"
+          ]
+        },
+        {
+          "name": "haccp.totalKcps",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            7
+          ]
+        },
+        {
+          "name": "generated",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{4 keys}"
+          ]
+        },
+        {
+          "name": "generated.hazards",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[10 items]"
+          ]
+        },
+        {
+          "name": "generated.controls",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[10 items]"
+          ]
+        },
+        {
+          "name": "generated.tasks",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[16 items]"
+          ]
+        },
+        {
+          "name": "generated.suppliers",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]"
+          ]
+        },
+        {
+          "name": "status",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "generated"
+          ]
+        },
+        {
+          "name": "source",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding"
+          ]
+        },
+        {
+          "name": "createdAtIso",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "2026-03-28T00:27:25.802Z"
+          ]
+        },
+        {
+          "name": "createdAtEpochMs",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            1774657645802
+          ]
+        },
+        {
+          "name": "createdAt",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:26.242Z"
+          ]
+        }
+      ],
+      "status": "few_docs"
+    },
+    {
+      "name": "live_user_profiles",
+      "docCount": 1,
+      "sampledDocs": 1,
+      "fields": [
+        {
+          "name": "summary",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{5 keys}"
+          ]
+        },
+        {
+          "name": "summary.criticalPoints",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]"
+          ]
+        },
+        {
+          "name": "summary.city",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Ørnhøj"
+          ]
+        },
+        {
+          "name": "summary.companyType",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Restaurant"
+          ]
+        },
+        {
+          "name": "summary.companyName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Aroi-D"
+          ]
+        },
+        {
+          "name": "summary.customerName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan"
+          ]
+        },
+        {
+          "name": "address",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Hovedgaden 49, 6973, Ørnhøj"
+          ]
+        },
+        {
+          "name": "companyType",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Restaurant"
+          ]
+        },
+        {
+          "name": "checkoutSessionId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "cs_test_a1SiPahjkKLPQCmQa9Kifywgd2erFVGDWJ2hlVr..."
+          ]
+        },
+        {
+          "name": "companyName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Aroi-D"
+          ]
+        },
+        {
+          "name": "profile",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{81 keys}"
+          ]
+        },
+        {
+          "name": "profile.storesFrozenGoodsCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.preparesHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.sellsRawFish",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.suppliers",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]"
+          ]
+        },
+        {
+          "name": "profile.companyName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Aroi-D"
+          ]
+        },
+        {
+          "name": "profile.holdsHotFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.servesColdFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.handlesDifferentFoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.handlesAllergensCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasDryStorage",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasSofticeachine",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.storesFrozenGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.registrationDate",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.sellsFoodWithAllergensDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.preparesColdFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.hasHotHolding",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.servesHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasWalkInFreezer",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.zip",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "6973"
+          ]
+        },
+        {
+          "name": "profile.transportsHotTakeawayDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.hasWashingRoom",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.preparesHotFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.preparesColdFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.storesFrozenGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.packagesOwnFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.handlesAllergensDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "x mel, æg, mælk, sennep, selleri, rejer, tun, s..."
+          ]
+        },
+        {
+          "name": "profile.hasProductionKitchen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.preparesHotFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.hasOvens",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.receivesFrozenGoodsCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.fridgeCount",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            2
+          ]
+        },
+        {
+          "name": "profile.hasHandwash",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasWalkInCooler",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.hasVegetableRoom",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.storesRoomTempGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.hasDishwashing",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.makesDesserts",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.freezerCount",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            1
+          ]
+        },
+        {
+          "name": "profile.transportsChilledGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.hasWarmKitchen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.receivesFrozenGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.city",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Ørnhøj"
+          ]
+        },
+        {
+          "name": "profile.receivesFrozenGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.coolsHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.receivesRoomTempGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.coolsHotFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.coolsHotFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.packagesOwnFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.storesChilledGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.receivesRoomTempGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.supplierInput",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.sellsFoodWithAllergens",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.ownerName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.sellsPackagedRoomTemp",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.cleaningNotes",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.holdsHotFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.preparesColdFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.storesRoomTempGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.storesChilledGoodsCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.cvr",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "42405000"
+          ]
+        },
+        {
+          "name": "profile.hasServingArea",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.address",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Hovedgaden 49"
+          ]
+        },
+        {
+          "name": "profile.hasColdKitchen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.receivesChilledGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.companyType",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Restaurant"
+          ]
+        },
+        {
+          "name": "profile.storesChilledGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.transportsHotTakeaway",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.receivesChilledGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.sellsUnpackagedChilled",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.sellsPackagedChilled",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.handlesDifferentFoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.accountEmail",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan@aroid.dk"
+          ]
+        },
+        {
+          "name": "profile.sellsPackagedFrozen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.holdsHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasToilet",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.packsTakeaway",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.transportsRoomTempGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.sellsUnpackagedRoomTemp",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.accountPassword",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "RendmigDk1@"
+          ]
+        },
+        {
+          "name": "profile.handlesAllergens",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.transportsFrozenGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "activatedAt",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:27.049Z"
+          ]
+        },
+        {
+          "name": "onboardingAnswersId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__onboarding_aroi-d__main__onb..."
+          ]
+        },
+        {
+          "name": "onboardingDraftId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "4p5Mfm0nEsCpcnnP8XuX"
+          ]
+        },
+        {
+          "name": "source",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_checkout"
+          ]
+        },
+        {
+          "name": "userId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "checkout_guest_4p5Mfm0nEsCpcnnP8XuX"
+          ]
+        },
+        {
+          "name": "customerName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan"
+          ]
+        },
+        {
+          "name": "cloudinaryAssets",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[0 items]"
+          ]
+        },
+        {
+          "name": "organizationId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "haccpSnapshotId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "FkUZsIv0rUHrO72b06UO"
+          ]
+        },
+        {
+          "name": "onboardingAnswers",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{7 keys}"
+          ]
+        },
+        {
+          "name": "onboardingAnswers.cloudinaryAssets",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[0 items]"
+          ]
+        },
+        {
+          "name": "onboardingAnswers.processes",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[7 items]"
+          ]
+        },
+        {
+          "name": "onboardingAnswers.specialConditions",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[1 items]"
+          ]
+        },
+        {
+          "name": "onboardingAnswers.equipmentCounts",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{2 keys}"
+          ]
+        },
+        {
+          "name": "onboardingAnswers.equipmentCounts.fridge",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            2
+          ]
+        },
+        {
+          "name": "onboardingAnswers.equipmentCounts.freezer",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            1
+          ]
+        },
+        {
+          "name": "onboardingAnswers.ingredients",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[0 items]"
+          ]
+        },
+        {
+          "name": "onboardingAnswers.serviceTypes",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[2 items]"
+          ]
+        },
+        {
+          "name": "onboardingAnswers.businessTypes",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[1 items]"
+          ]
+        },
+        {
+          "name": "companyId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "riskModel",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{7 keys}"
+          ]
+        },
+        {
+          "name": "riskModel.hazards",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[10 items]"
+          ]
+        },
+        {
+          "name": "riskModel.controls",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[10 items]"
+          ]
+        },
+        {
+          "name": "riskModel.organizationName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Aroi-D"
+          ]
+        },
+        {
+          "name": "riskModel.suppliers",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]"
+          ]
+        },
+        {
+          "name": "riskModel.companyType",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Restaurant"
+          ]
+        },
+        {
+          "name": "riskModel.generatedAt",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "2026-03-28T00:26:14.012Z"
+          ]
+        },
+        {
+          "name": "riskModel.tasks",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[16 items]"
+          ]
+        },
+        {
+          "name": "locationId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__main"
+          ]
+        },
+        {
+          "name": "userEmail",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan@aroid.dk"
+          ]
+        },
+        {
+          "name": "status",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "live"
+          ]
+        },
+        {
+          "name": "updatedAt",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:27.049Z"
+          ]
+        }
+      ],
+      "status": "few_docs"
+    },
+    {
+      "name": "onboarding_answers",
+      "docCount": 1,
+      "sampledDocs": 1,
+      "fields": [
+        {
+          "name": "processes",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[7 items]"
+          ]
+        },
+        {
+          "name": "specialConditions",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[1 items]"
+          ]
+        },
+        {
+          "name": "source",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_checkout"
+          ]
+        },
+        {
+          "name": "businessTypes",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[1 items]"
+          ]
+        },
+        {
+          "name": "cloudinaryAssets",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[0 items]"
+          ]
+        },
+        {
+          "name": "organizationId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "companyId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "createdBy",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "checkout_guest_4p5Mfm0nEsCpcnnP8XuX"
+          ]
+        },
+        {
+          "name": "locationId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__main"
+          ]
+        },
+        {
+          "name": "equipmentCounts",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{2 keys}"
+          ]
+        },
+        {
+          "name": "equipmentCounts.fridge",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            2
+          ]
+        },
+        {
+          "name": "equipmentCounts.freezer",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            1
+          ]
+        },
+        {
+          "name": "ingredients",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[0 items]"
+          ]
+        },
+        {
+          "name": "serviceTypes",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[2 items]"
+          ]
+        },
+        {
+          "name": "updatedAt",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:26.489Z"
+          ]
+        }
+      ],
+      "status": "few_docs"
+    },
+    {
+      "name": "onboarding_checkout_drafts",
+      "docCount": 1,
+      "sampledDocs": 1,
+      "fields": [
+        {
+          "name": "uid",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "userEmail",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan@aroid.dk"
+          ]
+        },
+        {
+          "name": "onboardingEmail",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan@aroid.dk"
+          ]
+        },
+        {
+          "name": "provisioningToken",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "1774657575167_x3yl00jhw4i_onboarding_aroi-d_onb..."
+          ]
+        },
+        {
+          "name": "companyId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "organizationId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "locationId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__main"
+          ]
+        },
+        {
+          "name": "profile",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{81 keys}"
+          ]
+        },
+        {
+          "name": "profile.companyName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Aroi-D"
+          ]
+        },
+        {
+          "name": "profile.cvr",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "42405000"
+          ]
+        },
+        {
+          "name": "profile.address",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Hovedgaden 49"
+          ]
+        },
+        {
+          "name": "profile.city",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Ørnhøj"
+          ]
+        },
+        {
+          "name": "profile.zip",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "6973"
+          ]
+        },
+        {
+          "name": "profile.companyType",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Restaurant"
+          ]
+        },
+        {
+          "name": "profile.ownerName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.accountEmail",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan@aroid.dk"
+          ]
+        },
+        {
+          "name": "profile.accountPassword",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "RendmigDk1@"
+          ]
+        },
+        {
+          "name": "profile.registrationDate",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.cleaningNotes",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.supplierInput",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.receivesChilledGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.receivesChilledGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.receivesFrozenGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.receivesFrozenGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.receivesFrozenGoodsCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.receivesRoomTempGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.receivesRoomTempGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.storesChilledGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.storesChilledGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.storesChilledGoodsCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.storesFrozenGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.storesFrozenGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.storesFrozenGoodsCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.storesRoomTempGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.storesRoomTempGoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.preparesHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.preparesHotFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.preparesHotFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.preparesColdFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.preparesColdFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.preparesColdFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.holdsHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.holdsHotFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.holdsHotFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.coolsHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.coolsHotFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.coolsHotFoodCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.handlesDifferentFoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.handlesDifferentFoodsDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.handlesAllergens",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.handlesAllergensDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "x mel, æg, mælk, sennep, selleri, rejer, tun, s..."
+          ]
+        },
+        {
+          "name": "profile.handlesAllergensCritical",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.sellsPackagedChilled",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.sellsPackagedFrozen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.sellsPackagedRoomTemp",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.sellsUnpackagedChilled",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.sellsUnpackagedRoomTemp",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.sellsFoodWithAllergens",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.sellsFoodWithAllergensDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.packagesOwnFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.packagesOwnFoodDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.transportsChilledGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.transportsFrozenGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.transportsRoomTempGoods",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.transportsHotTakeaway",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.transportsHotTakeawayDetails",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "profile.servesHotFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.servesColdFood",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.sellsRawFish",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.makesDesserts",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.packsTakeaway",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasHotHolding",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasDryStorage",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasProductionKitchen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasServingArea",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasToilet",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasDishwashing",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasWarmKitchen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasColdKitchen",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasHandwash",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasWashingRoom",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "profile.hasVegetableRoom",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.hasWalkInFreezer",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.hasWalkInCooler",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.hasSofticeachine",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.hasOvens",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "profile.fridgeCount",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            2
+          ]
+        },
+        {
+          "name": "profile.freezerCount",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            1
+          ]
+        },
+        {
+          "name": "profile.suppliers",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]"
+          ]
+        },
+        {
+          "name": "riskModel",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{7 keys}"
+          ]
+        },
+        {
+          "name": "riskModel.hazards",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[10 items]"
+          ]
+        },
+        {
+          "name": "riskModel.controls",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[10 items]"
+          ]
+        },
+        {
+          "name": "riskModel.tasks",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[16 items]"
+          ]
+        },
+        {
+          "name": "riskModel.suppliers",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]"
+          ]
+        },
+        {
+          "name": "riskModel.companyType",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Restaurant"
+          ]
+        },
+        {
+          "name": "riskModel.organizationName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Aroi-D"
+          ]
+        },
+        {
+          "name": "riskModel.generatedAt",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "2026-03-28T00:26:14.012Z"
+          ]
+        },
+        {
+          "name": "summary",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{5 keys}"
+          ]
+        },
+        {
+          "name": "summary.customerName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan"
+          ]
+        },
+        {
+          "name": "summary.companyName",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Aroi-D"
+          ]
+        },
+        {
+          "name": "summary.companyType",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Restaurant"
+          ]
+        },
+        {
+          "name": "summary.city",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Ørnhøj"
+          ]
+        },
+        {
+          "name": "summary.criticalPoints",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]"
+          ]
+        },
+        {
+          "name": "cloudinaryAssets",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[0 items]"
+          ]
+        },
+        {
+          "name": "source",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_checkout"
+          ]
+        },
+        {
+          "name": "createdAt",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:26:15.873Z"
+          ]
+        },
+        {
+          "name": "stripeUrl",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "https://checkout.stripe.com/c/pay/cs_test_a1SiP..."
+          ]
+        },
+        {
+          "name": "stripeSessionId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "cs_test_a1SiPahjkKLPQCmQa9Kifywgd2erFVGDWJ2hlVr..."
+          ]
+        },
+        {
+          "name": "completedAt",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:28.295Z"
+          ]
+        },
+        {
+          "name": "snapshotId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "FkUZsIv0rUHrO72b06UO"
+          ]
+        },
+        {
+          "name": "liveProfileId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__onboarding_aroi-d__main__liv..."
+          ]
+        },
+        {
+          "name": "onboardingAnswersId",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__onboarding_aroi-d__main__onb..."
+          ]
+        },
+        {
+          "name": "status",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "completed"
+          ]
+        },
+        {
+          "name": "updatedAt",
+          "count": 1,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:28.295Z"
+          ]
+        }
+      ],
+      "status": "few_docs"
+    },
+    {
+      "name": "task_entries",
+      "docCount": 18,
+      "sampledDocs": 18,
+      "fields": [
+        {
+          "name": "taskInstanceId",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "EPLS3zCBJCOlIPdFjKbk",
+            "3lVE06CgHkuIQvbtYrPJ",
+            "T5ruVuScYoxRrGLJWJKa"
+          ]
+        },
+        {
+          "name": "taskId",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "template_hazard_hot_holding",
+            "template_agg_allergen",
+            "template_agg_receiving"
+          ]
+        },
+        {
+          "name": "companyId",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "organizationId",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "unitId",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "locationId",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__main"
+          ]
+        },
+        {
+          "name": "taskTitle",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Temperaturkontrol ved varmholdelse",
+            "Kontrol af allergenhåndtering",
+            "Modtagekontrol af varer"
+          ]
+        },
+        {
+          "name": "taskType",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "varmholdelse",
+            "allergener",
+            "modtagelse"
+          ]
+        },
+        {
+          "name": "equipmentId",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "equipmentName",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "equipmentType",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "entryType",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "measurement",
+            "check",
+            "confirmation"
+          ]
+        },
+        {
+          "name": "measurementValue",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "number",
+            "null"
+          ],
+          "examples": [
+            72,
+            80,
+            5
+          ]
+        },
+        {
+          "name": "measurementUnit",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "valueLabel",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "",
+            "Fuldført"
+          ]
+        },
+        {
+          "name": "status",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "completed"
+          ]
+        },
+        {
+          "name": "note",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Temperaturkontrol ved varmholdelse kontrolleret...",
+            "Kontrol af allergenhåndtering udført kl. 03.03....",
+            "Modtagekontrol af varer kontrolleret kl. 03.02...."
+          ]
+        },
+        {
+          "name": "beskrivelse",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Temperaturkontrol ved varmholdelse kontrolleret...",
+            "Kontrol af allergenhåndtering udført kl. 03.03....",
+            "Modtagekontrol af varer kontrolleret kl. 03.02...."
+          ]
+        },
+        {
+          "name": "handling_udfort",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "deadlineAt",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "completedLate",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "overdueLogged",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "dateKey",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "2026-03-29"
+          ]
+        },
+        {
+          "name": "completedBy",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Mmma7iwd5PPWRNkC2MUBUlK9WQt1"
+          ]
+        },
+        {
+          "name": "completedByName",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Aroi-D"
+          ]
+        },
+        {
+          "name": "actionType",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "save"
+          ]
+        },
+        {
+          "name": "specificLabel",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Temperaturkontrol ved varmholdelse",
+            "Kontrol af allergenhåndtering",
+            "Modtagekontrol af varer"
+          ]
+        },
+        {
+          "name": "riskId",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Bakterievækst ved lav varmholdelsestemperatur",
+            "Kontrol af allergenhåndtering",
+            "Modtagekontrol af varer"
+          ]
+        },
+        {
+          "name": "sourceHazard",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Bakterievækst ved lav varmholdelsestemperatur",
+            "Kontrol af allergenhåndtering",
+            "Modtagekontrol af varer"
+          ]
+        },
+        {
+          "name": "createdAt",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-29T01:03:06.683Z",
+            "2026-03-29T01:03:41.780Z",
+            "2026-03-29T01:02:13.034Z"
+          ]
+        },
+        {
+          "name": "completedAt",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-29T01:03:06.683Z",
+            "2026-03-29T01:03:41.780Z",
+            "2026-03-29T01:02:13.034Z"
+          ]
+        },
+        {
+          "name": "updatedAt",
+          "count": 18,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-29T01:03:06.683Z",
+            "2026-03-29T01:03:41.780Z",
+            "2026-03-29T01:02:13.034Z"
+          ]
+        },
+        {
+          "name": "aiSource",
+          "count": 17,
+          "coverage": "94.4%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "manual"
+          ]
+        },
+        {
+          "name": "aiCategory",
+          "count": 17,
+          "coverage": "94.4%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "egenkontrol"
+          ]
+        },
+        {
+          "name": "areaName",
+          "count": 1,
+          "coverage": "5.6%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Opvaskrum"
+          ]
+        }
+      ],
+      "status": "active"
+    },
+    {
+      "name": "task_instances",
+      "docCount": 33,
+      "sampledDocs": 33,
+      "fields": [
+        {
+          "name": "frequency",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "daily",
+            "weekly",
+            "every_2_hours"
+          ]
+        },
+        {
+          "name": "createdAt",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:29:12.388Z",
+            "2026-03-28T23:30:07.051Z",
+            "2026-03-28T23:30:07.214Z"
+          ]
+        },
+        {
+          "name": "equipmentName",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "completedByName",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string",
+            "null"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "requiresMeasurement",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true,
+            false
+          ]
+        },
+        {
+          "name": "updatedAt",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:29:12.388Z",
+            "2026-03-28T23:30:07.051Z",
+            "2026-03-28T23:30:07.214Z"
+          ]
+        },
+        {
+          "name": "completedAt",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "null"
+          ],
+          "examples": []
+        },
+        {
+          "name": "companyId",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "status",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "pending"
+          ]
+        },
+        {
+          "name": "riskLevel",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "high",
+            "critical",
+            "low"
+          ]
+        },
+        {
+          "name": "description",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Samlet kontrol for: Bakterievækst ved for høj f...",
+            "Bacillus cereus og Clostridium perfringens voks...",
+            "Tørvarer kan blive forurenet ved ukorrekt opbev..."
+          ]
+        },
+        {
+          "name": "title",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Temperaturkontrol af frost",
+            "Kontrol af nedkøling",
+            "Forurening fra ukorrekt opbevaring"
+          ]
+        },
+        {
+          "name": "equipmentType",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "locationId",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__main"
+          ]
+        },
+        {
+          "name": "dateKey",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "2026-03-28"
+          ]
+        },
+        {
+          "name": "generatedAt",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string",
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:27.164Z",
+            "2026-03-28T23:30:07.051Z",
+            "2026-03-28T23:30:07.214Z"
+          ]
+        },
+        {
+          "name": "isCCP",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false,
+            true
+          ]
+        },
+        {
+          "name": "category",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "opbevaring",
+            "nedkoeling",
+            "transport"
+          ]
+        },
+        {
+          "name": "completedBy",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string",
+            "null"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "taskId",
+          "count": 33,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "template_agg_storage_frozen",
+            "template_hazard_cooling",
+            "template_hazard_storage_dry"
+          ]
+        },
+        {
+          "name": "haccpVersion",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "3.0_scenario_based"
+          ]
+        },
+        {
+          "name": "templateType",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "operational"
+          ]
+        },
+        {
+          "name": "createdByName",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan@aroid.dk"
+          ]
+        },
+        {
+          "name": "requiresRegistration",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "isActive",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "templateId",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "template_agg_storage_frozen",
+            "template_hazard_cooling",
+            "template_hazard_storage_dry"
+          ]
+        },
+        {
+          "name": "equipmentId",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "organizationId",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "registrationFrequency",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "daily",
+            "weekly",
+            "every_2_hours"
+          ]
+        },
+        {
+          "name": "id",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "template_agg_storage_frozen",
+            "template_hazard_cooling",
+            "template_hazard_storage_dry"
+          ]
+        },
+        {
+          "name": "deadlineAt",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "overduePolicy",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "formType",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "temperature",
+            "checklist",
+            "receiving"
+          ]
+        },
+        {
+          "name": "sourceProcessKey",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "storage_frozen",
+            "cooling",
+            "storage_dry"
+          ]
+        },
+        {
+          "name": "updatedBy",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "checkout_guest_4p5Mfm0nEsCpcnnP8XuX"
+          ]
+        },
+        {
+          "name": "sourceHazardId",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "hazard_storage_frozen",
+            "hazard_cooling",
+            "hazard_storage_dry"
+          ]
+        },
+        {
+          "name": "controlPointType",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "CP",
+            "CCP"
+          ]
+        },
+        {
+          "name": "active",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "templateSource",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "scenario_based_haccp"
+          ]
+        },
+        {
+          "name": "registrationFrequencyDays",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            1,
+            7
+          ]
+        },
+        {
+          "name": "registrationDeferred",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "relatedHazardIds",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[1 items]",
+            "[0 items]",
+            "[3 items]"
+          ]
+        },
+        {
+          "name": "sourceType",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "hazard"
+          ]
+        },
+        {
+          "name": "fields",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]",
+            "[4 items]"
+          ]
+        },
+        {
+          "name": "registrationFrequencyType",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "daily",
+            "weekly",
+            "interval_hours"
+          ]
+        },
+        {
+          "name": "deviationActions",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]",
+            "[2 items]",
+            "[4 items]"
+          ]
+        },
+        {
+          "name": "alertRules",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[1 items]",
+            "[2 items]"
+          ]
+        },
+        {
+          "name": "criticalLimits",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{3 keys}",
+            "{1 keys}",
+            "{4 keys}"
+          ]
+        },
+        {
+          "name": "criticalLimits.rule",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Fryser skal holde -18°C eller koldere",
+            "Fra 65°C til 10°C inden 3 timer",
+            "Følg god hygiejnepraksis"
+          ]
+        },
+        {
+          "name": "areaType",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "sourceHazard",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Temperaturkontrol af frost",
+            "Bakterievækst ved langsom nedkøling",
+            "Forurening fra ukorrekt opbevaring"
+          ]
+        },
+        {
+          "name": "controlPoint",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Daglig temperaturkontrol",
+            "Nedkølingstidskontrol",
+            "Visuel kontrol af opbevaring"
+          ]
+        },
+        {
+          "name": "frequencyDays",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            1,
+            7
+          ]
+        },
+        {
+          "name": "procedure",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]",
+            "[4 items]"
+          ]
+        },
+        {
+          "name": "relatedProcessKeys",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[0 items]"
+          ]
+        },
+        {
+          "name": "areaId",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "createdBy",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "checkout_guest_4p5Mfm0nEsCpcnnP8XuX"
+          ]
+        },
+        {
+          "name": "frequencyType",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "daily",
+            "weekly",
+            "interval_hours"
+          ]
+        },
+        {
+          "name": "overdueExplanationRequired",
+          "count": 18,
+          "coverage": "54.5%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            false
+          ]
+        },
+        {
+          "name": "taskTemplateId",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "template_agg_allergen",
+            "template_agg_receiving",
+            "template_agg_storage_chilled"
+          ]
+        },
+        {
+          "name": "sourceTemplateId",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "template_agg_allergen",
+            "template_agg_receiving",
+            "template_agg_storage_chilled"
+          ]
+        },
+        {
+          "name": "unitId",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "taskTitle",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Kontrol af allergenhåndtering",
+            "Modtagekontrol af varer",
+            "Temperaturkontrol af køl"
+          ]
+        },
+        {
+          "name": "aggregatedCategory",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "taskType",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "guideKey",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "guideVersion",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "1.0"
+          ]
+        },
+        {
+          "name": "controlType",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "type",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "entryType",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "check"
+          ]
+        },
+        {
+          "name": "processKey",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "measurementUnit",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "limitMin",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "null"
+          ],
+          "examples": []
+        },
+        {
+          "name": "limitMax",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "null"
+          ],
+          "examples": []
+        },
+        {
+          "name": "limitUnit",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "severity",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "sourceRiskAnalysisIds",
+          "count": 15,
+          "coverage": "45.5%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            ""
+          ]
+        },
+        {
+          "name": "criticalLimits.unit",
+          "count": 7,
+          "coverage": "21.2%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "C"
+          ]
+        },
+        {
+          "name": "criticalLimits.max",
+          "count": 4,
+          "coverage": "12.1%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            -18,
+            5
+          ]
+        },
+        {
+          "name": "criticalLimits.min",
+          "count": 4,
+          "coverage": "12.1%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            65,
+            0,
+            75
+          ]
+        }
+      ],
+      "status": "possible_test_data"
+    },
+    {
+      "name": "task_templates",
+      "docCount": 24,
+      "sampledDocs": 24,
+      "fields": [
+        {
+          "name": "haccpVersion",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "3.0_scenario_based"
+          ]
+        },
+        {
+          "name": "templateType",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "operational",
+            "verification"
+          ]
+        },
+        {
+          "name": "createdByName",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan@aroid.dk"
+          ]
+        },
+        {
+          "name": "registrationFrequencyType",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "daily",
+            "weekly",
+            "interval_hours"
+          ]
+        },
+        {
+          "name": "riskLevel",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "critical",
+            "high",
+            "medium"
+          ]
+        },
+        {
+          "name": "deviationActions",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[4 items]",
+            "[3 items]",
+            "[2 items]"
+          ]
+        },
+        {
+          "name": "alertRules",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[1 items]",
+            "[2 items]"
+          ]
+        },
+        {
+          "name": "criticalLimits",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "object"
+          ],
+          "examples": [
+            "{1 keys}",
+            "{3 keys}",
+            "{4 keys}"
+          ]
+        },
+        {
+          "name": "description",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Samlet kontrol for: Allergisk reaktion fra ukor...",
+            "Samlet kontrol for: Bakterievækst fra forkert m...",
+            "Samlet kontrol for: Bakterievækst ved forkert k..."
+          ]
+        },
+        {
+          "name": "isActive",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "title",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Kontrol af allergenhåndtering",
+            "Modtagekontrol af varer",
+            "Temperaturkontrol af køl"
+          ]
+        },
+        {
+          "name": "frequency",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "daily",
+            "weekly",
+            "every_2_hours"
+          ]
+        },
+        {
+          "name": "organizationId",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "createdAt",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:27.813Z",
+            "2026-03-28T00:27:27.312Z",
+            "2026-03-28T00:27:27.815Z"
+          ]
+        },
+        {
+          "name": "locationId",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__main"
+          ]
+        },
+        {
+          "name": "registrationFrequency",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "daily",
+            "weekly",
+            "every_2_hours"
+          ]
+        },
+        {
+          "name": "sourceHazard",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string",
+            "null"
+          ],
+          "examples": [
+            "Kontrol af allergenhåndtering",
+            "Modtagekontrol af varer",
+            "Temperaturkontrol af køl"
+          ]
+        },
+        {
+          "name": "id",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "template_agg_allergen",
+            "template_agg_receiving",
+            "template_agg_storage_chilled"
+          ]
+        },
+        {
+          "name": "controlPoint",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Allergenkontrol og mærkning",
+            "Temperaturkontrol ved modtagelse",
+            "Daglig temperaturkontrol"
+          ]
+        },
+        {
+          "name": "updatedAt",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:27.813Z",
+            "2026-03-28T00:27:27.312Z",
+            "2026-03-28T00:27:27.815Z"
+          ]
+        },
+        {
+          "name": "formType",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "checklist",
+            "receiving",
+            "temperature"
+          ]
+        },
+        {
+          "name": "sourceProcessKey",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string",
+            "null"
+          ],
+          "examples": [
+            "allergen_information",
+            "receiving_chilled_goods,receiving_frozen_goods,...",
+            "storage_chilled"
+          ]
+        },
+        {
+          "name": "updatedBy",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "checkout_guest_4p5Mfm0nEsCpcnnP8XuX"
+          ]
+        },
+        {
+          "name": "sourceHazardId",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string",
+            "null"
+          ],
+          "examples": [
+            "hazard_allergen_information",
+            "hazard_receiving_chilled_goods,hazard_receiving...",
+            "hazard_storage_chilled"
+          ]
+        },
+        {
+          "name": "controlPointType",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "CCP",
+            "CP",
+            "verification"
+          ]
+        },
+        {
+          "name": "active",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true
+          ]
+        },
+        {
+          "name": "frequencyDays",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            1,
+            7,
+            30
+          ]
+        },
+        {
+          "name": "templateSource",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "scenario_based_haccp"
+          ]
+        },
+        {
+          "name": "procedure",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[4 items]",
+            "[3 items]",
+            "[5 items]"
+          ]
+        },
+        {
+          "name": "relatedProcessKeys",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[0 items]",
+            "[1 items]",
+            "[5 items]"
+          ]
+        },
+        {
+          "name": "registrationFrequencyDays",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            1,
+            7,
+            30
+          ]
+        },
+        {
+          "name": "relatedHazardIds",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[1 items]",
+            "[3 items]",
+            "[0 items]"
+          ]
+        },
+        {
+          "name": "companyId",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "createdBy",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "checkout_guest_4p5Mfm0nEsCpcnnP8XuX"
+          ]
+        },
+        {
+          "name": "sourceType",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "hazard",
+            "verification"
+          ]
+        },
+        {
+          "name": "frequencyType",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "daily",
+            "weekly",
+            "interval_hours"
+          ]
+        },
+        {
+          "name": "generatedAt",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "2026-03-28T00:27:27.164Z"
+          ]
+        },
+        {
+          "name": "isCCP",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "boolean"
+          ],
+          "examples": [
+            true,
+            false
+          ]
+        },
+        {
+          "name": "category",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "allergener",
+            "modtagelse",
+            "opbevaring"
+          ]
+        },
+        {
+          "name": "fields",
+          "count": 24,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[3 items]",
+            "[4 items]"
+          ]
+        },
+        {
+          "name": "criticalLimits.rule",
+          "count": 18,
+          "coverage": "75.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Alle 14 allergener skal være korrekt deklareret...",
+            "Kølevarer modtages ved max +5°C",
+            "Køleskab skal holde 0-5°C"
+          ]
+        },
+        {
+          "name": "criticalLimits.unit",
+          "count": 7,
+          "coverage": "29.2%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "C"
+          ]
+        },
+        {
+          "name": "criticalLimits.max",
+          "count": 4,
+          "coverage": "16.7%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            5,
+            -18
+          ]
+        },
+        {
+          "name": "criticalLimits.min",
+          "count": 4,
+          "coverage": "16.7%",
+          "types": [
+            "number"
+          ],
+          "examples": [
+            0,
+            65,
+            75
+          ]
+        }
+      ],
+      "status": "active"
+    },
+    {
+      "name": "users",
+      "docCount": 2,
+      "sampledDocs": 2,
+      "fields": [
+        {
+          "name": "displayName",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Aroi-D",
+            "Michael Nielsen"
+          ]
+        },
+        {
+          "name": "email",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "supawan@aroid.dk",
+            "michael@madkontrol.dk"
+          ]
+        },
+        {
+          "name": "role",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "owner",
+            "admin"
+          ]
+        },
+        {
+          "name": "locationIds",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[1 items]"
+          ]
+        },
+        {
+          "name": "createdAt",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:28.132Z",
+            "2026-03-28T00:20:42.014Z"
+          ]
+        },
+        {
+          "name": "companyId",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d",
+            "company_1"
+          ]
+        },
+        {
+          "name": "locationId",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__main",
+            "location_1"
+          ]
+        },
+        {
+          "name": "primaryLocationId",
+          "count": 2,
+          "coverage": "100.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__main",
+            "location_1"
+          ]
+        },
+        {
+          "name": "onboardingCompletedAt",
+          "count": 1,
+          "coverage": "50.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:28.132Z"
+          ]
+        },
+        {
+          "name": "latestCloudinaryAssets",
+          "count": 1,
+          "coverage": "50.0%",
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[0 items]"
+          ]
+        },
+        {
+          "name": "userId",
+          "count": 1,
+          "coverage": "50.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Mmma7iwd5PPWRNkC2MUBUlK9WQt1"
+          ]
+        },
+        {
+          "name": "organizationId",
+          "count": 1,
+          "coverage": "50.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d"
+          ]
+        },
+        {
+          "name": "onboardingStatus",
+          "count": 1,
+          "coverage": "50.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "completed"
+          ]
+        },
+        {
+          "name": "latestHaccpSnapshotId",
+          "count": 1,
+          "coverage": "50.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "FkUZsIv0rUHrO72b06UO"
+          ]
+        },
+        {
+          "name": "latestLiveProfileId",
+          "count": 1,
+          "coverage": "50.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "onboarding_aroi-d__onboarding_aroi-d__main__liv..."
+          ]
+        },
+        {
+          "name": "status",
+          "count": 1,
+          "coverage": "50.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "active"
+          ]
+        },
+        {
+          "name": "updatedAt",
+          "count": 1,
+          "coverage": "50.0%",
+          "types": [
+            "timestamp"
+          ],
+          "examples": [
+            "2026-03-28T00:27:28.132Z"
+          ]
+        },
+        {
+          "name": "uid",
+          "count": 1,
+          "coverage": "50.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "user_michael"
+          ]
+        },
+        {
+          "name": "seedSource",
+          "count": 1,
+          "coverage": "50.0%",
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "seed-firestore-from-scratch"
+          ]
+        }
+      ],
+      "status": "few_docs"
+    }
+  ],
+  "summary": {
+    "empty": [],
+    "fewDocs": [
+      {
+        "name": "checkout_sessions",
+        "count": 1
+      },
+      {
+        "name": "daily_runs",
+        "count": 2
+      },
+      {
+        "name": "haccp_snapshots",
+        "count": 1
+      },
+      {
+        "name": "live_user_profiles",
+        "count": 1
+      },
+      {
+        "name": "onboarding_answers",
+        "count": 1
+      },
+      {
+        "name": "onboarding_checkout_drafts",
+        "count": 1
+      },
+      {
+        "name": "users",
+        "count": 2
+      }
+    ],
+    "active": [
+      {
+        "name": "task_entries",
+        "count": 18
+      },
+      {
+        "name": "task_templates",
+        "count": 24
+      }
+    ],
+    "possibleTestData": [
+      {
+        "name": "task_instances",
+        "count": 33,
+        "fieldCount": 80
+      }
+    ],
+    "errors": []
+  }
+}

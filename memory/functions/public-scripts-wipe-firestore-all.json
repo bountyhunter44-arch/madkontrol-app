@@ -1,0 +1,34 @@
+{
+  "source_file": "public/scripts/wipe-firestore-all.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "deleteDocsInCollection",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "run"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteDocsInCollection"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

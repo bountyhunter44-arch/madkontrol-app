@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>Vandsystem Dashboard | Madkontrollen Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <style>
+        .wd-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;}
+        .wd-hdr h1{font-size:22px;font-weight:800;color:#182118;margin:0;}
+        .wd-actions{display:flex;gap:8px;flex-wrap:wrap;}
+        .wd-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid transparent;text-decoration:none;transition:opacity .15s;}
+        .wd-btn:hover{opacity:.84;}
+        .wd-btn-primary{background:#2e7d32;color:#fff;}
+        .wd-btn-secondary{background:#fff;border-color:#d9e4d9;color:#2e7d32;}
+        .wd-alert{background:#fce4ec;border:1px solid #f48fb1;border-radius:14px;padding:13px 18px;margin-bottom:18px;color:#880e4f;font-weight:700;font-size:14px;}
+        .wd-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:13px;margin-bottom:20px;}
+        .wd-kpi{background:#fff;border:1px solid #d9e4d9;border-radius:16px;padding:18px 15px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+        .wd-kpi.warn{border-color:#ffb74d;background:#fffbf0;}
+        .wd-kpi.good{border-color:#a5d6a7;}
+        .wd-kpi-lbl{font-size:11px;font-weight:700;color:#667267;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+        .wd-kpi-val{font-size:26px;font-weight:800;color:#182118;line-height:1.1;}
+        .wd-kpi-sub{font-size:12px;color:#667267;margin-top:3px;}
+        .wd-card{background:#fff;border:1px solid #d9e4d9;border-radius:18px;padding:21px;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:18px;}
+        .wd-card h3{font-size:14px;font-weight:800;color:#182118;margin:0 0 14px;}
+        .wd-qbar{display:flex;flex-wrap:wrap;gap:10px;}
+        .wd-qpill{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;font-size:13px;font-weight:700;}
+        .wd-qpill.ok{background:#e8f5e9;color:#1b5e20;}
+        .wd-qpill.warn{background:#fff8e1;color:#795548;}
+        .wd-qpill.crit{background:#fce4ec;color:#b71c1c;}
+        .wd-month-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+        .wd-month-box{flex:1;min-width:110px;background:#f8faf8;border:1px solid #e9f0e9;border-radius:14px;padding:13px 15px;}
+        .wd-month-box-lbl{font-size:11px;color:#667267;font-weight:700;text-transform:uppercase;}
+        .wd-month-box-val{font-size:20px;font-weight:800;color:#182118;margin-top:4px;}
+        .wd-charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+        .wd-chart-full{grid-column:1/-1;}
+        .wd-tbl{width:100%;border-collapse:collapse;font-size:13px;}
+        .wd-tbl th{text-align:left;color:#667267;font-weight:700;font-size:11px;text-transform:uppercase;padding:0 0 8px;border-bottom:1px solid #e9f0e9;}
+        .wd-tbl td{padding:9px 0;border-bottom:1px solid #f0f5f0;color:#182118;vertical-align:middle;}
+        .wd-tbl tr:last-child td{border-bottom:none;}
+        .wd-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;}
+        .wd-badge.active{background:#e8f5e9;color:#1b5e20;}
+        .wd-badge.service{background:#fff8e1;color:#795548;}
+        .wd-badge.offline{background:#f3e5f5;color:#4a148c;}
+        .wd-badge.completed{background:#e8f5e9;color:#1b5e20;}
+        .wd-badge.failed{background:#fce4ec;color:#b71c1c;}
+        .wd-badge.scheduled{background:#e3f2fd;color:#0d47a1;}
+        .wd-badge.in_progress{background:#fff8e1;color:#e65100;}
+        .wd-bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+        .wd-loading{display:flex;align-items:center;justify-content:center;padding:60px;color:#667267;font-size:14px;}
+        @media(max-width:900px){.wd-charts-grid,.wd-bottom{grid-template-columns:1fr;}.wd-chart-full{grid-column:1;}}
+        @media(max-width:600px){.wd-kpi-grid{grid-template-columns:repeat(2,1fr);}}
+    </style>
+</head>
+<body data-page="water-dashboard">
+<div id="headerMount"></div>
+<main class="page-shell">
+    <div class="container app-layout">
+        <div id="sidebarMount"></div>
+        <section class="page-content">
+            <div id="wdRoot"><div class="wd-loading">Henter vanddata…</div></div>
+        </section>
+    </div>
+</main>
+
+<script type="module">
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged }     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc }       from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFunctions, httpsCallable }     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+import { loadLayout }                       from "/core/layout.js";
+
+const cfg = await (await fetch("/firebase-config.json")).json();
+const app = getApps().length ? getApp() : initializeApp(cfg);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const fns  = getFunctions(app);
+
+loadLayout();
+
+const fnSummary   = httpsCallable(fns, "getWaterDashboardSummary");
+const fnChartData = httpsCallable(fns, "getWaterChartData");
+
+const SVC_LABELS = { installation:"Installation", cleaning:"Rengøring", filter_change:"Filterskift", repair:"Reparation", inspection:"Inspektion", calibration:"Kalibrering" };
+let charts = {};
+let currentCtx = null;
+
+async function getUserCtx(user) {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists()) return null;
+    const d = snap.data();
+    return { companyId: d.companyId || d.organizationId || "", locationId: d.primaryLocationId || (d.locationIds && d.locationIds[0]) || d.locationId || "" };
+}
+
+function destroyChart(k) { if (charts[k]) { charts[k].destroy(); delete charts[k]; } }
+
+function buildQualityChart(labels, q) {
+    destroyChart("quality");
+    const ctx = document.getElementById("cQuality")?.getContext("2d");
+    if (!ctx) return;
+    charts.quality = new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets: [
+            { label:"pH", data:q.ph, borderColor:"#43a047", backgroundColor:"rgba(67,160,71,.1)", tension:.3, spanGaps:true, yAxisID:"yPh" },
+            { label:"TDS (ppm)", data:q.tds, borderColor:"#1976d2", backgroundColor:"rgba(25,118,210,.08)", tension:.3, spanGaps:true, yAxisID:"yTds" }
+        ]},
+        options: { responsive:true, interaction:{mode:"index"}, plugins:{legend:{position:"top"}},
+            scales: { yPh:{type:"linear",position:"left",title:{display:true,text:"pH"},min:5,max:10,grid:{drawOnChartArea:false}}, yTds:{type:"linear",position:"right",title:{display:true,text:"TDS ppm"},min:0,grid:{color:"rgba(0,0,0,.04)"}} } }
+    });
+}
+
+function buildTempChart(labels, q) {
+    destroyChart("temp");
+    const ctx = document.getElementById("cTemp")?.getContext("2d");
+    if (!ctx) return;
+    charts.temp = new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets: [{ label:"Temperatur (°C)", data:q.temperature, borderColor:"#e65100", backgroundColor:"rgba(230,81,0,.08)", fill:true, tension:.3, spanGaps:true }] },
+        options: { responsive:true, plugins:{legend:{position:"top"}}, scales:{y:{beginAtZero:false, grid:{color:"rgba(0,0,0,.04)"}}} }
+    });
+}
+
+function buildVolumeChart(labels, v) {
+    destroyChart("volume");
+    const ctx = document.getElementById("cVolume")?.getContext("2d");
+    if (!ctx) return;
+    const L = labels.slice(-14), P = v.produced.slice(-14), S = v.sold.slice(-14);
+    charts.volume = new Chart(ctx, {
+        type: "bar",
+        data: { labels:L, datasets: [
+            { label:"Produceret", data:P, backgroundColor:"rgba(67,160,71,.75)", borderRadius:5 },
+            { label:"Solgt",      data:S, backgroundColor:"rgba(25,118,210,.75)", borderRadius:5 }
+        ]},
+        options: { responsive:true, plugins:{legend:{position:"top"}}, scales:{y:{beginAtZero:true, grid:{color:"rgba(0,0,0,.04)"}}} }
+    });
+}
+
+function buildRevenueChart(labels, revenue) {
+    destroyChart("revenue");
+    const ctx = document.getElementById("cRevenue")?.getContext("2d");
+    if (!ctx) return;
+    charts.revenue = new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets: [{ label:"Omsætning (THB)", data:revenue, borderColor:"#e65100", backgroundColor:"rgba(230,81,0,.08)", fill:true, tension:.3 }] },
+        options: { responsive:true, plugins:{legend:{position:"top"}}, scales:{y:{beginAtZero:true, grid:{color:"rgba(0,0,0,.04)"}}} }
+    });
+}
+
+function qualityClass(lm) {
+    if (!lm) return "warn";
+    if (lm.hasDeviation || lm.bacteriaStatus !== "ok") return "crit";
+    if (lm.ph !== null && (lm.ph < 7.0 || lm.ph > 8.0)) return "warn";
+    return "ok";
+}
+
+function render(s, cd) {
+    const lm = s.latestMeasurement;
+    const qClass = qualityClass(lm);
+    const monthConv = s.month.produced > 0 ? Math.round(s.month.sold / s.month.produced * 100) : 0;
+
+    document.getElementById("wdRoot").innerHTML = `
+    <div class="wd-hdr">
+        <h1>💧 Vandsystem Dashboard</h1>
+        <div class="wd-actions">
+            <a class="wd-btn wd-btn-secondary" href="/modules/water/technician.html">🔧 Tekniker</a>
+            <a class="wd-btn wd-btn-secondary" href="/modules/water/production.html">🍶 Produktion</a>
+            <a class="wd-btn wd-btn-secondary" href="/modules/water/systems.html">⚙️ Systemer</a>
+            <button class="wd-btn wd-btn-primary" id="wdRefresh">↻ Opdater</button>
+        </div>
+    </div>
+
+    ${s.openAlerts > 0 ? `<div class="wd-alert">⚠️ ${s.openAlerts} åben${s.openAlerts>1?"e":""} vandkvalitetsalarm${s.openAlerts>1?"er":""}. Kontrollér system straks.</div>` : ""}
+
+    <div class="wd-kpi-grid">
+        <div class="wd-kpi ${s.systems.active > 0 ? "good" : "warn"}">
+            <div class="wd-kpi-lbl">Aktive systemer</div>
+            <div class="wd-kpi-val">${s.systems.active}</div>
+            <div class="wd-kpi-sub">${s.systems.inService} service · ${s.systems.offline} offline</div>
+        </div>
+        <div class="wd-kpi">
+            <div class="wd-kpi-lbl">Produceret i dag</div>
+            <div class="wd-kpi-val">${s.today.produced}</div>
+            <div class="wd-kpi-sub">Flasker · ${s.today.discarded} spild</div>
+        </div>
+        <div class="wd-kpi">
+            <div class="wd-kpi-lbl">Solgt i dag</div>
+            <div class="wd-kpi-val">${s.today.sold}</div>
+            <div class="wd-kpi-sub">Flasker</div>
+        </div>
+        <div class="wd-kpi">
+            <div class="wd-kpi-lbl">Omsætning i dag</div>
+            <div class="wd-kpi-val">${s.today.revenue.toFixed(0)}</div>
+            <div class="wd-kpi-sub">THB</div>
+        </div>
+        <div class="wd-kpi ${s.openAlerts > 0 ? "warn" : "good"}">
+            <div class="wd-kpi-lbl">Vandkvalitet</div>
+            <div class="wd-kpi-val">${s.openAlerts > 0 ? "⚠️" : "✅"}</div>
+            <div class="wd-kpi-sub">${s.openAlerts > 0 ? s.openAlerts + " afvigelse(r)" : "Ingen alarmer"}</div>
+        </div>
+    </div>
+
+    <div class="wd-card">
+        <h3>Seneste vandmåling${lm ? " — " + (lm.dateKey || "") : ""}</h3>
+        <div class="wd-qbar">
+            ${lm ? `
+            <div class="wd-qpill ${(lm.ph >= 6.5 && lm.ph <= 8.5) ? "ok" : "crit"}">pH ${lm.ph ?? "–"}</div>
+            <div class="wd-qpill ${(lm.tds <= 500) ? "ok" : "crit"}">TDS ${lm.tds ?? "–"} ppm</div>
+            ${lm.temperature !== null && lm.temperature !== undefined ? `<div class="wd-qpill ok">🌡 ${lm.temperature}°C</div>` : ""}
+            <div class="wd-qpill ${lm.bacteriaStatus === "ok" ? "ok" : "crit"}">Bakterier: ${lm.bacteriaStatus}</div>
+            <div class="wd-qpill ${lm.clarityStatus === "clear" ? "ok" : "warn"}">Klarhed: ${lm.clarityStatus}</div>
+            ` : `<div class="wd-qpill warn">⚠️ Ingen målinger registreret endnu</div>`}
+        </div>
+    </div>
+
+    <div class="wd-month-row">
+        <div class="wd-month-box"><div class="wd-month-box-lbl">Produceret (mnd.)</div><div class="wd-month-box-val">${s.month.produced}</div></div>
+        <div class="wd-month-box"><div class="wd-month-box-lbl">Solgt (mnd.)</div><div class="wd-month-box-val">${s.month.sold}</div></div>
+        <div class="wd-month-box"><div class="wd-month-box-lbl">Omsætning (mnd.)</div><div class="wd-month-box-val">${s.month.revenue.toFixed(0)} THB</div></div>
+        <div class="wd-month-box"><div class="wd-month-box-lbl">Konversion</div><div class="wd-month-box-val">${monthConv}%</div></div>
+    </div>
+
+    <div class="wd-charts-grid">
+        <div class="wd-card" style="margin-bottom:0;"><h3>pH & TDS — 30 dage</h3><canvas id="cQuality" height="200"></canvas></div>
+        <div class="wd-card" style="margin-bottom:0;"><h3>Temperatur — 30 dage</h3><canvas id="cTemp" height="200"></canvas></div>
+        <div class="wd-card wd-chart-full" style="margin-bottom:0;"><h3>Produceret vs. Solgt — seneste 14 dage</h3><canvas id="cVolume" height="130"></canvas></div>
+        <div class="wd-card wd-chart-full" style="margin-bottom:0;"><h3>Omsætning THB — 30 dage</h3><canvas id="cRevenue" height="120"></canvas></div>
+    </div>
+    <div style="height:18px;"></div>
+
+    <div class="wd-bottom">
+        <div class="wd-card" style="margin-bottom:0;">
+            <h3>Systemer (${s.systems.total})</h3>
+            ${s.systems.list.length ? `<table class="wd-tbl">
+                <thead><tr><th>Navn</th><th>Type</th><th>Rum</th><th>Status</th></tr></thead>
+                <tbody>${s.systems.list.map(sys => `<tr>
+                    <td><strong>${sys.name || sys.id}</strong>${sys.location ? `<br><small style="color:#667267">${sys.location}</small>` : ""}</td>
+                    <td style="color:#667267;">${sys.systemType || "–"}</td>
+                    <td style="color:#667267;">${sys.roomCoverage || "–"}</td>
+                    <td><span class="wd-badge ${sys.status}">${{active:"Aktiv",service:"Service",offline:"Offline",decommissioned:"Nedlagt"}[sys.status]||sys.status}</span></td>
+                </tr>`).join("")}</tbody>
+            </table>` : `<div style="color:#667267;font-size:13px;padding:8px 0;">Ingen systemer endnu — <a href="/modules/water/systems.html">opret system</a></div>`}
+        </div>
+        <div class="wd-card" style="margin-bottom:0;">
+            <h3>Seneste servicebesøg</h3>
+            ${s.recentServices.length ? `<table class="wd-tbl">
+                <thead><tr><th>Type</th><th>Tekniker</th><th>Dato</th><th>Status</th></tr></thead>
+                <tbody>${s.recentServices.map(sv => `<tr>
+                    <td>${SVC_LABELS[sv.serviceType]||sv.serviceType}</td>
+                    <td style="color:#667267;">${sv.technicianName||"–"}</td>
+                    <td style="color:#667267;">${sv.dateKey||"–"}</td>
+                    <td><span class="wd-badge ${sv.status}">${sv.status}</span></td>
+                </tr>`).join("")}</tbody>
+            </table>` : `<div style="color:#667267;font-size:13px;padding:8px 0;">Ingen servicebesøg endnu</div>`}
+        </div>
+    </div>`;
+
+    buildQualityChart(cd.labels, cd.quality);
+    buildTempChart(cd.labels, cd.quality);
+    buildVolumeChart(cd.labels, cd.volume);
+    buildRevenueChart(cd.labels, cd.revenue);
+
+    document.getElementById("wdRefresh")?.addEventListener("click", () => load(currentCtx));
+}
+
+async function load(ctx) {
+    currentCtx = ctx;
+    try {
+        const [sR, cR] = await Promise.all([
+            fnSummary({ companyId: ctx.companyId, locationId: ctx.locationId }),
+            fnChartData({ companyId: ctx.companyId, locationId: ctx.locationId })
+        ]);
+        render(sR.data, cR.data);
+    } catch (err) {
+        document.getElementById("wdRoot").innerHTML = `<div style="padding:32px;color:#d32f2f;font-weight:700;">Fejl: ${err.message}</div>`;
+    }
+}
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "/"; return; }
+    const ctx = await getUserCtx(user);
+    if (!ctx?.companyId) { window.location.href = "/"; return; }
+    load(ctx);
+});
+</script>
+</body>
+</html>

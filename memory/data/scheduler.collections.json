@@ -1,0 +1,33 @@
+{
+  "module": "scheduler",
+  "files": [
+    {
+      "source_file": "functions/scripts/testScheduleConsistency.cjs",
+      "collections": [
+        "equipment",
+        "locations",
+        "task_entries",
+        "task_templates"
+      ]
+    },
+    {
+      "source_file": "functions/startDayForLocation.js",
+      "collections": [
+        "areas",
+        "daily_runs",
+        "equipment",
+        "task_instances"
+      ]
+    },
+    {
+      "source_file": "scripts/inspectStartDay.cjs",
+      "collections": [
+        "daily_runs",
+        "equipment",
+        "onboarding_answers",
+        "task_instances",
+        "task_templates"
+      ]
+    }
+  ]
+}

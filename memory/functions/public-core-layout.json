@@ -1,0 +1,371 @@
+{
+  "source_file": "public/core/layout.js",
+  "module": "general",
+  "imports": [
+    "/core/firebase-config.js",
+    "/core/i18n.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [
+    "loadLayout"
+  ],
+  "collections": [
+    "live_user_profiles",
+    "organizations",
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildDefaultEntitlements",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getCompanyInfo",
+        "getCurrentPath",
+        "getCurrentUserProfile",
+        "getModuleEntitlements",
+        "getNavItems",
+        "getOrganizationIdFromProfile",
+        "isPathMatch",
+        "normalizeModuleList",
+        "waitForAuthUser"
+      ],
+      "selectors": [],
+      "collections": [
+        "organizations",
+        "users"
+      ]
+    },
+    {
+      "name": "createHeaderMarkup",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getCompanyInfo",
+        "populateTopbarFromProfile",
+        "set",
+        "waitForAuthUser"
+      ],
+      "selectors": [],
+      "collections": [
+        "live_user_profiles",
+        "users"
+      ]
+    },
+    {
+      "name": "createSidebarMarkup",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureLayoutStyles",
+        "getNavItems",
+        "isNavItemEnabled",
+        "isPathMatch"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "ensureLayoutStyles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "createHeaderMarkup",
+        "getCompanyInfo",
+        "populateTopbarFromProfile",
+        "set",
+        "waitForAuthUser"
+      ],
+      "selectors": [],
+      "collections": [
+        "live_user_profiles",
+        "users"
+      ]
+    },
+    {
+      "name": "getCompanyInfo",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createHeaderMarkup",
+        "escapeHtml",
+        "getNavItems",
+        "isNavItemEnabled"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCurrentPath",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createHeaderMarkup",
+        "escapeHtml",
+        "getCompanyInfo",
+        "getNavItems",
+        "isNavItemEnabled",
+        "isPathMatch"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCurrentUserProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDefaultEntitlements",
+        "getCompanyInfo",
+        "getCurrentPath",
+        "getModuleEntitlements",
+        "getNavItems",
+        "getOrganizationIdFromProfile",
+        "isPathMatch",
+        "normalizeModuleList",
+        "waitForAuthUser"
+      ],
+      "selectors": [],
+      "collections": [
+        "organizations",
+        "users"
+      ]
+    },
+    {
+      "name": "getModuleEntitlements",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDefaultEntitlements",
+        "getCompanyInfo",
+        "getCurrentPath",
+        "getCurrentUserProfile",
+        "getNavItems",
+        "getOrganizationIdFromProfile",
+        "isPathMatch",
+        "normalizeModuleList"
+      ],
+      "selectors": [],
+      "collections": [
+        "organizations"
+      ]
+    },
+    {
+      "name": "getNavItems",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createHeaderMarkup",
+        "escapeHtml",
+        "getCompanyInfo",
+        "isNavItemEnabled"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getOrganizationIdFromProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildDefaultEntitlements",
+        "getCompanyInfo",
+        "getCurrentPath",
+        "getCurrentUserProfile",
+        "getModuleEntitlements",
+        "getNavItems",
+        "isPathMatch",
+        "normalizeModuleList",
+        "waitForAuthUser"
+      ],
+      "selectors": [],
+      "collections": [
+        "organizations",
+        "users"
+      ]
+    },
+    {
+      "name": "isNavItemEnabled",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createHeaderMarkup",
+        "escapeHtml",
+        "getCompanyInfo",
+        "populateTopbarFromProfile",
+        "waitForAuthUser"
+      ],
+      "selectors": [],
+      "collections": [
+        "live_user_profiles",
+        "users"
+      ]
+    },
+    {
+      "name": "isPathMatch",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createHeaderMarkup",
+        "escapeHtml",
+        "getCompanyInfo",
+        "getNavItems",
+        "isNavItemEnabled"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "label",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "ensureLayoutStyles"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadLayout",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "createHeaderMarkup",
+        "createSidebarMarkup",
+        "ensureLayoutStyles",
+        "getCurrentPath",
+        "getModuleEntitlements",
+        "mountMarkup",
+        "populateTopbarFromProfile",
+        "removeLegacyMobileNav"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "mountMarkup",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "createHeaderMarkup",
+        "createSidebarMarkup",
+        "ensureLayoutStyles",
+        "getCurrentPath",
+        "getModuleEntitlements",
+        "loadLayout",
+        "populateTopbarFromProfile",
+        "removeLegacyMobileNav"
+      ],
+      "selectors": [
+        ".mobile-app-nav"
+      ],
+      "collections": []
+    },
+    {
+      "name": "normalizeModuleList",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildDefaultEntitlements",
+        "getCompanyInfo",
+        "getCurrentPath",
+        "getCurrentUserProfile",
+        "getModuleEntitlements",
+        "getNavItems",
+        "getOrganizationIdFromProfile",
+        "isPathMatch",
+        "waitForAuthUser"
+      ],
+      "selectors": [],
+      "collections": [
+        "organizations",
+        "users"
+      ]
+    },
+    {
+      "name": "populateTopbarFromProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createSidebarMarkup",
+        "ensureLayoutStyles",
+        "getNavItems",
+        "isNavItemEnabled",
+        "isPathMatch",
+        "set",
+        "waitForAuthUser"
+      ],
+      "selectors": [],
+      "collections": [
+        "live_user_profiles",
+        "users"
+      ]
+    },
+    {
+      "name": "removeLegacyMobileNav",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createHeaderMarkup",
+        "createSidebarMarkup",
+        "ensureLayoutStyles",
+        "getCurrentPath",
+        "getModuleEntitlements",
+        "loadLayout",
+        "mountMarkup",
+        "populateTopbarFromProfile"
+      ],
+      "selectors": [
+        ".mobile-app-nav"
+      ],
+      "collections": []
+    },
+    {
+      "name": "set",
+      "type": "const_function",
+      "approx_occurrences": 4,
+      "calls": [
+        "createSidebarMarkup",
+        "ensureLayoutStyles",
+        "getNavItems",
+        "isNavItemEnabled",
+        "isPathMatch"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "waitForAuthUser",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildDefaultEntitlements",
+        "getCompanyInfo",
+        "getCurrentPath",
+        "getCurrentUserProfile",
+        "getModuleEntitlements",
+        "getNavItems",
+        "getOrganizationIdFromProfile",
+        "isPathMatch",
+        "normalizeModuleList"
+      ],
+      "selectors": [],
+      "collections": [
+        "organizations",
+        "users"
+      ]
+    }
+  ]
+}

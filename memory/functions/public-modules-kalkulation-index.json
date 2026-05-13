@@ -1,0 +1,286 @@
+{
+  "source_file": "public/modules/kalkulation/index.html",
+  "module": "general",
+  "imports": [
+    "/core/layout.js"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "formatCurrency",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "formatNumber",
+        "getAverageLineCost",
+        "getCategoryName",
+        "getIngredientLineCost",
+        "getIngredientMeta",
+        "getRecipeById",
+        "getRecipeIngredientCount",
+        "getRecipeTotalCost",
+        "renderRecipeDetails",
+        "renderRecipeList",
+        "updateKpis"
+      ],
+      "selectors": [
+        "[data-recipe-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "formatNumber",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatCurrency",
+        "getAverageLineCost",
+        "getCategoryName",
+        "getIngredientLineCost",
+        "getIngredientMeta",
+        "getRecipeById",
+        "getRecipeIngredientCount",
+        "getRecipeTotalCost",
+        "renderRecipeDetails",
+        "renderRecipeList",
+        "updateKpis"
+      ],
+      "selectors": [
+        "[data-recipe-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getAverageLineCost",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatCurrency",
+        "formatNumber",
+        "getCategoryName",
+        "getIngredientLineCost",
+        "getIngredientMeta",
+        "getRecipeById",
+        "getRecipeIngredientCount",
+        "getRecipeTotalCost",
+        "renderRecipeDetails",
+        "renderRecipeList",
+        "updateKpis"
+      ],
+      "selectors": [
+        "[data-recipe-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getCategoryName",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "formatCurrency",
+        "formatNumber",
+        "getAverageLineCost",
+        "getIngredientLineCost",
+        "getIngredientMeta",
+        "getRecipeById",
+        "getRecipeIngredientCount",
+        "getRecipeTotalCost",
+        "renderRecipeDetails",
+        "renderRecipeList",
+        "updateKpis"
+      ],
+      "selectors": [
+        "[data-recipe-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getIngredientLineCost",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatCurrency",
+        "formatNumber",
+        "getAverageLineCost",
+        "getCategoryName",
+        "getIngredientMeta",
+        "getRecipeById",
+        "getRecipeIngredientCount",
+        "getRecipeTotalCost",
+        "renderRecipeDetails",
+        "renderRecipeList",
+        "updateKpis"
+      ],
+      "selectors": [
+        "[data-recipe-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getIngredientMeta",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatCurrency",
+        "formatNumber",
+        "getAverageLineCost",
+        "getCategoryName",
+        "getIngredientLineCost",
+        "getRecipeById",
+        "getRecipeIngredientCount",
+        "getRecipeTotalCost",
+        "renderRecipeDetails",
+        "renderRecipeList",
+        "updateKpis"
+      ],
+      "selectors": [
+        "[data-recipe-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getRecipeById",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatCurrency",
+        "formatNumber",
+        "getAverageLineCost",
+        "getCategoryName",
+        "getIngredientLineCost",
+        "getIngredientMeta",
+        "getRecipeIngredientCount",
+        "getRecipeTotalCost",
+        "renderRecipeDetails",
+        "renderRecipeList",
+        "updateKpis"
+      ],
+      "selectors": [
+        "[data-recipe-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getRecipeIngredientCount",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatCurrency",
+        "formatNumber",
+        "getAverageLineCost",
+        "getCategoryName",
+        "getIngredientLineCost",
+        "getIngredientMeta",
+        "getRecipeById",
+        "getRecipeTotalCost",
+        "renderRecipeDetails",
+        "renderRecipeList",
+        "updateKpis"
+      ],
+      "selectors": [
+        "[data-recipe-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getRecipeTotalCost",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "formatCurrency",
+        "formatNumber",
+        "getAverageLineCost",
+        "getCategoryName",
+        "getIngredientLineCost",
+        "getIngredientMeta",
+        "getRecipeById",
+        "getRecipeIngredientCount",
+        "renderRecipeDetails",
+        "renderRecipeList",
+        "updateKpis"
+      ],
+      "selectors": [
+        "[data-recipe-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "handleSearch",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getCategoryName",
+        "renderRecipeDetails",
+        "renderRecipeList",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderRecipeDetails",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "formatCurrency",
+        "formatNumber",
+        "getAverageLineCost",
+        "getCategoryName",
+        "getIngredientLineCost",
+        "getIngredientMeta",
+        "getRecipeById",
+        "getRecipeIngredientCount",
+        "getRecipeTotalCost"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderRecipeList",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "formatCurrency",
+        "formatNumber",
+        "getAverageLineCost",
+        "getCategoryName",
+        "getIngredientLineCost",
+        "getIngredientMeta",
+        "getRecipeById",
+        "getRecipeIngredientCount",
+        "getRecipeTotalCost",
+        "renderRecipeDetails",
+        "updateKpis"
+      ],
+      "selectors": [
+        "[data-recipe-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "updateKpis",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "formatCurrency",
+        "formatNumber",
+        "getAverageLineCost",
+        "getCategoryName",
+        "getIngredientLineCost",
+        "getIngredientMeta",
+        "getRecipeById",
+        "getRecipeIngredientCount",
+        "getRecipeTotalCost",
+        "renderRecipeDetails",
+        "renderRecipeList"
+      ],
+      "selectors": [
+        "[data-recipe-id]"
+      ],
+      "collections": []
+    }
+  ]
+}

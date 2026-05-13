@@ -1,0 +1,62 @@
+{
+  "source_file": "functions/egenkontrol/builders/templateBuilder.js",
+  "module": "general",
+  "imports": [
+    "../libraries/controlLibrary",
+    "../registries/activityTypes",
+    "../registries/areaTypes",
+    "../registries/businessTypes",
+    "../registries/equipmentTypes",
+    "../utils/registryHelpers"
+  ],
+  "exports": [
+    "buildEffectiveProfile",
+    "buildTemplatesFromProfile"
+  ],
+  "collections": [
+    "equipment"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildEffectiveProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildTemplateId",
+        "buildTemplatesFromProfile"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "buildTemplateId",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildEffectiveProfile",
+        "buildTemplatesFromProfile"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "buildTemplatesFromProfile",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildEffectiveProfile",
+        "buildTemplateId"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    }
+  ]
+}

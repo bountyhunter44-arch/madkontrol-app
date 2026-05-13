@@ -1,0 +1,98 @@
+{
+  "source_file": "scripts/audit-firestore-usage.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "fs",
+    "path"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "analyzeCollection",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "auditFirestore",
+        "extractFieldPaths",
+        "generateSummary"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "auditFirestore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "analyzeCollection",
+        "generateSummary",
+        "printSummary"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "extractFieldPaths",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "analyzeCollection",
+        "auditFirestore",
+        "getSafeExample",
+        "getValueType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateSummary",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "auditFirestore",
+        "printSummary"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSafeExample",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "analyzeCollection",
+        "extractFieldPaths",
+        "getValueType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getValueType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "analyzeCollection",
+        "extractFieldPaths",
+        "getSafeExample"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "printSummary",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "auditFirestore",
+        "generateSummary"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

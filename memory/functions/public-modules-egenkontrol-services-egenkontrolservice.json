@@ -1,0 +1,57 @@
+{
+  "source_file": "public/modules/egenkontrol/services/egenkontrolService.js",
+  "module": "general",
+  "imports": [
+    "../generators/buildEgenkontrolProgram.js"
+  ],
+  "exports": [
+    "generateAndSaveEgenkontrolProgram",
+    "getEgenkontrolProgram",
+    "regenerateEgenkontrolProgram"
+  ],
+  "collections": [
+    "egenkontrol_programs",
+    "haccp_snapshots"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "generateAndSaveEgenkontrolProgram",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getEgenkontrolProgram",
+        "regenerateEgenkontrolProgram"
+      ],
+      "selectors": [],
+      "collections": [
+        "egenkontrol_programs",
+        "haccp_snapshots"
+      ]
+    },
+    {
+      "name": "getEgenkontrolProgram",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "generateAndSaveEgenkontrolProgram",
+        "regenerateEgenkontrolProgram"
+      ],
+      "selectors": [],
+      "collections": [
+        "egenkontrol_programs"
+      ]
+    },
+    {
+      "name": "regenerateEgenkontrolProgram",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "generateAndSaveEgenkontrolProgram"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

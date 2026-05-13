@@ -1,0 +1,32 @@
+{
+  "source_file": "public/modules/egenkontrol/generators/buildProcedurer.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "buildProcedurer",
+    "getEnabledProcedurer"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildProcedurer",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getEnabledProcedurer"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEnabledProcedurer",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "source_file": "public/modules/egenkontrol/egenkontrolGenerator.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "generateEgenkontrolProgram"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "generateAktiviteter",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateSkema1",
+        "generateSkema2"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateEgenkontrolProgram",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "generateAktiviteter",
+        "generateProcedurer",
+        "generateSkema1",
+        "generateSkema2",
+        "generateSkema3",
+        "generateSkema4",
+        "generateSkema5",
+        "generateSkema6",
+        "generateSkema7"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateProcedurer",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateSkema1",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateSkema2",
+        "generateSkema3",
+        "generateSkema4",
+        "generateSkema5"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateSkema2",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateSkema3",
+        "generateSkema4",
+        "generateSkema5"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateSkema3",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateSkema4",
+        "generateSkema5"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateSkema4",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateSkema5",
+        "generateSkema6",
+        "generateSkema7"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateSkema5",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateSkema6",
+        "generateSkema7"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateSkema6",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateProcedurer",
+        "generateSkema7"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateSkema7",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateProcedurer"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

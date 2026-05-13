@@ -1,0 +1,45 @@
+{
+  "module": "onboarding",
+  "files": [
+    {
+      "source_file": "public/modules/egenkontrol/onboarding.html",
+      "selectors": [
+        "[data-answer-section]",
+        "[data-approve-check]",
+        "[data-approve-section]",
+        "[data-check-comment]",
+        "[data-check-section]",
+        "[data-choice-section]",
+        "[data-default-section]",
+        "[data-equip-qty]",
+        "[data-equip-toggle]",
+        "[data-production]",
+        "[data-save-check]",
+        "[data-save-section]",
+        "[data-step-index]",
+        "[data-upload-check]",
+        "[data-upload-section]"
+      ]
+    },
+    {
+      "source_file": "public/onboarding.html",
+      "selectors": [
+        "[data-answer-section]",
+        "[data-approve-check]",
+        "[data-approve-section]",
+        "[data-check-comment]",
+        "[data-check-section]",
+        "[data-choice-section]",
+        "[data-default-section]",
+        "[data-equip-qty]",
+        "[data-equip-toggle]",
+        "[data-production]",
+        "[data-save-check]",
+        "[data-save-section]",
+        "[data-step-index]",
+        "[data-upload-check]",
+        "[data-upload-section]"
+      ]
+    }
+  ]
+}

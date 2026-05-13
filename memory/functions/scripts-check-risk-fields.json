@@ -1,0 +1,28 @@
+{
+  "source_file": "scripts/check-risk-fields.cjs",
+  "module": "general",
+  "imports": [
+    "../node_modules/firebase-admin",
+    "../serviceAccountKey.json"
+  ],
+  "exports": [],
+  "collections": [
+    "risk_analyses",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "risk_analyses",
+        "task_templates"
+      ]
+    }
+  ]
+}

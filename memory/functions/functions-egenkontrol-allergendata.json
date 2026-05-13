@@ -1,0 +1,35 @@
+{
+  "source_file": "functions/egenkontrol/allergenData.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "ALLERGEN_HAANDTERING_TEKST",
+    "ALLERGEN_OPLYSNINGSPLIGT",
+    "BRANCH_ALLERGENIC_PRODUCTS",
+    "OFFICIELLE_ALLERGENER",
+    "getAllergenicProductsForBranch"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getAllergenicProductsForBranch",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "normalizeCompanyType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeCompanyType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

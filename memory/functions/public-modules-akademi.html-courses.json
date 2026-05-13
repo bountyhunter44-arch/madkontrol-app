@@ -1,0 +1,63 @@
+{
+  "source_file": "public/modules/akademi.html/courses.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "applyFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadSharedPartials",
+        "normalize",
+        "setupCourseFilters"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadSharedPartials",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyFilters",
+        "normalize",
+        "setupCourseFilters"
+      ],
+      "selectors": [
+        ".course-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "normalize",
+      "type": "function",
+      "approx_occurrences": 11,
+      "calls": [
+        "applyFilters",
+        "loadSharedPartials",
+        "setupCourseFilters"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setupCourseFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyFilters",
+        "loadSharedPartials",
+        "normalize"
+      ],
+      "selectors": [
+        ".course-card"
+      ],
+      "collections": []
+    }
+  ]
+}

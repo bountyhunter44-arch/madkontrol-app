@@ -1,0 +1,2997 @@
+{
+  "source_file": "public/modules/egenkontrol/rutiner.html",
+  "module": "rutiner",
+  "imports": [
+    "/core/auth.js",
+    "/core/cooling-overlay.js",
+    "/core/firebase-config.js",
+    "/core/impersonation.js",
+    "/core/layout.js",
+    "/modules/egenkontrol/runEgenkontrolForToday.js",
+    "/modules/i18n/index.js",
+    "/modules/i18n/language-switcher.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "companies",
+    "daily_runs",
+    "deviations",
+    "locations",
+    "media_assets",
+    "operating_overrides",
+    "task_entries",
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [
+    "cooling_add_run",
+    "cooling_run_finish",
+    "cooling_runs_list_selector",
+    "ok_sitti",
+    "saveRoutineTask",
+    "startDayForLocation"
+  ],
+  "risks": [
+    "conditional_ui_placeholder_may_hide_real_controls",
+    "silent_return_if_cooling_container_missing"
+  ],
+  "functions": [
+    {
+      "name": "alertAlreadyExists",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getEquipmentName",
+        "getTodayKey",
+        "maybeCreateAlert",
+        "overdueEntryExists"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_entries"
+      ]
+    },
+    {
+      "name": "appendCoolingRunCard",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "applyOperatingStateToUi",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "bindAnswerTextFields",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "appendCoolingRunCard"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "bindCoolingNoActivityToggles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindCoolingRunButtons",
+        "getTodayKey"
+      ],
+      "selectors": [
+        ".cooling-run-card",
+        ".cooling-run-start-btn",
+        ".routine-form-grid",
+        "[data-field]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "bindCoolingRunButtons",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getTodayKey",
+        "renderCoolingForecast"
+      ],
+      "selectors": [
+        ".cooling-run-card",
+        ".cooling-run-finish-btn",
+        ".cooling-run-start-btn",
+        ".run-status"
+      ],
+      "collections": []
+    },
+    {
+      "name": "bindFilterControls",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindRegenerateButton",
+        "debugLog",
+        "renderTasks",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "bindOperatingButtons",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindFilterControls",
+        "bindRegenerateButton",
+        "renderTasks",
+        "setOperatingMode",
+        "setReferenceDateFromPrompt",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "bindOverviewNavigation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDefaultMeasurement",
+        "getTaskPlaceholder",
+        "getTaskType",
+        "getUnit",
+        "handleNavigation"
+      ],
+      "selectors": [
+        ".nav-link-card[data-nav-action]"
+      ],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "bindRegenerateButton",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "checkDailyRunStatus",
+        "debugLog",
+        "getTodayKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "bindRtoFreqSelects",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildRtoCard",
+        "escapeHtml",
+        "getRtoGroupKey",
+        "renderRtoGrid"
+      ],
+      "selectors": [
+        ".rto-freq-save",
+        ".rto-freq-select",
+        ".rto-saved-badge"
+      ],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "blocked",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "debugLog",
+        "getCleaningTasks",
+        "getHandledCount",
+        "getRiskLinkedTasks",
+        "getTaskEffectiveFrequency",
+        "getTaskStatus",
+        "getVisibleTasks",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildAutoDocumentationNote",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getCurrentTimeLabel",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildCoolingRoutineCompletionEntry",
+      "type": "const_function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getInputValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildEntryData",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getInputValue",
+        "getTaskContextDetails",
+        "getTaskType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildRtoCard",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "loadReadableLocationName",
+        "loadRtoTemplates",
+        "setLocationLabel",
+        "stopRutinerLoaderProgress",
+        "updateRutinerLoaderProgress"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "calculateCoolingForecast",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureCoolingForecastTicker",
+        "formatForecastTemperature",
+        "formatRemainingMinutes",
+        "getCoolingForecastStatus",
+        "renderCoolingForecast"
+      ],
+      "selectors": [
+        ".cooling-forecast"
+      ],
+      "collections": []
+    },
+    {
+      "name": "category",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "debugLog",
+        "getHandledCount",
+        "getRiskLinkedTasks",
+        "getTaskEffectiveFrequency",
+        "getTaskStatus",
+        "getVisibleTasks",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "checkDailyRunStatus",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "debugLog",
+        "ensureTodayTasksExist",
+        "getTodayKey",
+        "loadActiveTaskTemplateCount",
+        "loadAlerts",
+        "loadOperatingState",
+        "loadPageData",
+        "loadTasks",
+        "renderTasks",
+        "showRutinerLoader",
+        "updateKpis",
+        "updateRutinerLoaderProgress"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs"
+      ]
+    },
+    {
+      "name": "clearActiveAction",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "appendCoolingRunCard",
+        "confirmTaskAction",
+        "getInputValue",
+        "handleTaskAction",
+        "redirectToFollowUp",
+        "removeTaskCard",
+        "saveTask",
+        "setCardLoading",
+        "updateKpis",
+        "userIsResponsible"
+      ],
+      "selectors": [
+        "button[data-action]",
+        "button[data-open-camera][data-instance-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "confirmTaskAction",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "evaluateTaskResult",
+        "getActionConfirmConfig",
+        "getTaskContextDetails",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "controlType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "debugLog",
+        "getHandledCount",
+        "getRiskLinkedTasks",
+        "getTaskEffectiveFrequency",
+        "getTaskStatus",
+        "getVisibleTasks",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "coolingResult",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "isCoolingTask"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "correctiveAction",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "correctiveText",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createInstanceIdFromTemplate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "debugLog",
+        "getTaskEffectiveFrequency",
+        "getVisibleTasks",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "debugLog",
+      "type": "function",
+      "approx_occurrences": 18,
+      "calls": [],
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "dishName",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "endTemp",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "isCoolingTask"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "endTime",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "isCoolingTask"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "ensureCoolingForecastTicker",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "confirmTaskAction",
+        "escapeHtml",
+        "getActionConfirmConfig",
+        "getVisibleTitle",
+        "renderAiPreviewCard",
+        "renderCoolingForecast"
+      ],
+      "selectors": [
+        ".cooling-run-card[data-started-at]",
+        ".task-ai-preview",
+        "button[data-ai-approve]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "ensureTodayTasksExist",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "debugLog",
+        "getTodayKey",
+        "isOpenTask",
+        "isVisibleDailyRoutineTask",
+        "loadActiveTaskTemplateCount",
+        "loadTasks",
+        "normalizeDateKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "eq",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "bindRtoFreqSelects",
+        "loadRtoTemplates",
+        "renderRtoGrid"
+      ],
+      "selectors": [
+        ".rto-freq-save",
+        ".rto-freq-select",
+        ".rto-saved-badge"
+      ],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "escapeAttribute",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "escapeHtml",
+        "getDateKey",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "loadPageData",
+        "normalizeDateKey",
+        "normalizeLocationIds",
+        "pushValue",
+        "setReferenceDateFromPrompt",
+        "setStoredLocationId",
+        "slugify",
+        "toLegacyId",
+        "updateTodayLabel",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 161,
+      "calls": [
+        "escapeAttribute",
+        "getDateKey",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "normalizeDateKey",
+        "normalizeLocationIds",
+        "pushValue",
+        "setReferenceDateFromPrompt",
+        "setStoredLocationId",
+        "slugify",
+        "toLegacyId",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "evaluateTaskResult",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getTaskContextDetails"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "expiryOk",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "filterStatus",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "getVisibleTitle",
+        "requiresTemperatureField"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "followUpNote",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "clearActiveAction",
+        "getInputValue",
+        "optimizeImageForUpload",
+        "redirectToFollowUp",
+        "setCardLoading"
+      ],
+      "selectors": [
+        "button[data-open-camera][data-instance-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "foodType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDateLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatDateTimeDa",
+        "getDanishDateFormatter",
+        "getDateKey",
+        "getDateKeyFormatter",
+        "getDisplayedDate",
+        "getProfile",
+        "getRtoGroupKey",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskTemplates",
+        "getTodayKey",
+        "parseDateValue",
+        "safeJsonParse",
+        "updateTodayLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDateTimeDa",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatDateLabel",
+        "getDateKey",
+        "getDateKeyFormatter",
+        "getDisplayedDate",
+        "getProfile",
+        "getRtoGroupKey",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskTemplates",
+        "getTodayKey",
+        "parseDateValue",
+        "safeJsonParse",
+        "updateTodayLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDeadlineLabel",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getFrequencyConfig",
+        "getFrequencyLabel",
+        "getTaskEffectiveFrequency",
+        "normalizeFrequencyValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatForecastTemperature",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateCoolingForecast",
+        "formatRemainingMinutes",
+        "getCoolingForecastStatus",
+        "renderCoolingForecast"
+      ],
+      "selectors": [
+        ".cooling-forecast"
+      ],
+      "collections": []
+    },
+    {
+      "name": "formatRemainingMinutes",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateCoolingForecast",
+        "getCoolingForecastStatus",
+        "renderCoolingForecast"
+      ],
+      "selectors": [
+        ".cooling-forecast"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getActionConfirmConfig",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "confirmTaskAction",
+        "evaluateTaskResult",
+        "getTaskContextDetails",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAnswerGroupOptions",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getRoutineAnswerConfig",
+        "renderRoutineAnswerGroups"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCleaningTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getHandledCount",
+        "getOpenTasks",
+        "getRiskLinkedTasks",
+        "isCompletedTask",
+        "updateKpis",
+        "updateRiskCompliancePanel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getClosingRank",
+      "type": "const_function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getTodayKey",
+        "loadAlerts",
+        "normalizeDateKey",
+        "setOperatingMode",
+        "syncOverdueTasks",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "getCoolingForecastStatus",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateCoolingForecast",
+        "renderCoolingForecast"
+      ],
+      "selectors": [
+        ".cooling-forecast"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getCoolingMethodLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateCoolingForecast",
+        "formatForecastTemperature",
+        "formatRemainingMinutes",
+        "getCoolingForecastStatus",
+        "renderCoolingForecast"
+      ],
+      "selectors": [
+        ".cooling-forecast"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getCurrentTimeLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAutoDocumentationNote",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDanishDateFormatter",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatDateLabel",
+        "formatDateTimeDa",
+        "getDateKey",
+        "getDateKeyFormatter",
+        "getDisplayedDate",
+        "getProfile",
+        "getRtoGroupKey",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskTemplates",
+        "getTodayKey",
+        "parseDateValue",
+        "safeJsonParse",
+        "updateTodayLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDateKey",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "bindRtoFreqSelects",
+        "formatDateLabel",
+        "getDateKeyFormatter",
+        "getDisplayedDate",
+        "getProfile",
+        "getRtoGroupKey",
+        "getTaskTemplates",
+        "loadRtoTemplates",
+        "renderRtoGrid",
+        "safeJsonParse",
+        "updateTodayLabel"
+      ],
+      "selectors": [
+        ".rto-freq-save",
+        ".rto-freq-select"
+      ],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getDateKeyFormatter",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatDateLabel",
+        "formatDateTimeDa",
+        "getDanishDateFormatter",
+        "getDateKey",
+        "getDisplayedDate",
+        "getProfile",
+        "getRtoGroupKey",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskTemplates",
+        "getTodayKey",
+        "parseDateValue",
+        "safeJsonParse",
+        "updateTodayLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDefaultMeasurement",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getEquipmentName",
+        "getRoutineIcon",
+        "getUnit",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDisplayedDate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindRtoFreqSelects",
+        "formatDateLabel",
+        "getProfile",
+        "getRtoGroupKey",
+        "getTaskTemplates",
+        "loadRtoTemplates",
+        "renderRtoGrid",
+        "safeJsonParse",
+        "updateTodayLabel"
+      ],
+      "selectors": [
+        ".rto-freq-save",
+        ".rto-freq-select",
+        ".rto-saved-badge"
+      ],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getDueTodayOpenTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "debugLog",
+        "formatDateTimeDa",
+        "formatDeadlineLabel",
+        "getDueTodayTasks",
+        "getEquipmentName",
+        "getOpenTasks",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskType",
+        "getVisibleStatus",
+        "isOpenTask",
+        "normalizeFrequencyValue",
+        "renderEmptyState",
+        "renderTasks",
+        "shouldShowCleaningRequiredAction",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDueTodayTasks",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "debugLog",
+        "formatDateTimeDa",
+        "formatDeadlineLabel",
+        "getDueTodayOpenTasks",
+        "getEquipmentName",
+        "getOpenTasks",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskType",
+        "getTodayKey",
+        "getVisibleStatus",
+        "isOpenTask",
+        "isVisibleDailyRoutineTask",
+        "normalizeDateKey",
+        "renderEmptyState",
+        "renderTasks",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEquipmentName",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getRoutineIcon",
+        "getStatusPillClass",
+        "getTaskDeadline",
+        "getVisibleStatus",
+        "getVisibleTitle",
+        "isTaskOverdue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getExistingTodayTaskMap",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "debugLog",
+        "getOperatingOverride",
+        "getTodayKey",
+        "normalizeDateKey",
+        "resolveOperatingState"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getFrequencyConfig",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "normalizeFrequencyValue",
+        "saveTaskFrequency",
+        "syncFrequencySaveState"
+      ],
+      "selectors": [
+        ".task-item"
+      ],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getFrequencyLabel",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getFrequencyConfig",
+        "getTaskEffectiveFrequency",
+        "normalizeFrequencyValue",
+        "syncFrequencySaveState"
+      ],
+      "selectors": [
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getHandledCount",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getCleaningTasks",
+        "getRiskLinkedTasks",
+        "getTaskStatus",
+        "updateRiskCompliancePanel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getInputValue",
+      "type": "function",
+      "approx_occurrences": 43,
+      "calls": [
+        "getCoolingMethodLabel",
+        "getTaskType",
+        "isCoolingTask",
+        "requiresTemperatureField",
+        "shouldShowCleaningRequiredAction"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getOpenTasks",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "debugLog",
+        "formatDeadlineLabel",
+        "getDueTodayOpenTasks",
+        "getDueTodayTasks",
+        "getEquipmentName",
+        "getTaskType",
+        "getTodayKey",
+        "getVisibleStatus",
+        "isOpenTask",
+        "isPendingTask",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter",
+        "normalizeDateKey",
+        "renderEmptyState",
+        "renderTasks",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getOperatingOverride",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyOperatingStateToUi",
+        "ensureTodayTasksExist",
+        "getTodayKey",
+        "loadActiveTaskTemplateCount",
+        "loadOperatingState",
+        "normalizeDateKey",
+        "resolveOperatingState"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getOverrideDocId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createInstanceIdFromTemplate",
+        "debugLog",
+        "getTaskEffectiveFrequency",
+        "getVisibleTasks",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProfile",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "bindRtoFreqSelects",
+        "getRtoGroupKey",
+        "getTaskTemplates",
+        "loadRtoTemplates",
+        "renderRtoGrid",
+        "safeJsonParse"
+      ],
+      "selectors": [
+        ".rto-freq-save",
+        ".rto-freq-select",
+        ".rto-saved-badge"
+      ],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getProfileCompanyId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createInstanceIdFromTemplate",
+        "getDateKey",
+        "getOverrideDocId",
+        "getStoredLocationId",
+        "isVisibleDailyRoutineTask",
+        "loadPageData",
+        "normalizeDateKey",
+        "setReferenceDateFromPrompt",
+        "setStoredLocationId",
+        "slugify",
+        "updateTodayLabel",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getRiskLinkedTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getCleaningTasks",
+        "getOpenTasks",
+        "updateKpis",
+        "updateRiskCompliancePanel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getRoutineAnswerConfig",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeHtml",
+        "getAnswerGroupOptions",
+        "isCoolingTask",
+        "renderRoutineAnswerGroups"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getRoutineIcon",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatDeadlineLabel",
+        "getStatusPillClass",
+        "getTaskDeadline",
+        "getVisibleStatus",
+        "getVisibleTitle",
+        "isTaskOverdue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getRtoGroupKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindRtoFreqSelects",
+        "loadRtoTemplates",
+        "renderRtoGrid"
+      ],
+      "selectors": [
+        ".rto-freq-save",
+        ".rto-freq-select",
+        ".rto-saved-badge"
+      ],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getStatusPillClass",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatDeadlineLabel",
+        "getFrequencyLabel",
+        "getTaskDeadline",
+        "getTaskEffectiveFrequency",
+        "isTaskOverdue",
+        "normalizeFrequencyValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStoredLocationId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createInstanceIdFromTemplate",
+        "getDateKey",
+        "getOverrideDocId",
+        "isVisibleDailyRoutineTask",
+        "loadPageData",
+        "normalizeDateKey",
+        "setReferenceDateFromPrompt",
+        "setStoredLocationId",
+        "slugify",
+        "updateTodayLabel",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTaskContextDetails",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "evaluateTaskResult",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTaskCreatedAt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatDateLabel",
+        "getDateKey",
+        "getDateKeyFormatter",
+        "getDisplayedDate",
+        "getProfile",
+        "getRtoGroupKey",
+        "getTaskHandledAt",
+        "getTaskTemplates",
+        "getTodayKey",
+        "loadRtoTemplates",
+        "safeJsonParse",
+        "updateTodayLabel"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getTaskDeadline",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatDeadlineLabel",
+        "getFrequencyConfig",
+        "getFrequencyLabel",
+        "getTaskEffectiveFrequency",
+        "isTaskOverdue",
+        "normalizeFrequencyValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTaskEffectiveFrequency",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getFrequencyConfig",
+        "normalizeFrequencyValue",
+        "saveTaskFrequency",
+        "syncFrequencySaveState"
+      ],
+      "selectors": [
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getTaskHandledAt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatDateLabel",
+        "getDateKey",
+        "getDateKeyFormatter",
+        "getDisplayedDate",
+        "getProfile",
+        "getRtoGroupKey",
+        "getTaskTemplates",
+        "getTodayKey",
+        "loadRtoTemplates",
+        "safeJsonParse",
+        "updateTodayLabel"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getTaskPlaceholder",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDefaultMeasurement",
+        "getEquipmentName",
+        "getRoutineIcon",
+        "getUnit",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTaskStatus",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "debugLog",
+        "getDueTodayOpenTasks",
+        "getDueTodayTasks",
+        "getEquipmentName",
+        "getOpenTasks",
+        "getTaskType",
+        "getTodayKey",
+        "isCompletedTask",
+        "isOpenTask",
+        "isPendingTask",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter",
+        "normalizeDateKey",
+        "renderEmptyState",
+        "renderTasks",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTaskTemplates",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "bindRtoFreqSelects",
+        "getRtoGroupKey",
+        "loadRtoTemplates",
+        "renderRtoGrid",
+        "safeJsonParse"
+      ],
+      "selectors": [
+        ".rto-freq-save",
+        ".rto-freq-select",
+        ".rto-saved-badge"
+      ],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getTaskType",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "getDefaultMeasurement",
+        "getEquipmentName",
+        "getRoutineIcon",
+        "getTaskPlaceholder",
+        "getUnit"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getTodayKey",
+      "type": "function",
+      "approx_occurrences": 20,
+      "calls": [
+        "bindRtoFreqSelects",
+        "formatDateLabel",
+        "getDateKey",
+        "getDateKeyFormatter",
+        "getDisplayedDate",
+        "getProfile",
+        "getRtoGroupKey",
+        "getTaskTemplates",
+        "loadRtoTemplates",
+        "renderRtoGrid",
+        "safeJsonParse",
+        "updateTodayLabel"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getUnit",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "getEquipmentName",
+        "getRoutineIcon",
+        "getStatusPillClass",
+        "getTaskDeadline",
+        "getVisibleStatus",
+        "getVisibleTitle",
+        "isTaskOverdue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getVisibleStatus",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatDeadlineLabel",
+        "getFrequencyLabel",
+        "getStatusPillClass",
+        "getTaskDeadline",
+        "getTaskEffectiveFrequency",
+        "isTaskOverdue",
+        "normalizeFrequencyValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getVisibleTasks",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "debugLog",
+        "getCleaningTasks",
+        "getHandledCount",
+        "getRiskLinkedTasks",
+        "getTaskStatus",
+        "isTaskVisible",
+        "matchesFilter",
+        "updateRiskCompliancePanel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getVisibleTitle",
+      "type": "function",
+      "approx_occurrences": 9,
+      "calls": [
+        "formatDeadlineLabel",
+        "getFrequencyLabel",
+        "getStatusPillClass",
+        "getTaskDeadline",
+        "getTaskEffectiveFrequency",
+        "getVisibleStatus",
+        "isTaskOverdue",
+        "normalizeFrequencyValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "guideKey",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "debugLog",
+        "getCleaningTasks",
+        "getHandledCount",
+        "getRiskLinkedTasks",
+        "getTaskEffectiveFrequency",
+        "getTaskStatus",
+        "getVisibleTasks",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleNavigation",
+      "type": "const_function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDefaultMeasurement",
+        "getTaskPlaceholder",
+        "getTaskType",
+        "getUnit"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "handleTaskAction",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "appendCoolingRunCard",
+        "clearActiveAction",
+        "confirmTaskAction",
+        "getInputValue",
+        "optimizeImageForUpload",
+        "redirectToFollowUp",
+        "removeTaskCard",
+        "saveTask",
+        "setCardLoading",
+        "updateKpis",
+        "userIsResponsible"
+      ],
+      "selectors": [
+        "button[data-action]",
+        "button[data-open-camera][data-instance-id]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "hideRutinerLoader",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeAttribute",
+        "escapeHtml",
+        "getDateKey",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "normalizeDateKey",
+        "normalizeLocationIds",
+        "parseDateValue",
+        "pushValue",
+        "setLocationLabel",
+        "setStoredLocationId",
+        "slugify",
+        "stopRutinerLoaderProgress",
+        "toLegacyId",
+        "updateRutinerLoaderProgress",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "holdingZone",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "inferMeasurementConfig",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createInstanceIdFromTemplate",
+        "mapTemplateToTaskInstance"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "initI18n",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "translateUI"
+      ],
+      "selectors": [
+        ".hero-chip-row .chip",
+        ".hero-meta-pill:nth-child(1)",
+        ".hero-meta-pill:nth-child(2)",
+        ".hero-meta-pill:nth-child(3)",
+        ".hero-text",
+        ".stat-box[data-nav-action]",
+        ".stat-label",
+        ".stats-card-head h3"
+      ],
+      "collections": []
+    },
+    {
+      "name": "isCompletedTask",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "debugLog",
+        "formatDeadlineLabel",
+        "getDueTodayOpenTasks",
+        "getDueTodayTasks",
+        "getEquipmentName",
+        "getOpenTasks",
+        "getTaskStatus",
+        "getTaskType",
+        "getTodayKey",
+        "getVisibleStatus",
+        "isOpenTask",
+        "isPendingTask",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter",
+        "normalizeDateKey",
+        "renderEmptyState",
+        "renderTasks",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isCoolingTask",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "getCoolingMethodLabel",
+        "getTaskType",
+        "requiresTemperatureField",
+        "shouldShowCleaningRequiredAction"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isOpenTask",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "debugLog",
+        "formatDeadlineLabel",
+        "getDueTodayOpenTasks",
+        "getDueTodayTasks",
+        "getEquipmentName",
+        "getOpenTasks",
+        "getTaskType",
+        "getTodayKey",
+        "getVisibleStatus",
+        "isPendingTask",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter",
+        "normalizeDateKey",
+        "renderEmptyState",
+        "renderTasks",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isPendingTask",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "debugLog",
+        "getDueTodayOpenTasks",
+        "getDueTodayTasks",
+        "getEquipmentName",
+        "getOpenTasks",
+        "getTaskStatus",
+        "getTaskType",
+        "getTodayKey",
+        "getVisibleStatus",
+        "isCompletedTask",
+        "isOpenTask",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter",
+        "normalizeDateKey",
+        "renderEmptyState",
+        "renderTasks",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isTaskOverdue",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatDeadlineLabel",
+        "getFrequencyConfig",
+        "getFrequencyLabel",
+        "getTaskDeadline",
+        "getTaskEffectiveFrequency",
+        "normalizeFrequencyValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isTaskVisible",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "debugLog",
+        "getCleaningTasks",
+        "getHandledCount",
+        "getRiskLinkedTasks",
+        "getTaskEffectiveFrequency",
+        "getTaskStatus",
+        "getVisibleTasks",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter",
+        "updateRiskCompliancePanel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isVisibleDailyRoutineTask",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "debugLog",
+        "getHandledCount",
+        "getTaskEffectiveFrequency",
+        "getVisibleTasks",
+        "isTaskVisible",
+        "matchesFilter"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "labeling",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadActiveTaskTemplateCount",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "debugLog",
+        "getTodayKey",
+        "isOpenTask",
+        "isVisibleDailyRoutineTask",
+        "loadTasks",
+        "normalizeDateKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "loadAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindOperatingButtons",
+        "getOverrideDocId",
+        "getTodayKey",
+        "loadPageData",
+        "normalizeDateKey",
+        "setOperatingMode",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "loadOperatingState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyOperatingStateToUi",
+        "debugLog",
+        "ensureTodayTasksExist",
+        "getOperatingOverride",
+        "getTodayKey",
+        "isOpenTask",
+        "isVisibleDailyRoutineTask",
+        "loadActiveTaskTemplateCount",
+        "loadTasks",
+        "normalizeDateKey",
+        "resolveOperatingState"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "loadPageData",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "appendCoolingRunCard",
+        "checkDailyRunStatus",
+        "debugLog",
+        "ensureTodayTasksExist",
+        "loadActiveTaskTemplateCount",
+        "loadAlerts",
+        "loadOperatingState",
+        "loadTasks",
+        "renderTasks",
+        "setRunField",
+        "showRutinerLoader",
+        "updateKpis",
+        "updateRutinerLoaderProgress"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadReadableLocationName",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "hideRutinerLoader",
+        "parseDateValue",
+        "setLocationLabel",
+        "showRutinerLoader",
+        "stopRutinerLoaderProgress",
+        "updateRutinerLoaderProgress"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "locations"
+      ]
+    },
+    {
+      "name": "loadRtoTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindRtoFreqSelects",
+        "escapeHtml",
+        "getRtoGroupKey",
+        "renderRtoGrid"
+      ],
+      "selectors": [
+        ".rto-freq-save",
+        ".rto-freq-select",
+        ".rto-saved-badge"
+      ],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "loadTasks",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "debugLog",
+        "getClosingRank",
+        "getTodayKey",
+        "isOpenTask",
+        "loadAlerts",
+        "normalizeDateKey",
+        "syncOverdueTasks"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "mapTemplateToTaskInstance",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "createInstanceIdFromTemplate",
+        "debugLog",
+        "getExistingTodayTaskMap",
+        "inferMeasurementConfig"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "matchesFilter",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "debugLog",
+        "getCleaningTasks",
+        "getHandledCount",
+        "getRiskLinkedTasks",
+        "getTaskEffectiveFrequency",
+        "getTaskStatus",
+        "getVisibleTasks",
+        "isTaskVisible",
+        "updateRiskCompliancePanel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "maybeCreateAlert",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "alertAlreadyExists",
+        "formatDeadlineLabel",
+        "getEquipmentName",
+        "getTodayKey",
+        "isTaskOverdue",
+        "maybeMarkTaskOverdue",
+        "overdueEntryExists"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "maybeMarkTaskOverdue",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryData",
+        "formatDeadlineLabel",
+        "getInputValue",
+        "getTaskContextDetails",
+        "getTaskType",
+        "getTodayKey",
+        "isTaskOverdue",
+        "maybeCreateAlert",
+        "overdueEntryExists",
+        "syncOverdueTasks"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "normalizeDateKey",
+      "type": "function",
+      "approx_occurrences": 9,
+      "calls": [
+        "escapeAttribute",
+        "escapeHtml",
+        "getDateKey",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "normalizeLocationIds",
+        "parseDateValue",
+        "pushValue",
+        "setReferenceDateFromPrompt",
+        "setStoredLocationId",
+        "slugify",
+        "toLegacyId",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeFrequencyValue",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "getFrequencyConfig",
+        "getTaskEffectiveFrequency",
+        "saveTaskFrequency",
+        "syncFrequencySaveState"
+      ],
+      "selectors": [
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "normalizeLocationIds",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createInstanceIdFromTemplate",
+        "getDateKey",
+        "getOverrideDocId",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "isVisibleDailyRoutineTask",
+        "loadPageData",
+        "normalizeDateKey",
+        "pushValue",
+        "setReferenceDateFromPrompt",
+        "setStoredLocationId",
+        "slugify",
+        "updateTodayLabel",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "optimizeImageForUpload",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "overdueEntryExists",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatDeadlineLabel",
+        "getTodayKey",
+        "isTaskOverdue",
+        "maybeCreateAlert",
+        "maybeMarkTaskOverdue"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "packaging",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "parseDateValue",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeAttribute",
+        "escapeHtml",
+        "getDateKey",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "normalizeDateKey",
+        "normalizeLocationIds",
+        "pushValue",
+        "setStoredLocationId",
+        "slugify",
+        "toLegacyId",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "productName",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "pushValue",
+      "type": "const_function",
+      "approx_occurrences": 3,
+      "calls": [
+        "createInstanceIdFromTemplate",
+        "getDateKey",
+        "getOverrideDocId",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "isVisibleDailyRoutineTask",
+        "loadPageData",
+        "normalizeDateKey",
+        "setReferenceDateFromPrompt",
+        "setStoredLocationId",
+        "slugify",
+        "updateTodayLabel",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "reasonCode",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "reasonOtherText",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "receivingStatus",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "redirectToFollowUp",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryData",
+        "evaluateTaskResult",
+        "getTaskContextDetails",
+        "getTodayKey",
+        "removeTaskCard",
+        "renderEmptyState",
+        "saveTask",
+        "setCardLoading",
+        "updateKpis",
+        "userIsResponsible"
+      ],
+      "selectors": [
+        ".task-item",
+        "button[data-action]",
+        "input"
+      ],
+      "collections": []
+    },
+    {
+      "name": "removeTaskCard",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "appendCoolingRunCard",
+        "clearActiveAction",
+        "confirmTaskAction",
+        "handleTaskAction",
+        "renderEmptyState",
+        "setCardLoading",
+        "updateKpis",
+        "userIsResponsible"
+      ],
+      "selectors": [
+        ".task-item",
+        "button[data-action]",
+        "input"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderAiPreviewCard",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "confirmTaskAction",
+        "escapeHtml",
+        "getActionConfirmConfig",
+        "getTaskContextDetails",
+        "getVisibleTitle"
+      ],
+      "selectors": [
+        ".task-ai-preview",
+        "button[data-ai-approve]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderCoolingForecast",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "calculateCoolingForecast",
+        "ensureCoolingForecastTicker",
+        "formatForecastTemperature",
+        "formatRemainingMinutes",
+        "renderAiPreviewCard"
+      ],
+      "selectors": [
+        ".cooling-forecast",
+        ".cooling-run-card[data-started-at]",
+        ".task-ai-preview"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderEmptyState",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "applyOperatingStateToUi",
+        "escapeHtml",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderRoutineAnswerGroups",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "escapeHtml",
+        "getRoutineAnswerConfig"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderRtoGrid",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindRtoFreqSelects",
+        "buildRtoCard",
+        "escapeHtml",
+        "getRtoGroupKey"
+      ],
+      "selectors": [
+        ".rto-acc-arrow",
+        ".rto-accordion-head",
+        ".rto-accordion-panel"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderTasks",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "debugLog",
+        "formatDateTimeDa",
+        "formatDeadlineLabel",
+        "getDueTodayOpenTasks",
+        "getDueTodayTasks",
+        "getEquipmentName",
+        "getOpenTasks",
+        "getTaskCreatedAt",
+        "getTaskHandledAt",
+        "getTaskType",
+        "getVisibleStatus",
+        "isCoolingTask",
+        "normalizeFrequencyValue",
+        "renderEmptyState",
+        "shouldShowCleaningRequiredAction",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "requiresTemperatureField",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getCoolingMethodLabel",
+        "getTaskType",
+        "isCoolingTask",
+        "shouldShowCleaningRequiredAction"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "resolveOperatingState",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "applyOperatingStateToUi",
+        "debugLog",
+        "ensureTodayTasksExist",
+        "getOperatingOverride",
+        "getTodayKey",
+        "isVisibleDailyRoutineTask",
+        "loadActiveTaskTemplateCount",
+        "loadOperatingState",
+        "loadTasks",
+        "normalizeDateKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "restoreAnswerSelections",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getRoutineAnswerConfig"
+      ],
+      "selectors": [
+        ".answer-group",
+        ".cooling-fields-container",
+        ".reheating-comment-field",
+        ".sitti-fields-container",
+        "input"
+      ],
+      "collections": []
+    },
+    {
+      "name": "rinseTemperatureOk",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "safeJsonParse",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "bindRtoFreqSelects",
+        "getProfile",
+        "getRtoGroupKey",
+        "getTaskTemplates",
+        "loadRtoTemplates",
+        "renderRtoGrid"
+      ],
+      "selectors": [
+        ".rto-freq-save",
+        ".rto-freq-select",
+        ".rto-saved-badge"
+      ],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "saveTask",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildEntryData",
+        "clearActiveAction",
+        "evaluateTaskResult",
+        "getTodayKey",
+        "handleTaskAction",
+        "removeTaskCard",
+        "renderEmptyState",
+        "setCardLoading",
+        "updateKpis",
+        "userIsResponsible"
+      ],
+      "selectors": [
+        ".task-item",
+        "button[data-action]",
+        "input"
+      ],
+      "collections": []
+    },
+    {
+      "name": "saveTaskFrequency",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getFrequencyConfig",
+        "normalizeFrequencyValue",
+        "syncFrequencySaveState"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "separationDecision",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "getUnit"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setCardLoading",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "appendCoolingRunCard",
+        "clearActiveAction",
+        "confirmTaskAction",
+        "handleTaskAction",
+        "removeTaskCard",
+        "saveTask",
+        "updateKpis",
+        "userIsResponsible"
+      ],
+      "selectors": [
+        "button[data-action]",
+        "input"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setLocationLabel",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeAttribute",
+        "escapeHtml",
+        "getDateKey",
+        "hideRutinerLoader",
+        "normalizeDateKey",
+        "parseDateValue",
+        "showRutinerLoader",
+        "slugify",
+        "stopRutinerLoaderProgress",
+        "updateRutinerLoaderProgress"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setOperatingMode",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "bindFilterControls",
+        "bindOperatingButtons",
+        "getOverrideDocId",
+        "getTodayKey",
+        "loadPageData",
+        "normalizeDateKey",
+        "renderTasks",
+        "setReferenceDateFromPrompt",
+        "updateKpis",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "setReferenceDateFromPrompt",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "createInstanceIdFromTemplate",
+        "debugLog",
+        "getDateKey",
+        "getOverrideDocId",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "loadPageData",
+        "matchesFilter",
+        "normalizeDateKey",
+        "slugify",
+        "updateTodayLabel",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setRunField",
+      "type": "const_function",
+      "approx_occurrences": 5,
+      "calls": [
+        "ensureCoolingForecastTicker",
+        "getProfileCompanyId",
+        "hideRutinerLoader",
+        "loadTasks",
+        "normalizeLocationIds",
+        "renderCoolingForecast",
+        "renderTasks",
+        "updateKpis"
+      ],
+      "selectors": [
+        ".cooling-run-finish-btn",
+        ".cooling-run-start-btn",
+        ".run-status",
+        ".task-pill"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setStoredLocationId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createInstanceIdFromTemplate",
+        "debugLog",
+        "getDateKey",
+        "getOverrideDocId",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "loadPageData",
+        "normalizeDateKey",
+        "setReferenceDateFromPrompt",
+        "slugify",
+        "updateTodayLabel",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldShowCleaningRequiredAction",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "calculateCoolingForecast",
+        "formatForecastTemperature",
+        "formatRemainingMinutes",
+        "getCoolingForecastStatus",
+        "getCoolingMethodLabel",
+        "getTaskType",
+        "isCoolingTask"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "showRutinerLoader",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeAttribute",
+        "escapeHtml",
+        "getDateKey",
+        "getProfileCompanyId",
+        "hideRutinerLoader",
+        "normalizeDateKey",
+        "normalizeLocationIds",
+        "parseDateValue",
+        "pushValue",
+        "setLocationLabel",
+        "slugify",
+        "stopRutinerLoaderProgress",
+        "toLegacyId",
+        "updateRutinerLoaderProgress"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sittiFieldsHtml",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "escapeHtml"
+      ],
+      "selectors": [
+        ".answer-group"
+      ],
+      "collections": []
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDateKey",
+        "getOverrideDocId",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "loadPageData",
+        "normalizeDateKey",
+        "normalizeLocationIds",
+        "pushValue",
+        "setReferenceDateFromPrompt",
+        "setStoredLocationId",
+        "toLegacyId",
+        "updateTodayLabel",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "startTemp",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "isCoolingTask"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "startTime",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "isCoolingTask"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "stopRutinerLoaderProgress",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "escapeAttribute",
+        "escapeHtml",
+        "getDateKey",
+        "hideRutinerLoader",
+        "normalizeDateKey",
+        "normalizeLocationIds",
+        "parseDateValue",
+        "pushValue",
+        "setLocationLabel",
+        "showRutinerLoader",
+        "slugify",
+        "toLegacyId",
+        "updateRutinerLoaderProgress"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "syncFrequencySaveState",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "getFrequencyConfig",
+        "normalizeFrequencyValue",
+        "saveTaskFrequency"
+      ],
+      "selectors": [
+        ".task-item"
+      ],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "syncOverdueTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryData",
+        "getInputValue",
+        "getTaskContextDetails",
+        "getTaskType",
+        "maybeMarkTaskOverdue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "taskType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "debugLog",
+        "getHandledCount",
+        "getRiskLinkedTasks",
+        "getTaskEffectiveFrequency",
+        "getTaskStatus",
+        "getVisibleTasks",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "temperatureResult",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "getVisibleTitle"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "templateType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "debugLog",
+        "getHandledCount",
+        "getTaskEffectiveFrequency",
+        "getTaskStatus",
+        "getVisibleTasks",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "title",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "debugLog",
+        "getCleaningTasks",
+        "getHandledCount",
+        "getRiskLinkedTasks",
+        "getTaskEffectiveFrequency",
+        "getTaskStatus",
+        "getVisibleTasks",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "matchesFilter"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "titleA",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "bindOperatingButtons",
+        "getOverrideDocId",
+        "getTodayKey",
+        "loadAlerts",
+        "loadPageData",
+        "normalizeDateKey",
+        "setOperatingMode",
+        "syncOverdueTasks",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "titleB",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "bindOperatingButtons",
+        "getOverrideDocId",
+        "getTodayKey",
+        "loadAlerts",
+        "loadPageData",
+        "normalizeDateKey",
+        "setOperatingMode",
+        "syncOverdueTasks",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "toLegacyId",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "createInstanceIdFromTemplate",
+        "getDateKey",
+        "getOverrideDocId",
+        "getProfileCompanyId",
+        "getStoredLocationId",
+        "loadPageData",
+        "normalizeDateKey",
+        "normalizeLocationIds",
+        "pushValue",
+        "setReferenceDateFromPrompt",
+        "setStoredLocationId",
+        "slugify",
+        "updateTodayLabel",
+        "userIsResponsible"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "translateUI",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [
+        ".hero-chip-row .chip",
+        ".hero-meta-pill:nth-child(1)",
+        ".hero-meta-pill:nth-child(2)",
+        ".hero-meta-pill:nth-child(3)",
+        ".hero-text",
+        ".operating-status-label",
+        ".small-muted",
+        ".stat-box[data-nav-action]",
+        ".stat-label",
+        ".stats-card-head h3"
+      ],
+      "collections": []
+    },
+    {
+      "name": "updateKpis",
+      "type": "function",
+      "approx_occurrences": 13,
+      "calls": [
+        "bindOverviewNavigation",
+        "getHandledCount",
+        "getOpenTasks",
+        "getTaskPlaceholder",
+        "getTaskType",
+        "getUnit",
+        "handleNavigation",
+        "isCompletedTask",
+        "updateRiskCompliancePanel"
+      ],
+      "selectors": [
+        ".nav-link-card[data-nav-action]"
+      ],
+      "collections": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "updateRiskCompliancePanel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getCleaningTasks",
+        "getHandledCount",
+        "getOpenTasks",
+        "getRiskLinkedTasks",
+        "isCompletedTask",
+        "updateKpis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateRutinerLoaderProgress",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "escapeAttribute",
+        "escapeHtml",
+        "getDateKey",
+        "hideRutinerLoader",
+        "normalizeDateKey",
+        "normalizeLocationIds",
+        "parseDateValue",
+        "setLocationLabel",
+        "showRutinerLoader",
+        "slugify",
+        "stopRutinerLoaderProgress",
+        "toLegacyId"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateTodayLabel",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "bindRtoFreqSelects",
+        "formatDateLabel",
+        "getDisplayedDate",
+        "getProfile",
+        "getRtoGroupKey",
+        "getTaskTemplates",
+        "loadRtoTemplates",
+        "renderRtoGrid",
+        "safeJsonParse"
+      ],
+      "selectors": [
+        ".rto-freq-save",
+        ".rto-freq-select",
+        ".rto-saved-badge"
+      ],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "uploadToCloudinaryWithRetry",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "optimizeImageForUpload"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "userIsResponsible",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "createInstanceIdFromTemplate",
+        "debugLog",
+        "getDateKey",
+        "getOverrideDocId",
+        "isTaskVisible",
+        "isVisibleDailyRoutineTask",
+        "loadPageData",
+        "normalizeDateKey",
+        "setReferenceDateFromPrompt",
+        "slugify",
+        "updateTodayLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "visualStatus",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "getInputValue",
+        "getVisibleTitle",
+        "requiresTemperatureField"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

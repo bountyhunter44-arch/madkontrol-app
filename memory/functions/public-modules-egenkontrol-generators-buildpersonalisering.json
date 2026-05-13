@@ -1,0 +1,44 @@
+{
+  "source_file": "public/modules/egenkontrol/generators/buildPersonalisering.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "buildPersonalisering",
+    "extractActivities",
+    "shouldEnableSchema"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildPersonalisering",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "extractActivities",
+        "shouldEnableSchema"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "extractActivities",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "shouldEnableSchema"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldEnableSchema",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

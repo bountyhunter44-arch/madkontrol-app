@@ -1,0 +1,31 @@
+{
+  "source_file": "public/modules/egenkontrol/generateDailyTaskInstances.js",
+  "module": "general",
+  "imports": [
+    "../../core/firebase-config.js",
+    "./controlLibraryHelpers.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [
+    "generateDailyTaskInstances"
+  ],
+  "collections": [
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "generateDailyTaskInstances",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    }
+  ]
+}

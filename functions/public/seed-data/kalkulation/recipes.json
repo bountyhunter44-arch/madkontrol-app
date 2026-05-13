@@ -1,0 +1,165 @@
+[
+    {
+        "id": "cheeseburger",
+        "name": "Cheeseburger",
+        "categoryId": "burgers",
+        "active": true,
+        "ingredients": [
+            {
+                "ingredientId": "burger_bun",
+                "quantity": 1,
+                "unit": "stk"
+            },
+            {
+                "ingredientId": "beef",
+                "quantity": 150,
+                "unit": "g"
+            },
+            {
+                "ingredientId": "cheddar",
+                "quantity": 20,
+                "unit": "g"
+            },
+            {
+                "ingredientId": "lettuce",
+                "quantity": 0.2,
+                "unit": "stk"
+            },
+            {
+                "ingredientId": "tomato",
+                "quantity": 40,
+                "unit": "g"
+            },
+            {
+                "ingredientId": "mayonnaise",
+                "quantity": 15,
+                "unit": "g"
+            }
+        ]
+    },
+    {
+        "id": "fries_portion",
+        "name": "Pommes frites",
+        "categoryId": "sides",
+        "active": true,
+        "ingredients": [
+            {
+                "ingredientId": "potato",
+                "quantity": 250,
+                "unit": "g"
+            },
+            {
+                "ingredientId": "rapeseed_oil",
+                "quantity": 10,
+                "unit": "ml"
+            },
+            {
+                "ingredientId": "salt",
+                "quantity": 3,
+                "unit": "g"
+            }
+        ]
+    },
+    {
+        "id": "pizza_margherita",
+        "name": "Pizza Margherita",
+        "categoryId": "pizza",
+        "active": true,
+        "ingredients": [
+            {
+                "ingredientId": "pizza_dough",
+                "quantity": 1,
+                "unit": "stk"
+            },
+            {
+                "ingredientId": "tomato",
+                "quantity": 80,
+                "unit": "g"
+            },
+            {
+                "ingredientId": "mozzarella",
+                "quantity": 100,
+                "unit": "g"
+            },
+            {
+                "ingredientId": "olive_oil",
+                "quantity": 5,
+                "unit": "ml"
+            }
+        ]
+    },
+    {
+        "id": "aioli",
+        "name": "Aioli",
+        "categoryId": "sauces_dressings",
+        "active": true,
+        "ingredients": [
+            {
+                "ingredientId": "mayonnaise",
+                "quantity": 100,
+                "unit": "g"
+            },
+            {
+                "ingredientId": "olive_oil",
+                "quantity": 20,
+                "unit": "ml"
+            },
+            {
+                "ingredientId": "salt",
+                "quantity": 2,
+                "unit": "g"
+            }
+        ]
+    },
+    {
+        "id": "burger_dressing",
+        "name": "Burgerdressing",
+        "categoryId": "sauces_dressings",
+        "active": true,
+        "ingredients": [
+            {
+                "ingredientId": "mayonnaise",
+                "quantity": 120,
+                "unit": "g"
+            },
+            {
+                "ingredientId": "tomato",
+                "quantity": 30,
+                "unit": "g"
+            },
+            {
+                "ingredientId": "salt",
+                "quantity": 2,
+                "unit": "g"
+            }
+        ]
+    },
+    {
+        "id": "omelette",
+        "name": "Omelet",
+        "categoryId": "breakfast",
+        "active": true,
+        "ingredients": [
+            {
+                "ingredientId": "egg",
+                "quantity": 3,
+                "unit": "stk"
+            },
+            {
+                "ingredientId": "milk",
+                "quantity": 30,
+                "unit": "ml"
+            },
+            {
+                "ingredientId": "butter",
+                "quantity": 10,
+                "unit": "g"
+            },
+            {
+                "ingredientId": "salt",
+                "quantity": 2,
+                "unit": "g"
+            }
+        ]
+    }
+]

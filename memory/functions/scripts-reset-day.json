@@ -1,0 +1,28 @@
+{
+  "source_file": "scripts/reset-day.cjs",
+  "module": "general",
+  "imports": [
+    "../node_modules/firebase-admin",
+    "../serviceAccountKey.json"
+  ],
+  "exports": [],
+  "collections": [
+    "daily_runs",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "daily_runs",
+        "task_instances"
+      ]
+    }
+  ]
+}

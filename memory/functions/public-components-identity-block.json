@@ -1,0 +1,58 @@
+{
+  "source_file": "public/components/identity-block.js",
+  "module": "general",
+  "imports": [
+    "/core/firebase-config.js",
+    "/core/session.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"
+  ],
+  "exports": [
+    "renderIdentityBlock"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getInitials",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "renderIdentityBlock",
+        "updateIdentityBlock"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderIdentityBlock",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getInitials",
+        "updateIdentityBlock"
+      ],
+      "selectors": [
+        "#identityAvatar",
+        "#identityContext",
+        "#identityMenu",
+        "#identityName",
+        "#identityTrigger",
+        "#logoutBtn",
+        "#switchLocationBtn"
+      ],
+      "collections": []
+    },
+    {
+      "name": "updateIdentityBlock",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getInitials",
+        "renderIdentityBlock"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "source_file": "public/seed-data/seed-task-templates.js",
+  "module": "general",
+  "imports": [
+    "D:/madkontrol-app/serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "seedTaskTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

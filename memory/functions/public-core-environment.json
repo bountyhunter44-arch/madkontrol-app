@@ -1,0 +1,72 @@
+{
+  "source_file": "public/core/environment.js",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "canPerformDangerousOperations",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "detectEnvironment",
+        "isDeveloperUser",
+        "logEnvironmentInfo",
+        "showEnvironmentBadge"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "detectEnvironment",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "canPerformDangerousOperations",
+        "isDeveloperUser",
+        "logEnvironmentInfo",
+        "showEnvironmentBadge"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isDeveloperUser",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "canPerformDangerousOperations",
+        "detectEnvironment",
+        "logEnvironmentInfo",
+        "showEnvironmentBadge"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "logEnvironmentInfo",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "detectEnvironment",
+        "showEnvironmentBadge"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "showEnvironmentBadge",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "detectEnvironment",
+        "logEnvironmentInfo"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "source_file": "functions/egenkontrol/models/coolingHistoryModel.js",
+  "module": "cooling",
+  "imports": [
+    "firebase-admin/firestore"
+  ],
+  "exports": [
+    "COOLING_ENUMS",
+    "createCoolingHistoryRecord",
+    "generateLearningTags",
+    "getCoolingRecommendations",
+    "saveCoolingHistory"
+  ],
+  "collections": [
+    "cooling_history"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "createCoolingHistoryRecord",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "generateLearningTags",
+        "getCoolingRecommendations",
+        "saveCoolingHistory"
+      ],
+      "selectors": [],
+      "collections": [
+        "cooling_history"
+      ]
+    },
+    {
+      "name": "generateLearningTags",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getCoolingRecommendations",
+        "saveCoolingHistory"
+      ],
+      "selectors": [],
+      "collections": [
+        "cooling_history"
+      ]
+    },
+    {
+      "name": "getCoolingRecommendations",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "cooling_history"
+      ]
+    },
+    {
+      "name": "saveCoolingHistory",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getCoolingRecommendations"
+      ],
+      "selectors": [],
+      "collections": [
+        "cooling_history"
+      ]
+    }
+  ]
+}

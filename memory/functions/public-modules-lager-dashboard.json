@@ -1,0 +1,87 @@
+{
+  "source_file": "public/modules/lager/dashboard.html",
+  "module": "dashboard",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "inventory_items"
+  ],
+  "flags": [],
+  "risks": [
+    "alerts_without_deviation_creation"
+  ],
+  "functions": [
+    {
+      "name": "displayExpiryAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "displayInventoryList",
+        "displayInventorySummary",
+        "escapeHtml"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "displayInventoryList",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "getCategoryLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "displayInventorySummary",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "displayInventoryList",
+        "escapeHtml",
+        "getCategoryLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getCategoryLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadInventoryData",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "displayExpiryAlerts",
+        "displayInventoryList",
+        "displayInventorySummary",
+        "escapeHtml"
+      ],
+      "selectors": [],
+      "collections": [
+        "inventory_items"
+      ]
+    }
+  ]
+}

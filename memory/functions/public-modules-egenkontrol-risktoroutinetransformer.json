@@ -1,0 +1,32 @@
+{
+  "source_file": "public/modules/egenkontrol/riskToRoutineTransformer.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "buildRoutineCardsFromRiskCards",
+    "mapControlToRoutine"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildRoutineCardsFromRiskCards",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "mapControlToRoutine"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "mapControlToRoutine",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

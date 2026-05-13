@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lager Dashboard | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import app, { auth, db } from "/core/firebase-config.js";
+    import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    let currentUser = null;
+    let userSettings = {};
+
+    setupAuthGate({
+      appName: "Madkontrollen Pro - Lager Dashboard",
+      onAuthenticated: async ({ user, profile }) => {
+        currentUser = user;
+        userSettings = profile || {};
+
+        if (!userSettings.hasInventoryModule) {
+          document.getElementById("locked-view").style.display = "block";
+          document.getElementById("active-view").style.display = "none";
+          return;
+        }
+
+        document.getElementById("locked-view").style.display = "none";
+        document.getElementById("active-view").style.display = "block";
+        
+        await loadInventoryData();
+      },
+      onSignedOut: async () => {
+        document.getElementById("locked-view").style.display = "block";
+        document.getElementById("active-view").style.display = "none";
+      }
+    });
+
+    async function loadInventoryData() {
+      const q = query(
+        collection(db, "inventory_items"),
+        where("companyId", "==", userSettings.companyId),
+        where("locationId", "==", userSettings.locationId)
+      );
+
+      const snapshot = await getDocs(q);
+      const items = snapshot.docs.map(doc => doc.data());
+
+      displayExpiryAlerts(items);
+      displayInventorySummary(items);
+      displayInventoryList(items);
+    }
+
+    function displayExpiryAlerts(items) {
+      const alertsContainer = document.getElementById("expiry-alerts");
+      const now = new Date();
+      
+      const criticalItems = [];
+      const warningItems = [];
+
+      items.forEach(item => {
+        item.batches.forEach(batch => {
+          const expiryDate = new Date(batch.expiryDate);
+          const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+          
+          if (daysUntilExpiry <= 1 && daysUntilExpiry >= 0) {
+            criticalItems.push({
+              productName: item.productName,
+              quantity: batch.quantity,
+              unit: item.unit,
+              expiryDate: batch.expiryDate,
+              daysUntilExpiry
+            });
+          } else if (daysUntilExpiry <= 3 && daysUntilExpiry > 1) {
+            warningItems.push({
+              productName: item.productName,
+              quantity: batch.quantity,
+              unit: item.unit,
+              expiryDate: batch.expiryDate,
+              daysUntilExpiry
+            });
+          }
+        });
+      });
+
+      let html = '';
+
+      if (criticalItems.length > 0) {
+        html += '<div class="alert-section critical">';
+        html += '<h4>🔴 Kritisk (udløber i dag eller i morgen)</h4>';
+        criticalItems.forEach(item => {
+          const expiryText = item.daysUntilExpiry === 0 ? 'i dag' : 'i morgen';
+          html += `
+            <div class="alert-item">
+              <div class="alert-product">${escapeHtml(item.productName)}</div>
+              <div class="alert-details">Udløber ${expiryText} • ${item.quantity} ${item.unit}</div>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+
+      if (warningItems.length > 0) {
+        html += '<div class="alert-section warning">';
+        html += '<h4>🟡 Advarsel (2-3 dage)</h4>';
+        warningItems.forEach(item => {
+          html += `
+            <div class="alert-item">
+              <div class="alert-product">${escapeHtml(item.productName)}</div>
+              <div class="alert-details">Udløber om ${item.daysUntilExpiry} dage • ${item.quantity} ${item.unit}</div>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+
+      if (criticalItems.length === 0 && warningItems.length === 0) {
+        html = '<div class="no-alerts">✅ Ingen varer nærmer sig udløb</div>';
+      }
+
+      alertsContainer.innerHTML = html;
+    }
+
+    function displayInventorySummary(items) {
+      const totalItems = items.length;
+      const totalQuantity = items.reduce((sum, item) => sum + item.currentQuantity, 0);
+      
+      const now = new Date();
+      let expiringCount = 0;
+      
+      items.forEach(item => {
+        item.batches.forEach(batch => {
+          const expiryDate = new Date(batch.expiryDate);
+          const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+          if (daysUntilExpiry <= 3 && daysUntilExpiry >= 0) {
+            expiringCount++;
+          }
+        });
+      });
+
+      document.getElementById("total-items").textContent = totalItems;
+      document.getElementById("total-quantity").textContent = Math.round(totalQuantity);
+      document.getElementById("expiring-count").textContent = expiringCount;
+    }
+
+    function displayInventoryList(items) {
+      const listContainer = document.getElementById("inventory-list");
+      
+      if (items.length === 0) {
+        listContainer.innerHTML = '<div class="empty-state">Ingen varer på lager. Scan varer ind for at komme i gang.</div>';
+        return;
+      }
+
+      const sortedItems = items.sort((a, b) => {
+        const aOldest = Math.min(...a.batches.map(b => new Date(b.expiryDate)));
+        const bOldest = Math.min(...b.batches.map(b => new Date(b.expiryDate)));
+        return aOldest - bOldest;
+      });
+
+      const html = sortedItems.map(item => {
+        const oldestBatch = item.batches.sort((a, b) => 
+          new Date(a.expiryDate) - new Date(b.expiryDate)
+        )[0];
+        
+        const expiryDate = new Date(oldestBatch.expiryDate);
+        const daysUntilExpiry = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
+        
+        let expiryClass = '';
+        if (daysUntilExpiry <= 1) expiryClass = 'expiry-critical';
+        else if (daysUntilExpiry <= 3) expiryClass = 'expiry-warning';
+        
+        return `
+          <div class="inventory-item ${expiryClass}">
+            <div class="item-header">
+              <div class="item-name">${escapeHtml(item.productName)}</div>
+              <div class="item-quantity">${item.currentQuantity} ${item.unit}</div>
+            </div>
+            <div class="item-details">
+              <div class="item-category">${getCategoryLabel(item.productCategory)}</div>
+              <div class="item-expiry">Ældste udløber: ${expiryDate.toLocaleDateString('da-DK')} (om ${daysUntilExpiry} dage)</div>
+            </div>
+            <div class="item-batches">
+              ${item.batches.length} batch${item.batches.length > 1 ? 'es' : ''} på lager
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      listContainer.innerHTML = html;
+    }
+
+    function getCategoryLabel(category) {
+      const labels = {
+        dairy: 'Mejeriprodukter',
+        meat: 'Kød',
+        fish: 'Fisk',
+        vegetables: 'Grøntsager',
+        fruit: 'Frugt',
+        dry_goods: 'Tørvarer',
+        frozen: 'Frost',
+        other: 'Andet'
+      };
+      return labels[category] || category || 'Ukendt';
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text || "";
+      return div.innerHTML;
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #111827;
+      margin: 0 0 8px;
+    }
+
+    .page-header p {
+      font-size: 15px;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .actions-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .summary-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .expiry-alerts-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .expiry-alerts-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 20px;
+    }
+
+    .alert-section {
+      margin-bottom: 20px;
+    }
+
+    .alert-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .alert-section h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 12px;
+    }
+
+    .alert-section.critical h4 {
+      color: #dc2626;
+    }
+
+    .alert-section.warning h4 {
+      color: #d97706;
+    }
+
+    .alert-item {
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .alert-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .alert-product {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .alert-details {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .no-alerts {
+      text-align: center;
+      padding: 40px 20px;
+      color: #059669;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .inventory-list-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .inventory-list-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 20px;
+    }
+
+    .inventory-item {
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+
+    .inventory-item:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .inventory-item.expiry-critical {
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .inventory-item.expiry-warning {
+      border-color: #fed7aa;
+      background: #fffbeb;
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .item-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .item-quantity {
+      font-size: 18px;
+      font-weight: 800;
+      color: #3b82f6;
+    }
+
+    .item-details {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .item-batches {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9ca3af;
+    }
+
+    #locked-view {
+      display: none;
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    .locked-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .locked-message h2 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #111827;
+      margin: 0 0 12px;
+    }
+
+    .locked-message p {
+      font-size: 16px;
+      color: #6b7280;
+      margin: 0 0 24px;
+      line-height: 1.6;
+    }
+
+    #active-view {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="locked-view">
+      <div class="locked-icon">🔒</div>
+      <div class="locked-message">
+        <h2>Intelligent Lager & Stregkode</h2>
+        <p>Dette modul kræver en opgradering for at bruge lager-styring, stregkode-scanning og FIFO-logik.</p>
+        <a href="/modules/lager/scanner.html" class="btn btn-primary">Opgrader her</a>
+      </div>
+    </div>
+
+    <div id="active-view">
+      <div class="page-header">
+        <h1>📦 Lager Dashboard</h1>
+        <p>Oversigt over lagerbeholdning og udløbsadvarsler</p>
+      </div>
+
+      <div class="actions-bar">
+        <a href="/modules/lager/scanner.html" class="btn btn-primary">📱 Scan varer</a>
+        <a href="/modules/lager/transactions.html" class="btn btn-secondary">📊 Se transaktioner</a>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-label">Produkter på lager</div>
+          <div class="summary-value" id="total-items">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Total mængde</div>
+          <div class="summary-value" id="total-quantity">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Nærmer sig udløb</div>
+          <div class="summary-value" id="expiring-count" style="color: #d97706;">0</div>
+        </div>
+      </div>
+
+      <div class="expiry-alerts-card">
+        <h3>🚨 Varer der nærmer sig udløb</h3>
+        <div id="expiry-alerts"></div>
+      </div>
+
+      <div class="inventory-list-card">
+        <h3>📋 Lagerbeholdning</h3>
+        <div id="inventory-list"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

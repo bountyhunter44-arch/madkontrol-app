@@ -1,0 +1,17 @@
+{
+  "name": "reports",
+  "files": [
+    "firestore-audit-report.json"
+  ],
+  "total_functions": 0,
+  "flags": [],
+  "collections": [
+    "daily_runs",
+    "haccp_snapshots",
+    "live_user_profiles",
+    "onboarding_answers",
+    "task_instances",
+    "task_templates"
+  ],
+  "risks": []
+}

@@ -1,0 +1,124 @@
+{
+  "source_file": "scripts/publishLandingSite.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "fs"
+  ],
+  "exports": [],
+  "collections": [
+    "seo_pages",
+    "websites"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildSeoLandingPages",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "parsePageCount",
+        "sanitizeString",
+        "toAsciiSlug",
+        "toDocSafeId",
+        "upsertWebsiteAndSeoPages"
+      ],
+      "selectors": [],
+      "collections": [
+        "websites"
+      ]
+    },
+    {
+      "name": "parsePageCount",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSeoLandingPages",
+        "sanitizeString",
+        "toAsciiSlug",
+        "toDocSafeId",
+        "upsertWebsiteAndSeoPages"
+      ],
+      "selectors": [],
+      "collections": [
+        "websites"
+      ]
+    },
+    {
+      "name": "publishLandingSite",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "upsertWebsiteAndSeoPages"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeString",
+      "type": "function",
+      "approx_occurrences": 26,
+      "calls": [
+        "buildSeoLandingPages",
+        "parsePageCount",
+        "toAsciiSlug",
+        "toDocSafeId",
+        "upsertWebsiteAndSeoPages"
+      ],
+      "selectors": [],
+      "collections": [
+        "websites"
+      ]
+    },
+    {
+      "name": "toAsciiSlug",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildSeoLandingPages",
+        "parsePageCount",
+        "sanitizeString",
+        "toDocSafeId",
+        "upsertWebsiteAndSeoPages"
+      ],
+      "selectors": [],
+      "collections": [
+        "websites"
+      ]
+    },
+    {
+      "name": "toDocSafeId",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildSeoLandingPages",
+        "parsePageCount",
+        "sanitizeString",
+        "toAsciiSlug",
+        "upsertWebsiteAndSeoPages"
+      ],
+      "selectors": [],
+      "collections": [
+        "websites"
+      ]
+    },
+    {
+      "name": "upsertWebsiteAndSeoPages",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildSeoLandingPages",
+        "parsePageCount",
+        "publishLandingSite",
+        "sanitizeString",
+        "toDocSafeId"
+      ],
+      "selectors": [],
+      "collections": [
+        "seo_pages",
+        "websites"
+      ]
+    }
+  ]
+}

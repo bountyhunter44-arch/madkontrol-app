@@ -1,0 +1,395 @@
+{
+  "source_file": "public/modules/egenkontrol/egenkontrolDefinitions.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "AREA_TYPE_DEFINITIONS",
+    "CONTROL_FAMILIES",
+    "CONTROL_LEVELS",
+    "CONTROL_MATRIX",
+    "PROCESS_TYPE_DEFINITIONS",
+    "RELATION_TYPES",
+    "UNIT_TYPE_DEFINITIONS",
+    "buildAreaTitle",
+    "buildOnboardingAreaRecords",
+    "buildOnboardingProcessRecords",
+    "buildOnboardingUnitRecords",
+    "buildProcessTitle",
+    "buildTaskInstanceDoc",
+    "buildTaskInstanceId",
+    "buildTaskTemplateDoc",
+    "buildTemplateTitle",
+    "buildTemplatesFromOnboarding",
+    "buildUnitId",
+    "buildUnitTitle",
+    "getAreaTypeDefinition",
+    "getControlMatrixItem",
+    "getDisplayTitle",
+    "getProcessTypeDefinition",
+    "getUnitTypeDefinition",
+    "sanitizeString",
+    "slugify",
+    "sortTemplatesByPriority"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildAreaTitle",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildProcessTitle",
+        "buildTaskTemplateDoc",
+        "buildTemplateTitle",
+        "getAreaTypeDefinition",
+        "getControlMatrixItem",
+        "getProcessTypeDefinition",
+        "getUnitTypeDefinition",
+        "sanitizeString",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildOnboardingAreaRecords",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildAreaTitle",
+        "buildOnboardingProcessRecords",
+        "buildTaskTemplateDoc",
+        "buildTemplatesFromOnboarding",
+        "getDisplayTitle",
+        "sanitizeString",
+        "slugify",
+        "sortTemplatesByPriority"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildOnboardingProcessRecords",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildTaskTemplateDoc",
+        "buildTemplatesFromOnboarding",
+        "getDisplayTitle",
+        "sanitizeString",
+        "sortTemplatesByPriority"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildOnboardingUnitRecords",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildAreaTitle",
+        "buildOnboardingAreaRecords",
+        "buildOnboardingProcessRecords",
+        "buildTaskTemplateDoc",
+        "buildTemplatesFromOnboarding",
+        "buildUnitId",
+        "buildUnitTitle",
+        "pushUnits",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildProcessTitle",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildTaskInstanceDoc",
+        "buildTaskInstanceId",
+        "buildTaskTemplateDoc",
+        "buildTemplateTitle",
+        "getAreaTypeDefinition",
+        "getControlMatrixItem",
+        "getProcessTypeDefinition",
+        "getUnitTypeDefinition",
+        "sanitizeString",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTaskInstanceDoc",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildOnboardingAreaRecords",
+        "buildOnboardingUnitRecords",
+        "buildTaskInstanceId",
+        "buildUnitId",
+        "buildUnitTitle",
+        "pushUnits",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTaskInstanceId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildOnboardingAreaRecords",
+        "buildOnboardingUnitRecords",
+        "buildTaskInstanceDoc",
+        "buildUnitId",
+        "buildUnitTitle",
+        "pushUnits",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTaskTemplateDoc",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildTaskInstanceDoc",
+        "buildTaskInstanceId",
+        "buildTemplateTitle",
+        "getControlMatrixItem",
+        "sanitizeString",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTemplatesFromOnboarding",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildTaskTemplateDoc",
+        "getDisplayTitle",
+        "sanitizeString",
+        "sortTemplatesByPriority"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTemplateTitle",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildProcessTitle",
+        "buildTaskInstanceDoc",
+        "buildTaskInstanceId",
+        "buildTaskTemplateDoc",
+        "getAreaTypeDefinition",
+        "getControlMatrixItem",
+        "getUnitTypeDefinition",
+        "sanitizeString",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildUnitId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAreaTitle",
+        "buildProcessTitle",
+        "buildTaskTemplateDoc",
+        "buildTemplateTitle",
+        "buildUnitTitle",
+        "getAreaTypeDefinition",
+        "getControlMatrixItem",
+        "getProcessTypeDefinition",
+        "getUnitTypeDefinition",
+        "sanitizeString",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildUnitTitle",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAreaTitle",
+        "buildProcessTitle",
+        "buildTaskTemplateDoc",
+        "buildTemplateTitle",
+        "getAreaTypeDefinition",
+        "getControlMatrixItem",
+        "getProcessTypeDefinition",
+        "getUnitTypeDefinition",
+        "sanitizeString",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAreaTypeDefinition",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildAreaTitle",
+        "buildProcessTitle",
+        "buildTaskTemplateDoc",
+        "buildTemplateTitle",
+        "buildUnitTitle",
+        "getControlMatrixItem",
+        "getProcessTypeDefinition",
+        "getUnitTypeDefinition",
+        "sanitizeString",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getControlMatrixItem",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAreaTitle",
+        "buildProcessTitle",
+        "buildTaskTemplateDoc",
+        "buildTemplateTitle",
+        "buildUnitTitle",
+        "getAreaTypeDefinition",
+        "getProcessTypeDefinition",
+        "getUnitTypeDefinition",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDisplayTitle",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProcessTypeDefinition",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAreaTitle",
+        "buildProcessTitle",
+        "buildTaskTemplateDoc",
+        "buildTemplateTitle",
+        "buildUnitTitle",
+        "getAreaTypeDefinition",
+        "getControlMatrixItem",
+        "getUnitTypeDefinition",
+        "sanitizeString",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getUnitTypeDefinition",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildAreaTitle",
+        "buildProcessTitle",
+        "buildTaskTemplateDoc",
+        "buildTemplateTitle",
+        "buildUnitTitle",
+        "getAreaTypeDefinition",
+        "getControlMatrixItem",
+        "getProcessTypeDefinition",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "pushUnits",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "buildAreaTitle",
+        "buildOnboardingAreaRecords",
+        "buildOnboardingProcessRecords",
+        "buildTaskTemplateDoc",
+        "buildTemplatesFromOnboarding",
+        "buildUnitId",
+        "buildUnitTitle",
+        "slugify",
+        "sortTemplatesByPriority"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeString",
+      "type": "function",
+      "approx_occurrences": 15,
+      "calls": [
+        "buildAreaTitle",
+        "buildProcessTitle",
+        "buildTaskTemplateDoc",
+        "buildTemplateTitle",
+        "buildUnitId",
+        "buildUnitTitle",
+        "getAreaTypeDefinition",
+        "getControlMatrixItem",
+        "getProcessTypeDefinition",
+        "getUnitTypeDefinition",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildAreaTitle",
+        "buildProcessTitle",
+        "buildTaskTemplateDoc",
+        "buildTemplateTitle",
+        "buildUnitId",
+        "buildUnitTitle",
+        "getAreaTypeDefinition",
+        "getControlMatrixItem",
+        "getProcessTypeDefinition",
+        "getUnitTypeDefinition",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sortTemplatesByPriority",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getDisplayTitle",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risikoanalyse Console Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            margin: 0;
+        }
+        .console {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4ec9b0;
+            margin-top: 0;
+        }
+        .instructions {
+            background: #2d2d30;
+            padding: 15px;
+            border-left: 3px solid #007acc;
+            margin-bottom: 20px;
+        }
+        .code {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .command {
+            color: #ce9178;
+        }
+        .comment {
+            color: #6a9955;
+        }
+        .keyword {
+            color: #569cd6;
+        }
+        .string {
+            color: #ce9178;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+        #output {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success { color: #4ec9b0; }
+        .error { color: #f48771; }
+        .info { color: #4fc1ff; }
+    </style>
+</head>
+<body>
+    <div class="console">
+        <h1>🔧 Risikoanalyse Console Test</h1>
+        
+        <div class="instructions">
+            <h3>Instruktioner:</h3>
+            <ol>
+                <li>Åbn browser DevTools (F12)</li>
+                <li>Gå til Console tab</li>
+                <li>Klik på en af knapperne nedenfor for at køre kommandoen</li>
+                <li>Se resultatet i både DevTools Console og nedenfor</li>
+            </ol>
+        </div>
+
+        <h3>Test Commands:</h3>
+        
+        <button onclick="testKinesiskeMur()">Test: Kinesiske Mur</button>
+        <button onclick="testPizzeria17()">Test: Pizzeria 17</button>
+        <button onclick="testPizzeria18()">Test: Pizzeria 18</button>
+        <button onclick="testCustom()">Test: Custom IDs</button>
+
+        <div id="output">Klik på en knap for at køre test...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-functions.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmwnoJ9RpxjS_3u8t2Dfa6QB_Q-ctbsjQ",
+            authDomain: "madkontrollen.firebaseapp.com",
+            projectId: "madkontrollen",
+            storageBucket: "madkontrollen.firebasestorage.app",
+            messagingSenderId: "937588793415",
+            appId: "1:937588793415:web:7bf372dff6e98c9bad9162",
+            measurementId: "G-KPVDR4PSVK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const functions = getFunctions(app, 'us-central1');
+
+        // Sign in anonymously
+        signInAnonymously(auth).then(() => {
+            log('✅ Signed in anonymously', 'success');
+        }).catch((error) => {
+            log('❌ Auth error: ' + error.message, 'error');
+        });
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            const line = `[${timestamp}] ${message}\n`;
+            
+            const span = document.createElement('span');
+            span.className = className;
+            span.textContent = line;
+            
+            if (output.textContent === 'Klik på en knap for at køre test...') {
+                output.textContent = '';
+            }
+            
+            output.appendChild(span);
+            output.scrollTop = output.scrollHeight;
+            
+            console.log(message);
+        }
+
+        async function generateRiskAnalysis(companyId, locationId) {
+            log(`🔍 Starting generation for ${companyId}`, 'info');
+            log(`   Location: ${locationId}`, 'info');
+            
+            try {
+                const manualGenerateRiskAnalysis = httpsCallable(functions, 'manualGenerateRiskAnalysis');
+                
+                log('📡 Calling Firebase Function...', 'info');
+                const result = await manualGenerateRiskAnalysis({ companyId, locationId });
+                
+                log('✅ SUCCESS!', 'success');
+                log(`   Control Points: ${result.data.controlPointsGenerated}`, 'success');
+                log(`   Path: ${result.data.path}`, 'success');
+                log('', 'info');
+                log('🎉 Gå til risikoanalyse.html for at se resultatet!', 'success');
+                
+                return result.data;
+            } catch (error) {
+                log('❌ ERROR!', 'error');
+                log(`   Code: ${error.code}`, 'error');
+                log(`   Message: ${error.message}`, 'error');
+                if (error.details) {
+                    log(`   Details: ${JSON.stringify(error.details)}`, 'error');
+                }
+                throw error;
+            }
+        }
+
+        function getProfileContext(fallbackCompanyId) {
+            const profile = window.__DEBUG_PROFILE__;
+            if (profile && profile.companyId) {
+                const companyId  = String(profile.companyId || "").trim();
+                const locationId = String(profile.primaryLocationId || profile.locationId || "").trim();
+                if (companyId && locationId) return { companyId, locationId };
+            }
+            // fallback to explicit ID
+            return {
+                companyId:  fallbackCompanyId,
+                locationId: fallbackCompanyId + '__main'
+            };
+        }
+
+        window.testKinesiskeMur = async function() {
+            const { companyId, locationId } = getProfileContext('onboarding_test-kinesiske-mur');
+            await generateRiskAnalysis(companyId, locationId);
+        };
+
+        window.testPizzeria17 = async function() {
+            const { companyId, locationId } = getProfileContext('onboarding_test-pizzeria-aps-17');
+            await generateRiskAnalysis(companyId, locationId);
+        };
+
+        window.testPizzeria18 = async function() {
+            const { companyId, locationId } = getProfileContext('onboarding_test-pizzeria-aps-18');
+            await generateRiskAnalysis(companyId, locationId);
+        };
+
+        window.testCustom = function() {
+            const profile = window.__DEBUG_PROFILE__;
+            const defaultCompany  = profile?.companyId  || '';
+            const defaultLocation = profile?.primaryLocationId || profile?.locationId || '';
+            const companyId  = prompt('Enter Company ID:',  defaultCompany);
+            const locationId = prompt('Enter Location ID:', defaultLocation);
+            if (companyId && locationId) {
+                generateRiskAnalysis(companyId, locationId);
+            }
+        };
+
+        // Make functions available globally
+        window.generateRiskAnalysis = generateRiskAnalysis;
+        window.log = log;
+    </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "source_file": "public/scripts/audit-guide-mapping.cjs",
+  "module": "general",
+  "imports": [
+    "../../functions/guideResolver",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "auditGuideMapping",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "auditGuideMapping"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

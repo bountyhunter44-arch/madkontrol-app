@@ -1,0 +1,33 @@
+{
+  "name": "onboarding",
+  "files": [
+    "functions/admin/generateRisksFromOnboardingAnswers.js",
+    "functions/egenkontrol/adapters/onboardingAdapter.js",
+    "functions/fixOnboardingStructure.js",
+    "functions/provisioning.js",
+    "public/modules/egenkontrol/buildRiskAnalysisFromOnboarding.js",
+    "public/modules/egenkontrol/onboarding.html",
+    "public/modules/egenkontrol/onboardingGenerator.js",
+    "public/modules/egenkontrol/onboardingPresets.js",
+    "public/modules/egenkontrol/onboardingService.js",
+    "public/onboarding.html",
+    "scripts/generate-templates-from-onboarding.cjs",
+    "scripts/inspect-onboarding.cjs",
+    "scripts/provision-missing-equipment.cjs",
+    "scripts/reprovision-and-audit.cjs"
+  ],
+  "total_functions": 154,
+  "flags": [],
+  "collections": [
+    "companies",
+    "equipment",
+    "locations",
+    "onboarding_answers",
+    "onboarding_sessions",
+    "risks",
+    "task_instances",
+    "task_templates",
+    "users"
+  ],
+  "risks": []
+}

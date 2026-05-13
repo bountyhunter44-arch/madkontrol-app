@@ -1,0 +1,1252 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Start dag | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    .page-shell{
+      padding-top:20px;
+    }
+
+    .startday-layout{
+      display:grid;
+      grid-template-columns:280px minmax(0, 1fr);
+      gap:18px;
+      align-items:start;
+    }
+
+    .startday-main{
+      min-width:0;
+    }
+
+    .startday-main .container{
+      width:100%;
+      margin:0;
+    }
+
+    .startday-stack{
+      display:grid;
+      gap:22px;
+    }
+
+    .startday-hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:32px;
+      padding:28px;
+      color:#fff;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,.12) 0%, transparent 26%),
+        linear-gradient(135deg,#17361a 0%, #245c2b 52%, #2e7d32 100%);
+      box-shadow:0 20px 50px rgba(31,90,35,.22);
+    }
+
+    .startday-hero::after{
+      content:"";
+      position:absolute;
+      right:-90px;
+      bottom:-90px;
+      width:260px;
+      height:260px;
+      border-radius:50%;
+      background:rgba(255,255,255,.08);
+      pointer-events:none;
+    }
+
+    .startday-hero-grid{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:minmax(0, 1.1fr) minmax(280px, .9fr);
+      gap:20px;
+      align-items:stretch;
+    }
+
+    .startday-eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.16);
+      font-size:13px;
+      font-weight:800;
+      margin-bottom:16px;
+    }
+
+    .startday-hero h1{
+      margin:0 0 10px;
+      font-size:42px;
+      line-height:1.02;
+      letter-spacing:-0.03em;
+      max-width:760px;
+      color:#fff;
+    }
+
+    .startday-hero p{
+      margin:0;
+      max-width:760px;
+      color:rgba(255,255,255,.88);
+      line-height:1.65;
+      font-size:16px;
+    }
+
+    .startday-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:24px;
+    }
+
+    .startday-actions .btn{
+      min-height:54px;
+      padding:14px 20px;
+    }
+
+    .startday-primary-btn{
+      min-width:220px;
+      font-size:16px;
+    }
+
+    .startday-side{
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:24px;
+      padding:18px;
+      backdrop-filter:blur(6px);
+    }
+
+    .startday-side-title{
+      margin:0 0 12px;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.76);
+    }
+
+    .startday-side-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .startday-side-item{
+      padding:12px 14px;
+      border-radius:16px;
+      background:rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.12);
+    }
+
+    .startday-side-item strong{
+      display:block;
+      font-size:14px;
+      margin-bottom:4px;
+      color:#fff;
+    }
+
+    .startday-side-item span{
+      display:block;
+      font-size:13px;
+      line-height:1.5;
+      color:rgba(255,255,255,.78);
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:16px;
+    }
+
+    .stat-card{
+      background:var(--panel, #fff);
+      border:1px solid var(--border, #d9e4d9);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:var(--shadow-soft, 0 8px 24px rgba(16,24,16,0.06));
+    }
+
+    .stat-value{
+      font-size:30px;
+      font-weight:800;
+      line-height:1;
+      margin-bottom:8px;
+      color:var(--text, #182118);
+    }
+
+    .stat-label{
+      color:var(--muted, #667267);
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    .content-grid{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:22px;
+    }
+
+    .stack{
+      display:grid;
+      gap:22px;
+      min-width:0;
+    }
+
+    .card{
+      background:var(--panel, #fff);
+      border:1px solid var(--border, #d9e4d9);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:var(--shadow, 0 14px 34px rgba(16,24,16,0.08));
+    }
+
+    .card h2{
+      margin:0 0 8px;
+      font-size:22px;
+      letter-spacing:-0.02em;
+      color:var(--text, #182118);
+    }
+
+    .card-lead{
+      margin:0 0 18px;
+      color:var(--muted, #667267);
+      line-height:1.6;
+    }
+
+    .mode-banner{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      padding:18px;
+      border-radius:20px;
+      border:1px solid #dbe7db;
+      background:linear-gradient(180deg,#fcfffc 0%, #f3faf3 100%);
+    }
+
+    .mode-banner.is-closed{
+      background:linear-gradient(180deg,#fff8f8 0%, #fff1f1 100%);
+      border-color:#f0d3d3;
+    }
+
+    .mode-banner.is-vacation{
+      background:linear-gradient(180deg,#fffbf4 0%, #fff4df 100%);
+      border-color:#f1dfba;
+    }
+
+    .mode-banner strong{
+      display:block;
+      margin-bottom:6px;
+      font-size:16px;
+      color:var(--text, #182118);
+    }
+
+    .mode-banner p{
+      margin:0;
+      color:var(--muted, #667267);
+      line-height:1.55;
+    }
+
+    .mode-chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:38px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border, #d9e4d9);
+      font-size:13px;
+      font-weight:800;
+      color:var(--text, #182118);
+      white-space:nowrap;
+    }
+
+    .task-preview-list{
+      display:grid;
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .task-preview-item{
+      display:grid;
+      grid-template-columns:auto minmax(0, 1fr) auto;
+      gap:14px;
+      align-items:flex-start;
+      padding:16px;
+      border-radius:18px;
+      border:1px solid var(--border, #d9e4d9);
+      background:var(--panel-2, #f8fbf8);
+    }
+    /* Collapse */
+    .task-preview-head{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .task-preview-chevron{
+      font-size:11px;
+      color:#9aaa9a;
+      flex-shrink:0;
+      transition:transform .2s;
+    }
+    .task-preview-item.is-open .task-preview-chevron{ transform:rotate(90deg); }
+    .task-preview-body{ display:none; }
+    .task-preview-item.is-open .task-preview-body{ display:block; }
+
+    .task-preview-icon{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      font-size:18px;
+      background:#edf6ed;
+      color:#245b29;
+      border:1px solid #d5e8d6;
+      flex-shrink:0;
+    }
+
+    .task-preview-item h3{
+      margin:0 0 6px;
+      font-size:17px;
+      color:var(--text, #182118);
+    }
+
+    .task-preview-item p{
+      margin:0;
+      color:var(--muted, #667267);
+      line-height:1.55;
+      font-size:14px;
+    }
+
+    .task-preview-tags{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .task-tag{
+      display:inline-flex;
+      align-items:center;
+      min-height:30px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      background:#fff;
+      border:1px solid var(--border, #d9e4d9);
+      color:#425442;
+    }
+
+    .task-preview-status{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:34px;
+      padding:8px 10px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border, #d9e4d9);
+      font-size:12px;
+      font-weight:800;
+      color:#425442;
+      white-space:nowrap;
+    }
+
+    .step-list{
+      display:grid;
+      gap:14px;
+    }
+
+    .step-item{
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      padding:16px;
+      border-radius:18px;
+      border:1px solid var(--border, #d9e4d9);
+      background:#fff;
+    }
+
+    .step-no{
+      width:36px;
+      height:36px;
+      border-radius:999px;
+      display:grid;
+      place-items:center;
+      font-weight:800;
+      background:#edf6ed;
+      color:#245b29;
+      flex-shrink:0;
+    }
+
+    .step-item h3{
+      margin:0 0 4px;
+      font-size:16px;
+      color:var(--text, #182118);
+    }
+
+    .step-item p{
+      margin:0;
+      color:var(--muted, #667267);
+      line-height:1.55;
+      font-size:14px;
+    }
+
+    .focus-box{
+      padding:18px;
+      border-radius:20px;
+      border:1px solid #d7e7d8;
+      background:linear-gradient(180deg,#f9fcf9 0%, #f1f8f1 100%);
+    }
+
+    .focus-box strong{
+      display:block;
+      margin-bottom:8px;
+      font-size:16px;
+      color:var(--text, #182118);
+    }
+
+    .focus-box p{
+      margin:0;
+      color:var(--muted, #667267);
+      line-height:1.6;
+    }
+
+    .action-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:12px;
+      margin-top:16px;
+    }
+
+    .action-tile{
+      padding:16px;
+      border-radius:18px;
+      border:1px solid var(--border, #d9e4d9);
+      background:#fff;
+    }
+
+    .action-tile strong{
+      display:block;
+      margin-bottom:6px;
+      font-size:15px;
+      color:var(--text, #182118);
+    }
+
+    .action-tile span{
+      display:block;
+      color:var(--muted, #667267);
+      line-height:1.5;
+      font-size:14px;
+    }
+
+    .status-box{
+      padding:16px 18px;
+      border-radius:18px;
+      border:1px solid var(--border, #d9e4d9);
+      background:#fff;
+      color:var(--text, #182118);
+      line-height:1.6;
+    }
+
+    .status-box.is-success{
+      background:#f8fff8;
+      border-color:#d8ead9;
+      color:#245b29;
+    }
+
+    .status-box.is-error{
+      background:#fff7f7;
+      border-color:#f0d3d3;
+      color:#8c2f2f;
+    }
+
+    .status-box.is-loading{
+      background:#f8fbff;
+      border-color:#d8e4f5;
+      color:#204e7b;
+    }
+
+    .footer-note{
+      color:var(--muted, #667267);
+      text-align:center;
+      font-size:14px;
+      padding:8px 0 4px;
+    }
+
+    @media (max-width: 1200px){
+      .startday-layout,
+      .content-grid,
+      .startday-hero-grid,
+      .stats-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 860px){
+      .task-preview-item{
+        grid-template-columns:auto minmax(0, 1fr);
+      }
+
+      .task-preview-status{
+        grid-column:1 / -1;
+        justify-self:start;
+      }
+
+      .action-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 760px){
+      .page-shell{
+        padding-top:16px;
+      }
+
+      .startday-hero{
+        padding:22px;
+        border-radius:24px;
+      }
+
+      .startday-hero h1{
+        font-size:32px;
+      }
+
+      .startday-actions{
+        flex-direction:column;
+      }
+
+      .startday-actions .btn{
+        width:100%;
+      }
+    }
+  </style>
+</head>
+<body data-page="start-dag">
+  <div id="headerMount"></div>
+
+  <main class="page-shell">
+    <div class="container startday-layout">
+      <div id="sidebarMount"></div>
+
+      <div class="startday-main">
+        <div class="startday-stack">
+          <section class="startday-hero">
+            <div class="startday-hero-grid">
+              <div>
+                <div class="startday-eyebrow">✅ Dagens flow • Egenkontrol i fokus</div>
+
+                <h1>Start dagen med ét klik</h1>
+
+                <p>
+                  Når dagen startes, opretter systemet dagens egenkontrol-opgaver automatisk for den valgte lokation.
+                  Medarbejderen skal kun forholde sig til det, der skal gøres nu.
+                </p>
+
+                <div class="startday-actions">
+                  <button id="startDayBtn" class="btn btn-primary startday-primary-btn" type="button">
+                    Start dag
+                  </button>
+
+                  <button id="previewTasksBtn" class="btn btn-secondary" type="button">
+                    Se hvad der oprettes
+                  </button>
+                </div>
+              </div>
+
+              <aside class="startday-side">
+                <p class="startday-side-title">Dagens pakke</p>
+
+                <div class="startday-side-list">
+                  <div class="startday-side-item">
+                    <strong>Temperaturkontrol</strong>
+                    <span>Køl, frost, varmholdelse og kritiske målinger.</span>
+                  </div>
+
+                  <div class="startday-side-item">
+                    <strong>Rengøring</strong>
+                    <span>Åbning, drift og faste daglige rutiner.</span>
+                  </div>
+
+                  <div class="startday-side-item">
+                    <strong>Modtagekontrol</strong>
+                    <span>Varer, emballage, temperatur og godkendelse.</span>
+                  </div>
+
+                  <div class="startday-side-item">
+                    <strong>Lukkerutiner</strong>
+                    <span>Slut på dagen, signering og kontrolklar historik.</span>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <section id="startDayStatus" class="status-box">
+            Klar til at starte dagen for lokationen.
+          </section>
+
+          <section class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="todayTaskCount">0</div>
+              <div class="stat-label">Opgaver planlagt for i dag</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-value" id="todayDoneCount">0</div>
+              <div class="stat-label">Opgaver allerede udført</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-value" id="todayMissingCount">0</div>
+              <div class="stat-label">Opgaver mangler endnu</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-value" id="todayModeLabel">Åben</div>
+              <div class="stat-label">Driftstatus for lokationen</div>
+            </div>
+          </section>
+
+          <section class="content-grid">
+            <div class="stack">
+              <section class="card">
+                <h2>Driftstatus før du starter dagen</h2>
+                <p class="card-lead">
+                  Systemet skal tage højde for normal drift, lukket eller ferie, så medarbejdere ikke bliver mødt af forkerte opgaver.
+                </p>
+
+                <div id="modeBanner" class="mode-banner">
+                  <div>
+                    <strong id="modeTitle">Lokationen er åben for drift</strong>
+                    <p id="modeText">
+                      Dagens normale egenkontrol-opgaver kan oprettes og vises til medarbejderne.
+                    </p>
+                  </div>
+
+                  <span id="modeChip" class="mode-chip">Normal drift</span>
+                </div>
+              </section>
+
+              <section class="card">
+                <h2>Det systemet opretter ved Start dag</h2>
+                <p class="card-lead">
+                  Dagens opgaver bygges fra faste skabeloner, så der ikke skal opfindes rutiner manuelt hver morgen.
+                </p>
+
+                <div id="taskPreviewList" class="task-preview-list"></div>
+              </section>
+            </div>
+
+            <div class="stack">
+              <section class="card">
+                <h2>Hvordan flowet skal føles</h2>
+                <p class="card-lead">
+                  Hele pointen er, at medarbejderen kun ser det nødvendige og hurtigt kan komme i gang.
+                </p>
+
+                <div class="step-list">
+                  <div class="step-item">
+                    <div class="step-no">1</div>
+                    <div>
+                      <h3>Ansvarlig starter dagen</h3>
+                      <p>Køkkenchef eller ansvarlig bruger trykker på Start dag for den aktuelle lokation.</p>
+                    </div>
+                  </div>
+
+                  <div class="step-item">
+                    <div class="step-no">2</div>
+                    <div>
+                      <h3>Dagens opgaver genereres</h3>
+                      <p>Temperatur, rengøring, modtagekontrol og lukkerutiner oprettes automatisk.</p>
+                    </div>
+                  </div>
+
+                  <div class="step-item">
+                    <div class="step-no">3</div>
+                    <div>
+                      <h3>Medarbejder ser kun det relevante</h3>
+                      <p>Ingen unødigt rod. Kun dagens handlinger og tydelige knapper til udførsel.</p>
+                    </div>
+                  </div>
+
+                  <div class="step-item">
+                    <div class="step-no">4</div>
+                    <div>
+                      <h3>Alt gemmes til historik</h3>
+                      <p>Senere kan rapporter, afvigelser og kontrolbesøg læse direkte fra dagens registreringer.</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card">
+                <h2>Fokus på mobil først</h2>
+                <p class="card-lead">
+                  Når dagen er startet, skal mobilen være arbejdsfladen. Det skal være hurtigt, simpelt og uden støj.
+                </p>
+
+                <div class="focus-box">
+                  <strong>Det vigtige her</strong>
+                  <p>
+                    Når Start dag er trykket, skal medarbejderen ikke mødes af 20 links. Kun dagens opgaver, status og tydelige handlinger.
+                  </p>
+
+                  <div class="action-grid">
+                    <div class="action-tile">
+                      <strong>Vis kun dagens opgaver</strong>
+                      <span>Skjul støj, sekundære moduler og administration på mobil.</span>
+                    </div>
+
+                    <div class="action-tile">
+                      <strong>Små hurtige handlinger</strong>
+                      <span>Gem, afvigelse, ikke relevant og temperaturregistrering skal være lette.</span>
+                    </div>
+
+                    <div class="action-tile">
+                      <strong>Tydelig driftstatus</strong>
+                      <span>Er stedet lukket eller i ferie, må systemet ikke vise falske mangler.</span>
+                    </div>
+
+                    <div class="action-tile">
+                      <strong>Klar til database</strong>
+                      <span>UI er nu koblet til callable backend til oprettelse af dagens opgaver.</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <div class="footer-note">
+            Start dag-siden er nu koblet til backend og kan oprette dagens task instances fra task templates.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+  import { loadLayout } from "/core/layout.js";
+  import { setupAuthGate } from "/core/auth.js";
+  import app, { db } from "/core/firebase-config.js";
+  import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+  import {
+    collection,
+    query,
+    where,
+    getDocs,
+    limit
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  if (typeof loadLayout === "function") {
+    await loadLayout();
+  }
+
+  const functions = getFunctions(app, "us-central1");
+
+  const SETTINGS = {
+    companyId: "",
+    companyLegacyId: "",
+    locationId: "",
+    locationLegacyId: "",
+    currentUserName: "",
+    currentUserRole: "employee",
+    currentUserLocations: [],
+    currentUserCompanyId: "",
+    locationName: "Hovedlokation",
+    operatingMode: "open"
+  };
+
+  const todayTaskCountEl = document.getElementById("todayTaskCount");
+  const todayDoneCountEl = document.getElementById("todayDoneCount");
+  const todayMissingCountEl = document.getElementById("todayMissingCount");
+  const todayModeLabelEl = document.getElementById("todayModeLabel");
+
+  const modeBannerEl = document.getElementById("modeBanner");
+  const modeTitleEl = document.getElementById("modeTitle");
+  const modeTextEl = document.getElementById("modeText");
+  const modeChipEl = document.getElementById("modeChip");
+
+  const taskPreviewListEl = document.getElementById("taskPreviewList");
+  taskPreviewListEl.addEventListener("click", e => {
+    const head = e.target.closest(".task-preview-head");
+    if (head) head.closest(".task-preview-item")?.classList.toggle("is-open");
+  });
+  const startDayStatusEl = document.getElementById("startDayStatus");
+
+  const startDayBtn = document.getElementById("startDayBtn");
+  const previewTasksBtn = document.getElementById("previewTasksBtn");
+
+  let currentTasks = [];
+  let hasStartedToday = false;
+
+  function toLegacyId(value = "") {
+    return String(value || "").replace(/_/g, "-");
+  }
+
+  function normalizeLocationIds(value) {
+    const values = [];
+
+    const pushValue = (item) => {
+      const normalized = String(item || "").trim();
+      if (normalized) values.push(normalized);
+    };
+
+    if (Array.isArray(value)) {
+      value.forEach(pushValue);
+    } else if (value && typeof value === "object") {
+      if (Array.isArray(value.locationIds)) {
+        value.locationIds.forEach(pushValue);
+      }
+      pushValue(value.primaryLocationId);
+      pushValue(value.locationId);
+    } else {
+      pushValue(value);
+    }
+
+    return [...new Set(values)];
+  }
+
+  function getProfileCompanyId(profile) {
+    return String(profile?.companyId || profile?.organizationId || "").trim();
+  }
+
+  function getStoredLocationId() {
+    try {
+      return String(sessionStorage.getItem("mkp_selected_locationId") || "").trim();
+    } catch {
+      return "";
+    }
+  }
+
+  function getTodayKey() {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "Europe/Copenhagen",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    });
+    return formatter.format(now);
+  }
+
+  const START_DAY_ALLOWED_ROLES = ["owner", "hq_admin", "location_manager", "admin", "manager", "employee"];
+
+  function userCanStartDay() {
+    const role = String(SETTINGS.currentUserRole || "").trim().toLowerCase();
+    if (!START_DAY_ALLOWED_ROLES.includes(role)) return false;
+
+    const companyScope = String(SETTINGS.currentUserCompanyId || "").trim();
+    if (companyScope && ![SETTINGS.companyId, SETTINGS.companyLegacyId].includes(companyScope)) {
+      return false;
+    }
+
+    const allowedLocations = Array.isArray(SETTINGS.currentUserLocations)
+      ? SETTINGS.currentUserLocations.map((item) => String(item || "").trim()).filter(Boolean)
+      : [];
+
+    // Backward compatible: if locationIds are not set yet, keep existing admin behavior.
+    if (!allowedLocations.length) return true;
+
+    return [SETTINGS.locationId, SETTINGS.locationLegacyId].some((id) => allowedLocations.includes(id));
+  }
+
+  function getModeConfig(mode) {
+    if (mode === "closed") {
+      return {
+        title: "Lokationen er lukket",
+        text: "Dagens normale egenkontrol-opgaver skal ikke oprettes for medarbejdere i lukket tilstand.",
+        chip: "Lukket",
+        className: "mode-banner is-closed"
+      };
+    }
+
+    if (mode === "vacation") {
+      return {
+        title: "Lokationen er i ferie-mode",
+        text: "Dagens normale egenkontrol-opgaver skal sættes på pause, så medarbejdere ikke ser falske mangler.",
+        chip: "Ferie",
+        className: "mode-banner is-vacation"
+      };
+    }
+
+    return {
+      title: "Lokationen er åben for drift",
+      text: "Dagens normale egenkontrol-opgaver kan oprettes og vises til medarbejderne.",
+      chip: "Normal drift",
+      className: "mode-banner"
+    };
+  }
+
+  function renderMode() {
+    const config = getModeConfig(SETTINGS.operatingMode);
+    modeBannerEl.className = config.className;
+    modeTitleEl.textContent = config.title;
+    modeTextEl.textContent = config.text;
+    modeChipEl.textContent = config.chip;
+    todayModeLabelEl.textContent = config.chip;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function getSafeDescription(desc) {
+    if (!desc) return "";
+    if (typeof desc === "string") return desc;
+    if (typeof desc === "object") return desc.text || desc.label || desc.title || "";
+    return String(desc);
+  }
+
+  function safeTagValue(value) {
+    if (!value) return null;
+    if (typeof value === "string") return value;
+    if (typeof value === "object") return value.type || value.label || value.value || null;
+    return String(value);
+  }
+
+  function getTaskTags(task) {
+    const tags = [];
+    const push = (v) => { const s = safeTagValue(v); if (s) tags.push(s); };
+    push(task.frequency);
+    push(task.category);
+    push(task.entryType);
+    push(task.unit);
+    return tags;
+  }
+
+  function mapStatusLabel(status) {
+    if (status === "completed") return "Udført";
+    if (status === "failed") return "Afvigelse";
+    if (status === "not_in_use" || status === "not_applicable") return "Ikke i brug";
+    if (status === "pending") return "Afventer";
+    return status || "Klar";
+  }
+
+  function renderTaskPreview() {
+    if (!currentTasks.length) {
+      taskPreviewListEl.innerHTML = `
+        <div class="status-box">
+          Ingen dagsopgaver fundet endnu. Tryk på <strong>Start dag</strong> for at oprette dagens opgaver.
+        </div>
+      `;
+      return;
+    }
+
+    taskPreviewListEl.innerHTML = currentTasks.map((task) => `
+      <article class="task-preview-item">
+        <div class="task-preview-icon">${task.status === "completed" ? "✓" : task.status === "failed" ? "!" : "•"}</div>
+
+        <div>
+          <div class="task-preview-head">
+            <h3>${escapeHtml(task.title || task.taskId || "Opgave")}</h3>
+            <span class="task-preview-chevron">&#9654;</span>
+          </div>
+          <div class="task-preview-body">
+          <p>${escapeHtml(getSafeDescription(task.description) || task.title || "")}</p>
+
+          <div class="task-preview-tags">
+            ${getTaskTags(task).map((tag) => `<span class="task-tag">${escapeHtml(tag)}</span>`).join("")}
+          </div>
+          </div>
+        </div>
+
+        <div class="task-preview-status">${escapeHtml(mapStatusLabel(task.status))}</div>
+      </article>
+    `).join("");
+  }
+
+  function renderStats(tasks = []) {
+    const total = tasks.length;
+    const done = tasks.filter((task) => task.status === "completed").length;
+    const missing = tasks.filter((task) => task.status !== "completed").length;
+
+    todayTaskCountEl.textContent = String(total);
+    todayDoneCountEl.textContent = String(done);
+    todayMissingCountEl.textContent = String(missing);
+  }
+
+  function setStatus(message, type = "") {
+    startDayStatusEl.className = `status-box${type ? ` is-${type}` : ""}`;
+    startDayStatusEl.textContent = message;
+  }
+
+  async function loadTodayTasks() {
+    if (!SETTINGS.companyId || !SETTINGS.locationId) {
+      currentTasks = [];
+      renderTaskPreview();
+      renderStats([]);
+      return [];
+    }
+
+    const todayKey = getTodayKey();
+
+    let snapshot;
+    try {
+      const q = query(
+        collection(db, "task_instances"),
+        where("companyId", "==", SETTINGS.companyId),
+        where("locationId", "==", SETTINGS.locationId),
+        where("dateKey", "==", todayKey)
+      );
+      snapshot = await getDocs(q);
+    } catch (error) {
+      console.warn("task_instances companyId query fejlede, prøver organizationId:", error);
+      const qLegacy = query(
+        collection(db, "task_instances"),
+        where("organizationId", "==", SETTINGS.companyId),
+        where("locationId", "==", SETTINGS.locationId),
+        where("dateKey", "==", todayKey)
+      );
+      snapshot = await getDocs(qLegacy);
+    }
+
+    const tasks = snapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
+
+    currentTasks = tasks;
+    renderTaskPreview();
+    renderStats(tasks);
+
+    return tasks;
+  }
+
+  async function loadDailyRun() {
+    if (!SETTINGS.companyId || !SETTINGS.locationId) {
+      startDayBtn.disabled = true;
+      startDayBtn.textContent = "Start dag";
+      setStatus("Brugerens companyId/lokation mangler i users/[uid].", "error");
+      return false;
+    }
+
+    const todayKey = getTodayKey();
+
+    try {
+      let snapshot;
+      try {
+        const runQuery = query(
+          collection(db, "daily_runs"),
+          where("companyId", "==", SETTINGS.companyId),
+          where("locationId", "==", SETTINGS.locationId),
+          where("dateKey", "==", todayKey),
+          limit(1)
+        );
+        snapshot = await getDocs(runQuery);
+      } catch (primaryError) {
+        console.warn("daily_runs companyId query fejlede, prøver organizationId:", primaryError);
+        const runQueryLegacy = query(
+          collection(db, "daily_runs"),
+          where("organizationId", "==", SETTINGS.companyId),
+          where("locationId", "==", SETTINGS.locationId),
+          where("dateKey", "==", todayKey),
+          limit(1)
+        );
+        snapshot = await getDocs(runQueryLegacy);
+      }
+
+      if (!snapshot.empty) {
+        hasStartedToday = true;
+        startDayBtn.disabled = !userCanStartDay();
+        startDayBtn.textContent = userCanStartDay() ? "Opdater dagens kort" : "Dagen er startet ✓";
+        setStatus(
+          userCanStartDay()
+            ? "Dagen er allerede startet. Du kan opdatere dagens kort, hvis templates eller udstyr er ændret."
+            : "Dagen er allerede startet for denne lokation.",
+          "success"
+        );
+        return true;
+      }
+
+      hasStartedToday = false;
+      startDayBtn.disabled = false;
+      startDayBtn.textContent = "Start dag";
+      setStatus("Klar til at starte dagen for lokationen.");
+      return false;
+    } catch (error) {
+      console.error("loadDailyRun - Firestore error:", error);
+      const errorMsg = `Firestore fejl: ${error?.code || "unknown"} - ${error?.message || "check regler"}`;
+      setStatus(errorMsg, "error");
+      startDayBtn.disabled = true;
+      startDayBtn.textContent = "Fejl - reload siden";
+      return false;
+    }
+  }
+
+  async function previewStartDay() {
+    await loadTodayTasks();
+
+    if (currentTasks.length) {
+      setStatus("Viser dagens live-opgaver fra task_instances.", "success");
+    } else {
+      setStatus("Ingen live-opgaver fundet endnu. Tryk på Start dag for at oprette dem.", "loading");
+    }
+  }
+
+  let isProcessingStartDay = false;
+  let lastStartDayTime = 0;
+
+  async function startDay() {
+    if (!userCanStartDay()) {
+      setStatus("Kun medarbejdere/admin i denne lokation må starte dagen.", "error");
+      return;
+    }
+
+    if (SETTINGS.operatingMode === "closed") {
+      setStatus("Lokationen står som lukket. Start dag kan ikke køres i normal drift.", "error");
+      return;
+    }
+
+    if (SETTINGS.operatingMode === "vacation") {
+      setStatus("Lokationen står i ferie-mode. Start dag kan ikke køres i normal drift.", "error");
+      return;
+    }
+
+    // Prevent duplicate clicks within 2 seconds
+    const now = Date.now();
+    if (isProcessingStartDay) {
+      setStatus("Vent venligst - dagen startes allerede...", "warning");
+      return;
+    }
+    if (now - lastStartDayTime < 2000) {
+      setStatus("Vent 2 sekunder før du kan starte dagen igen.", "warning");
+      return;
+    }
+
+    isProcessingStartDay = true;
+    lastStartDayTime = now;
+    startDayBtn.disabled = true;
+    previewTasksBtn.disabled = true;
+    startDayBtn.textContent = hasStartedToday ? "Opdaterer kort..." : "Starter dagen...";
+    setStatus(
+      hasStartedToday
+        ? "Opdaterer dagens kort og synkroniserer task instances..."
+        : "Starter dagen og opretter task instances...",
+      "loading"
+    );
+
+    try {
+      console.log("UPDATE DAG CLICKED");
+      console.log("START GENERATION", {
+        companyId: SETTINGS.companyId,
+        locationId: SETTINGS.locationId
+      });
+
+      // Frontend-generatoren er deaktiveret. task_instances styres kun af
+      // startDayForLocation (Cloud Function) som ekspanderer per udstyrsenhed.
+      const startDayForLocation = httpsCallable(functions, "startDayForLocation");
+
+      const result = await startDayForLocation({
+        companyId: SETTINGS.companyId,
+        companyLegacyId: SETTINGS.companyLegacyId,
+        locationId: SETTINGS.locationId,
+        locationLegacyId: SETTINGS.locationLegacyId,
+        forceRefresh: hasStartedToday,
+        startedBy: SETTINGS.currentUserName,
+        currentUserRole: SETTINGS.currentUserRole
+      }).catch(err => {
+        console.warn("startDayForLocation callable fejlede (ikke kritisk):", err);
+        return { data: {} };
+      });
+
+      const data = result?.data || {};
+
+      await loadTodayTasks();
+
+      hasStartedToday = true;
+      startDayBtn.textContent = "Opdater dagens kort";
+      setStatus(data.message || "Dagen er startet, og opgaverne er oprettet.", "success");
+    } catch (error) {
+      console.error("Fejl ved Start dag:", error);
+
+      const firebaseMessage =
+        error?.message ||
+        error?.details ||
+        "Kunne ikke starte dagen. Tjek function, regler og payload.";
+
+      startDayBtn.textContent = hasStartedToday ? "Opdater dagens kort" : "Start dag";
+      setStatus(firebaseMessage, "error");
+    } finally {
+      // Keep button disabled for 2 seconds after completion
+      setTimeout(() => {
+        isProcessingStartDay = false;
+        startDayBtn.disabled = false;
+        previewTasksBtn.disabled = false;
+      }, 2000);
+    }
+  }
+
+  startDayBtn.addEventListener("click", startDay);
+  previewTasksBtn.addEventListener("click", previewStartDay);
+
+  renderMode();
+  renderTaskPreview();
+  renderStats([]);
+
+  setupAuthGate({
+    appName: "Madkontrollen Pro",
+    onAuthenticated: async ({ user, profile }) => {
+      SETTINGS.currentUserName = String(
+        profile?.displayName || user.displayName || user.email || user.uid
+      );
+      SETTINGS.currentUserRole = String(profile?.role || "employee").trim().toLowerCase();
+      SETTINGS.currentUserCompanyId = getProfileCompanyId(profile);
+      SETTINGS.currentUserLocations = normalizeLocationIds(profile);
+
+      SETTINGS.companyId = SETTINGS.currentUserCompanyId || "";
+      SETTINGS.companyLegacyId = toLegacyId(SETTINGS.companyId);
+
+      const storedLocation = getStoredLocationId();
+      const firstAllowedLocation = SETTINGS.currentUserLocations[0] || "";
+      SETTINGS.locationId = SETTINGS.currentUserLocations.includes(storedLocation)
+        ? storedLocation
+        : firstAllowedLocation;
+      SETTINGS.locationLegacyId = toLegacyId(SETTINGS.locationId);
+
+      try {
+        await loadDailyRun();
+      } catch (error) {
+        console.error("Initial loadDailyRun failed:", error);
+      }
+
+      try {
+        await loadTodayTasks();
+      } catch (error) {
+        console.error("Initial loadTodayTasks failed:", error);
+        setStatus(`Kunne ikke hente dagens opgaver: ${error?.message || "Firestore fejl"}`, "error");
+      }
+    },
+    onSignedOut: async () => {
+      currentTasks = [];
+      renderTaskPreview();
+      renderStats([]);
+      startDayBtn.disabled = true;
+      previewTasksBtn.disabled = true;
+      setStatus("Log ind for at starte dagen og se opgaver.");
+    }
+  });
+</script>
+</body>
+</html>

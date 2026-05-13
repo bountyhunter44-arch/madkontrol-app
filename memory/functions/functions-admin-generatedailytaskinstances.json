@@ -1,0 +1,278 @@
+{
+  "source_file": "functions/admin/generateDailyTaskInstances.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [
+    "generateDailyTaskInstances"
+  ],
+  "collections": [
+    "operating_overrides",
+    "task_instances",
+    "tasks"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildInstanceId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateDailyTaskInstances",
+        "getDateKey",
+        "getExistingInstance",
+        "getOperatingModeForTask",
+        "normalizeDateKey",
+        "normalizeTaskPayload",
+        "resolveOperatingMode"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_instances",
+        "tasks"
+      ]
+    },
+    {
+      "name": "dayNr",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildInstanceId",
+        "getExistingInstance",
+        "getOperatingModeForTask",
+        "getWeekdayFromDateKey",
+        "normalizeDateKey",
+        "normalizeTaskPayload",
+        "resolveOperatingMode",
+        "shouldCreateForFrequency"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "firstDayNr",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "buildInstanceId",
+        "getExistingInstance",
+        "getOperatingModeForTask",
+        "getWeekdayFromDateKey",
+        "normalizeDateKey",
+        "normalizeTaskPayload",
+        "resolveOperatingMode",
+        "shouldCreateForFrequency"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "generateDailyTaskInstances",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildInstanceId",
+        "getDateKey",
+        "getExistingInstance",
+        "getOperatingModeForTask",
+        "normalizeTaskPayload",
+        "shouldCreateForFrequency"
+      ],
+      "selectors": [],
+      "collections": [
+        "tasks"
+      ]
+    },
+    {
+      "name": "getDateKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildInstanceId",
+        "getIsoWeekNumber",
+        "getOperatingModeForTask",
+        "getWeekdayFromDateKey",
+        "normalizeDateKey",
+        "normalizeTaskPayload",
+        "resolveOperatingMode",
+        "shouldCreateForFrequency"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "getExistingInstance",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildInstanceId",
+        "generateDailyTaskInstances",
+        "getDateKey",
+        "getOperatingModeForTask",
+        "normalizeTaskPayload",
+        "shouldCreateForFrequency"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "tasks"
+      ]
+    },
+    {
+      "name": "getIsoWeekNumber",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildInstanceId",
+        "getOperatingModeForTask",
+        "getWeekdayFromDateKey",
+        "normalizeDateKey",
+        "normalizeTaskPayload",
+        "resolveOperatingMode",
+        "shouldCreateForFrequency"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "getOperatingModeForTask",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildInstanceId",
+        "generateDailyTaskInstances",
+        "getDateKey",
+        "getExistingInstance",
+        "normalizeTaskPayload",
+        "resolveOperatingMode",
+        "shouldCreateForFrequency"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_instances",
+        "tasks"
+      ]
+    },
+    {
+      "name": "getWeekdayFromDateKey",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildInstanceId",
+        "getIsoWeekNumber",
+        "getOperatingModeForTask",
+        "normalizeDateKey",
+        "normalizeTaskPayload",
+        "resolveOperatingMode",
+        "shouldCreateForFrequency"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides"
+      ]
+    },
+    {
+      "name": "normalizeDateKey",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "generateDailyTaskInstances",
+        "getDateKey",
+        "getExistingInstance",
+        "getOperatingModeForTask",
+        "normalizeTaskPayload",
+        "resolveOperatingMode"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_instances",
+        "tasks"
+      ]
+    },
+    {
+      "name": "normalizeTaskPayload",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildInstanceId",
+        "generateDailyTaskInstances",
+        "getDateKey",
+        "getExistingInstance",
+        "getOperatingModeForTask",
+        "shouldCreateForFrequency"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "tasks"
+      ]
+    },
+    {
+      "name": "resolveOperatingMode",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateDailyTaskInstances",
+        "getDateKey",
+        "getExistingInstance",
+        "getOperatingModeForTask",
+        "normalizeDateKey",
+        "normalizeTaskPayload",
+        "shouldCreateForFrequency"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_instances",
+        "tasks"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateDailyTaskInstances"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldCreateForFrequency",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildInstanceId",
+        "generateDailyTaskInstances",
+        "getDateKey",
+        "getExistingInstance",
+        "getOperatingModeForTask",
+        "getWeekdayFromDateKey",
+        "normalizeDateKey",
+        "normalizeTaskPayload",
+        "resolveOperatingMode"
+      ],
+      "selectors": [],
+      "collections": [
+        "operating_overrides",
+        "task_instances",
+        "tasks"
+      ]
+    }
+  ]
+}

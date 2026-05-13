@@ -1,0 +1,28 @@
+{
+  "source_file": "scripts/migrate-cooling-history.js",
+  "module": "cooling",
+  "imports": [
+    "../functions/egenkontrol/models/coolingHistoryModel",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "cooling_history",
+    "task_entries"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "migrateCoolingHistory",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "cooling_history",
+        "task_entries"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,563 @@
+{
+  "source_file": "public/modules/egenkontrol/logbooks.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "logbook_entries"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "activateForm",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildEntryFromForm",
+        "clearMessage",
+        "setupChoiceLists",
+        "setupSegmentedControls",
+        "setupTabs"
+      ],
+      "selectors": [
+        ".choice-item",
+        ".form-panel",
+        ".logbook-card",
+        ".tab-btn",
+        "[data-choice-list]",
+        "[data-segmented]",
+        "button"
+      ],
+      "collections": []
+    },
+    {
+      "name": "buildEntryFromForm",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildLogbookCards",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "activateForm",
+        "escapeHtml",
+        "getEntryPrimaryProduct",
+        "getMonthKey",
+        "toJsDate",
+        "updateMetrics"
+      ],
+      "selectors": [
+        ".form-card",
+        ".js-open-form",
+        ".logbook-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "clearMessage",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "activateForm",
+        "buildEntryFromForm",
+        "setupChoiceLists",
+        "setupSegmentedControls",
+        "setupTabs"
+      ],
+      "selectors": [
+        ".choice-item",
+        ".form-panel",
+        ".logbook-card",
+        ".tab-btn",
+        "[data-choice-list]",
+        "[data-segmented]",
+        "button"
+      ],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 20,
+      "calls": [
+        "buildLogbookCards",
+        "formatDate",
+        "formatTime",
+        "getEntryAction",
+        "getEntryBatch",
+        "getEntryPrimaryProduct",
+        "getEntryRegistration",
+        "getEntrySortTime",
+        "getMonthKey",
+        "getStatusLabel",
+        "toJsDate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildLogbookCards",
+        "escapeHtml",
+        "formatTime",
+        "getEntryAction",
+        "getEntryBatch",
+        "getEntryPrimaryProduct",
+        "getEntryRegistration",
+        "getEntrySortTime",
+        "getMonthKey",
+        "getStatusLabel",
+        "toJsDate"
+      ],
+      "selectors": [
+        ".js-open-form"
+      ],
+      "collections": []
+    },
+    {
+      "name": "formatTime",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "activateForm",
+        "buildLogbookCards",
+        "escapeHtml",
+        "getEntryAction",
+        "getEntryBatch",
+        "getEntryPrimaryProduct",
+        "getEntryRegistration",
+        "getEntrySortTime",
+        "getMonthKey",
+        "getStatusLabel",
+        "toJsDate"
+      ],
+      "selectors": [
+        ".form-card",
+        ".js-open-form"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getEntryAction",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "activateForm",
+        "buildLogbookCards",
+        "escapeHtml",
+        "getEntrySortTime",
+        "getMonthKey",
+        "toJsDate",
+        "updateMetrics"
+      ],
+      "selectors": [
+        ".form-card",
+        ".js-open-form",
+        ".logbook-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getEntryBatch",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "activateForm",
+        "buildLogbookCards",
+        "escapeHtml",
+        "getEntryAction",
+        "getEntryRegistration",
+        "getEntrySortTime",
+        "getMonthKey",
+        "toJsDate",
+        "updateMetrics"
+      ],
+      "selectors": [
+        ".form-card",
+        ".js-open-form",
+        ".logbook-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getEntryPrimaryProduct",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "activateForm",
+        "buildLogbookCards",
+        "escapeHtml",
+        "getEntryAction",
+        "getEntryBatch",
+        "getEntryRegistration",
+        "getEntrySortTime",
+        "getMonthKey",
+        "toJsDate",
+        "updateMetrics"
+      ],
+      "selectors": [
+        ".form-card",
+        ".js-open-form",
+        ".logbook-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getEntryRegistration",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "activateForm",
+        "buildLogbookCards",
+        "escapeHtml",
+        "getEntryAction",
+        "getEntrySortTime",
+        "getMonthKey",
+        "toJsDate",
+        "updateMetrics"
+      ],
+      "selectors": [
+        ".form-card",
+        ".js-open-form",
+        ".logbook-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getEntrySortTime",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "activateForm",
+        "buildLogbookCards",
+        "escapeHtml",
+        "getEntryPrimaryProduct",
+        "getMonthKey",
+        "toJsDate",
+        "updateMetrics"
+      ],
+      "selectors": [
+        ".form-card",
+        ".js-open-form",
+        ".logbook-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getFilteredEntries",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDate",
+        "formatTime",
+        "getEntryAction",
+        "getEntryBatch",
+        "getEntryPrimaryProduct",
+        "getEntryRegistration",
+        "getEntrySortTime",
+        "renderEntries",
+        "updateMetrics"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getMonthKey",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "activateForm",
+        "buildLogbookCards",
+        "escapeHtml",
+        "getEntryPrimaryProduct",
+        "getEntrySortTime",
+        "toJsDate",
+        "updateMetrics"
+      ],
+      "selectors": [
+        ".form-card",
+        ".js-open-form",
+        ".logbook-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getStatusLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "activateForm",
+        "buildLogbookCards",
+        "escapeHtml",
+        "getEntryAction",
+        "getEntryBatch",
+        "getEntryPrimaryProduct",
+        "getEntryRegistration",
+        "getEntrySortTime",
+        "getMonthKey",
+        "toJsDate"
+      ],
+      "selectors": [
+        ".form-card",
+        ".js-open-form",
+        ".logbook-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "handleFormSubmit",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildEntryFromForm",
+        "buildLogbookCards",
+        "clearMessage",
+        "loadEntries",
+        "renderEntries",
+        "setupChoiceLists",
+        "setupFilters",
+        "setupForms",
+        "setupGlobalActions",
+        "setupSegmentedControls",
+        "setupTabs",
+        "showMessage"
+      ],
+      "selectors": [
+        ".choice-item",
+        ".form-card",
+        "[data-segmented] button",
+        "form[data-log-form]"
+      ],
+      "collections": [
+        "logbook_entries"
+      ]
+    },
+    {
+      "name": "loadEntries",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildEntryFromForm",
+        "buildLogbookCards",
+        "clearMessage",
+        "getEntrySortTime",
+        "handleFormSubmit",
+        "renderEntries",
+        "showMessage"
+      ],
+      "selectors": [],
+      "collections": [
+        "logbook_entries"
+      ]
+    },
+    {
+      "name": "renderEntries",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "activateForm",
+        "clearMessage",
+        "escapeHtml",
+        "formatDate",
+        "formatTime",
+        "getEntryAction",
+        "getEntryBatch",
+        "getEntryPrimaryProduct",
+        "getEntryRegistration",
+        "getFilteredEntries",
+        "getStatusLabel",
+        "setupSegmentedControls",
+        "setupTabs",
+        "showMessage",
+        "updateMetrics"
+      ],
+      "selectors": [
+        ".form-panel",
+        ".logbook-card",
+        ".tab-btn"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setupChoiceLists",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryFromForm"
+      ],
+      "selectors": [
+        ".choice-item",
+        "[data-choice-list]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setupFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildLogbookCards",
+        "loadEntries",
+        "renderEntries",
+        "setupChoiceLists",
+        "setupForms",
+        "setupGlobalActions",
+        "setupSegmentedControls",
+        "setupTabs"
+      ],
+      "selectors": [
+        ".form-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setupForms",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildLogbookCards",
+        "clearMessage",
+        "loadEntries",
+        "renderEntries",
+        "setupChoiceLists",
+        "setupFilters",
+        "setupGlobalActions",
+        "setupSegmentedControls",
+        "setupTabs"
+      ],
+      "selectors": [
+        ".choice-item",
+        ".form-card",
+        "[data-segmented] button",
+        "form[data-log-form]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setupGlobalActions",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildLogbookCards",
+        "loadEntries",
+        "renderEntries",
+        "setupChoiceLists",
+        "setupFilters",
+        "setupForms",
+        "setupSegmentedControls",
+        "setupTabs"
+      ],
+      "selectors": [
+        ".form-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setupSegmentedControls",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryFromForm",
+        "setupChoiceLists"
+      ],
+      "selectors": [
+        ".choice-item",
+        "[data-choice-list]",
+        "[data-segmented]",
+        "button"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setupTabs",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "activateForm",
+        "buildEntryFromForm",
+        "setupChoiceLists",
+        "setupSegmentedControls"
+      ],
+      "selectors": [
+        ".choice-item",
+        ".tab-btn",
+        "[data-choice-list]",
+        "[data-segmented]",
+        "button"
+      ],
+      "collections": []
+    },
+    {
+      "name": "showMessage",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "activateForm",
+        "buildEntryFromForm",
+        "clearMessage",
+        "setupChoiceLists",
+        "setupSegmentedControls",
+        "setupTabs"
+      ],
+      "selectors": [
+        ".choice-item",
+        ".form-panel",
+        ".logbook-card",
+        ".tab-btn",
+        "[data-choice-list]",
+        "[data-segmented]",
+        "button"
+      ],
+      "collections": []
+    },
+    {
+      "name": "toJsDate",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "buildLogbookCards",
+        "escapeHtml",
+        "formatDate",
+        "formatTime",
+        "getEntryAction",
+        "getEntryBatch",
+        "getEntryPrimaryProduct",
+        "getEntryRegistration",
+        "getEntrySortTime",
+        "getMonthKey",
+        "getStatusLabel"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateMetrics",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getEntryPrimaryProduct",
+        "getEntrySortTime",
+        "getFilteredEntries",
+        "getMonthKey",
+        "renderEntries",
+        "toJsDate"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "source_file": "public/seed-data/importLocations.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "locations"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "locations"
+      ]
+    }
+  ]
+}

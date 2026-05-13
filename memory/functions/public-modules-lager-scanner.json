@@ -1,0 +1,159 @@
+{
+  "source_file": "public/modules/lager/scanner.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [
+    "inventory_items",
+    "inventory_transactions"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "checkInventoryAccess",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "findItemByBarcode",
+        "onScanError",
+        "onScanSuccess",
+        "resetScanner",
+        "showOpenedItemForm",
+        "showScanInForm",
+        "showScanOutForm",
+        "startScanner"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "findItemByBarcode",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "inventory_items",
+        "inventory_transactions"
+      ]
+    },
+    {
+      "name": "onScanError",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "findItemByBarcode",
+        "resetScanner",
+        "showFifoWarning",
+        "showScanInForm",
+        "showScanOutForm"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "onScanSuccess",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "findItemByBarcode",
+        "onScanError",
+        "resetScanner",
+        "showFifoWarning",
+        "showOpenedItemForm",
+        "showScanInForm",
+        "showScanOutForm"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "resetScanner",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "findItemByBarcode",
+        "showOpenedItemForm"
+      ],
+      "selectors": [],
+      "collections": [
+        "inventory_items"
+      ]
+    },
+    {
+      "name": "showFifoWarning",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "findItemByBarcode"
+      ],
+      "selectors": [],
+      "collections": [
+        "inventory_items"
+      ]
+    },
+    {
+      "name": "showOpenedItemForm",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "findItemByBarcode",
+        "resetScanner"
+      ],
+      "selectors": [],
+      "collections": [
+        "inventory_items",
+        "inventory_transactions"
+      ]
+    },
+    {
+      "name": "showScanInForm",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "findItemByBarcode",
+        "resetScanner",
+        "showFifoWarning",
+        "showScanOutForm"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "showScanOutForm",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "findItemByBarcode",
+        "resetScanner",
+        "showFifoWarning"
+      ],
+      "selectors": [],
+      "collections": [
+        "inventory_items"
+      ]
+    },
+    {
+      "name": "startScanner",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "findItemByBarcode",
+        "onScanError",
+        "onScanSuccess",
+        "resetScanner",
+        "showOpenedItemForm",
+        "showScanInForm",
+        "showScanOutForm"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

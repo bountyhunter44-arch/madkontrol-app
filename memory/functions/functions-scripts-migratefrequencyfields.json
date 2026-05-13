@@ -1,0 +1,81 @@
+{
+  "source_file": "functions/scripts/migrateFrequencyFields.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "fs",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getFrequencyFromScheduleConfig",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "migrateTaskTemplates",
+        "needsUpdate"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "initFirebase",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getFrequencyFromScheduleConfig",
+        "migrateTaskTemplates",
+        "needsUpdate"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "migrateTaskTemplates"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "migrateTaskTemplates",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getFrequencyFromScheduleConfig",
+        "main",
+        "needsUpdate"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "needsUpdate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getFrequencyFromScheduleConfig",
+        "migrateTaskTemplates"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

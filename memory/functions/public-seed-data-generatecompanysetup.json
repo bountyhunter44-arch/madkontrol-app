@@ -1,0 +1,37 @@
+{
+  "source_file": "public/seed-data/generateCompanySetup.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "areas",
+    "company_requirements",
+    "control_point_templates",
+    "control_points",
+    "requirement_templates",
+    "risk_analysis_items",
+    "risk_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "areas",
+        "company_requirements",
+        "control_point_templates",
+        "requirement_templates",
+        "risk_analysis_items",
+        "risk_templates"
+      ]
+    }
+  ]
+}

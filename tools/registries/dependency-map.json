@@ -1,0 +1,340 @@
+{
+  "version": "1.0.0",
+  "description": "Dependency map showing relationships between helpers, engines, and components",
+  "lastUpdated": "2026-05-11T18:53:00Z",
+  "dependencies": {
+    "resolveOrgContext": {
+      "type": "helper",
+      "file": "public/core/auth.js",
+      "usedBy": [
+        "prettyName.js::resolvePrettyCompanyInfo",
+        "prettyName.js::resolveCompanyIdFromUserData",
+        "prettyName.js::resolveLocationIdFromUserData",
+        "layout.js::loadLayout",
+        "layout.js::getOrganizationIdFromProfile",
+        "auth.js::persistSessionScope",
+        "auth.js::syncDemoBanner"
+      ],
+      "dependencies": [],
+      "riskLevel": "HIGH",
+      "criticalNote": "Central org context resolver. All other functions MUST use this. Do not create inline fallback logic."
+    },
+    "resolvePrettyCompanyInfo": {
+      "type": "helper",
+      "file": "public/core/prettyName.js",
+      "usedBy": [
+        "dashboard.html",
+        "rutiner.html",
+        "rapporter.html",
+        "layout.js::loadLayout",
+        "profile pages"
+      ],
+      "dependencies": [
+        "resolveOrgContext",
+        "Firebase Firestore::live_user_profiles",
+        "Firebase Firestore::companies",
+        "Firebase Firestore::locations"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "MUST prioritize live_user_profiles.profile.* fields. Complex fallback chain."
+    },
+    "resolveTaskTitle": {
+      "type": "helper",
+      "file": "public/core/taskTitleResolver.js",
+      "usedBy": [
+        "rutiner.html",
+        "rapporter.html",
+        "task displays"
+      ],
+      "dependencies": [
+        "normalizeTaskKey",
+        "getCanonicalTask",
+        "getPrettyTitleFromKey"
+      ],
+      "riskLevel": "MEDIUM",
+      "criticalNote": "Handles canonical mapping. Used for all task title display."
+    },
+    "normalizeTaskKey": {
+      "type": "helper",
+      "file": "public/core/canonicalTasks.js",
+      "usedBy": [
+        "taskTitleResolver.js::resolveTaskTitle",
+        "taskTitleResolver.js::resolveTaskIcon",
+        "canonicalTasks.js::getCanonicalTask",
+        "rutiner.html"
+      ],
+      "dependencies": [
+        "KEY_ALIASES"
+      ],
+      "riskLevel": "MEDIUM",
+      "criticalNote": "Maps old keys to canonical keys. Ensures backward compatibility."
+    },
+    "getCanonicalTask": {
+      "type": "helper",
+      "file": "public/core/canonicalTasks.js",
+      "usedBy": [
+        "taskTitleResolver.js::resolveTaskTitle",
+        "rutiner.html"
+      ],
+      "dependencies": [
+        "normalizeTaskKey",
+        "CANONICAL_EGENKONTROL_TASKS"
+      ],
+      "riskLevel": "MEDIUM",
+      "criticalNote": "Provides canonical task metadata."
+    },
+    "setupAuthGate": {
+      "type": "helper",
+      "file": "public/core/auth.js",
+      "usedBy": [
+        "dashboard.html",
+        "rutiner.html",
+        "rapporter.html",
+        "all protected pages"
+      ],
+      "dependencies": [
+        "Firebase Auth",
+        "resolveOrgContext",
+        "getUserRoleProfile",
+        "persistSessionScope",
+        "syncDemoBanner"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "Main auth initialization. Handles onboarding gate redirect."
+    },
+    "loadLayout": {
+      "type": "helper",
+      "file": "public/core/layout.js",
+      "usedBy": [
+        "all pages"
+      ],
+      "dependencies": [
+        "resolvePrettyCompanyInfo",
+        "resolveOrgContext",
+        "Firebase Auth",
+        "initCoolingOverlay",
+        "initHotHoldingOverlay"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "Called on every page load. Do not break layout rendering."
+    },
+    "startCoolingRun": {
+      "type": "helper",
+      "file": "public/core/cooling-overlay.js",
+      "usedBy": [
+        "rutiner.html",
+        "cooling overlay"
+      ],
+      "dependencies": [
+        "localStorage",
+        "cooling panel UI"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "HACCP compliance: 65°C to 10°C in 4 hours. Do not modify validation."
+    },
+    "startHotHoldingRun": {
+      "type": "helper",
+      "file": "public/core/hot-holding-overlay.js",
+      "usedBy": [
+        "rutiner.html",
+        "hot holding overlay"
+      ],
+      "dependencies": [
+        "localStorage",
+        "hot holding panel UI"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "HACCP compliance: Minimum 65°C. Do not modify validation."
+    },
+    "CANONICAL_ROUTINES": {
+      "type": "engine",
+      "file": "public/core/canonicalRoutines.js",
+      "usedBy": [
+        "rutiner.html",
+        "task_templates",
+        "task_instances",
+        "deviations"
+      ],
+      "dependencies": [
+        "Firebase Firestore::task_templates",
+        "Firebase Firestore::task_instances",
+        "Firebase Firestore::deviations"
+      ],
+      "riskLevel": "CRITICAL",
+      "criticalNote": "22 canonical routine types. MUST sync with backend. Do not modify without compliance review."
+    },
+    "CANONICAL_EGENKONTROL_TASKS": {
+      "type": "engine",
+      "file": "public/core/canonicalTasks.js",
+      "usedBy": [
+        "getCanonicalTask",
+        "getCanonicalTasksByGroup",
+        "rutiner.html"
+      ],
+      "dependencies": [],
+      "riskLevel": "HIGH",
+      "criticalNote": "Canonical task definitions. Related to CANONICAL_ROUTINES."
+    },
+    "normalizeReportEntry": {
+      "type": "helper",
+      "file": "public/core/reportEntryResolver.js",
+      "usedBy": [
+        "rapporter.html (future migration)"
+      ],
+      "dependencies": [
+        "resolveTaskTitle",
+        "resolveEntryCreatedTimestamp",
+        "resolveEntryCompletedTimestamp",
+        "resolveEntryPerformer",
+        "resolveEntryStatus",
+        "resolveEntryCategory"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "Central resolver for report normalization. Replaces 15+ inline fallback chains. NOT YET USED IN RUNTIME."
+    },
+    "resolveEntryCreatedTimestamp": {
+      "type": "helper",
+      "file": "public/core/reportEntryResolver.js",
+      "usedBy": [
+        "normalizeReportEntry"
+      ],
+      "dependencies": [
+        "normalizeFirestoreDate"
+      ],
+      "replaces": [
+        "rapporter.html::getEntryCreatedAt (20-field fallback)"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "Handles 20+ timestamp field variants. Priority order must not change."
+    },
+    "resolveEntryCompletedTimestamp": {
+      "type": "helper",
+      "file": "public/core/reportEntryResolver.js",
+      "usedBy": [
+        "normalizeReportEntry",
+        "resolveEntryStatus"
+      ],
+      "dependencies": [
+        "normalizeFirestoreDate"
+      ],
+      "replaces": [
+        "rapporter.html::getEntryHandledAt (17-field fallback)"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "Handles 17+ completion timestamp variants. Priority order must not change."
+    },
+    "resolveEntryPerformer": {
+      "type": "helper",
+      "file": "public/core/reportEntryResolver.js",
+      "usedBy": [
+        "normalizeReportEntry"
+      ],
+      "dependencies": [],
+      "replaces": [
+        "rapporter.html::inline completedByName || responsibleName"
+      ],
+      "riskLevel": "MEDIUM",
+      "criticalNote": "Handles missing performer data. Returns 'Ukendt' as safe default."
+    },
+    "resolveEntryCategory": {
+      "type": "helper",
+      "file": "public/core/reportEntryResolver.js",
+      "usedBy": [
+        "normalizeReportEntry"
+      ],
+      "dependencies": [],
+      "replaces": [
+        "rapporter.html::resolveCategory (lines 2108-2124)"
+      ],
+      "riskLevel": "LOW",
+      "criticalNote": "Extracted inline category mapping. Makes logic reusable."
+    },
+    "createAuditCreateFields": {
+      "type": "helper",
+      "file": "public/core/auditFields.js",
+      "usedBy": [
+        "logbooks.html",
+        "future: all Firestore document creation"
+      ],
+      "dependencies": [
+        "resolveCurrentActor",
+        "serverTimestamp"
+      ],
+      "replaces": [
+        "inline createdAt/updatedAt creation"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "MUST be used for all new Firestore writes. Provides standard audit contract."
+    },
+    "createAuditUpdateFields": {
+      "type": "helper",
+      "file": "public/core/auditFields.js",
+      "usedBy": [
+        "future: all Firestore document updates"
+      ],
+      "dependencies": [
+        "resolveCurrentActor",
+        "serverTimestamp"
+      ],
+      "replaces": [
+        "inline updatedAt creation"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "CRITICAL: Does NOT include createdAt/createdBy. Use for updates only."
+    },
+    "createAuditCompleteFields": {
+      "type": "helper",
+      "file": "public/core/auditFields.js",
+      "usedBy": [
+        "future: rutiner.html task completion",
+        "future: all task completions"
+      ],
+      "dependencies": [
+        "resolveCurrentActor",
+        "serverTimestamp"
+      ],
+      "replaces": [
+        "inline completedAt creation"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "Use when marking tasks/controls as completed. Sets completedAt AND updatedAt."
+    },
+    "resolveAuditDisplay": {
+      "type": "helper",
+      "file": "public/core/auditFields.js",
+      "usedBy": [
+        "reportEntryResolver",
+        "future: all audit displays"
+      ],
+      "dependencies": [
+        "normalizeTimestamp (internal)",
+        "formatTimestamp (internal)"
+      ],
+      "replaces": [
+        "inline audit field resolution"
+      ],
+      "riskLevel": "MEDIUM",
+      "criticalNote": "Handles legacy data gracefully. Returns warnings for missing fields."
+    },
+    "rutiner.html": {
+      "type": "page",
+      "file": "public/modules/egenkontrol/rutiner.html",
+      "usedBy": [
+        "users (task completion UI)"
+      ],
+      "dependencies": [
+        "createAuditUpdateFields",
+        "createAuditCompleteFields",
+        "auth.js (currentUser, currentUserProfile)",
+        "firebase-firestore (task_instances, task_entries, task_templates)"
+      ],
+      "writes": [
+        "task_instances (completion, frequency update, overdue)",
+        "task_entries (completion, overdue logging)",
+        "task_templates (frequency update)"
+      ],
+      "riskLevel": "HIGH",
+      "criticalNote": "Main task completion UI. Now uses audit contract for all writes. Backward compatible with old data."
+    }
+  }
+}

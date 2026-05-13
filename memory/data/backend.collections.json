@@ -1,0 +1,35 @@
+{
+  "module": "backend",
+  "files": [
+    {
+      "source_file": "functions/index.js",
+      "collections": [
+        "alerts",
+        "areas",
+        "checkout_sessions",
+        "companies",
+        "company_locations",
+        "company_registry",
+        "daily_runs",
+        "deviations",
+        "egenkontrol_programs",
+        "equipment",
+        "haccp_snapshots",
+        "live_user_profiles",
+        "locations",
+        "media_assets",
+        "onboarding_answers",
+        "onboarding_checkout_drafts",
+        "operating_overrides",
+        "seo_generator_configs",
+        "seo_hero_images",
+        "seo_pages",
+        "task_entries",
+        "task_instances",
+        "task_templates",
+        "users",
+        "websites"
+      ]
+    }
+  ]
+}

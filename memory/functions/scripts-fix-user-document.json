@@ -1,0 +1,26 @@
+{
+  "source_file": "scripts/fix-user-document.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "fs"
+  ],
+  "exports": [],
+  "collections": [
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "fixUserDocument",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    }
+  ]
+}

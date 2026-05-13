@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>Produktion & Salg — Vandsystem | Madkontrollen Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .wp-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+        .wp-hdr h1{font-size:22px;font-weight:800;color:#182118;margin:0;}
+        .wp-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+        .wp-card{background:#fff;border:1px solid #d9e4d9;border-radius:18px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+        .wp-card h2{font-size:16px;font-weight:800;color:#182118;margin:0 0 18px;}
+        .wp-field{margin-bottom:15px;}
+        .wp-field label{display:block;font-size:12px;font-weight:700;color:#667267;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+        .wp-field input,.wp-field select,.wp-field textarea{width:100%;padding:10px 13px;border:1px solid #d9e4d9;border-radius:11px;font-size:15px;color:#182118;font-family:inherit;box-sizing:border-box;transition:border-color .15s;}
+        .wp-field input:focus,.wp-field select:focus{outline:none;border-color:#2e7d32;box-shadow:0 0 0 3px rgba(46,125,50,.12);}
+        .wp-field input[type=number]{font-size:20px;font-weight:700;padding:12px 14px;text-align:center;}
+        .wp-btn{width:100%;padding:13px;border-radius:13px;font-size:15px;font-weight:800;cursor:pointer;border:none;margin-top:4px;transition:opacity .15s;}
+        .wp-btn-green{background:#2e7d32;color:#fff;}
+        .wp-btn-blue{background:#1565c0;color:#fff;}
+        .wp-btn:hover{opacity:.88;}
+        .wp-btn:disabled{opacity:.45;cursor:not-allowed;}
+        .wp-status{margin-top:12px;padding:12px 15px;border-radius:11px;font-size:14px;font-weight:700;display:none;}
+        .wp-status.ok{display:block;background:#e8f5e9;color:#1b5e20;}
+        .wp-status.err{display:block;background:#fce4ec;color:#b71c1c;}
+        .wp-summary{background:#f8faf8;border:1px solid #e9f0e9;border-radius:18px;padding:22px;margin-bottom:18px;}
+        .wp-summary h3{font-size:14px;font-weight:800;color:#182118;margin:0 0 14px;}
+        .wp-sum-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e9f0e9;font-size:14px;}
+        .wp-sum-row:last-child{border-bottom:none;}
+        .wp-sum-lbl{color:#667267;font-weight:600;}
+        .wp-sum-val{font-weight:800;color:#182118;font-size:16px;}
+        .wp-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#2e7d32;text-decoration:none;margin-bottom:18px;}
+        .wp-back:hover{opacity:.75;}
+        .wp-date-note{font-size:12px;color:#667267;margin-bottom:16px;font-weight:600;}
+        @media(max-width:700px){.wp-grid{grid-template-columns:1fr;}}
+    </style>
+</head>
+<body data-page="water-production">
+<div id="headerMount"></div>
+<main class="page-shell">
+    <div class="container app-layout">
+        <div id="sidebarMount"></div>
+        <section class="page-content">
+            <a class="wp-back" href="/modules/water/dashboard.html">← Dashboard</a>
+            <div class="wp-hdr">
+                <h1>🍶 Produktion & Salg</h1>
+            </div>
+
+            <div class="wp-field" style="margin-bottom:18px;max-width:320px;">
+                <label>System *</label>
+                <select id="wpSystemId"><option value="">Vælg system…</option></select>
+            </div>
+            <p class="wp-date-note" id="todayNote">Dato: …</p>
+
+            <div class="wp-grid">
+                <!-- PRODUCTION CARD -->
+                <div class="wp-card">
+                    <h2>🏭 Produktion</h2>
+                    <div class="wp-field">
+                        <label>Flasker produceret</label>
+                        <input type="number" id="pProduced" min="0" step="1" placeholder="0"/>
+                    </div>
+                    <div class="wp-field">
+                        <label>Flasker kasseret (spild)</label>
+                        <input type="number" id="pDiscarded" min="0" step="1" placeholder="0"/>
+                    </div>
+                    <div class="wp-field">
+                        <label>Noter</label>
+                        <textarea id="pNotes" style="min-height:70px;" placeholder="Evt. driftobservationer…"></textarea>
+                    </div>
+                    <button class="wp-btn wp-btn-green" id="pSubmit">Gem produktion</button>
+                    <div class="wp-status" id="pStatus"></div>
+                </div>
+
+                <!-- SALES CARD -->
+                <div class="wp-card">
+                    <h2>🛒 Salg</h2>
+                    <div class="wp-field">
+                        <label>Flasker solgt</label>
+                        <input type="number" id="sSold" min="0" step="1" placeholder="0"/>
+                    </div>
+                    <div class="wp-field">
+                        <label>Pris pr. flaske (THB)</label>
+                        <input type="number" id="sPrice" min="0" step="0.5" placeholder="15"/>
+                    </div>
+                    <div class="wp-field">
+                        <label>Salgskanal</label>
+                        <select id="sChannel">
+                            <option value="hotel_guests">Hotelgæster</option>
+                            <option value="restaurant">Restaurant</option>
+                            <option value="spa">Spa / Wellness</option>
+                            <option value="staff">Personale</option>
+                            <option value="external">Ekstern aftager</option>
+                        </select>
+                    </div>
+                    <div class="wp-field">
+                        <label>Noter</label>
+                        <textarea id="sNotes" style="min-height:70px;" placeholder="Evt. kommentar…"></textarea>
+                    </div>
+                    <button class="wp-btn wp-btn-blue" id="sSubmit">Gem salg</button>
+                    <div class="wp-status" id="sStatus"></div>
+                </div>
+            </div>
+
+            <!-- TODAY SUMMARY -->
+            <div class="wp-summary" id="summarySection" style="display:none;">
+                <h3>📊 Dagsoversigt — <span id="sumDate">–</span></h3>
+                <div class="wp-sum-row"><span class="wp-sum-lbl">Produceret</span><span class="wp-sum-val" id="sumProduced">–</span></div>
+                <div class="wp-sum-row"><span class="wp-sum-lbl">Kasseret (spild)</span><span class="wp-sum-val" id="sumDiscarded">–</span></div>
+                <div class="wp-sum-row"><span class="wp-sum-lbl">Solgt</span><span class="wp-sum-val" id="sumSold">–</span></div>
+                <div class="wp-sum-row"><span class="wp-sum-lbl">Omsætning</span><span class="wp-sum-val" id="sumRevenue">–</span></div>
+                <div class="wp-sum-row"><span class="wp-sum-lbl">Konversion</span><span class="wp-sum-val" id="sumConversion">–</span></div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script type="module">
+import { initializeApp, getApps, getApp }   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged }        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFunctions, httpsCallable }        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+import { loadLayout }                          from "/core/layout.js";
+
+const cfg = await (await fetch("/firebase-config.json")).json();
+const app = getApps().length ? getApp() : initializeApp(cfg);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const fns  = getFunctions(app);
+
+loadLayout();
+
+const fnProduction = httpsCallable(fns, "recordWaterProduction");
+const fnSales      = httpsCallable(fns, "recordWaterSales");
+
+function dateKeyBangkok() {
+    return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Bangkok" }); // "YYYY-MM-DD"
+}
+
+function showStatus(id, msg, isErr) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = "wp-status " + (isErr ? "err" : "ok");
+    setTimeout(() => { el.className = "wp-status"; }, 6000);
+}
+
+function nv(id) { const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? 0 : v; }
+function sv(id) { return document.getElementById(id).value.trim(); }
+
+async function getUserCtx(user) {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists()) return null;
+    const d = snap.data();
+    return { companyId: d.companyId || d.organizationId || "", locationId: d.primaryLocationId || (d.locationIds && d.locationIds[0]) || d.locationId || "" };
+}
+
+async function loadSystems(ctx) {
+    const q = query(collection(db, "water_systems"), where("companyId", "==", ctx.companyId), where("locationId", "==", ctx.locationId));
+    const snap = await getDocs(q);
+    const opts = snap.docs.map(d => `<option value="${d.id}">${d.data().name || d.id}</option>`).join("");
+    document.getElementById("wpSystemId").innerHTML = `<option value="">Vælg system…</option>${opts}`;
+}
+
+async function loadTodaySummary(ctx, systemId, dateKey) {
+    const [prodSnap, salesSnap] = await Promise.all([
+        getDoc(doc(db, "water_production", `${systemId}__prod__${dateKey}`)),
+        getDoc(doc(db, "water_sales", `${systemId}__sales__${dateKey}`))
+    ]);
+    const p = prodSnap.exists() ? prodSnap.data() : { bottlesProduced: 0, bottlesDiscarded: 0 };
+    const s = salesSnap.exists() ? salesSnap.data() : { bottlesSold: 0, revenue: 0 };
+    document.getElementById("sumDate").textContent = dateKey;
+    document.getElementById("sumProduced").textContent = p.bottlesProduced + " flasker";
+    document.getElementById("sumDiscarded").textContent = p.bottlesDiscarded + " flasker";
+    document.getElementById("sumSold").textContent = s.bottlesSold + " flasker";
+    document.getElementById("sumRevenue").textContent = (s.revenue || 0).toFixed(2) + " THB";
+    const conv = p.bottlesProduced > 0 ? Math.round(s.bottlesSold / p.bottlesProduced * 100) : 0;
+    document.getElementById("sumConversion").textContent = conv + "%";
+    document.getElementById("summarySection").style.display = "block";
+}
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "/"; return; }
+    const ctx = await getUserCtx(user);
+    if (!ctx?.companyId) { window.location.href = "/"; return; }
+
+    const today = dateKeyBangkok();
+    document.getElementById("todayNote").textContent = "Dato i Bangkok: " + today;
+
+    await loadSystems(ctx);
+
+    function getSystemId() {
+        const v = document.getElementById("wpSystemId").value;
+        if (!v) { alert("Vælg et system først"); return null; }
+        return v;
+    }
+
+    document.getElementById("pSubmit").addEventListener("click", async () => {
+        const systemId = getSystemId(); if (!systemId) return;
+        const btn = document.getElementById("pSubmit");
+        btn.disabled = true; btn.textContent = "Gemmer…";
+        try {
+            await fnProduction({
+                systemId, companyId: ctx.companyId, locationId: ctx.locationId,
+                bottlesProduced: nv("pProduced"),
+                bottlesDiscarded: nv("pDiscarded"),
+                notes: sv("pNotes")
+            });
+            showStatus("pStatus", "✅ Produktion gemt for " + today, false);
+            await loadTodaySummary(ctx, systemId, today);
+        } catch (err) {
+            showStatus("pStatus", "❌ Fejl: " + err.message, true);
+        } finally {
+            btn.disabled = false; btn.textContent = "Gem produktion";
+        }
+    });
+
+    document.getElementById("sSubmit").addEventListener("click", async () => {
+        const systemId = getSystemId(); if (!systemId) return;
+        const pricePerBottle = nv("sPrice");
+        if (pricePerBottle <= 0) { showStatus("sStatus", "Angiv pris pr. flaske", true); return; }
+        const btn = document.getElementById("sSubmit");
+        btn.disabled = true; btn.textContent = "Gemmer…";
+        try {
+            await fnSales({
+                systemId, companyId: ctx.companyId, locationId: ctx.locationId,
+                bottlesSold: nv("sSold"),
+                pricePerBottle,
+                salesChannel: sv("sChannel"),
+                notes: sv("sNotes")
+            });
+            showStatus("sStatus", "✅ Salg gemt for " + today, false);
+            await loadTodaySummary(ctx, systemId, today);
+        } catch (err) {
+            showStatus("sStatus", "❌ Fejl: " + err.message, true);
+        } finally {
+            btn.disabled = false; btn.textContent = "Gem salg";
+        }
+    });
+
+    // Auto-load summary if system is pre-selected
+    document.getElementById("wpSystemId").addEventListener("change", async () => {
+        const systemId = document.getElementById("wpSystemId").value;
+        if (systemId) await loadTodaySummary(ctx, systemId, today);
+        else document.getElementById("summarySection").style.display = "none";
+    });
+});
+</script>
+</body>
+</html>

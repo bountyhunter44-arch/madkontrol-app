@@ -1,0 +1,36 @@
+{
+  "source_file": "scripts/cleanupMaintenanceEntries.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_entries"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "cleanupMaintenanceEntries",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_entries"
+      ]
+    },
+    {
+      "name": "taskType",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "cleanupMaintenanceEntries"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

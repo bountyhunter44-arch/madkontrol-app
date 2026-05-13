@@ -1,0 +1,22 @@
+{
+  "source_file": "public/modules/egenkontrol/riskAnalysisControlMap.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "RISK_CONTROL_MAP",
+    "getControlDefinition"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getControlDefinition",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

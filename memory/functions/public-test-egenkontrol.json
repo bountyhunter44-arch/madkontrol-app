@@ -1,0 +1,25 @@
+{
+  "source_file": "public/test-egenkontrol.html",
+  "module": "general",
+  "imports": [
+    "/modules/egenkontrol/generators/buildEgenkontrolProgram.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "haccp_snapshots"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "showResult",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "rutiner",
+  "files": [
+    "public/modules/egenkontrol/rutiner.html"
+  ],
+  "total_functions": 174,
+  "flags": [
+    "cooling_add_run",
+    "cooling_run_finish",
+    "cooling_runs_list_selector",
+    "ok_sitti",
+    "saveRoutineTask",
+    "startDayForLocation"
+  ],
+  "collections": [
+    "alerts",
+    "companies",
+    "daily_runs",
+    "deviations",
+    "locations",
+    "media_assets",
+    "operating_overrides",
+    "task_entries",
+    "task_instances",
+    "task_templates"
+  ],
+  "risks": [
+    "conditional_ui_placeholder_may_hide_real_controls",
+    "silent_return_if_cooling_container_missing"
+  ]
+}

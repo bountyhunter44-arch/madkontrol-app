@@ -1,0 +1,203 @@
+{
+  "source_file": "functions/admin/completeTaskEntry.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [
+    "completeTaskEntry"
+  ],
+  "collections": [
+    "alerts",
+    "deviations",
+    "task_entries",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildAlertMessage",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAlertPayload",
+        "buildDeviationPayload",
+        "buildEvaluationMessage",
+        "completeTaskEntry",
+        "normalizeNumber",
+        "safeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "buildAlertPayload",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAlertMessage",
+        "buildDeviationPayload",
+        "completeTaskEntry",
+        "isMeasurementTask",
+        "normalizeNumber",
+        "safeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "buildDeviationPayload",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEvaluationMessage",
+        "completeTaskEntry",
+        "evaluateMeasurement",
+        "isMeasurementTask",
+        "normalizeNumber",
+        "safeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "buildEvaluationMessage",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildAlertMessage",
+        "buildAlertPayload",
+        "evaluateMeasurement",
+        "normalizeNumber"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "completeTaskEntry",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEvaluationMessage",
+        "evaluateMeasurement",
+        "isMeasurementTask",
+        "normalizeNumber",
+        "safeString"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations",
+        "task_entries",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "evaluateMeasurement",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildAlertMessage",
+        "buildAlertPayload",
+        "buildDeviationPayload",
+        "buildEvaluationMessage",
+        "normalizeNumber",
+        "safeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatMeasurementValue",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildAlertMessage",
+        "buildAlertPayload",
+        "buildEvaluationMessage",
+        "evaluateMeasurement",
+        "normalizeNumber"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isMeasurementTask",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildEvaluationMessage",
+        "evaluateMeasurement",
+        "formatMeasurementValue",
+        "normalizeNumber",
+        "safeString",
+        "toBoolean"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeNumber",
+      "type": "function",
+      "approx_occurrences": 19,
+      "calls": [
+        "buildEvaluationMessage",
+        "evaluateMeasurement",
+        "formatMeasurementValue",
+        "isMeasurementTask",
+        "safeString",
+        "toBoolean"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "completeTaskEntry"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "safeString",
+      "type": "function",
+      "approx_occurrences": 9,
+      "calls": [
+        "buildEvaluationMessage",
+        "evaluateMeasurement",
+        "formatMeasurementValue",
+        "isMeasurementTask",
+        "normalizeNumber",
+        "toBoolean"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "toBoolean",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEvaluationMessage",
+        "evaluateMeasurement",
+        "formatMeasurementValue",
+        "isMeasurementTask",
+        "normalizeNumber",
+        "safeString"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

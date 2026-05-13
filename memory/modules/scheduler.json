@@ -1,0 +1,23 @@
+{
+  "name": "scheduler",
+  "files": [
+    "functions/scripts/testScheduleConsistency.cjs",
+    "functions/startDayForLocation.js",
+    "scripts/inspectStartDay.cjs"
+  ],
+  "total_functions": 36,
+  "flags": [
+    "startDayForLocation"
+  ],
+  "collections": [
+    "areas",
+    "daily_runs",
+    "equipment",
+    "locations",
+    "onboarding_answers",
+    "task_entries",
+    "task_instances",
+    "task_templates"
+  ],
+  "risks": []
+}

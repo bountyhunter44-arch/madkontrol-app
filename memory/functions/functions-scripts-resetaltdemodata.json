@@ -1,0 +1,213 @@
+{
+  "source_file": "functions/scripts/resetAltDemoData.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "fs",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "companies",
+    "daily_runs",
+    "deviations",
+    "equipment",
+    "haccp_snapshots",
+    "live_user_profiles",
+    "locations",
+    "onboarding_answers",
+    "task_instances",
+    "task_templates",
+    "verification_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "deleteAuthUsers",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteTopLevelCollections",
+        "initFirebase",
+        "listAllAuthUsers",
+        "log",
+        "main"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "deleteBatchFromQuery",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "deleteAuthUsers",
+        "deleteCollectionRecursive",
+        "deleteDocumentRecursive",
+        "deleteTopLevelCollections",
+        "initFirebase",
+        "listAllAuthUsers",
+        "log",
+        "main",
+        "sleep",
+        "warn"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "deleteCollectionRecursive",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "deleteAuthUsers",
+        "deleteDocumentRecursive",
+        "deleteTopLevelCollections",
+        "initFirebase",
+        "listAllAuthUsers",
+        "log",
+        "main",
+        "warn"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "deleteDocumentRecursive",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteAuthUsers",
+        "deleteCollectionRecursive",
+        "deleteTopLevelCollections",
+        "initFirebase",
+        "listAllAuthUsers",
+        "log",
+        "main",
+        "warn"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "deleteTopLevelCollections",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteAuthUsers",
+        "deleteCollectionRecursive",
+        "initFirebase",
+        "listAllAuthUsers",
+        "log",
+        "main",
+        "warn"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "initFirebase",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteAuthUsers",
+        "deleteBatchFromQuery",
+        "deleteCollectionRecursive",
+        "deleteDocumentRecursive",
+        "deleteTopLevelCollections",
+        "listAllAuthUsers",
+        "log",
+        "main",
+        "sleep",
+        "warn"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "listAllAuthUsers",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteAuthUsers",
+        "deleteTopLevelCollections",
+        "initFirebase",
+        "log",
+        "main"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "log",
+      "type": "function",
+      "approx_occurrences": 27,
+      "calls": [
+        "deleteAuthUsers",
+        "deleteBatchFromQuery",
+        "deleteCollectionRecursive",
+        "deleteDocumentRecursive",
+        "deleteTopLevelCollections",
+        "initFirebase",
+        "listAllAuthUsers",
+        "main",
+        "sleep",
+        "warn"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteAuthUsers",
+        "deleteTopLevelCollections",
+        "initFirebase",
+        "log"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sleep",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteAuthUsers",
+        "deleteBatchFromQuery",
+        "deleteCollectionRecursive",
+        "deleteDocumentRecursive",
+        "deleteTopLevelCollections",
+        "initFirebase",
+        "listAllAuthUsers",
+        "log",
+        "main",
+        "warn"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "warn",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "deleteAuthUsers",
+        "deleteBatchFromQuery",
+        "deleteCollectionRecursive",
+        "deleteDocumentRecursive",
+        "deleteTopLevelCollections",
+        "initFirebase",
+        "listAllAuthUsers",
+        "log",
+        "main",
+        "sleep"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

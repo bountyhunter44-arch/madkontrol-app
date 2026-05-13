@@ -1,0 +1,26 @@
+{
+  "companyId": "onboarding_aroi-d",
+  "locationId": "onboarding_aroi-d__main",
+  "siteConfig": {
+    "subdomain": "aroi-d",
+    "businessName": "Aroi-D",
+    "city": "Ørnhøj",
+    "cuisineType": "Thai",
+    "phone": "20717861",
+    "address": "Hovedgaden 49, 6973 Ørnhøj",
+    "description": "Bedste thai restaurant i Ørnhøj med autentisk thailandsk mad",
+    "keyword": "bedste thai restaurant i Ørnhøj",
+    "offerings": "thai mad, takeaway og catering",
+    "pageCount": 50,
+    "selectedTemplate": "classic",
+    "heroImageUrl": "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=1200",
+    "ctaText": "Bestil nu",
+    "ctaUrl": "tel:20717861",
+    "theme": {
+      "primary": "#1f7a3d",
+      "secondary": "#f8f4ea",
+      "accent": "#b91c1c",
+      "text": "#1f2937"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "source_file": "public/scripts/call-firebase-function.cjs",
+  "module": "firebase",
+  "imports": [
+    "https"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "callFunction",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

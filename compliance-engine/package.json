@@ -1,0 +1,21 @@
+{
+  "name": "@madkontrol/compliance-engine",
+  "version": "1.0.0",
+  "description": "Domain-agnostic compliance evaluation engine with pluggable policy boxes",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/test-runner.js"
+  },
+  "keywords": [
+    "compliance",
+    "policy",
+    "evaluation",
+    "haccp",
+    "gdpr",
+    "food-safety"
+  ],
+  "author": "Madkontrol",
+  "license": "UNLICENSED",
+  "private": true
+}

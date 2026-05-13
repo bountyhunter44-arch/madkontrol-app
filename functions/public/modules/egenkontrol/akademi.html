@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Akademi | Madkontrollen Pro</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .placeholder-wrap{display:grid;gap:16px;}
+    .placeholder-card{background:#fff;border:1px solid #d9e4d9;border-radius:18px;padding:20px;box-shadow:0 8px 20px rgba(15,23,15,.06);}
+    .placeholder-card h1,.placeholder-card h2{margin:0 0 8px;}
+    .placeholder-card p{margin:0;color:#5c6d5c;line-height:1.6;}
+    .promo-box{display:grid;gap:10px;background:linear-gradient(145deg,#eff8ef 0%,#f7fbf7 100%);border:1px solid #cfe0cf;border-radius:16px;padding:16px;}
+    .promo-kicker{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#1f5a23;}
+    .promo-title{font-size:20px;font-weight:800;color:#142514;}
+    .promo-copy{color:#355035;line-height:1.55;}
+    .promo-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  </style>
+</head>
+<body>
+  <div id="headerMount"></div>
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+      <section class="page-content">
+        <div class="placeholder-wrap">
+          <article class="placeholder-card">
+            <h1>Akademi</h1>
+            <p>Denne side er oprettet fra front-flowet og bruger samme sidebar/topbar som resten af systemet.</p>
+          </article>
+
+          <article class="placeholder-card promo-box" aria-live="polite">
+            <div class="promo-kicker">Reklame</div>
+            <div id="promoTitle" class="promo-title">Kurser til dit team</div>
+            <p id="promoCopy" class="promo-copy">Saml onboarding, kurser og dokumentation i en samlet traeningspakke.</p>
+            <div class="promo-actions">
+              <a id="promoCta" class="btn btn-secondary" href="/modules/akademi/akademi.html">Laes mere</a>
+              <a class="btn btn-secondary" href="/modules/akademi/courses.html">Se kurser</a>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { loadLayout } from "/core/layout.js";
+
+    const promotions = [
+      {
+        title: "Kurser til dit team",
+        copy: "Saml onboarding, kurser og dokumentation i en samlet traeningspakke.",
+        ctaHref: "/modules/akademi/akademi.html",
+        ctaText: "Laes mere"
+      },
+      {
+        title: "Certifikater uden papir",
+        copy: "Fa digital dokumentation tilsynet kan gennemgaa med det samme.",
+        ctaHref: "/modules/akademi/certificates.html",
+        ctaText: "Se certifikater"
+      },
+      {
+        title: "Maanedens kampagne",
+        copy: "Spar tid med faerdige kursusforloeb til egenkontrol og hygiejne.",
+        ctaHref: "/modules/akademi/staff.html",
+        ctaText: "Se medarbejdere"
+      }
+    ];
+
+    function initPromoRotator() {
+      const titleEl = document.getElementById("promoTitle");
+      const copyEl = document.getElementById("promoCopy");
+      const ctaEl = document.getElementById("promoCta");
+      if (!titleEl || !copyEl || !ctaEl) return;
+
+      let index = 0;
+      const render = () => {
+        const promo = promotions[index % promotions.length];
+        titleEl.textContent = promo.title;
+        copyEl.textContent = promo.copy;
+        ctaEl.textContent = promo.ctaText;
+        ctaEl.href = promo.ctaHref;
+      };
+
+      render();
+      setInterval(() => {
+        index += 1;
+        render();
+      }, 5000);
+    }
+
+    await loadLayout();
+    initPromoRotator();
+  </script>
+</body>
+</html>

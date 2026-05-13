@@ -1,0 +1,161 @@
+{
+  "source_file": "functions/scenarioBasedHaccp.js",
+  "module": "general",
+  "imports": [
+    "./egenkontrol/risikoanalyseData"
+  ],
+  "exports": [
+    "buildTaskTemplatesFromRiskAnalysis",
+    "generateHazardsFromProcesses",
+    "generateHazardsFromRisikoanalyse",
+    "generateProcessesFromProfile",
+    "generateScenarioBasedHaccp"
+  ],
+  "collections": [
+    "equipment"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "addRequirement",
+      "type": "const_function",
+      "approx_occurrences": 8,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "addTask",
+      "type": "const_function",
+      "approx_occurrences": 6,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildCriticalLimits",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "determineControlPointType",
+        "generateHazardsFromProcesses"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildDocumentationRequirements",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addRequirement"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildShortOperationalDescription",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildTaskTemplatesFromRiskAnalysis"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTaskTemplateAlertRules",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildShortOperationalDescription"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTaskTemplateFields",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildTaskTemplateAlertRules"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTaskTemplatesFromRiskAnalysis",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildShortOperationalDescription",
+        "buildTaskTemplateAlertRules",
+        "buildTaskTemplateFields"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildVerificationTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addTask"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "determineControlPointType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildCriticalLimits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateHazardsFromProcesses",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildCriticalLimits",
+        "determineControlPointType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateHazardsFromRisikoanalyse",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateProcessesFromProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateScenarioBasedHaccp",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildDocumentationRequirements",
+        "buildTaskTemplatesFromRiskAnalysis",
+        "buildVerificationTasks",
+        "generateHazardsFromRisikoanalyse",
+        "generateProcessesFromProfile"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

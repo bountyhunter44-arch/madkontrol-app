@@ -1,0 +1,29 @@
+{
+  "source_file": "public/scripts/trigger-regeneration.cjs",
+  "module": "general",
+  "imports": [
+    "../../functions/egenkontrol/generators/taskGenerator",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "triggerRegeneration",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_instances",
+        "task_templates"
+      ]
+    }
+  ]
+}

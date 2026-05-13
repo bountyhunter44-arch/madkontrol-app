@@ -1,0 +1,46 @@
+{
+  "source_file": "scripts/cleanupWaterTasks.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "category",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "cleanupWaterTasks"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "cleanupWaterTasks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "title",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "cleanupWaterTasks"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

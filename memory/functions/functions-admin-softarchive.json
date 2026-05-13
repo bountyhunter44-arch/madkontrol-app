@@ -1,0 +1,87 @@
+{
+  "source_file": "functions/admin/softArchive.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin"
+  ],
+  "exports": [
+    "archiveCompany",
+    "getArchivedPeriodData",
+    "restoreCompany",
+    "startNewPeriod"
+  ],
+  "collections": [
+    "alerts",
+    "companies",
+    "locations",
+    "periods",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [
+    "alerts_without_deviation_creation"
+  ],
+  "functions": [
+    {
+      "name": "archiveCompany",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getArchivedPeriodData",
+        "restoreCompany",
+        "startNewPeriod"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "companies",
+        "locations",
+        "periods",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "getArchivedPeriodData",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "periods",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "restoreCompany",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getArchivedPeriodData",
+        "startNewPeriod"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "companies",
+        "locations",
+        "periods",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "startNewPeriod",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getArchivedPeriodData"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "periods",
+        "task_instances"
+      ]
+    }
+  ]
+}

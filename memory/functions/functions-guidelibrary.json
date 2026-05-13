@@ -1,0 +1,45 @@
+{
+  "source_file": "functions/guideLibrary.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "GUIDE_LIBRARY",
+    "getGuideByKey",
+    "mapCategoryToGuideKey",
+    "mapCategoryToTaskType"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getGuideByKey",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "mapCategoryToGuideKey",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getGuideByKey",
+        "mapCategoryToTaskType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "mapCategoryToTaskType",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getGuideByKey"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

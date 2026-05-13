@@ -1,0 +1,22 @@
+{
+  "source_file": "public/modules/egenkontrol/controlLibraryVerification.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "controlLibraryVerification",
+    "getVerificationDefinition"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getVerificationDefinition",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

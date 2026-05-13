@@ -1,0 +1,36 @@
+{
+  "source_file": "scripts/database-audit.js",
+  "module": "general",
+  "imports": [
+    "firebase/app",
+    "firebase/firestore"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "areas",
+    "companies",
+    "daily_runs",
+    "deviations",
+    "equipment",
+    "haccp_snapshots",
+    "live_user_profiles",
+    "locations",
+    "media_assets",
+    "operating_overrides",
+    "task_instances",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "auditDatabase",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

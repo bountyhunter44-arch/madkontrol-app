@@ -1,0 +1,68 @@
+{
+  "source_file": "public/modules/egenkontrol/rutiner-cooling-ui.js",
+  "module": "cooling",
+  "imports": [],
+  "exports": [
+    "handleCompleteCooling",
+    "handleStartCooling",
+    "renderCoolingControlUI"
+  ],
+  "collections": [
+    "task_instances"
+  ],
+  "flags": [
+    "completeTaskEntryWithCooling"
+  ],
+  "risks": [],
+  "functions": [
+    {
+      "name": "handleCompleteCooling",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleStartCooling",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "handleCompleteCooling"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "renderCoolingControlUI",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "renderCoolingInProgress",
+        "renderCoolingStart"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderCoolingInProgress",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "handleStartCooling"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderCoolingStart",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

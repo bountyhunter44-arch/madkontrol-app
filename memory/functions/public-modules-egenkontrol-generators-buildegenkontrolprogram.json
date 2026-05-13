@@ -1,0 +1,66 @@
+{
+  "source_file": "public/modules/egenkontrol/generators/buildEgenkontrolProgram.js",
+  "module": "general",
+  "imports": [
+    "../config/branches/asiatisk.js",
+    "../config/branches/cafe.js",
+    "../config/branches/pizzeria.js",
+    "../config/branches/takeaway.js",
+    "../config/countries/dk.js",
+    "../config/countries/it.js",
+    "./buildPersonalisering.js",
+    "./buildProcedurer.js",
+    "./buildSkemaer.js",
+    "./buildUnits.js"
+  ],
+  "exports": [
+    "buildEgenkontrolProgram",
+    "validateProgram"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildEgenkontrolProgram",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "normalizeCompanyType",
+        "validateProgram"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "country",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "normalizeCompanyType",
+        "validateProgram"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeCompanyType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEgenkontrolProgram",
+        "validateProgram"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "validateProgram",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

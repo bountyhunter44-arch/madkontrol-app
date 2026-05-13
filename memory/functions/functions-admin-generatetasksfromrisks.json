@@ -1,0 +1,292 @@
+{
+  "source_file": "functions/admin/generateTasksFromRisks.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [
+    "generateTasksFromRisks"
+  ],
+  "collections": [
+    "equipment",
+    "risks",
+    "tasks"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "alertSeverityFromRisk",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "alertTypeFromRisk",
+        "buildTaskDoc",
+        "descriptionFromRisk",
+        "frequencyFromRisk",
+        "generateTasksFromRisks",
+        "getEquipmentForLocation",
+        "measurementUnit",
+        "requiresMeasurement",
+        "slugify",
+        "taskTypeFromRisk",
+        "titleFromRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "risks",
+        "tasks"
+      ]
+    },
+    {
+      "name": "alertTypeFromRisk",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "alertSeverityFromRisk",
+        "buildTaskDoc",
+        "descriptionFromRisk",
+        "frequencyFromRisk",
+        "generateTasksFromRisks",
+        "getEquipmentForLocation",
+        "measurementUnit",
+        "requiresMeasurement",
+        "slugify",
+        "taskTypeFromRisk",
+        "titleFromRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "risks"
+      ]
+    },
+    {
+      "name": "buildTaskDoc",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "alertSeverityFromRisk",
+        "alertTypeFromRisk",
+        "descriptionFromRisk",
+        "frequencyFromRisk",
+        "generateTasksFromRisks",
+        "getEquipmentForLocation",
+        "measurementUnit",
+        "requiresMeasurement",
+        "slugify",
+        "taskTypeFromRisk",
+        "titleFromRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "risks",
+        "tasks"
+      ]
+    },
+    {
+      "name": "descriptionFromRisk",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "alertSeverityFromRisk",
+        "alertTypeFromRisk",
+        "buildTaskDoc",
+        "frequencyFromRisk",
+        "generateTasksFromRisks",
+        "getEquipmentForLocation",
+        "measurementUnit",
+        "requiresMeasurement",
+        "slugify",
+        "taskTypeFromRisk",
+        "titleFromRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "risks"
+      ]
+    },
+    {
+      "name": "frequencyFromRisk",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "alertSeverityFromRisk",
+        "alertTypeFromRisk",
+        "buildTaskDoc",
+        "descriptionFromRisk",
+        "generateTasksFromRisks",
+        "getEquipmentForLocation",
+        "measurementUnit",
+        "requiresMeasurement",
+        "slugify",
+        "taskTypeFromRisk",
+        "titleFromRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "risks",
+        "tasks"
+      ]
+    },
+    {
+      "name": "generateTasksFromRisks",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildTaskDoc",
+        "getEquipmentForLocation"
+      ],
+      "selectors": [],
+      "collections": [
+        "risks",
+        "tasks"
+      ]
+    },
+    {
+      "name": "getEquipmentForLocation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildTaskDoc",
+        "generateTasksFromRisks"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "risks",
+        "tasks"
+      ]
+    },
+    {
+      "name": "measurementUnit",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "alertSeverityFromRisk",
+        "alertTypeFromRisk",
+        "buildTaskDoc",
+        "descriptionFromRisk",
+        "frequencyFromRisk",
+        "generateTasksFromRisks",
+        "getEquipmentForLocation",
+        "requiresMeasurement",
+        "slugify",
+        "taskTypeFromRisk",
+        "titleFromRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "risks",
+        "tasks"
+      ]
+    },
+    {
+      "name": "requiresMeasurement",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "alertSeverityFromRisk",
+        "alertTypeFromRisk",
+        "buildTaskDoc",
+        "descriptionFromRisk",
+        "frequencyFromRisk",
+        "generateTasksFromRisks",
+        "getEquipmentForLocation",
+        "measurementUnit",
+        "slugify",
+        "taskTypeFromRisk",
+        "titleFromRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "risks",
+        "tasks"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateTasksFromRisks"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "alertSeverityFromRisk",
+        "alertTypeFromRisk",
+        "buildTaskDoc",
+        "descriptionFromRisk",
+        "frequencyFromRisk",
+        "getEquipmentForLocation",
+        "measurementUnit",
+        "requiresMeasurement",
+        "taskTypeFromRisk",
+        "titleFromRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment"
+      ]
+    },
+    {
+      "name": "taskTypeFromRisk",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "alertSeverityFromRisk",
+        "alertTypeFromRisk",
+        "buildTaskDoc",
+        "descriptionFromRisk",
+        "frequencyFromRisk",
+        "generateTasksFromRisks",
+        "getEquipmentForLocation",
+        "measurementUnit",
+        "requiresMeasurement",
+        "slugify",
+        "titleFromRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "risks"
+      ]
+    },
+    {
+      "name": "titleFromRisk",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "alertSeverityFromRisk",
+        "alertTypeFromRisk",
+        "buildTaskDoc",
+        "descriptionFromRisk",
+        "frequencyFromRisk",
+        "generateTasksFromRisks",
+        "getEquipmentForLocation",
+        "measurementUnit",
+        "requiresMeasurement",
+        "slugify",
+        "taskTypeFromRisk"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "risks"
+      ]
+    }
+  ]
+}

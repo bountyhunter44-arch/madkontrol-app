@@ -1,0 +1,33 @@
+{
+  "name": "dashboard",
+  "files": [
+    "app/dashboard.html",
+    "public/admin/owner-dashboard.html",
+    "public/assets/dashboard.html",
+    "public/dashboard.html",
+    "public/modules/egenkontrol/process-dashboard.js",
+    "public/modules/lager/dashboard.html",
+    "public/modules/lager/profit-dashboard.html",
+    "public/modules/water/dashboard.html"
+  ],
+  "total_functions": 125,
+  "flags": [
+    "saveRoutineTask"
+  ],
+  "collections": [
+    "alerts",
+    "companies",
+    "deviations",
+    "inventory_items",
+    "inventory_transactions",
+    "live_user_profiles",
+    "locations",
+    "media_assets",
+    "operating_overrides",
+    "task_instances",
+    "users"
+  ],
+  "risks": [
+    "alerts_without_deviation_creation"
+  ]
+}

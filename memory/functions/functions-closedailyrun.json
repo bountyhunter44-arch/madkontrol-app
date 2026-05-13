@@ -1,0 +1,33 @@
+{
+  "source_file": "functions/closeDailyRun.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "firebase-functions/v2/https"
+  ],
+  "exports": [
+    "closeDailyRun"
+  ],
+  "collections": [
+    "alerts",
+    "daily_reports",
+    "daily_runs",
+    "deviations",
+    "task_instances"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "isTaskCompletedForClosure",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "source_file": "public/modules/core/billed-arkiv.html",
+  "module": "general",
+  "imports": [
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "/core/layout.js",
+    "https://esm.sh/react-dom@18.3.1/client",
+    "https://esm.sh/react@18.3.1",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "companies",
+    "live_user_profiles",
+    "locations",
+    "media_assets"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "App",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "loadAssets",
+        "loadLocationName",
+        "parseAssetDate"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations",
+        "media_assets"
+      ]
+    },
+    {
+      "name": "downloadManifest",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "fmtDate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeCsv",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "fmtDate",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "App",
+        "loadAssets",
+        "loadLocationName",
+        "optimizedUrl",
+        "parseAssetDate",
+        "resolveModuleLink"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations",
+        "media_assets"
+      ]
+    },
+    {
+      "name": "loadAssets",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "downloadManifest",
+        "fmtDate",
+        "parseAssetDate"
+      ],
+      "selectors": [],
+      "collections": [
+        "media_assets"
+      ]
+    },
+    {
+      "name": "loadLocationName",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "downloadManifest",
+        "loadAssets",
+        "parseAssetDate"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations",
+        "media_assets"
+      ]
+    },
+    {
+      "name": "module",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "optimizedUrl",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "App",
+        "loadAssets",
+        "loadLocationName",
+        "parseAssetDate",
+        "resolveModuleLink"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations",
+        "media_assets"
+      ]
+    },
+    {
+      "name": "parseAssetDate",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "App",
+        "fmtDate",
+        "loadAssets",
+        "loadLocationName",
+        "optimizedUrl",
+        "resolveModuleLink"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations",
+        "media_assets"
+      ]
+    },
+    {
+      "name": "resolveModuleLink",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "App",
+        "loadAssets",
+        "loadLocationName",
+        "parseAssetDate"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations",
+        "media_assets"
+      ]
+    }
+  ]
+}

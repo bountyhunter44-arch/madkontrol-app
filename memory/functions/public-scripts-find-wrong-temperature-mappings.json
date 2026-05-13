@@ -1,0 +1,36 @@
+{
+  "source_file": "public/scripts/find-wrong-temperature-mappings.cjs",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "findWrongTemperatureMappings",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    },
+    {
+      "name": "title",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "findWrongTemperatureMappings"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

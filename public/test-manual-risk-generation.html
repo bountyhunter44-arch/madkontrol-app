@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manuel Risikoanalyse Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 30px;
+            border-radius: 8px;
+        }
+        h1 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Manuel Risikoanalyse Generator</h1>
+        <p>Brug dette værktøj til at generere risikoanalyse for eksisterende onboardings.</p>
+        
+        <div class="form-group">
+            <label for="companyId">Company ID:</label>
+            <input type="text" id="companyId" placeholder="f.eks. onboarding_test-kinesiske-mur">
+        </div>
+        
+        <div class="form-group">
+            <label for="locationId">Location ID:</label>
+            <input type="text" id="locationId" placeholder="f.eks. onboarding_test-kinesiske-mur__main">
+        </div>
+        
+        <button id="generateBtn" onclick="generateRiskAnalysis()">Generer Risikoanalyse</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-functions.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNzCaPlot6hUdWDS4co91KW6isfLabTWI",
+            authDomain: "madkontrollen.firebaseapp.com",
+            projectId: "madkontrollen",
+            storageBucket: "madkontrollen.firebasestorage.app",
+            messagingSenderId: "690530462316",
+            appId: "1:690530462316:web:f4d3e7c8e0b1a2c3d4e5f6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const functions = getFunctions(app, 'us-central1');
+
+        let currentUser = null;
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            const resultDiv = document.getElementById('result');
+            if (!user) {
+                resultDiv.innerHTML = '<div class="result error">Du skal være logget ind for at bruge dette værktøj.</div>';
+                document.getElementById('generateBtn').disabled = true;
+            } else {
+                resultDiv.innerHTML = '<div class="result info">Logget ind som: ' + user.email + '</div>';
+                document.getElementById('generateBtn').disabled = false;
+            }
+        });
+
+        window.generateRiskAnalysis = async function() {
+            const companyId = document.getElementById('companyId').value.trim();
+            const locationId = document.getElementById('locationId').value.trim();
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('generateBtn');
+
+            if (!companyId || !locationId) {
+                resultDiv.innerHTML = '<div class="result error">Udfyld venligst både Company ID og Location ID</div>';
+                return;
+            }
+
+            if (!currentUser) {
+                resultDiv.innerHTML = '<div class="result error">Du skal være logget ind</div>';
+                return;
+            }
+
+            btn.disabled = true;
+            resultDiv.innerHTML = '<div class="result info">Genererer risikoanalyse... ⏳</div>';
+
+            try {
+                const manualGenerateRiskAnalysis = httpsCallable(functions, 'manualGenerateRiskAnalysis');
+                const result = await manualGenerateRiskAnalysis({ companyId, locationId });
+
+                resultDiv.innerHTML = `
+                    <div class="result success">
+                        <h3>✅ Risikoanalyse genereret!</h3>
+                        <p><strong>Kontrolpunkter:</strong> ${result.data.controlPointsGenerated}</p>
+                        <p><strong>Firestore path:</strong> ${result.data.path}</p>
+                        <p>Gå til <a href="/modules/egenkontrol/risikoanalyse.html" target="_blank">risikoanalyse.html</a> for at se resultatet.</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Fejl</h3>
+                        <p><strong>Besked:</strong> ${error.message}</p>
+                        <p><strong>Kode:</strong> ${error.code}</p>
+                        <p>Tjek Firebase Console logs for flere detaljer.</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

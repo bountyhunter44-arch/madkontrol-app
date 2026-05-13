@@ -1,0 +1,20 @@
+{
+  "module": "rutiner",
+  "files": [
+    {
+      "source_file": "public/modules/egenkontrol/rutiner.html",
+      "collections": [
+        "alerts",
+        "companies",
+        "daily_runs",
+        "deviations",
+        "locations",
+        "media_assets",
+        "operating_overrides",
+        "task_entries",
+        "task_instances",
+        "task_templates"
+      ]
+    }
+  ]
+}

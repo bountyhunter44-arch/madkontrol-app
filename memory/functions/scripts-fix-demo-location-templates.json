@@ -1,0 +1,43 @@
+{
+  "source_file": "scripts/fix-demo-location-templates.js",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "daily_runs",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getTodayKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "run"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "run",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getTodayKey"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_runs",
+        "task_templates"
+      ]
+    }
+  ]
+}

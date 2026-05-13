@@ -1,0 +1,11 @@
+{
+  "connector_id": "madkontrollen-pc-1",
+  "device_name": "Michael-PC",
+  "base_url": "https://agent.sangmaskine.dk",
+  "token": "1d1c47ca6b6970050d876a03d777ff30bf8f43bbc5abec04901bf4802a5b0748",
+  "poll_interval_seconds": 5,
+  "request_timeout_seconds": 30,
+  "workspace_root": "D:\\madkontrol-app",
+  "log_dir": "data\\logs",
+  "backup_dir": "data\\backups"
+}

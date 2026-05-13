@@ -1,0 +1,151 @@
+{
+  "source_file": "public/create-location.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "fillDemo",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "renderModules",
+        "renderSummary",
+        "resetForm"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getPortfolioMultiplier",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "fillDemo",
+        "getUnits",
+        "monthlyPrice",
+        "renderModules",
+        "renderSummary",
+        "resetForm",
+        "slugify",
+        "yearlyPrice"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getUnits",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "fillDemo",
+        "getPortfolioMultiplier",
+        "monthlyPrice",
+        "renderModules",
+        "renderSummary",
+        "resetForm",
+        "slugify",
+        "yearlyPrice"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "monthlyPrice",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "fillDemo",
+        "getPortfolioMultiplier",
+        "getUnits",
+        "renderModules",
+        "renderSummary",
+        "resetForm",
+        "slugify",
+        "yearlyPrice"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderModules",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "fillDemo",
+        "getUnits",
+        "monthlyPrice",
+        "renderSummary",
+        "resetForm",
+        "slugify",
+        "yearlyPrice"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderSummary",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "fillDemo",
+        "getUnits",
+        "monthlyPrice",
+        "renderModules",
+        "resetForm",
+        "slugify",
+        "yearlyPrice"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "resetForm",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "renderModules",
+        "renderSummary"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "fillDemo",
+        "getPortfolioMultiplier",
+        "getUnits",
+        "monthlyPrice",
+        "renderModules",
+        "renderSummary",
+        "resetForm",
+        "yearlyPrice"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "yearlyPrice",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "fillDemo",
+        "getPortfolioMultiplier",
+        "getUnits",
+        "monthlyPrice",
+        "renderModules",
+        "renderSummary",
+        "resetForm",
+        "slugify"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

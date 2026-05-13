@@ -1,0 +1,787 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Madkontrollen Pro – Digitale løsninger til fødevaresikkerhed, egenkontrol og temperaturmåling i professionelle køkkener." />
+    <title>Madkontrollen Pro – Digital Egenkontrol til dit Køkken</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary: #2e7d32;
+            --primary-dark: #1f5a23;
+            --primary-light: #e8f5e9;
+            --secondary: #1565c0;
+            --secondary-light: #eaf3ff;
+            --accent: #f57c00;
+            --text: #182118;
+            --text-light: #667267;
+            --bg: #f7faf7;
+            --bg-soft: #f4f7f3;
+            --border: #d9e4d9;
+            --success: #4caf50;
+            --warning: #fb8c00;
+            --danger: #c62828;
+            --shadow: 0 16px 32px rgba(19, 39, 20, 0.08);
+            --shadow-lg: 0 24px 48px rgba(19, 39, 20, 0.12);
+        }
+
+        html, body {
+            font-family: "Inter", sans-serif;
+            color: var(--text);
+            background: #fff;
+            line-height: 1.6;
+        }
+
+        a { color: inherit; text-decoration: none; transition: .2s; }
+        a:hover { opacity: 0.8; }
+
+        img { max-width: 100%; height: auto; display: block; }
+
+        /* Typography */
+        h1 { font-size: 3.2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+        h2 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1.3; }
+        h3 { font-size: 1.5rem; font-weight: 700; line-height: 1.4; }
+        h4 { font-size: 1.1rem; font-weight: 600; }
+
+        p { font-size: 1rem; color: var(--text-light); line-height: 1.7; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: .2s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #4ca851 100%);
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(46, 125, 50, 0.24);
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-large { padding: 16px 32px; font-size: 1.1rem; }
+
+        /* Layout */
+        .navbar {
+            background: rgba(255,255,255,.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, #4ca851 100%);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .navbar-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            h1 { font-size: 2.2rem; }
+            h2 { font-size: 1.8rem; }
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #f7faf7 0%, var(--primary-light) 100%);
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .hero-inner {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(46, 125, 50, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: var(--text-light);
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+        }
+
+        .hero-visual {
+            margin-top: 60px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            background: #fff;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .hero-visual-placeholder {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 100%);
+            height: 400px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        /* Stats */
+        .stats {
+            padding: 60px 20px;
+            background: #fff;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stats-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            font-size: 2.8rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .stat-item p {
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        /* Features */
+        .features {
+            padding: 80px 20px;
+            background: var(--bg);
+        }
+
+        .features-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            transition: .2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.8rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            font-size: 0.95rem;
+        }
+
+        /* Products */
+        .products {
+            padding: 80px 20px;
+            background: #fff;
+        }
+
+        .products-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .product-box {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            background: #fff;
+            transition: .2s;
+        }
+
+        .product-box:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .product-box h4 {
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .product-box p {
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .product-box a {
+            display: inline-flex;
+            gap: 6px;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 80px 20px;
+            background: var(--bg);
+        }
+
+        .testimonials-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .testimonial-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+        }
+
+        .testimonial-stars {
+            color: #ffc107;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .testimonial-card p {
+            margin-bottom: 16px;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .testimonial-author span {
+            color: var(--text-light);
+            display: block;
+            font-weight: 400;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        /* CTA */
+        .cta {
+            padding: 80px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            text-align: center;
+        }
+
+        .cta-inner {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cta h2 {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .cta p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .cta .btn-secondary {
+            background: #fff;
+            color: var(--primary);
+        }
+
+        /* Footer */
+        .footer {
+            background: #1a1a1a;
+            color: #ccc;
+            padding: 60px 20px 30px;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-col h4 {
+            color: #fff;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-col a {
+            color: #999;
+            font-size: 0.9rem;
+            transition: .2s;
+        }
+
+        .footer-col a:hover {
+            color: #fff;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #333;
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero { padding: 50px 20px; }
+            .hero h1 { font-size: 2rem; }
+            .hero p { font-size: 1rem; }
+            .btn-large { padding: 12px 24px; font-size: 1rem; }
+            .hero-actions { flex-direction: column; }
+            .hero-actions .btn { width: 100%; }
+            .features-grid, .products-grid, .testimonials-grid { 
+                grid-template-columns: 1fr; 
+            }
+            .stat-item h3 { font-size: 2rem; }
+            .footer-bottom { justify-content: center; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <div class="brand">
+                <div class="brand-icon">🍽️</div>
+                <span>Madkontrollen Pro</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#features">Funktioner</a></li>
+                <li><a href="#products">Løsninger</a></li>
+                <li><a href="#testimonials">Kunderne</a></li>
+                <li><a href="#contact">Kontakt</a></li>
+            </ul>
+            <div class="navbar-actions">
+                <a href="/modules/egenkontrol/index.html" class="btn btn-secondary" style="padding: 10px 18px; font-size: 0.9rem;">Log ind</a>
+                <a href="/modules/egenkontrol/onboarding.html" class="btn btn-primary" style="padding: 10px 18px; font-size: 0.9rem;">Kom i gang</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="hero-badge">✨ Nordisk løsning til fødevaresikkerhed</div>
+            <h1>Digital Egenkontrol for Dine Køkkener</h1>
+            <p>Madkontrollen Pro gør fødevaresikkerhed enkel, sikker og dokumenteret. Automatisk temperaturmåling, digitale rutiner og fuld transparens til miljøstyrelsen – alt på én platform.</p>
+            
+            <div class="hero-actions">
+                <a href="/modules/egenkontrol/onboarding.html" class="btn btn-primary btn-large">Få adgang til demo</a>
+                <a href="#contact" class="btn btn-secondary btn-large">Få et tilbud</a>
+            </div>
+
+            <div class="hero-visual">
+                <div class="hero-visual-placeholder">
+                    📱 Dashboard med live egenkontrol, temperaturmålinger og afvigelser
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats">
+        <div class="stats-inner">
+            <div class="stat-item">
+                <h3>500+</h3>
+                <p>Køkkener i brug</p>
+            </div>
+            <div class="stat-item">
+                <h3>2M+</h3>
+                <p>Daglige målinger</p>
+            </div>
+            <div class="stat-item">
+                <h3>100%</h3>
+                <p>Miljøstyrelse-kompatibelt</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="features-inner">
+            <div class="section-header">
+                <h2>Løsninger Til Dit Køkken</h2>
+                <p>Alt hvad du behøver til sikker og dokumenteret egenkontrol – uden papirarbejde</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🌡️</div>
+                    <h3>Automatisk Temperaturmåling</h3>
+                    <p>Realtidsmålinger af køleskabe, frysere, ovne og kølerum – med automatisk advarsel ved afvigelse.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3>Digitale Rutiner</h3>
+                    <p>Dine daglige rutiner for rengøring, kontrol og hygiejne – med guides og templates til hver zone.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Rapporter & Analyse</h3>
+                    <p>Automatiske kontroller, afvigelsesrapporter og dokumentation klar til miljøstyrelse-besøg.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚠️</div>
+                    <h3>Afvigelseshåndtering</h3>
+                    <p>Registrer afvigelser direkte under arbejdet – med korrigerende handlinger og opfølgning.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Realtidsadvarsler</h3>
+                    <p>Øjeblikkelig besked ved temperaturafvigelse, manglende rutine eller kritisk risiko.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🏢</div>
+                    <h3>Multi-Location Support</h3>
+                    <p>Styring af flere køkkener fra ét dashboard – med brugerstyring og rettigheder pr. lokation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products -->
+    <section class="products" id="products">
+        <div class="products-inner">
+            <div class="section-header">
+                <h2>Hvad Du Kan Gøre Med Madkontrollen Pro</h2>
+                <p>Moduler og funktioner tilpasset dit køkkens behov</p>
+            </div>
+
+            <div class="products-grid">
+                <div class="product-box">
+                    <h4>Digital Egenkontrol</h4>
+                    <p>Opret og gennemfør daglige rutiner, temperaturkontrol og rengøringsopgaver med dokumentation.</p>
+                    <a href="/modules/egenkontrol/rutiner.html">Læs mere →</a>
+                </div>
+
+                <div class="product-box">
+                    <h4>Risikoanalyse (HACCP)</h4>
+                    <p>Automatisk generering af risikoanalyse ud fra dit køkkens profil – lovpligtig og opdateret.</p>
+                    <a href="/modules/egenkontrol/risikoanalyse.html">Læs mere →</a>
+                </div>
+
+                <div class="product-box">
+                    <h4>Afvigelsesrapporter</h4>
+                    <p>Registrer og separer afvigelser, med korrigerende handlinger og opfølgning.</p>
+                    <a href="/modules/egenkontrol/afvigelser.html">Læs mere →</a>
+                </div>
+
+                <div class="product-box">
+                    <h4>Dashboard & Statistik</h4>
+                    <p>Overblik over status, trends og dokumentation – til møder og inspektioner.</p>
+                    <a href="/modules/egenkontrol/index.html">Læs mere →</a>
+                </div>
+
+                <div class="product-box">
+                    <h4>Onboarding & Setup</h4>
+                    <p>Guidedretur igennem dine køkkenfaciliteter, udstyr og rengøringsplans – automatisk generering af rutiner.</p>
+                    <a href="/modules/egenkontrol/onboarding.html">Læs mere →</a>
+                </div>
+
+                <div class="product-box">
+                    <h4>Rapporter til Myndigheder</h4>
+                    <p>Eksport af egenkontroldata, risikoanalyse og afvigelsesdokumentation til miljøstyrelsens brug.</p>
+                    <a href="/modules/egenkontrol/rapporter.html">Læs mere →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials" id="testimonials">
+        <div class="testimonials-inner">
+            <div class="section-header">
+                <h2>Hvad Siger Vores Kunder?</h2>
+                <p>Køkkener der har gjort arbejdet nemmere med Madkontrollen Pro</p>
+            </div>
+
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p>"Vi bruger Madkontrollen Pro til alle vores 5 køkkener. Det har gjort dokumentationen klar og automatisk – vi er altid klar til inspektioner."</p>
+                    <div class="testimonial-author">
+                        Maria Jensen
+                        <span>Køkkenchef, Café København</span>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p>"Temperaturguidet er fantastisk – jeg får straks besked hvis noget går galt. Ingen mere stress omkring fejl."</p>
+                    <div class="testimonial-author">
+                        Lars Andersen
+                        <span>Driftsleder, Restaurant Vestertoft</span>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p>"Før brugte vi papir. Nu har jeg alt digitalt på min telefon, og afvigelser bliver håndteret straks. Det er meget bedre."</p>
+                    <div class="testimonial-author">
+                        Tina Kvist
+                        <span>Køkkenpersonale, Skolekantine Høje Taastrup</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" id="contact">
+        <div class="cta-inner">
+            <h2>Klar Til At Forbedre Din Egenkontrol?</h2>
+            <p>Start med en gratis demo eller få et personligt tilbud tilpasset dit køkkens størrelse og behov.</p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <a href="/modules/egenkontrol/onboarding.html" class="btn btn-secondary btn-large">Prøv gratis i dag</a>
+                <a href="tel:+4540123456" class="btn" style="background: rgba(255,255,255,0.2); color: #fff; border: 2px solid #fff;">Ring: +45 40 12 34 56</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>Løsninger</h4>
+                    <ul>
+                        <li><a href="/modules/egenkontrol/rutiner.html">Daglige Rutiner</a></li>
+                        <li><a href="/modules/egenkontrol/risikoanalyse.html">Risikoanalyse</a></li>
+                        <li><a href="/modules/egenkontrol/afvigelser.html">Afvigelsesrapporter</a></li>
+                        <li><a href="/modules/egenkontrol/rapporter.html">Dokumentation</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Om Os</h4>
+                    <ul>
+                        <li><a href="#about">Om Madkontrollen</a></li>
+                        <li><a href="#features">Funktioner</a></li>
+                        <li><a href="#testimonials">Kunderne</a></li>
+                        <li><a href="/modules/egenkontrol/start-dag.html">Onboarding</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="mailto:support@madkontrol.dk">support@madkontrol.dk</a></li>
+                        <li><a href="tel:+4540123456">+45 40 12 34 56</a></li>
+                        <li><a href="/modules/egenkontrol/index.html">Log ind</a></li>
+                        <li><a href="/modules/egenkontrol/onboarding.html">Kom i gang</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Juridisk</h4>
+                    <ul>
+                        <li><a href="/privatlivspolitik">Privatlivspolitik</a></li>
+                        <li><a href="/vilkaar-og-betingelser">Vilkår & Betingelser</a></li>
+                        <li><a href="/cookie-indstillinger">Cookie-indstillinger</a></li>
+                        <li><a href="/gdpr">GDPR</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div>&copy; 2026 Madkontrollen Pro. Alle rettigheder forbeholdt.</div>
+                <div>Kontakt: <a href="mailto:info@madkontrol.dk">info@madkontrol.dk</a></div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

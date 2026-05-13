@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Owner Dashboard | Madkontrollen Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        :root {
+            --owner-primary: #7c3aed;
+            --owner-primary-dark: #6d28d9;
+            --owner-bg: #faf5ff;
+            --owner-border: #e9d5ff;
+        }
+
+        body {
+            background: var(--owner-bg);
+        }
+
+        .owner-header {
+            background: linear-gradient(135deg, var(--owner-primary) 0%, var(--owner-primary-dark) 100%);
+            color: white;
+            padding: 32px 0;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 40px rgba(124, 58, 237, 0.3);
+        }
+
+        .owner-header h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+        }
+
+        .owner-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .owner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 2px solid var(--owner-border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+        }
+
+        .stat-card h3 {
+            margin: 0 0 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6b7280;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--owner-primary);
+            margin: 0;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .companies-section {
+            background: white;
+            border: 2px solid var(--owner-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .companies-section h2 {
+            margin: 0 0 20px;
+            font-size: 24px;
+            color: var(--owner-primary);
+        }
+
+        .company-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .company-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--owner-border);
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6b7280;
+        }
+
+        .company-table td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .company-table tr:hover {
+            background: var(--owner-bg);
+        }
+
+        .company-name {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .company-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-impersonate {
+            background: var(--owner-primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-impersonate:hover {
+            background: var(--owner-primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .deviations-section {
+            background: white;
+            border: 2px solid var(--owner-border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .deviations-section h2 {
+            margin: 0 0 20px;
+            font-size: 24px;
+            color: var(--owner-primary);
+        }
+
+        .deviation-item {
+            padding: 16px;
+            border-left: 4px solid #ef4444;
+            background: #fef2f2;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .deviation-company {
+            font-weight: 700;
+            color: #991b1b;
+            margin-bottom: 4px;
+        }
+
+        .deviation-desc {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .deviation-time {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        .error {
+            background: #fee2e2;
+            border: 2px solid #fecaca;
+            border-radius: 12px;
+            padding: 20px;
+            color: #991b1b;
+            margin: 20px 0;
+        }
+
+        .access-denied {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .access-denied h1 {
+            color: #991b1b;
+            margin-bottom: 16px;
+        }
+
+        .system-health {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .health-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .health-ok {
+            background: #10b981;
+        }
+
+        .health-warning {
+            background: #f59e0b;
+        }
+
+        .health-error {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body data-page="owner-dashboard">
+    <div id="headerMount"></div>
+
+    <main class="page-shell">
+        <div class="container">
+            <div id="ownerDashboardRoot">
+                <div class="loading">
+                    <p>🔐 Verificerer super-admin adgang...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { setupAuthGate } from "/core/auth.js";
+        import { db } from "/core/firebase-config.js";
+        import { 
+            collection, 
+            getDocs, 
+            query, 
+            orderBy, 
+            limit,
+            where,
+            Timestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const SUPER_ADMIN_EMAILS = [
+            'mn@aroid.dk'  // Replace with actual super-admin email
+        ];
+
+        function isSuperAdmin(user, profile) {
+            console.log('🔍 Tjekker super-admin adgang:');
+            console.log('   User email:', user.email);
+            console.log('   Profile role:', profile?.role);
+            console.log('   Allowed emails:', SUPER_ADMIN_EMAILS);
+            console.log('   Email match:', SUPER_ADMIN_EMAILS.includes(user.email));
+            console.log('   Role match:', profile?.role === 'super-admin');
+            
+            return profile?.role === 'super-admin' && 
+                   SUPER_ADMIN_EMAILS.includes(user.email);
+        }
+
+        function renderAccessDenied(user, profile) {
+            document.getElementById('ownerDashboardRoot').innerHTML = `
+                <div class="access-denied">
+                    <h1>🚫 Adgang Nægtet</h1>
+                    <p>Du har ikke tilladelse til at se dette dashboard.</p>
+                    <p>Kun super-admin brugere kan tilgå Owner Dashboard.</p>
+                    <hr style="margin: 20px 0; border: 1px solid #e5e7eb;">
+                    <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; font-size: 13px; color: #6b7280;">
+                        <strong>Debug Info:</strong><br>
+                        Din email: ${user?.email || 'Ingen email'}<br>
+                        Din rolle: ${profile?.role || 'Ingen rolle'}<br>
+                        Krævet rolle: super-admin<br>
+                        Tilladt email: mn@aroid.dk
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadOwnerDashboard(user, profile) {
+            const root = document.getElementById('ownerDashboardRoot');
+
+            try {
+                // Load all companies
+                const companiesSnap = await getDocs(collection(db, "companies"));
+                const companies = companiesSnap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Load all users
+                const usersSnap = await getDocs(collection(db, "users"));
+                const users = usersSnap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Load recent deviations (last 50)
+                const deviationsQuery = query(
+                    collection(db, "deviations"),
+                    orderBy("createdAt", "desc"),
+                    limit(50)
+                );
+                const deviationsSnap = await getDocs(deviationsQuery);
+                const deviations = deviationsSnap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Calculate stats
+                const activeCompanies = companies.filter(c => c.status !== 'inactive').length;
+                const totalUsers = users.length;
+                const activeUsers = users.filter(u => u.lastActive && 
+                    (Date.now() - new Date(u.lastActive).getTime()) < 24 * 60 * 60 * 1000
+                ).length;
+                const openDeviations = deviations.filter(d => d.status === 'open' || d.status === 'pending').length;
+
+                renderDashboard(companies, users, deviations, {
+                    activeCompanies,
+                    totalUsers,
+                    activeUsers,
+                    openDeviations
+                });
+
+            } catch (error) {
+                console.error('Error loading owner dashboard:', error);
+                root.innerHTML = `
+                    <div class="error">
+                        <h3>⚠️ Fejl ved indlæsning</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderDashboard(companies, users, deviations, stats) {
+            const root = document.getElementById('ownerDashboardRoot');
+
+            root.innerHTML = `
+                <div class="owner-header">
+                    <div class="container">
+                        <h1>👑 Owner Dashboard</h1>
+                        <p>Fuldt overblik over alle Madkontrollen instanser</p>
+                    </div>
+                </div>
+
+                <div class="owner-grid">
+                    <div class="stat-card">
+                        <h3>Aktive Virksomheder</h3>
+                        <div class="stat-value">${stats.activeCompanies}</div>
+                        <div class="stat-label">af ${companies.length} total</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Brugere Online Nu</h3>
+                        <div class="stat-value">${stats.activeUsers}</div>
+                        <div class="stat-label">af ${stats.totalUsers} total</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Åbne Afvigelser</h3>
+                        <div class="stat-value">${stats.openDeviations}</div>
+                        <div class="stat-label">kræver opmærksomhed</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>System Status</h3>
+                        <div class="system-health">
+                            <div class="health-indicator health-ok"></div>
+                            <span>Alle systemer kører</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="companies-section">
+                    <h2>📊 Alle Virksomheder</h2>
+                    <table class="company-table">
+                        <thead>
+                            <tr>
+                                <th>Virksomhed</th>
+                                <th>CVR</th>
+                                <th>Brugere</th>
+                                <th>Status</th>
+                                <th>Handlinger</th>
+                            </tr>
+                        </thead>
+                        <tbody id="companiesTableBody">
+                            ${companies.map(company => {
+                                const companyUsers = users.filter(u => 
+                                    u.companyId === company.id || u.organizationId === company.id
+                                );
+                                const isActive = company.status !== 'inactive';
+                                
+                                return `
+                                    <tr>
+                                        <td class="company-name">${company.companyName || company.name || 'Unavngivet'}</td>
+                                        <td>${company.cvr || '-'}</td>
+                                        <td>${companyUsers.length} brugere</td>
+                                        <td>
+                                            <span class="company-status ${isActive ? 'status-active' : 'status-inactive'}">
+                                                ${isActive ? 'Aktiv' : 'Inaktiv'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button class="btn-impersonate" onclick="impersonateCompany('${company.id}', '${company.companyName || company.name}')">
+                                                👁️ Se som kunde
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="deviations-section">
+                    <h2>⚠️ Seneste Afvigelser (Alle Kunder)</h2>
+                    <div id="deviationsContainer">
+                        ${deviations.slice(0, 10).map(dev => {
+                            const company = companies.find(c => c.id === dev.companyId || c.id === dev.organizationId);
+                            const timeAgo = formatTimeAgo(dev.createdAt);
+                            
+                            return `
+                                <div class="deviation-item">
+                                    <div class="deviation-company">
+                                        ${company?.companyName || company?.name || 'Ukendt virksomhed'}
+                                    </div>
+                                    <div class="deviation-desc">
+                                        ${dev.description || dev.title || 'Ingen beskrivelse'}
+                                    </div>
+                                    <div class="deviation-time">
+                                        ${timeAgo}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('') || '<p style="color:#6b7280;">Ingen afvigelser fundet</p>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatTimeAgo(timestamp) {
+            if (!timestamp) return 'Ukendt tid';
+            
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+            
+            if (seconds < 60) return 'Lige nu';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)} min siden`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)} timer siden`;
+            return `${Math.floor(seconds / 86400)} dage siden`;
+        }
+
+        // Global function for impersonation
+        window.impersonateCompany = async function(companyId, companyName) {
+            if (!confirm(`Vil du se dashboardet som "${companyName}"?\n\nDu vil blive omdirigeret til deres dashboard.`)) {
+                return;
+            }
+
+            try {
+                // Fetch company's first location
+                const locationsQuery = query(
+                    collection(db, "locations"),
+                    where("companyId", "==", companyId),
+                    limit(1)
+                );
+                const locationsSnap = await getDocs(locationsQuery);
+                
+                let locationId = 'location_demo_1'; // fallback
+                if (!locationsSnap.empty) {
+                    locationId = locationsSnap.docs[0].id;
+                }
+
+                // Store impersonation data
+                sessionStorage.setItem('mkp_impersonate_companyId', companyId);
+                sessionStorage.setItem('mkp_impersonate_companyName', companyName);
+                sessionStorage.setItem('mkp_impersonate_locationId', locationId);
+                sessionStorage.setItem('mkp_impersonate_active', 'true');
+
+                // Redirect to main dashboard
+                window.location.href = '/dashboard';
+            } catch (error) {
+                console.error('Error setting up impersonation:', error);
+                alert('Kunne ikke skifte til kunde. Prøv igen.');
+            }
+        };
+
+        // Initialize
+        setupAuthGate({
+            appName: "Madkontrollen Pro - Owner Dashboard",
+            onAuthenticated: async ({ user, profile }) => {
+                console.log('✅ Bruger er authenticated');
+                console.log('User:', user);
+                console.log('Profile:', profile);
+                
+                if (!isSuperAdmin(user, profile)) {
+                    console.warn('❌ Super-admin check fejlede');
+                    renderAccessDenied(user, profile);
+                    return;
+                }
+
+                console.log('✅ Super-admin check OK - loader dashboard');
+                await loadOwnerDashboard(user, profile);
+            },
+            onSignedOut: async () => {
+                document.getElementById('ownerDashboardRoot').innerHTML = `
+                    <div class="access-denied">
+                        <h1>🔐 Log ind</h1>
+                        <p>Du skal være logget ind som super-admin for at se dette dashboard.</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

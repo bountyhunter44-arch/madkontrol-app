@@ -1,0 +1,54 @@
+{
+  "source_file": "functions/scripts/sletAlleFirmaer.js",
+  "module": "general",
+  "imports": [
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [
+    "companies"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "deleteCollectionRecursive",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "deleteDocumentRecursive",
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies"
+      ]
+    },
+    {
+      "name": "deleteDocumentRecursive",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteCollectionRecursive",
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies"
+      ]
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "deleteCollectionRecursive"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "source_file": "functions/admin/completeTaskEntryWithCooling.js",
+  "module": "cooling",
+  "imports": [
+    "../egenkontrol/evaluators/coolingEvaluator",
+    "../egenkontrol/models/coolingHistoryModel",
+    "firebase-admin/firestore"
+  ],
+  "exports": [
+    "completeTaskEntryWithCooling"
+  ],
+  "collections": [
+    "alerts",
+    "deviations",
+    "task_entries",
+    "task_instances"
+  ],
+  "flags": [
+    "completeTaskEntryWithCooling"
+  ],
+  "risks": [],
+  "functions": [
+    {
+      "name": "completeTaskEntryWithCooling",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "deviations",
+        "task_entries",
+        "task_instances"
+      ]
+    }
+  ]
+}

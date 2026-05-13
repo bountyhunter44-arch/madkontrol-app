@@ -1,0 +1,116 @@
+{
+  "source_file": "public/modules/egenkontrol/controlDefinitionRegistry.js",
+  "module": "general",
+  "imports": [
+    "./controlLibraryOperational.js",
+    "./controlLibraryProgram.js",
+    "./controlLibraryVerification.js"
+  ],
+  "exports": [
+    "allControlDefinitions",
+    "getControlDefinitionByKey",
+    "getDefinitionsByLibraryType",
+    "getOperationalDefinitions",
+    "getProgramDefinitions",
+    "getVerificationDefinitions",
+    "groupDefinitionsByLibraryType"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "_buildRegistry",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getControlDefinitionByKey",
+        "getDefinitionsByLibraryType",
+        "getOperationalDefinitions",
+        "getProgramDefinitions",
+        "getVerificationDefinitions",
+        "groupDefinitionsByLibraryType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getControlDefinitionByKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDefinitionsByLibraryType",
+        "getOperationalDefinitions",
+        "getProgramDefinitions",
+        "getVerificationDefinitions",
+        "groupDefinitionsByLibraryType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDefinitionsByLibraryType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getOperationalDefinitions",
+        "getProgramDefinitions",
+        "getVerificationDefinitions",
+        "groupDefinitionsByLibraryType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getOperationalDefinitions",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getDefinitionsByLibraryType",
+        "getProgramDefinitions",
+        "getVerificationDefinitions",
+        "groupDefinitionsByLibraryType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProgramDefinitions",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getDefinitionsByLibraryType",
+        "getOperationalDefinitions",
+        "getVerificationDefinitions",
+        "groupDefinitionsByLibraryType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getVerificationDefinitions",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getDefinitionsByLibraryType",
+        "getOperationalDefinitions",
+        "getProgramDefinitions",
+        "groupDefinitionsByLibraryType"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "groupDefinitionsByLibraryType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getOperationalDefinitions",
+        "getProgramDefinitions",
+        "getVerificationDefinitions"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

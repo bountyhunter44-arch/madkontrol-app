@@ -1,0 +1,75 @@
+{
+  "source_file": "scripts/build-landing-pages.cjs",
+  "module": "general",
+  "imports": [
+    "fs",
+    "path"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "build",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "generateRobotsTxt",
+        "generateSitemap",
+        "renderTemplate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateRobotsTxt",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "build",
+        "generateSitemap",
+        "renderTemplate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateSitemap",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "build",
+        "generateRobotsTxt",
+        "renderTemplate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "livePages",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "build",
+        "generateRobotsTxt",
+        "generateSitemap",
+        "renderTemplate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderTemplate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "build",
+        "generateRobotsTxt",
+        "generateSitemap"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

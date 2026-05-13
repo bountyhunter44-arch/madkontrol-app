@@ -1,0 +1,789 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Certifikater | Madkontrollen Pro</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        :root{
+            --bg:#f4f7f3;
+            --panel:#ffffff;
+            --panel-soft:#f8fbf8;
+            --text:#182118;
+            --muted:#667267;
+            --border:#d9e4d9;
+            --green:#2e7d32;
+            --green-dark:#1f5a23;
+            --green-soft:#e8f5e9;
+            --blue:#1565c0;
+            --blue-soft:#e8f2ff;
+            --orange:#ef6c00;
+            --orange-soft:#fff2e8;
+            --red:#c62828;
+            --red-soft:#fdecec;
+            --shadow-soft:0 10px 30px rgba(24,33,24,.08);
+            --shadow-card:0 14px 40px rgba(31,90,35,.10);
+            --radius-xl:24px;
+            --radius-lg:18px;
+            --radius-md:14px;
+        }
+
+        body{
+            background:
+                radial-gradient(circle at top right, rgba(46,125,50,.08), transparent 22%),
+                radial-gradient(circle at left top, rgba(21,101,192,.07), transparent 18%),
+                var(--bg);
+            color:var(--text);
+        }
+
+        .page-shell{
+            padding:24px 0 44px;
+        }
+
+        .app-layout{
+            display:grid;
+            grid-template-columns:280px minmax(0, 1fr);
+            gap:24px;
+            align-items:start;
+        }
+
+        .page-content{
+            min-width:0;
+        }
+
+        .hero{
+            position:relative;
+            overflow:hidden;
+            border-radius:32px;
+            padding:32px;
+            background:linear-gradient(135deg, rgba(239,108,0,.96) 0%, rgba(46,125,50,.90) 100%);
+            color:#fff;
+            box-shadow:var(--shadow-card);
+            margin-bottom:24px;
+            border:1px solid rgba(239,108,0,.14);
+        }
+
+        .hero::before{
+            content:"";
+            position:absolute;
+            top:-32px;
+            right:-28px;
+            width:220px;
+            height:220px;
+            border-radius:50%;
+            background:rgba(255,255,255,.08);
+        }
+
+        .hero-grid{
+            position:relative;
+            z-index:1;
+            display:grid;
+            grid-template-columns:minmax(0,1.4fr) minmax(280px,.8fr);
+            gap:24px;
+            align-items:center;
+        }
+
+        .hero-kicker{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:8px 12px;
+            border-radius:999px;
+            background:rgba(255,255,255,.14);
+            font-size:13px;
+            font-weight:800;
+            margin-bottom:14px;
+        }
+
+        .hero h1{
+            margin:0 0 10px;
+            font-size:clamp(28px, 4vw, 42px);
+            line-height:1.03;
+            letter-spacing:-.03em;
+        }
+
+        .hero p{
+            margin:0;
+            color:rgba(255,255,255,.92);
+            line-height:1.65;
+            max-width:760px;
+            font-size:15px;
+        }
+
+        .hero-side{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:14px;
+        }
+
+        .hero-stat{
+            background:rgba(255,255,255,.14);
+            border:1px solid rgba(255,255,255,.16);
+            border-radius:20px;
+            padding:18px;
+        }
+
+        .hero-stat .label{
+            display:block;
+            font-size:13px;
+            color:rgba(255,255,255,.78);
+            margin-bottom:8px;
+        }
+
+        .hero-stat .value{
+            display:block;
+            font-size:28px;
+            font-weight:800;
+            letter-spacing:-.03em;
+        }
+
+        .hero-stat .sub{
+            display:block;
+            margin-top:8px;
+            font-size:13px;
+            color:rgba(255,255,255,.82);
+            line-height:1.45;
+        }
+
+        .panel{
+            background:#fff;
+            border:1px solid var(--border);
+            border-radius:24px;
+            box-shadow:var(--shadow-soft);
+        }
+
+        .section{
+            margin-bottom:24px;
+        }
+
+        .toolbar{
+            display:grid;
+            grid-template-columns:minmax(0, 1.4fr) 220px 220px;
+            gap:14px;
+            padding:18px;
+        }
+
+        .toolbar input,
+        .toolbar select{
+            width:100%;
+            min-height:48px;
+            border:1px solid var(--border);
+            border-radius:14px;
+            background:#fff;
+            color:var(--text);
+            padding:0 14px;
+            font:inherit;
+            outline:none;
+        }
+
+        .toolbar input:focus,
+        .toolbar select:focus{
+            border-color:#a9cda9;
+            box-shadow:0 0 0 4px rgba(46,125,50,.08);
+        }
+
+        .overview-grid{
+            display:grid;
+            grid-template-columns:repeat(4, minmax(0, 1fr));
+            gap:16px;
+        }
+
+        .overview-card{
+            padding:20px;
+        }
+
+        .overview-card .label{
+            color:var(--muted);
+            font-size:13px;
+            font-weight:700;
+            margin-bottom:10px;
+        }
+
+        .overview-card .value{
+            font-size:34px;
+            font-weight:800;
+            letter-spacing:-.04em;
+            margin-bottom:10px;
+            line-height:1;
+        }
+
+        .overview-card .sub{
+            color:var(--muted);
+            font-size:14px;
+            line-height:1.5;
+        }
+
+        .section-head{
+            display:flex;
+            align-items:end;
+            justify-content:space-between;
+            gap:16px;
+            margin-bottom:16px;
+            flex-wrap:wrap;
+        }
+
+        .section-head h2{
+            margin:0;
+            font-size:24px;
+            letter-spacing:-.02em;
+        }
+
+        .section-head p{
+            margin:6px 0 0;
+            color:var(--muted);
+        }
+
+        .results-pill{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:10px 14px;
+            border-radius:999px;
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+            color:var(--muted);
+            font-size:13px;
+            font-weight:800;
+            white-space:nowrap;
+        }
+
+        .certificate-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:18px;
+        }
+
+        .certificate-card{
+            padding:22px;
+            display:grid;
+            gap:16px;
+        }
+
+        .certificate-top{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:16px;
+        }
+
+        .cert-badge{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:8px 12px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:800;
+            white-space:nowrap;
+        }
+
+        .cert-badge.valid{
+            background:var(--green-soft);
+            color:var(--green-dark);
+        }
+
+        .cert-badge.renew{
+            background:var(--orange-soft);
+            color:var(--orange);
+        }
+
+        .certificate-title{
+            margin:0 0 8px;
+            font-size:21px;
+            letter-spacing:-.02em;
+        }
+
+        .certificate-desc{
+            margin:0;
+            color:var(--muted);
+            line-height:1.6;
+            font-size:14px;
+        }
+
+        .meta-grid{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:12px;
+        }
+
+        .meta-box{
+            padding:14px;
+            border:1px solid var(--border);
+            border-radius:16px;
+            background:var(--panel-soft);
+        }
+
+        .meta-box .label{
+            display:block;
+            font-size:12px;
+            color:var(--muted);
+            font-weight:700;
+            margin-bottom:6px;
+            text-transform:uppercase;
+            letter-spacing:.04em;
+        }
+
+        .meta-box .value{
+            display:block;
+            font-size:15px;
+            color:var(--text);
+            font-weight:700;
+            line-height:1.5;
+        }
+
+        .card-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            margin-top:auto;
+        }
+
+        .btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-height:44px;
+            padding:0 16px;
+            border-radius:12px;
+            border:1px solid transparent;
+            text-decoration:none;
+            cursor:pointer;
+            font:inherit;
+            font-weight:800;
+            transition:.2s ease;
+        }
+
+        .btn-primary{
+            background:var(--green);
+            color:#fff;
+        }
+
+        .btn-secondary{
+            background:#fff;
+            color:var(--text);
+            border-color:var(--border);
+        }
+
+        .btn:hover{
+            transform:translateY(-1px);
+        }
+
+        .empty-state{
+            display:none;
+            padding:26px;
+            border-radius:20px;
+            border:1px dashed var(--border);
+            background:var(--panel-soft);
+            text-align:center;
+            color:var(--muted);
+            font-weight:700;
+        }
+
+        @media (max-width:1200px){
+            .hero-grid{
+                grid-template-columns:1fr;
+            }
+
+            .overview-grid{
+                grid-template-columns:repeat(2, minmax(0,1fr));
+            }
+
+            .toolbar{
+                grid-template-columns:1fr 1fr;
+            }
+
+            .toolbar > *:first-child{
+                grid-column:1 / -1;
+            }
+        }
+
+        @media (max-width:920px){
+            .app-layout{
+                grid-template-columns:1fr;
+            }
+
+            .overview-grid,
+            .certificate-grid,
+            .hero-side,
+            .meta-grid{
+                grid-template-columns:1fr;
+            }
+
+            .toolbar{
+                grid-template-columns:1fr;
+            }
+
+            .hero{
+                padding:26px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="headerMount"></div>
+
+    <main class="page-shell">
+        <div class="container app-layout">
+            <div id="sidebarMount"></div>
+
+            <section class="page-content">
+                <section class="hero">
+                    <div class="hero-grid">
+                        <div>
+                            <div class="hero-kicker">🏅 Akademi / Certifikater</div>
+                            <h1>Certifikater der viser hvem der er trænet og godkendt</h1>
+                            <p>
+                                Brug certifikater som intern dokumentation på gennemført træning, beståede quizzer
+                                og godkendte procedurer. Perfekt til onboarding, audit og opfølgning.
+                            </p>
+                        </div>
+
+                        <div class="hero-side">
+                            <div class="hero-stat">
+                                <span class="label">Udstedt</span>
+                                <span class="value">37</span>
+                                <span class="sub">Samlet antal aktive certifikater.</span>
+                            </div>
+                            <div class="hero-stat">
+                                <span class="label">Denne måned</span>
+                                <span class="value">11</span>
+                                <span class="sub">Nye beviser udstedt i måneden.</span>
+                            </div>
+                            <div class="hero-stat">
+                                <span class="label">Udløber snart</span>
+                                <span class="value">4</span>
+                                <span class="sub">Kræver genopfriskning eller ny test.</span>
+                            </div>
+                            <div class="hero-stat">
+                                <span class="label">Compliance klar</span>
+                                <span class="value">92%</span>
+                                <span class="sub">Andel medarbejdere med aktuel træning.</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="panel toolbar">
+                        <input type="search" id="certificateSearch" placeholder="Søg efter certifikat, medarbejder eller emne..." />
+                        <select id="certificateStatusFilter">
+                            <option value="all">Alle statusser</option>
+                            <option value="gyldigt">Gyldigt</option>
+                            <option value="fornyes snart">Fornyes snart</option>
+                        </select>
+                        <select id="certificateCategoryFilter">
+                            <option value="all">Alle typer</option>
+                            <option value="rengøring">Rengøring</option>
+                            <option value="temperatur">Temperatur</option>
+                            <option value="allergener">Allergener</option>
+                            <option value="onboarding">Onboarding</option>
+                        </select>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="overview-grid">
+                        <article class="panel overview-card">
+                            <div class="label">🏅 Aktive beviser</div>
+                            <div class="value">33</div>
+                            <div class="sub">Kan fremvises som intern dokumentation.</div>
+                        </article>
+                        <article class="panel overview-card">
+                            <div class="label">🔁 Skal fornys</div>
+                            <div class="value">4</div>
+                            <div class="sub">Udløber indenfor nærmeste periode.</div>
+                        </article>
+                        <article class="panel overview-card">
+                            <div class="label">👥 Dækkede medarbejdere</div>
+                            <div class="value">14</div>
+                            <div class="sub">Har mindst ét gyldigt træningsbevis.</div>
+                        </article>
+                        <article class="panel overview-card">
+                            <div class="label">📄 Eksporterbare</div>
+                            <div class="value">100%</div>
+                            <div class="sub">Klar til rapporter og dokumentation.</div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="section-head">
+                        <div>
+                            <h2>Udstedte certifikater</h2>
+                            <p>Eksempler på hvordan certifikater kan vises i systemet.</p>
+                        </div>
+                        <div class="results-pill" id="resultsCount">Viser 4 certifikater</div>
+                    </div>
+
+                    <div class="certificate-grid" id="certificateGrid">
+                        <article class="panel certificate-card"
+                            data-title="Rengøring og dokumentation"
+                            data-description="Internt træningsbevis efter gennemført kursus og bestået quiz."
+                            data-employee="Emma Jensen"
+                            data-status="gyldigt"
+                            data-category="rengøring"
+                            data-search="rengøring dokumentation internt træningsbevis kursus quiz emma jensen 92">
+                            <div class="certificate-top">
+                                <div>
+                                    <h3 class="certificate-title">Rengøring og dokumentation</h3>
+                                    <p class="certificate-desc">Internt træningsbevis efter gennemført kursus og bestået quiz.</p>
+                                </div>
+                                <span class="cert-badge valid">Gyldigt</span>
+                            </div>
+
+                            <div class="meta-grid">
+                                <div class="meta-box">
+                                    <span class="label">Medarbejder</span>
+                                    <span class="value">Emma Jensen</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Udstedt</span>
+                                    <span class="value">12. marts 2026</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Bestået score</span>
+                                    <span class="value">92%</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Gyldig til</span>
+                                    <span class="value">12. marts 2027</span>
+                                </div>
+                            </div>
+
+                            <div class="card-actions">
+                                <button type="button" class="btn btn-primary">Vis certifikat</button>
+                                <button type="button" class="btn btn-secondary">Download PDF</button>
+                            </div>
+                        </article>
+
+                        <article class="panel certificate-card"
+                            data-title="Temperaturkontrol i praksis"
+                            data-description="Dokumentation på kendskab til kritiske temperaturgrænser og opfølgning."
+                            data-employee="Ali Hassan"
+                            data-status="gyldigt"
+                            data-category="temperatur"
+                            data-search="temperaturkontrol praksis kritiske temperaturgrænser opfølgning ali hassan 88">
+                            <div class="certificate-top">
+                                <div>
+                                    <h3 class="certificate-title">Temperaturkontrol i praksis</h3>
+                                    <p class="certificate-desc">Dokumentation på kendskab til kritiske temperaturgrænser og opfølgning.</p>
+                                </div>
+                                <span class="cert-badge valid">Gyldigt</span>
+                            </div>
+
+                            <div class="meta-grid">
+                                <div class="meta-box">
+                                    <span class="label">Medarbejder</span>
+                                    <span class="value">Ali Hassan</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Udstedt</span>
+                                    <span class="value">10. marts 2026</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Bestået score</span>
+                                    <span class="value">88%</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Gyldig til</span>
+                                    <span class="value">10. marts 2027</span>
+                                </div>
+                            </div>
+
+                            <div class="card-actions">
+                                <button type="button" class="btn btn-primary">Vis certifikat</button>
+                                <button type="button" class="btn btn-secondary">Send til leder</button>
+                            </div>
+                        </article>
+
+                        <article class="panel certificate-card"
+                            data-title="Allergener og sikker servering"
+                            data-description="Træningsbevis på korrekt håndtering af allergener og krydskontaminering."
+                            data-employee="Maria Holm"
+                            data-status="gyldigt"
+                            data-category="allergener"
+                            data-search="allergener sikker servering træningsbevis håndtering krydskontaminering maria holm 95">
+                            <div class="certificate-top">
+                                <div>
+                                    <h3 class="certificate-title">Allergener og sikker servering</h3>
+                                    <p class="certificate-desc">Træningsbevis på korrekt håndtering af allergener og krydskontaminering.</p>
+                                </div>
+                                <span class="cert-badge valid">Gyldigt</span>
+                            </div>
+
+                            <div class="meta-grid">
+                                <div class="meta-box">
+                                    <span class="label">Medarbejder</span>
+                                    <span class="value">Maria Holm</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Udstedt</span>
+                                    <span class="value">7. marts 2026</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Bestået score</span>
+                                    <span class="value">95%</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Gyldig til</span>
+                                    <span class="value">7. marts 2027</span>
+                                </div>
+                            </div>
+
+                            <div class="card-actions">
+                                <button type="button" class="btn btn-primary">Vis certifikat</button>
+                                <button type="button" class="btn btn-secondary">Eksportér</button>
+                            </div>
+                        </article>
+
+                        <article class="panel certificate-card"
+                            data-title="Onboarding for nye medarbejdere"
+                            data-description="Bekræftelse på gennemført introduktion, rutiner og grundlæggende hygiejne."
+                            data-employee="Jonas Nielsen"
+                            data-status="fornyes snart"
+                            data-category="onboarding"
+                            data-search="onboarding nye medarbejdere introduktion rutiner grundlæggende hygiejne jonas nielsen 84">
+                            <div class="certificate-top">
+                                <div>
+                                    <h3 class="certificate-title">Onboarding for nye medarbejdere</h3>
+                                    <p class="certificate-desc">Bekræftelse på gennemført introduktion, rutiner og grundlæggende hygiejne.</p>
+                                </div>
+                                <span class="cert-badge renew">Fornyes snart</span>
+                            </div>
+
+                            <div class="meta-grid">
+                                <div class="meta-box">
+                                    <span class="label">Medarbejder</span>
+                                    <span class="value">Jonas Nielsen</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Udstedt</span>
+                                    <span class="value">20. april 2025</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Bestået score</span>
+                                    <span class="value">84%</span>
+                                </div>
+                                <div class="meta-box">
+                                    <span class="label">Gyldig til</span>
+                                    <span class="value">20. april 2026</span>
+                                </div>
+                            </div>
+
+                            <div class="card-actions">
+                                <button type="button" class="btn btn-primary">Planlæg fornyelse</button>
+                                <button type="button" class="btn btn-secondary">Vis historik</button>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="empty-state" id="emptyState">
+                        Ingen certifikater matcher de valgte filtre.
+                    </div>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        async function loadSharedPartials(){
+            const mounts = [
+                { id: "headerMount", path: "/components/header.html" },
+                { id: "sidebarMount", path: "/components/sidebar.html" }
+            ];
+
+            await Promise.all(mounts.map(async (item) => {
+                const mount = document.getElementById(item.id);
+                if (!mount) return;
+
+                try{
+                    const response = await fetch(item.path, { cache: "no-store" });
+                    if (!response.ok) throw new Error("Kunne ikke hente " + item.path);
+                    mount.innerHTML = await response.text();
+                }catch(error){
+                    console.warn(error);
+                }
+            }));
+
+            const activeLink = document.querySelector('.sidebar a[href="/modules/akademi/certificates.html"]');
+            if(activeLink){
+                activeLink.classList.add("active");
+            }
+        }
+
+        function setupCertificateFilters(){
+            const searchInput = document.getElementById("certificateSearch");
+            const statusFilter = document.getElementById("certificateStatusFilter");
+            const categoryFilter = document.getElementById("certificateCategoryFilter");
+            const cards = Array.from(document.querySelectorAll(".certificate-card"));
+            const resultsCount = document.getElementById("resultsCount");
+            const emptyState = document.getElementById("emptyState");
+
+            function normalize(value){
+                return (value || "")
+                    .toString()
+                    .toLowerCase()
+                    .trim()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "");
+            }
+
+            function updateFilters(){
+                const search = normalize(searchInput.value);
+                const status = normalize(statusFilter.value);
+                const category = normalize(categoryFilter.value);
+
+                let visibleCount = 0;
+
+                cards.forEach((card) => {
+                    const title = normalize(card.dataset.title);
+                    const description = normalize(card.dataset.description);
+                    const employee = normalize(card.dataset.employee);
+                    const cardStatus = normalize(card.dataset.status);
+                    const cardCategory = normalize(card.dataset.category);
+                    const searchable = normalize(card.dataset.search);
+
+                    const haystack = [title, description, employee, cardStatus, cardCategory, searchable].join(" ");
+                    const matchesSearch = !search || haystack.includes(search);
+                    const matchesStatus = status === "all" || cardStatus === status;
+                    const matchesCategory = category === "all" || cardCategory === category;
+
+                    const isVisible = matchesSearch && matchesStatus && matchesCategory;
+                    card.style.display = isVisible ? "" : "none";
+
+                    if(isVisible){
+                        visibleCount++;
+                    }
+                });
+
+                if(resultsCount){
+                    resultsCount.textContent = `Viser ${visibleCount} ${visibleCount === 1 ? "certifikat" : "certifikater"}`;
+                }
+
+                if(emptyState){
+                    emptyState.style.display = visibleCount === 0 ? "block" : "none";
+                }
+            }
+
+            [searchInput, statusFilter, categoryFilter].forEach((element) => {
+                element.addEventListener("input", updateFilters);
+                element.addEventListener("change", updateFilters);
+            });
+
+            updateFilters();
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await loadSharedPartials();
+            setupCertificateFilters();
+        });
+    </script>
+</body>
+</html>

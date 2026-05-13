@@ -1,0 +1,918 @@
+﻿<!--
+    Madkontrollen Pro - Status Page
+    
+    A comprehensive status and project overview page for the Madkontrollen Pro platform.
+    This page displays the current state of all modules, technical infrastructure, 
+    capabilities, and the product roadmap.
+    
+    Key Sections:
+    - Hero: Main project description and key statistics
+    - Module Status: Current state of Dashboard, Onboarding, Risk Analysis, Routines, 
+        Deviations, Reports, and Academy modules
+    - Capabilities: Feature list of what the system currently supports
+    - Technical Status: Overview of frontend, data layer, risk-to-task workflow, 
+        user management, operating modes, and documentation
+    - Next Steps: The 5 most critical development priorities
+    - Future Roadmap: Planned expansions including Accounting, Bon-AI, POS integration, 
+        Academy, and Support modules
+    
+    Design:
+    - Mobile-first responsive layout with CSS Grid
+    - Green, blue, amber, and red color chips for status indicators
+    - Glassmorphism effect on navigation bar
+    - Subtle gradient backgrounds and shadows
+    - Responsive breakpoints: 1120px, 820px, 720px, 580px
+    
+    Language: Danish (da)
+-->
+    <!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Madkontrollen Pro – Status</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        :root{
+            --bg:#f4f7f3;
+            --bg-soft:#eef5ee;
+            --panel:#ffffff;
+            --panel-soft:#f8fbf8;
+            --text:#182118;
+            --muted:#667267;
+            --border:#d9e4d9;
+            --green:#2e7d32;
+            --green-dark:#1f5a23;
+            --green-soft:#e8f5e9;
+            --blue:#1565c0;
+            --blue-soft:#eaf3ff;
+            --amber:#b7791f;
+            --amber-soft:#fff6df;
+            --red:#c62828;
+            --red-soft:#fdecec;
+            --shadow:0 18px 40px rgba(19,39,20,0.08);
+            --shadow-soft:0 10px 24px rgba(19,39,20,0.06);
+            --radius:24px;
+        }
+
+        *{ box-sizing:border-box; }
+
+        html, body{
+            margin:0;
+            padding:0;
+            font-family:"Inter", sans-serif;
+            color:var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(46,125,50,0.10), transparent 24%),
+                radial-gradient(circle at bottom right, rgba(21,101,192,0.08), transparent 20%),
+                linear-gradient(180deg, #f7faf7 0%, var(--bg) 100%);
+        }
+
+        body{
+            min-height:100vh;
+        }
+
+        .page-shell{
+            min-height:100vh;
+            padding:28px 18px 60px;
+        }
+
+        .container{
+            max-width:1450px;
+            margin:0 auto;
+        }
+
+        .topbar{
+            margin-bottom:22px;
+        }
+
+        .topbar-inner{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:18px;
+            flex-wrap:wrap;
+            background:rgba(255,255,255,.92);
+            border:1px solid rgba(217,228,217,.92);
+            border-radius:24px;
+            padding:16px 18px;
+            box-shadow:var(--shadow);
+            backdrop-filter:blur(10px);
+        }
+
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            min-width:0;
+        }
+
+        .brand-mark{
+            width:44px;
+            height:44px;
+            border-radius:14px;
+            display:grid;
+            place-items:center;
+            background:linear-gradient(135deg, var(--green) 0%, #4ca851 100%);
+            color:#fff;
+            box-shadow:0 12px 24px rgba(46,125,50,.24);
+            font-size:1.15rem;
+            flex-shrink:0;
+        }
+
+        .brand-text{
+            min-width:0;
+        }
+
+        .brand-title{
+            margin:0;
+            font-size:1.02rem;
+            font-weight:800;
+            letter-spacing:-0.02em;
+        }
+
+        .brand-subtitle{
+            margin:3px 0 0;
+            color:var(--muted);
+            font-size:.9rem;
+        }
+
+        .topbar-actions{
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+
+        .pill-link{
+            text-decoration:none;
+            border:1px solid var(--border);
+            background:#fff;
+            color:var(--muted);
+            font-weight:700;
+            padding:10px 14px;
+            border-radius:999px;
+            transition:all .18s ease;
+        }
+
+        .pill-link:hover{
+            border-color:#c7d7c8;
+            color:var(--text);
+            transform:translateY(-1px);
+        }
+
+        .pill-link.active{
+            color:#fff;
+            background:linear-gradient(135deg, var(--green) 0%, #4ca851 100%);
+            border-color:transparent;
+            box-shadow:0 12px 24px rgba(46,125,50,.18);
+        }
+
+        .hero{
+            display:grid;
+            grid-template-columns:1.2fr .8fr;
+            gap:20px;
+            margin-bottom:20px;
+        }
+
+        .panel{
+            background:rgba(255,255,255,.94);
+            border:1px solid rgba(217,228,217,.92);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+        }
+
+        .hero-card{
+            padding:28px;
+            position:relative;
+            overflow:hidden;
+        }
+
+        .hero-card::after{
+            content:"";
+            position:absolute;
+            right:-50px;
+            top:-60px;
+            width:240px;
+            height:240px;
+            background:radial-gradient(circle, rgba(46,125,50,.13) 0%, rgba(46,125,50,0) 72%);
+            pointer-events:none;
+        }
+
+        .eyebrow{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            font-size:.8rem;
+            font-weight:800;
+            text-transform:uppercase;
+            padding:8px 12px;
+            border-radius:999px;
+            color:var(--green-dark);
+            background:var(--green-soft);
+        }
+
+        .hero-card h1{
+            margin:14px 0 10px;
+            font-size:clamp(2rem, 3vw, 3rem);
+            line-height:1.02;
+            letter-spacing:-0.03em;
+        }
+
+        .hero-card p{
+            margin:0;
+            color:var(--muted);
+            line-height:1.75;
+            max-width:840px;
+        }
+
+        .hero-actions{
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-top:22px;
+        }
+
+        .btn{
+            appearance:none;
+            border:none;
+            border-radius:16px;
+            padding:13px 18px;
+            font:inherit;
+            font-weight:800;
+            cursor:pointer;
+            text-decoration:none;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;
+            transition:transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+        }
+
+        .btn:hover{
+            transform:translateY(-1px);
+        }
+
+        .btn-primary{
+            color:#fff;
+            background:linear-gradient(135deg, var(--green) 0%, #4ca851 100%);
+            box-shadow:0 14px 28px rgba(46,125,50,.22);
+        }
+
+        .btn-secondary{
+            color:var(--text);
+            background:#fff;
+            border:1px solid var(--border);
+        }
+
+        .stats-card{
+            padding:22px;
+            display:grid;
+            gap:14px;
+            align-content:start;
+        }
+
+        .stats-grid{
+            display:grid;
+            grid-template-columns:repeat(2, 1fr);
+            gap:12px;
+        }
+
+        .stat{
+            border:1px solid var(--border);
+            background:var(--panel-soft);
+            border-radius:18px;
+            padding:16px;
+        }
+
+        .stat-label{
+            font-size:.82rem;
+            color:var(--muted);
+            font-weight:700;
+            margin-bottom:8px;
+        }
+
+        .stat-value{
+            font-size:1.45rem;
+            font-weight:800;
+            line-height:1.1;
+            letter-spacing:-0.02em;
+        }
+
+        .note{
+            border:1px solid #d5e4f8;
+            background:linear-gradient(180deg, #f5f9ff 0%, #eef5ff 100%);
+            border-radius:18px;
+            padding:16px;
+            color:#24518b;
+            font-weight:600;
+            line-height:1.6;
+        }
+
+        .section-grid{
+            display:grid;
+            grid-template-columns:1.15fr .85fr;
+            gap:20px;
+            margin-bottom:20px;
+        }
+
+        .section-card{
+            padding:22px;
+        }
+
+        .section-head{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:16px;
+            flex-wrap:wrap;
+            margin-bottom:16px;
+        }
+
+        .section-head h2{
+            margin:0;
+            font-size:1.2rem;
+            letter-spacing:-0.02em;
+        }
+
+        .section-head p{
+            margin:6px 0 0;
+            color:var(--muted);
+            line-height:1.6;
+        }
+
+        .chip{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:8px 12px;
+            border-radius:999px;
+            font-size:.82rem;
+            font-weight:800;
+            border:1px solid var(--border);
+            background:#f3f7f3;
+            color:#425043;
+            white-space:nowrap;
+        }
+
+        .chip-green{ background:var(--green-soft); color:var(--green-dark); border-color:#cde4cf; }
+        .chip-blue{ background:var(--blue-soft); color:#19528f; border-color:#d2e2fa; }
+        .chip-amber{ background:var(--amber-soft); color:#865d16; border-color:#eed89a; }
+        .chip-red{ background:var(--red-soft); color:#a02525; border-color:#f1c8c8; }
+
+        .status-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:14px;
+        }
+
+        .status-card{
+            border:1px solid var(--border);
+            background:#fff;
+            border-radius:20px;
+            padding:16px;
+            box-shadow:var(--shadow-soft);
+        }
+
+        .status-top{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:12px;
+            margin-bottom:10px;
+        }
+
+        .status-title{
+            margin:0;
+            font-size:1rem;
+            font-weight:800;
+            letter-spacing:-0.01em;
+        }
+
+        .status-text{
+            color:var(--muted);
+            line-height:1.6;
+            font-size:.94rem;
+        }
+
+        .list{
+            display:grid;
+            gap:10px;
+        }
+
+        .list-item{
+            display:flex;
+            gap:12px;
+            align-items:flex-start;
+            padding:12px 14px;
+            border:1px solid var(--border);
+            background:#fff;
+            border-radius:14px;
+            line-height:1.55;
+        }
+
+        .list-item .icon{
+            width:24px;
+            height:24px;
+            display:grid;
+            place-items:center;
+            border-radius:999px;
+            background:var(--green-soft);
+            color:var(--green-dark);
+            font-weight:900;
+            flex-shrink:0;
+            margin-top:1px;
+            font-size:.82rem;
+        }
+
+        .list-item strong{
+            display:block;
+            margin-bottom:2px;
+        }
+
+        .muted{
+            color:var(--muted);
+            line-height:1.65;
+        }
+
+        .table-wrap{
+            width:100%;
+            overflow:auto;
+        }
+
+        .status-table{
+            width:100%;
+            min-width:780px;
+            border-collapse:separate;
+            border-spacing:0 10px;
+        }
+
+        .status-table th{
+            text-align:left;
+            color:var(--muted);
+            font-size:.86rem;
+            padding:0 12px 6px;
+        }
+
+        .status-table td{
+            background:#fff;
+            border-top:1px solid var(--border);
+            border-bottom:1px solid var(--border);
+            padding:14px 12px;
+            vertical-align:top;
+        }
+
+        .status-table td:first-child{
+            border-left:1px solid var(--border);
+            border-top-left-radius:16px;
+            border-bottom-left-radius:16px;
+        }
+
+        .status-table td:last-child{
+            border-right:1px solid var(--border);
+            border-top-right-radius:16px;
+            border-bottom-right-radius:16px;
+        }
+
+        .footer-banner{
+            margin-top:20px;
+            padding:18px 20px;
+            border-radius:20px;
+            border:1px solid #cde4cf;
+            background:linear-gradient(180deg, #f3fbf3 0%, #ecf8ed 100%);
+            color:var(--green-dark);
+            font-weight:700;
+            line-height:1.65;
+        }
+
+        @media (max-width: 1120px){
+            .hero,
+            .section-grid{
+                grid-template-columns:1fr;
+            }
+        }
+
+        @media (max-width: 820px){
+            .status-grid{
+                grid-template-columns:1fr;
+            }
+        }
+
+        @media (max-width: 720px){
+            .page-shell{
+                padding:16px 12px 40px;
+            }
+
+            .hero-card,
+            .section-card,
+            .stats-card{
+                padding:18px;
+            }
+
+            .stats-grid{
+                grid-template-columns:1fr 1fr;
+            }
+
+            .topbar-inner{
+                padding:14px;
+            }
+        }
+
+        @media (max-width: 580px){
+            .stats-grid{
+                grid-template-columns:1fr;
+            }
+
+            .hero-actions,
+            .topbar-actions{
+                display:grid;
+                grid-template-columns:1fr;
+                width:100%;
+            }
+
+            .pill-link,
+            .btn{
+                width:100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <div class="container">
+            <header class="topbar">
+                <div class="topbar-inner">
+                    <div class="brand">
+                        <div class="brand-mark">📊</div>
+                        <div class="brand-text">
+                            <p class="brand-title">Madkontrollen Pro</p>
+                            <p class="brand-subtitle">Status og projektretning</p>
+                        </div>
+                    </div>
+
+                    <nav class="topbar-actions" aria-label="Primær navigation">
+                        <a class="pill-link" href="/dashboard">Dashboard</a>
+                        <a class="pill-link" href="/modules/egenkontrol/onboarding.html">Egenkontrol</a>
+                        <a class="pill-link" href="/modules/egenkontrol/rapporter.html">Rapporter</a>
+                        <a class="pill-link" href="/modules/egenkontrol/akademi.html">Akademi</a>
+                        <a class="pill-link" href="/modules/accounting/index.html">Accounting</a>
+                        <a class="pill-link active" href="/status.html">Status</a>
+                    </nav>
+                </div>
+            </header>
+
+            <section class="hero">
+                <div class="panel hero-card">
+                    <span class="eyebrow">Projektstatus</span>
+                    <h1>Madkontrollen Pro – samlet overblik</h1>
+                    <p>
+                        Madkontrollen Pro er bygget som en mobilstærk platform til fødevarevirksomheder med fokus på
+                        egenkontrol, daglige rutiner, dokumentation, rapportering, medarbejderflow og senere accounting.
+                        Grundretningen er på plads, og systemet er nu tæt på at kunne gå fra flot frontend til rigtig drift.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a class="btn btn-primary" href="/modules/egenkontrol/risikoanalyse.html">Åbn risikoanalyse</a>
+                        <a class="btn btn-secondary" href="/modules/egenkontrol/rutiner.html">Åbn rutiner</a>
+                        <a class="btn btn-secondary" href="/modules/egenkontrol/onboarding.html">Ret onboarding</a>
+                    </div>
+                </div>
+
+                <aside class="panel stats-card">
+                    <div class="stats-grid">
+                        <div class="stat">
+                            <div class="stat-label">Grundpakke</div>
+                            <div class="stat-value">Egenkontrol</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Placeholder pris</div>
+                            <div class="stat-value">123</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Aktuel styrke</div>
+                            <div class="stat-value">Frontend + struktur</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Næste kerneled</div>
+                            <div class="stat-value">Task instances</div>
+                        </div>
+                    </div>
+
+                    <div class="note">
+                        Den vigtigste næste overgang er at gøre systemet driftsægte:
+                        risikoanalyse → task-skabeloner → dagens opgaver → dokumentation → historik.
+                    </div>
+                </aside>
+            </section>
+
+            <section class="section-grid">
+                <section class="panel section-card">
+                    <div class="section-head">
+                        <div>
+                            <h2>Modulstatus</h2>
+                            <p>Hvor de vigtigste dele af systemet står lige nu.</p>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <span class="chip chip-green">Stærkt fundament</span>
+                            <span class="chip chip-blue">Beta-niveau</span>
+                        </div>
+                    </div>
+
+                    <div class="status-grid">
+                        <article class="status-card">
+                            <div class="status-top">
+                                <h3 class="status-title">Dashboard</h3>
+                                <span class="chip chip-green">Godt i gang</span>
+                            </div>
+                            <div class="status-text">
+                                Overblik, navigation og modulretning er tydelig. Bør senere kobles tættere til roller,
+                                dagens opgaver og live-data.
+                            </div>
+                        </article>
+
+                        <article class="status-card">
+                            <div class="status-top">
+                                <h3 class="status-title">Onboarding</h3>
+                                <span class="chip chip-green">Stærk</span>
+                            </div>
+                            <div class="status-text">
+                                Indsamler virksomhedens grunddata og danner base for automation. Det er et vigtigt og velfungerende fundament.
+                            </div>
+                        </article>
+
+                        <article class="status-card">
+                            <div class="status-top">
+                                <h3 class="status-title">Risikoanalyse</h3>
+                                <span class="chip chip-green">Stærk</span>
+                            </div>
+                            <div class="status-text">
+                                Genererer relevante risici og kontrolpunkter. Næste forbedring er begrundelser for risikoniveauer og mere strukturerede typer.
+                            </div>
+                        </article>
+
+                        <article class="status-card">
+                            <div class="status-top">
+                                <h3 class="status-title">Rutiner</h3>
+                                <span class="chip chip-blue">Næsten klar</span>
+                            </div>
+                            <div class="status-text">
+                                Klar i tanke og UI, men bør læse rigtige task instances i stedet for kun skabeloner for at blive driftsegnet.
+                            </div>
+                        </article>
+
+                        <article class="status-card">
+                            <div class="status-top">
+                                <h3 class="status-title">Afvigelser</h3>
+                                <span class="chip chip-blue">God base</span>
+                            </div>
+                            <div class="status-text">
+                                Passer godt ind i systemet og bliver stærk, når den kobles direkte til gennemførte kontroller og hændelser.
+                            </div>
+                        </article>
+
+                        <article class="status-card">
+                            <div class="status-top">
+                                <h3 class="status-title">Rapporter / logbøger / akademi</h3>
+                                <span class="chip chip-amber">Bygget delvist</span>
+                            </div>
+                            <div class="status-text">
+                                God retning og flot UI. Den store gevinst kommer, når disse moduler læser ægte driftshistorik fra databasen.
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <aside class="panel section-card">
+                    <div class="section-head">
+                        <div>
+                            <h2>Hvad systemet allerede kan</h2>
+                            <p>Det vigtigste der er på plads.</p>
+                        </div>
+                    </div>
+
+                    <div class="list">
+                        <div class="list-item">
+                            <div class="icon">✓</div>
+                            <div>
+                                <strong>Virksomhedsprofil</strong>
+                                Onboarding kan opbygge et grundlag med type, adresse, varme/kolde retter, allergener, køl, frost og leverandører.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">✓</div>
+                            <div>
+                                <strong>Automatisk risikoanalyse</strong>
+                                Risikoanalysen danner kontrolpunkter og foreslåede rutiner ud fra virksomhedens drift.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">✓</div>
+                            <div>
+                                <strong>Task-skabeloner</strong>
+                                Systemet kan allerede generere skabeloner til temperaturkontrol, modtagekontrol, rengøring og lukkerutiner.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">✓</div>
+                            <div>
+                                <strong>Mobilvenligt design</strong>
+                                Siderne er tænkt i en app-lignende struktur, som passer godt til daglig brug på telefon og tablet.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">✓</div>
+                            <div>
+                                <strong>Klar produktretning</strong>
+                                Visionen om drift, kontrol, dokumentation og senere accounting hænger tydeligt sammen.
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </section>
+
+            <section class="panel section-card">
+                <div class="section-head">
+                    <div>
+                        <h2>Teknisk status</h2>
+                        <p>Overblik over hvad der virker, og hvad der skal løftes til produktionsniveau.</p>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <span class="chip chip-amber">Midlertidig storage</span>
+                        <span class="chip chip-red">Database mangler</span>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="status-table">
+                        <thead>
+                            <tr>
+                                <th>Område</th>
+                                <th>Status nu</th>
+                                <th>Styrke</th>
+                                <th>Det mangler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Frontend</strong></td>
+                                <td>HTML, CSS og JavaScript med gennemførte modulsider</td>
+                                <td>Høj</td>
+                                <td>Mere fælles layout, delte komponenter og ens navigation</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Datalag</strong></td>
+                                <td>localStorage bruges som midlertidig gemning</td>
+                                <td>OK til demo</td>
+                                <td>Database, synkronisering, historik, backup og revisionsspor</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Risiko → opgaver</strong></td>
+                                <td>Task-skabeloner kan genereres automatisk</td>
+                                <td>God</td>
+                                <td>Daglige task instances og assignment til medarbejdere</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Brugerstyring</strong></td>
+                                <td>Tænkt ind i flow og navigation</td>
+                                <td>Mellem</td>
+                                <td>Login, roller, rettigheder og skjult adgang efter ansvar</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Driftstilstande</strong></td>
+                                <td>Ønsket og planlagt</td>
+                                <td>Lav</td>
+                                <td>Start dagen, ferie mode, lukket mode og stempelur</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Dokumentation</strong></td>
+                                <td>Rapporter og logik er tænkt ind</td>
+                                <td>God retning</td>
+                                <td>Ægte datahistorik, PDF-generator og sporbarhed på hændelser</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="section-grid" style="margin-top:20px;">
+                <section class="panel section-card">
+                    <div class="section-head">
+                        <div>
+                            <h2>Næste 5 vigtigste skridt</h2>
+                            <p>Det her vil bringe Madkontrollen Pro hurtigst tættere på reel drift.</p>
+                        </div>
+                    </div>
+
+                    <div class="list">
+                        <div class="list-item">
+                            <div class="icon">1</div>
+                            <div>
+                                <strong>Lav task instances</strong>
+                                Opret dagens reelle opgaver ud fra skabeloner, dato, enheder og ansvarlig medarbejder.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">2</div>
+                            <div>
+                                <strong>Lav udstyr som rigtige objekter</strong>
+                                Køleskabe, frysere, rum og stationer skal være konkrete enheder med id, navn og placering.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">3</div>
+                            <div>
+                                <strong>Flyt fra localStorage til database</strong>
+                                Så systemet bliver sikkert, synkroniseret og brugbart på flere enheder.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">4</div>
+                            <div>
+                                <strong>Rollebaseret adgang</strong>
+                                Medarbejdere skal kun se dagens opgaver, mens køkkenchef og ejer får adgang til flere moduler.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">5</div>
+                            <div>
+                                <strong>Start dagen-flow</strong>
+                                Første medarbejder stempler ind og åbner dagens egenkontrol, så driften starter enkelt og dokumenterbart.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel section-card">
+                    <div class="section-head">
+                        <div>
+                            <h2>Senere udvidelser</h2>
+                            <p>Det større roadmap som passer naturligt til platformen.</p>
+                        </div>
+                    </div>
+
+                    <div class="list">
+                        <div class="list-item">
+                            <div class="icon">→</div>
+                            <div>
+                                <strong>Accounting modul</strong>
+                                Bilag, moms, kontering og revision i samme økosystem.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">→</div>
+                            <div>
+                                <strong>Bon-AI</strong>
+                                Scan kvitteringer og lad AI foreslå kategorisering og bogføring.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">→</div>
+                            <div>
+                                <strong>POS-system</strong>
+                                Kasse, lager og økonomi koblet sammen med drift og dokumentation.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">→</div>
+                            <div>
+                                <strong>Akademi og SOP</strong>
+                                Træning, quiz og dokumenteret medarbejderkompetence.
+                            </div>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="icon">→</div>
+                            <div>
+                                <strong>Support / connector</strong>
+                                En kundevendt assistent der kan arbejde på tværs af data, moduler og supportflow.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <div class="footer-banner">
+                Visionen er, at Madkontrollen Pro bliver et samlet driftssystem for fødevarevirksomheder, hvor egenkontrol,
+                dokumentation, medarbejderflow og økonomiske processer hænger sammen i én enkel og mobil løsning.
+            </div>
+        </div>
+    </main>
+</body>
+</html>
+

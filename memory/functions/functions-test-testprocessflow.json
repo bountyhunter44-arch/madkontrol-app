@@ -1,0 +1,23 @@
+{
+  "source_file": "functions/test/testProcessFlow.js",
+  "module": "general",
+  "imports": [
+    "../processInstances",
+    "firebase-admin",
+    "path"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "testCompleteFlow",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

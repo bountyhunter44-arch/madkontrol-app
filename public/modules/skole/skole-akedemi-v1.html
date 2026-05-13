@@ -1,0 +1,707 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Madkontrollen Pro Akademi v1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f4f7f3;
+      --panel:#ffffff;
+      --panel-soft:#f8fbf8;
+      --line:#d9e4d9;
+      --text:#182118;
+      --muted:#667267;
+      --green:#2e7d32;
+      --green-dark:#1f5a23;
+      --green-soft:#e8f5e9;
+      --blue-soft:#eef6ff;
+      --blue-line:#d6e6ff;
+      --shadow:0 18px 48px rgba(24,33,24,.08);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:"Inter",system-ui,sans-serif;
+      background:linear-gradient(180deg,#f6faf6 0%, var(--bg) 100%);
+      color:var(--text);
+    }
+
+    .shell{
+      display:grid;
+      grid-template-columns:320px minmax(0,1fr);
+      min-height:100vh;
+    }
+
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow:auto;
+      padding:24px;
+      border-right:1px solid var(--line);
+      background:rgba(255,255,255,.82);
+      backdrop-filter:blur(12px);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:22px;
+    }
+
+    .brand-mark{
+      width:46px;
+      height:46px;
+      display:grid;
+      place-items:center;
+      border-radius:14px;
+      background:linear-gradient(135deg,var(--green-dark),var(--green));
+      color:#fff;
+      font-size:22px;
+      box-shadow:var(--shadow);
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:18px;
+      line-height:1.2;
+    }
+
+    .brand p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .sidebar-section{
+      margin-top:24px;
+    }
+
+    .sidebar-title{
+      margin:0 0 12px;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.08em;
+      color:var(--muted);
+      text-transform:uppercase;
+    }
+
+    .nav-list{
+      display:grid;
+      gap:8px;
+    }
+
+    .nav-link{
+      display:block;
+      padding:12px 14px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      color:var(--text);
+      text-decoration:none;
+      font-size:14px;
+      font-weight:600;
+      transition:.18s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active{
+      border-color:rgba(46,125,50,.32);
+      background:linear-gradient(180deg,#f6fbf6 0%, #edf7ee 100%);
+      transform:translateY(-1px);
+    }
+
+    .main{
+      padding:28px;
+    }
+
+    .hero{
+      padding:28px;
+      border:1px solid var(--line);
+      border-radius:30px;
+      background:linear-gradient(135deg,#ffffff 0%, #f4fbf5 52%, #eef7ef 100%);
+      box-shadow:var(--shadow);
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:var(--green-soft);
+      color:var(--green-dark);
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    .hero h2{
+      margin:18px 0 12px;
+      font-size:40px;
+      line-height:1.06;
+      max-width:900px;
+    }
+
+    .hero p{
+      margin:0;
+      max-width:860px;
+      color:var(--muted);
+      font-size:17px;
+      line-height:1.7;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:14px;
+      margin-top:24px;
+    }
+
+    .hero-stat{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:#fff;
+    }
+
+    .hero-stat-label{
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:8px;
+    }
+
+    .hero-stat strong{
+      font-size:28px;
+      line-height:1;
+    }
+
+    .content-grid{
+      display:grid;
+      gap:18px;
+      margin-top:22px;
+    }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:26px;
+      background:var(--panel);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head{
+      padding:22px 24px 10px;
+    }
+
+    .card-head h3{
+      margin:0;
+      font-size:26px;
+    }
+
+    .card-head p{
+      margin:10px 0 0;
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .pill-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .section-body{
+      padding:0 24px 24px;
+    }
+
+    .module-list,
+    .step-list,
+    .type-list,
+    .track-list{
+      display:grid;
+      gap:14px;
+    }
+
+    .module-item,
+    .step-item,
+    .type-item,
+    .track-item{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:linear-gradient(180deg,#fff 0%, #fbfdfb 100%);
+    }
+
+    .module-item h4,
+    .step-item h4,
+    .type-item h4,
+    .track-item h4{
+      margin:0 0 8px;
+      font-size:18px;
+    }
+
+    .module-item p,
+    .step-item p,
+    .type-item p,
+    .track-item p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .module-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .module-meta span{
+      padding:7px 10px;
+      border-radius:999px;
+      background:var(--panel-soft);
+      border:1px solid var(--line);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .two-col,
+    .three-col{
+      display:grid;
+      gap:16px;
+    }
+
+    .two-col{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .three-col{grid-template-columns:repeat(3,minmax(0,1fr));}
+
+    .example-flow{
+      padding:18px;
+      border:1px solid var(--blue-line);
+      border-radius:18px;
+      background:linear-gradient(180deg,#fbfdff 0%, var(--blue-soft) 100%);
+    }
+
+    .flow-row{
+      display:grid;
+      grid-template-columns:repeat(6,minmax(0,1fr));
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .flow-step{
+      padding:16px 12px;
+      border:1px solid var(--blue-line);
+      border-radius:16px;
+      background:#fff;
+      text-align:center;
+      font-size:13px;
+      font-weight:700;
+      color:#214a7b;
+    }
+
+    .table-like{
+      display:grid;
+      gap:10px;
+    }
+
+    .table-row{
+      display:grid;
+      grid-template-columns:220px minmax(0,1fr);
+      gap:12px;
+      padding:14px 16px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#fff;
+    }
+
+    .table-row strong{
+      font-size:14px;
+    }
+
+    .table-row div:last-child{
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .footer-note{
+      margin-top:18px;
+      padding:18px;
+      border:1px dashed rgba(46,125,50,.35);
+      border-radius:18px;
+      background:linear-gradient(180deg,#f9fdf9 0%, #f2faf3 100%);
+      color:#29412b;
+      line-height:1.7;
+    }
+
+    @media (max-width: 1180px){
+      .shell{grid-template-columns:1fr;}
+      .sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+      .hero-grid,.flow-row,.three-col,.two-col{grid-template-columns:1fr 1fr;}
+    }
+
+    @media (max-width: 760px){
+      .main{padding:16px;}
+      .sidebar{padding:16px;}
+      .hero{padding:20px;}
+      .hero h2{font-size:30px;}
+      .hero-grid,.flow-row,.three-col,.two-col,.table-row{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">🎓</div>
+        <div>
+          <h1>Madkontrollen Pro Akademi</h1>
+          <p>Informationsarkitektur v1</p>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3 class="sidebar-title">Oversigt</h3>
+        <div class="nav-list">
+          <a class="nav-link active" href="#intro">Formål</a>
+          <a class="nav-link" href="#tracks">Læringsspor</a>
+          <a class="nav-link" href="#sequence">Rækkefølge</a>
+          <a class="nav-link" href="#modules">Moduler</a>
+          <a class="nav-link" href="#lesson-types">Lektionstyper</a>
+          <a class="nav-link" href="#quiz-types">Quiz og opgaver</a>
+          <a class="nav-link" href="#roles">Målgrupper</a>
+          <a class="nav-link" href="#flow">Elevflow</a>
+          <a class="nav-link" href="#data">Datamodel</a>
+          <a class="nav-link" href="#v1">V1 leverance</a>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3 class="sidebar-title">V1 basisfag</h3>
+        <div class="nav-list">
+          <a class="nav-link" href="#m-virksomhed">Virksomheden</a>
+          <a class="nav-link" href="#m-hygiejne">Personlig hygiejne</a>
+          <a class="nav-link" href="#m-rengoering">Rengøring</a>
+          <a class="nav-link" href="#m-varemodtagelse">Varemodtagelse</a>
+          <a class="nav-link" href="#m-opbevaring">Opbevaring</a>
+          <a class="nav-link" href="#m-adskillelse">Adskillelse</a>
+          <a class="nav-link" href="#m-allergener">Allergener</a>
+          <a class="nav-link" href="#m-opvarmning">Opvarmning</a>
+          <a class="nav-link" href="#m-nedkoeling">Nedkøling</a>
+          <a class="nav-link" href="#m-varmholdelse">Varmholdelse</a>
+          <a class="nav-link" href="#m-udbringning">Udbringning</a>
+          <a class="nav-link" href="#m-sporbarhed">Sporbarhed</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section id="intro" class="hero">
+        <div class="eyebrow">Læring + compliance + drift</div>
+        <h2>En HTML-plan for Madkontrollen Pro Akademi, som elever, restauranter, hoteller og kursister kan bladre i.</h2>
+        <p>
+          Formålet er at gøre egenkontrol forståelig, praktisk og lærbar. Platformen skal ikke kun samle dokumentation, men lære brugeren at tænke i køkkenstruktur, vareflow, risici, rutiner og korrekt handling i den daglige drift.
+        </p>
+
+        <div class="hero-grid">
+          <div class="hero-stat">
+            <span class="hero-stat-label">V1 læringsspor</span>
+            <strong>3</strong>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">V1 kernemoduler</span>
+            <strong>12</strong>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">Lektionstyper</span>
+            <strong>6</strong>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">Primære målgrupper</span>
+            <strong>4</strong>
+          </div>
+        </div>
+      </section>
+
+      <div class="content-grid">
+        <section id="tracks" class="card">
+          <div class="card-head">
+            <h3>1. Læringsspor</h3>
+            <p>Akademiet bør opdeles i spor, så indholdet kan bruges både af elever, medarbejdere og virksomheder i rigtig drift.</p>
+          </div>
+          <div class="section-body three-col track-list">
+            <div class="track-item">
+              <h4>Spor A · Egenkontrol basis</h4>
+              <p>Grundforståelse af fødevaresikkerhed, daglige rutiner, temperaturstyring, rengøring, allergener og sporbarhed.</p>
+            </div>
+            <div class="track-item">
+              <h4>Spor B · Struktureret køkken og restaurant</h4>
+              <p>Opbygning af arbejdsgange, zoner, råvareflow, serviceflow, opbevaring, varemodtagelse og koordinering mellem køkken og drift.</p>
+            </div>
+            <div class="track-item">
+              <h4>Spor C · Hotel, kursus og onboarding</h4>
+              <p>Tilpassede forløb til hotelkøkkener, morgenmad, buffet, eventdrift, personaleoplæring og certificeringslignende kursusforløb.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="sequence" class="card">
+          <div class="card-head">
+            <h3>2. Anbefalet rækkefølge</h3>
+            <p>Den bedste læring kommer, når brugeren først forstår helheden og derefter dykker ned i de konkrete kontrolpunkter.</p>
+          </div>
+          <div class="section-body step-list">
+            <div class="step-item"><h4>Trin 1 · Hvad er egenkontrol?</h4><p>Introduktion til ansvar, fødevaresikkerhed, risiko og hvorfor reglerne findes.</p></div>
+            <div class="step-item"><h4>Trin 2 · Hvordan er køkkenet bygget op?</h4><p>Virksomhedstype, produktionsformer, vareflow, ren/uren zoner, arbejdsstationer og personalevaner.</p></div>
+            <div class="step-item"><h4>Trin 3 · Hvordan håndteres råvarer og temperatur?</h4><p>Varemodtagelse, opbevaring, adskillelse, opvarmning, nedkøling, varmholdelse og udbringning.</p></div>
+            <div class="step-item"><h4>Trin 4 · Hvordan forebygges fejl?</h4><p>Rengøring, personlig hygiejne, allergener, vedligeholdelse og skadedyrssikring.</p></div>
+            <div class="step-item"><h4>Trin 5 · Hvordan dokumenterer man rigtigt?</h4><p>Sporbarhed, tilbagetrækning, afvigelser, revision og hvordan man svarer korrekt i et egenkontrolsystem.</p></div>
+          </div>
+        </section>
+
+        <section id="modules" class="card">
+          <div class="card-head">
+            <h3>3. V1 kernemoduler</h3>
+            <p>Disse moduler er de første, der bør bygges. De matcher både den daglige drift og de kontrolpunkter, du har vist som inspiration.</p>
+          </div>
+          <div class="section-body module-list">
+            <div id="m-virksomhed" class="module-item">
+              <h4>Modul 1 · Beskrivelse af virksomheden</h4>
+              <p>Virksomhedstype, produkter, leder, registrering, import og grundforståelse af hvordan en virksomhed beskrives korrekt.</p>
+              <div class="module-meta"><span>Formål: kontekst</span><span>Type: onboarding</span><span>Output: virksomhedsprofil</span></div>
+            </div>
+            <div id="m-hygiejne" class="module-item">
+              <h4>Modul 2 · Personlig hygiejne</h4>
+              <p>Håndvask, arbejdsbeklædning, smykker, sygdom, pauser, hovedbeklædning og arbejdsfunktioner uden for fødevaredelen.</p>
+              <div class="module-meta"><span>Formål: adfærd</span><span>Type: praksis</span><span>Output: regler + svar</span></div>
+            </div>
+            <div id="m-rengoering" class="module-item">
+              <h4>Modul 3 · Rengøring og desinfektion</h4>
+              <p>Daglig rengøring, desinfektion, før-opstartskontrol, sæbe/papir, zoner og forskel på rengøring og desinfektion.</p>
+              <div class="module-meta"><span>Formål: forebyggelse</span><span>Type: rutine</span><span>Output: rengøringsforståelse</span></div>
+            </div>
+            <div id="m-varemodtagelse" class="module-item">
+              <h4>Modul 4 · Varemodtagelse</h4>
+              <p>Temperaturkrav, emballage, mærkning, holdbarhed, autoriserede leverandører og afhentning af varer.</p>
+              <div class="module-meta"><span>Formål: start på vareflow</span><span>Type: kontrolpunkt</span><span>Output: modtageprocedurer</span></div>
+            </div>
+            <div id="m-opbevaring" class="module-item">
+              <h4>Modul 5 · Opbevaring af fødevarer</h4>
+              <p>Køl, frost, datokontrol, placering, adskillelse i køleskab og materialer, der må komme i kontakt med fødevarer.</p>
+              <div class="module-meta"><span>Formål: struktur</span><span>Type: køkkenlogik</span><span>Output: opbevaringsregler</span></div>
+            </div>
+            <div id="m-adskillelse" class="module-item">
+              <h4>Modul 6 · Adskillelse</h4>
+              <p>Forebyggelse af krydssmitte mellem råvarer, færdigvarer, grøntsager og animalske produkter under produktion og opbevaring.</p>
+              <div class="module-meta"><span>Formål: krydssmitteforebyggelse</span><span>Type: proces</span><span>Output: zoneforståelse</span></div>
+            </div>
+            <div id="m-allergener" class="module-item">
+              <h4>Modul 7 · Allergener</h4>
+              <p>Forståelse af allergener, oplysningspligt, adskillelse, håndtering, mærkning og risiko ved fejlkommunikation.</p>
+              <div class="module-meta"><span>Formål: gæstesikkerhed</span><span>Type: viden + praksis</span><span>Output: allergenkontrol</span></div>
+            </div>
+            <div id="m-opvarmning" class="module-item">
+              <h4>Modul 8 · Opvarmning / varmebehandling</h4>
+              <p>Krav om minimum 75°C, måling, kontrol, dokumentation og handling ved fejl.</p>
+              <div class="module-meta"><span>Formål: drab af bakterier</span><span>Type: temperatur</span><span>Output: opvarmningsrutine</span></div>
+            </div>
+            <div id="m-nedkoeling" class="module-item">
+              <h4>Modul 9 · Nedkøling</h4>
+              <p>Nedkøling fra varm mad til sikker temperatur, tidskrav, målemetoder, fejl og korrekt dokumentation.</p>
+              <div class="module-meta"><span>Formål: temperaturkontrol</span><span>Type: høj risiko</span><span>Output: nedkølingsprocedure</span></div>
+            </div>
+            <div id="m-varmholdelse" class="module-item">
+              <h4>Modul 10 · Varmholdelse / salg uden køl</h4>
+              <p>65°C-regel, 3-timers-regel, tidsstyring og salgssituationer med varme fødevarer.</p>
+              <div class="module-meta"><span>Formål: service og sikkerhed</span><span>Type: drift</span><span>Output: varmholdelsesvalg</span></div>
+            </div>
+            <div id="m-udbringning" class="module-item">
+              <h4>Modul 11 · Vareudbringning</h4>
+              <p>Transportkasser, temperatur under levering, tidsgrænser og praktiske forhold ved takeaway og levering.</p>
+              <div class="module-meta"><span>Formål: ud af huset</span><span>Type: logistik</span><span>Output: transportforståelse</span></div>
+            </div>
+            <div id="m-sporbarhed" class="module-item">
+              <h4>Modul 12 · Sporbarhed, tilbagetrækning og revision</h4>
+              <p>Hvordan man dokumenterer hvor varer kommer fra, hvad der er solgt, hvordan fejl håndteres, og hvordan egenkontrol revideres.</p>
+              <div class="module-meta"><span>Formål: dokumentation</span><span>Type: myndighedsforståelse</span><span>Output: handlingsberedskab</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="lesson-types" class="card">
+          <div class="card-head">
+            <h3>4. Lektionstyper i hvert modul</h3>
+            <p>Alle moduler bør bruge samme struktur, så brugeren lærer på en genkendelig måde.</p>
+          </div>
+          <div class="section-body three-col type-list">
+            <div class="type-item"><h4>1 · Forklaring</h4><p>Kort faglig tekst på almindeligt dansk med tydelig forklaring af formål og risiko.</p></div>
+            <div class="type-item"><h4>2 · Visuel forståelse</h4><p>Billeder, illustrationer, køkkeneksempler, korrekt og forkert metode.</p></div>
+            <div class="type-item"><h4>3 · Mini-quiz</h4><p>2-5 hurtige spørgsmål, så eleven viser basal forståelse før næste trin.</p></div>
+            <div class="type-item"><h4>4 · Praktisk case</h4><p>Et scenarie fra køkken, restaurant, hotel eller takeaway, som brugeren skal løse.</p></div>
+            <div class="type-item"><h4>5 · Egen beskrivelse</h4><p>Tekstfelt hvor brugeren beskriver hvordan virksomheden eller eleven vil gøre i praksis.</p></div>
+            <div class="type-item"><h4>6 · Dokumentation</h4><p>Foto, notat, temperatur, valg eller bekræftelse, som viser at forståelsen kan omsættes til handling.</p></div>
+          </div>
+        </section>
+
+        <section id="quiz-types" class="card">
+          <div class="card-head">
+            <h3>5. Quiz- og opgavetyper</h3>
+            <p>V1 bør bruge en enkel, men stærk blanding af spørgsmål og praktiske opgaver.</p>
+          </div>
+          <div class="section-body two-col">
+            <div class="table-like">
+              <div class="table-row"><strong>Rigtigt / forkert</strong><div>Bruges til hurtige regler som håndvask, temperaturgrænser og grundlæggende forståelse.</div></div>
+              <div class="table-row"><strong>Multiple choice</strong><div>Bruges til valg mellem korrekt og forkert praksis i køkkenet.</div></div>
+              <div class="table-row"><strong>Scenarie-spørgsmål</strong><div>Bruges når brugeren skal tænke i handling, fx ved fejl i temperatur, varemodtagelse eller allergener.</div></div>
+              <div class="table-row"><strong>Sortering / rækkefølge</strong><div>Bruges til køkkenflow, fx rækkefølge i nedkøling eller placering i køleskab.</div></div>
+            </div>
+            <div class="table-like">
+              <div class="table-row"><strong>Tekstbeskrivelse</strong><div>Bruges når brugeren skal forklare egen procedure eller lokale praksis.</div></div>
+              <div class="table-row"><strong>Fotoopgave</strong><div>Bruges til fx adskillelse, køleskab, rengjort område eller korrekt transportudstyr.</div></div>
+              <div class="table-row"><strong>Kontrol-opgave</strong><div>Bruges til at måle temperatur, vurdere placering eller verificere mærkning og holdbarhed.</div></div>
+              <div class="table-row"><strong>Refleksionsopgave</strong><div>Bruges især i skole- og kursusforløb, hvor eleven skal forklare hvorfor en regel findes.</div></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="roles" class="card">
+          <div class="card-head">
+            <h3>6. Målgrupper og visninger</h3>
+            <p>Det samme faglige indhold skal kunne vises forskelligt alt efter hvem der bruger systemet.</p>
+          </div>
+          <div class="section-body three-col">
+            <div class="type-item">
+              <h4>Elev</h4>
+              <p>Fokus på forståelse, cases, quiz og opbygning af faglig sikkerhed i køkkenarbejdet.</p>
+            </div>
+            <div class="type-item">
+              <h4>Medarbejder</h4>
+              <p>Fokus på kort onboarding, daglige regler, praktiske fejl og korrekt adfærd i driften.</p>
+            </div>
+            <div class="type-item">
+              <h4>Leder / virksomhed</h4>
+              <p>Fokus på dokumentation, struktur, kontrolpunkter, ansvar og opfølgning på medarbejdere.</p>
+            </div>
+            <div class="type-item">
+              <h4>Kursusdeltager</h4>
+              <p>Fokus på gennemførsel, score, opgaver, certifikat og progression mellem moduler.</p>
+            </div>
+            <div class="type-item">
+              <h4>Hotel / restaurant</h4>
+              <p>Tilpassede cases om buffet, morgenmad, room service, event og udbringning.</p>
+            </div>
+            <div class="type-item">
+              <h4>Skole / underviser</h4>
+              <p>Fokus på hold, opgavesæt, feedback, besvarelser og evaluering af elever.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="flow" class="card">
+          <div class="card-head">
+            <h3>7. Sådan skal et elevforløb føles</h3>
+            <p>Brugeren skal opleve en klar progression fra viden til praksis.</p>
+          </div>
+          <div class="section-body">
+            <div class="example-flow">
+              <strong>Eksempel: Modul om nedkøling</strong>
+              <div class="flow-row">
+                <div class="flow-step">Læs regel</div>
+                <div class="flow-step">Se eksempel</div>
+                <div class="flow-step">Svar på quiz</div>
+                <div class="flow-step">Løs case</div>
+                <div class="flow-step">Beskriv praksis</div>
+                <div class="flow-step">Dokumentér</div>
+              </div>
+            </div>
+            <div class="footer-note">
+              Når samme struktur bruges i alle moduler, bliver platformen nem at lære og stærk i undervisning. Det gør også onboarding for virksomheder langt mere professionel, fordi medarbejderen ikke bare trykker “godkend”, men faktisk viser forståelse.
+            </div>
+          </div>
+        </section>
+
+        <section id="data" class="card">
+          <div class="card-head">
+            <h3>8. Datamodel for Akademi v1</h3>
+            <p>Foreslået struktur så læringsdelen senere kan hænge sammen med onboarding, rutiner og certifikater.</p>
+          </div>
+          <div class="section-body two-col">
+            <div class="table-like">
+              <div class="table-row"><strong>learning_tracks</strong><div>Overordnet spor som fx egenkontrol basis, hoteldrift eller kursusforløb.</div></div>
+              <div class="table-row"><strong>learning_modules</strong><div>Hvert emne som fx nedkøling, allergener eller varemodtagelse.</div></div>
+              <div class="table-row"><strong>learning_lessons</strong><div>Forklaring, visuelle trin, cases og fagligt indhold i rækkefølge.</div></div>
+              <div class="table-row"><strong>quiz_questions</strong><div>Spørgsmål, svarmuligheder, korrekt svar og forklaring.</div></div>
+            </div>
+            <div class="table-like">
+              <div class="table-row"><strong>practical_assignments</strong><div>Fotoopgaver, tekstbesvarelser, temperaturkontrol og scenariebesvarelser.</div></div>
+              <div class="table-row"><strong>learner_progress</strong><div>Hvem der har gennemført hvad, score, status og dato.</div></div>
+              <div class="table-row"><strong>course_groups</strong><div>Hold, skoleforløb, restaurantteams og kursushold.</div></div>
+              <div class="table-row"><strong>certificates</strong><div>Beviser for gennemførte moduler eller hele læringsspor.</div></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="v1" class="card">
+          <div class="card-head">
+            <h3>9. Hvad vi bygger først i v1</h3>
+            <p>Det her er den anbefalede første leverance, så projektet bliver stærkt uden at blive for tungt.</p>
+          </div>
+          <div class="section-body step-list">
+            <div class="step-item"><h4>V1.1 · Akademi-forside</h4><p>En samlet side med spor, moduler og progression.</p></div>
+            <div class="step-item"><h4>V1.2 · 8-12 kernemoduler</h4><p>Start med de mest centrale emner fra egenkontrol, som også matcher onboarding og daglig drift.</p></div>
+            <div class="step-item"><h4>V1.3 · Fast lektionsskabelon</h4><p>Forklaring, quiz, case, egen beskrivelse og dokumentation i samme struktur.</p></div>
+            <div class="step-item"><h4>V1.4 · Resultat og progression</h4><p>Vis gennemførte moduler, score og næste anbefalede trin.</p></div>
+            <div class="step-item"><h4>V1.5 · Knyt det til egenkontrol</h4><p>På sigt skal modulerne kobles til onboarding, risikoanalyse og rutiner, så læring og drift hænger sammen.</p></div>
+          </div>
+          <div class="footer-note">
+            Kort sagt: Madkontrollen Pro Akademi bør bygges som en læringsmotor oven på egenkontrollen. Det vil give meget mere værdi for restauranter, hoteller, skoler og kursusforløb end et traditionelt dokumentationssystem.
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const links = [...document.querySelectorAll('.nav-link')];
+    const sections = links
+      .map(link => document.querySelector(link.getAttribute('href')))
+      .filter(Boolean);
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter(entry => entry.isIntersecting)
+        .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (!visible) return;
+      const id = '#' + visible.target.id;
+      links.forEach(link => link.classList.toggle('active', link.getAttribute('href') === id));
+    }, { rootMargin: '-20% 0px -60% 0px', threshold: [0.1,0.35,0.6] });
+
+    sections.forEach(section => observer.observe(section));
+  </script>
+</body>
+</html>
+

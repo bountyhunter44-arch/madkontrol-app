@@ -1,0 +1,80 @@
+{
+  "source_file": "functions/egenkontrol/generators/taskGenerator.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "createDateKey",
+    "generateTaskInstances",
+    "shouldGenerateForDate"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildTaskInstanceId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildTaskTitle",
+        "createDateKey",
+        "generateTaskInstances",
+        "shouldGenerateForDate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTaskTitle",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildTaskInstanceId",
+        "createDateKey",
+        "generateTaskInstances",
+        "shouldGenerateForDate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createDateKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildTaskInstanceId",
+        "buildTaskTitle",
+        "generateTaskInstances",
+        "shouldGenerateForDate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateTaskInstances",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildTaskInstanceId",
+        "buildTaskTitle",
+        "createDateKey",
+        "shouldGenerateForDate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldGenerateForDate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildTaskInstanceId",
+        "buildTaskTitle",
+        "createDateKey",
+        "generateTaskInstances"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

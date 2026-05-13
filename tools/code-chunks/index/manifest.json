@@ -1,0 +1,66 @@
+{
+  "originalFile": "functions/index.js",
+  "absoluteInput": "D:\\madkontrol-app\\functions\\index.js",
+  "baseName": "index",
+  "extension": ".js",
+  "linesPerChunk": 800,
+  "totalLines": 8003,
+  "totalChunks": 11,
+  "chunks": [
+    {
+      "file": "chunk-001.js",
+      "startLine": 1,
+      "endLine": 800
+    },
+    {
+      "file": "chunk-002.js",
+      "startLine": 801,
+      "endLine": 1600
+    },
+    {
+      "file": "chunk-003.js",
+      "startLine": 1601,
+      "endLine": 2400
+    },
+    {
+      "file": "chunk-004.js",
+      "startLine": 2401,
+      "endLine": 3200
+    },
+    {
+      "file": "chunk-005.js",
+      "startLine": 3201,
+      "endLine": 4000
+    },
+    {
+      "file": "chunk-006.js",
+      "startLine": 4001,
+      "endLine": 4800
+    },
+    {
+      "file": "chunk-007.js",
+      "startLine": 4801,
+      "endLine": 5600
+    },
+    {
+      "file": "chunk-008.js",
+      "startLine": 5601,
+      "endLine": 6400
+    },
+    {
+      "file": "chunk-009.js",
+      "startLine": 6401,
+      "endLine": 7200
+    },
+    {
+      "file": "chunk-010.js",
+      "startLine": 7201,
+      "endLine": 8000
+    },
+    {
+      "file": "chunk-011.js",
+      "startLine": 8001,
+      "endLine": 8003
+    }
+  ]
+}

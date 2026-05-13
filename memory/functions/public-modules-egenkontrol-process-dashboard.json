@@ -1,0 +1,373 @@
+{
+  "source_file": "public/modules/egenkontrol/process-dashboard.js",
+  "module": "dashboard",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "attachCoolingCardHandlers",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "attachReheatingCardHandlers",
+        "closeModal",
+        "createModal",
+        "handleRecoveryDisposal",
+        "handleRecoveryReheating",
+        "loadAndRenderActiveProcesses",
+        "setupStartCoolingButton",
+        "showAddMeasurementModal",
+        "showCompleteCoolingModal",
+        "showCompleteReheatingModal",
+        "showStartCoolingModal"
+      ],
+      "selectors": [
+        "#form-start-cooling",
+        ".btn-add-measurement",
+        ".btn-complete-cooling",
+        ".btn-complete-reheating",
+        ".btn-recovery-disposal",
+        ".btn-recovery-reheating"
+      ],
+      "collections": []
+    },
+    {
+      "name": "attachReheatingCardHandlers",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "closeModal",
+        "createModal",
+        "loadAndRenderActiveProcesses",
+        "setupStartCoolingButton",
+        "showAddMeasurementModal",
+        "showCompleteReheatingModal",
+        "showStartCoolingModal"
+      ],
+      "selectors": [
+        "#form-add-measurement",
+        "#form-start-cooling",
+        ".btn-complete-reheating"
+      ],
+      "collections": []
+    },
+    {
+      "name": "check",
+      "type": "const_function",
+      "approx_occurrences": 1,
+      "calls": [
+        "attachCoolingCardHandlers",
+        "attachReheatingCardHandlers",
+        "createCoolingCardHTML",
+        "createProcessCard",
+        "createReheatingCardHTML",
+        "escapeHtml",
+        "init",
+        "loadAndRenderActiveProcesses",
+        "renderActiveProcesses",
+        "setupStartCoolingButton",
+        "waitForDependencies"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "closeModal",
+      "type": "function",
+      "approx_occurrences": 8,
+      "calls": [
+        "escapeHtml",
+        "init"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createCoolingCardHTML",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createReheatingCardHTML",
+        "escapeHtml"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createModal",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "closeModal",
+        "escapeHtml",
+        "init"
+      ],
+      "selectors": [
+        ".mkp-modal-overlay",
+        ".modal-close"
+      ],
+      "collections": []
+    },
+    {
+      "name": "createProcessCard",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "attachCoolingCardHandlers",
+        "attachReheatingCardHandlers",
+        "createCoolingCardHTML",
+        "createReheatingCardHTML",
+        "escapeHtml"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createReheatingCardHTML",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "attachCoolingCardHandlers",
+        "attachReheatingCardHandlers",
+        "createModal",
+        "escapeHtml",
+        "handleRecoveryDisposal",
+        "handleRecoveryReheating",
+        "setupStartCoolingButton",
+        "showAddMeasurementModal",
+        "showCompleteCoolingModal",
+        "showCompleteReheatingModal",
+        "showStartCoolingModal"
+      ],
+      "selectors": [
+        ".btn-add-measurement",
+        ".btn-complete-cooling",
+        ".btn-complete-reheating",
+        ".btn-recovery-disposal",
+        ".btn-recovery-reheating"
+      ],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "init"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "handleRecoveryDisposal",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "closeModal",
+        "createModal",
+        "escapeHtml",
+        "loadAndRenderActiveProcesses",
+        "showCompleteReheatingModal",
+        "showNewCoolingOptionModal"
+      ],
+      "selectors": [
+        "#form-complete-reheating",
+        ".btn-start-new-cooling"
+      ],
+      "collections": []
+    },
+    {
+      "name": "handleRecoveryReheating",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "closeModal",
+        "createModal",
+        "escapeHtml",
+        "handleRecoveryDisposal",
+        "loadAndRenderActiveProcesses",
+        "showCompleteReheatingModal",
+        "showNewCoolingOptionModal"
+      ],
+      "selectors": [
+        "#form-complete-reheating"
+      ],
+      "collections": []
+    },
+    {
+      "name": "init",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "attachCoolingCardHandlers",
+        "attachReheatingCardHandlers",
+        "createCoolingCardHTML",
+        "createProcessCard",
+        "createReheatingCardHTML",
+        "escapeHtml",
+        "loadAndRenderActiveProcesses",
+        "renderActiveProcesses",
+        "setupStartCoolingButton",
+        "waitForDependencies"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadAndRenderActiveProcesses",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "attachCoolingCardHandlers",
+        "attachReheatingCardHandlers",
+        "createCoolingCardHTML",
+        "createProcessCard",
+        "createReheatingCardHTML",
+        "escapeHtml",
+        "renderActiveProcesses"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderActiveProcesses",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "attachCoolingCardHandlers",
+        "attachReheatingCardHandlers",
+        "createCoolingCardHTML",
+        "createProcessCard",
+        "createReheatingCardHTML",
+        "escapeHtml"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setupStartCoolingButton",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "closeModal",
+        "createModal",
+        "loadAndRenderActiveProcesses",
+        "showAddMeasurementModal",
+        "showStartCoolingModal"
+      ],
+      "selectors": [
+        "#form-add-measurement",
+        "#form-start-cooling"
+      ],
+      "collections": []
+    },
+    {
+      "name": "showAddMeasurementModal",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "closeModal",
+        "createModal",
+        "handleRecoveryReheating",
+        "loadAndRenderActiveProcesses",
+        "showCompleteCoolingModal"
+      ],
+      "selectors": [
+        "#form-add-measurement",
+        "#form-complete-cooling"
+      ],
+      "collections": []
+    },
+    {
+      "name": "showCompleteCoolingModal",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "closeModal",
+        "createModal",
+        "handleRecoveryDisposal",
+        "handleRecoveryReheating",
+        "loadAndRenderActiveProcesses",
+        "showCompleteReheatingModal"
+      ],
+      "selectors": [
+        "#form-complete-cooling"
+      ],
+      "collections": []
+    },
+    {
+      "name": "showCompleteReheatingModal",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "closeModal",
+        "createModal",
+        "escapeHtml",
+        "loadAndRenderActiveProcesses",
+        "showNewCoolingOptionModal"
+      ],
+      "selectors": [
+        "#form-complete-reheating",
+        ".btn-start-new-cooling"
+      ],
+      "collections": []
+    },
+    {
+      "name": "showNewCoolingOptionModal",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "closeModal",
+        "createModal",
+        "escapeHtml",
+        "init",
+        "loadAndRenderActiveProcesses"
+      ],
+      "selectors": [
+        ".btn-start-new-cooling",
+        ".mkp-modal-overlay",
+        ".modal-close"
+      ],
+      "collections": []
+    },
+    {
+      "name": "showStartCoolingModal",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "closeModal",
+        "createModal",
+        "loadAndRenderActiveProcesses",
+        "showAddMeasurementModal"
+      ],
+      "selectors": [
+        "#form-add-measurement",
+        "#form-start-cooling"
+      ],
+      "collections": []
+    },
+    {
+      "name": "waitForDependencies",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "attachCoolingCardHandlers",
+        "attachReheatingCardHandlers",
+        "check",
+        "createCoolingCardHTML",
+        "createProcessCard",
+        "createReheatingCardHTML",
+        "escapeHtml",
+        "init",
+        "loadAndRenderActiveProcesses",
+        "renderActiveProcesses",
+        "setupStartCoolingButton"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

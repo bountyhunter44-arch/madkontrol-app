@@ -1,0 +1,136 @@
+{
+  "source_file": "public/core/impersonation.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "getEffectiveCompanyId",
+    "getEffectiveLocationId",
+    "getImpersonatedCompanyId",
+    "getImpersonatedCompanyName",
+    "isImpersonating",
+    "renderImpersonationBanner",
+    "startImpersonation",
+    "stopImpersonation"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getEffectiveCompanyId",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getEffectiveLocationId",
+        "getImpersonatedCompanyId",
+        "isImpersonating"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEffectiveLocationId",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "isImpersonating"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getImpersonatedCompanyId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getEffectiveCompanyId",
+        "getEffectiveLocationId",
+        "getImpersonatedCompanyName",
+        "isImpersonating",
+        "renderImpersonationBanner",
+        "startImpersonation",
+        "stopImpersonation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getImpersonatedCompanyName",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getEffectiveCompanyId",
+        "getEffectiveLocationId",
+        "getImpersonatedCompanyId",
+        "isImpersonating",
+        "renderImpersonationBanner",
+        "startImpersonation",
+        "stopImpersonation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isImpersonating",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "getEffectiveCompanyId",
+        "getEffectiveLocationId",
+        "getImpersonatedCompanyId",
+        "getImpersonatedCompanyName",
+        "renderImpersonationBanner",
+        "startImpersonation",
+        "stopImpersonation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderImpersonationBanner",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getEffectiveCompanyId",
+        "getEffectiveLocationId",
+        "getImpersonatedCompanyId",
+        "getImpersonatedCompanyName",
+        "isImpersonating",
+        "stopImpersonation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "startImpersonation",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getEffectiveCompanyId",
+        "getEffectiveLocationId",
+        "getImpersonatedCompanyId",
+        "getImpersonatedCompanyName",
+        "isImpersonating",
+        "renderImpersonationBanner",
+        "stopImpersonation"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "stopImpersonation",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getEffectiveCompanyId",
+        "getEffectiveLocationId",
+        "getImpersonatedCompanyId",
+        "getImpersonatedCompanyName",
+        "isImpersonating",
+        "renderImpersonationBanner"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

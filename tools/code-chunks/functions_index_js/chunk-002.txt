@@ -1,0 +1,500 @@
+    holdsHotFood: sanitizeBoolean(profile.holdsHotFood),
+    holdsHotFoodDetails: sanitizeString(profile.holdsHotFoodDetails, 2000),
+    holdsHotFoodCritical: sanitizeBoolean(profile.holdsHotFoodCritical),
+    coolsHotFood: sanitizeBoolean(profile.coolsHotFood),
+    coolsHotFoodDetails: sanitizeString(profile.coolsHotFoodDetails, 2000),
+    coolsHotFoodCritical: sanitizeBoolean(profile.coolsHotFoodCritical),
+    // Step 5: Håndtering/Allergener
+    handlesDifferentFoods: sanitizeBoolean(profile.handlesDifferentFoods),
+    handlesDifferentFoodsDetails: sanitizeString(profile.handlesDifferentFoodsDetails, 2000),
+    handlesAllergens: sanitizeBoolean(profile.handlesAllergens),
+    handlesAllergensDetails: sanitizeString(profile.handlesAllergensDetails, 2000),
+    handlesAllergensCritical: sanitizeBoolean(profile.handlesAllergensCritical),
+    // Step 6: Salg og servering
+    sellsPackagedChilled: sanitizeBoolean(profile.sellsPackagedChilled),
+    sellsPackagedFrozen: sanitizeBoolean(profile.sellsPackagedFrozen),
+    sellsPackagedRoomTemp: sanitizeBoolean(profile.sellsPackagedRoomTemp),
+    sellsUnpackagedChilled: sanitizeBoolean(profile.sellsUnpackagedChilled),
+    sellsUnpackagedRoomTemp: sanitizeBoolean(profile.sellsUnpackagedRoomTemp),
+    sellsFoodWithAllergens: sanitizeBoolean(profile.sellsFoodWithAllergens),
+    sellsFoodWithAllergensDetails: sanitizeString(profile.sellsFoodWithAllergensDetails, 2000),
+    packagesOwnFood: sanitizeBoolean(profile.packagesOwnFood),
+    packagesOwnFoodDetails: sanitizeString(profile.packagesOwnFoodDetails, 2000),
+    // Step 7: Transport
+    transportsChilledGoods: sanitizeBoolean(profile.transportsChilledGoods),
+    transportsFrozenGoods: sanitizeBoolean(profile.transportsFrozenGoods),
+    transportsRoomTempGoods: sanitizeBoolean(profile.transportsRoomTempGoods),
+    transportsHotTakeaway: sanitizeBoolean(profile.transportsHotTakeaway),
+    transportsHotTakeawayDetails: sanitizeString(profile.transportsHotTakeawayDetails, 2000),
+    // Legacy fields
+    servesHotFood: sanitizeBoolean(profile.servesHotFood),
+    servesColdFood: sanitizeBoolean(profile.servesColdFood),
+    sellsRawFish: sanitizeBoolean(profile.sellsRawFish),
+    makesDesserts: sanitizeBoolean(profile.makesDesserts),
+    packsTakeaway: sanitizeBoolean(profile.packsTakeaway),
+    hasHotHolding: sanitizeBoolean(profile.hasHotHolding),
+    hasDryStorage: sanitizeBoolean(profile.hasDryStorage),
+    hasProductionKitchen: sanitizeBoolean(profile.hasProductionKitchen),
+    hasServingArea: sanitizeBoolean(profile.hasServingArea),
+    hasToilet: sanitizeBoolean(profile.hasToilet),
+    hasDishwashing: sanitizeBoolean(profile.hasDishwashing),
+    hasWarmKitchen: sanitizeBoolean(profile.hasWarmKitchen),
+    hasColdKitchen: sanitizeBoolean(profile.hasColdKitchen),
+    hasHandwash: sanitizeBoolean(profile.hasHandwash),
+    hasWashingRoom: sanitizeBoolean(profile.hasWashingRoom),
+    hasVegetableRoom: sanitizeBoolean(profile.hasVegetableRoom),
+    hasWalkInFreezer: sanitizeBoolean(profile.hasWalkInFreezer),
+    hasWalkInCooler: sanitizeBoolean(profile.hasWalkInCooler),
+    hasSofticeachine: sanitizeBoolean(profile.hasSofticeachine),
+    hasOvens: sanitizeBoolean(profile.hasOvens),
+    fridgeCount: toPositiveInt(profile.fridgeCount),
+    freezerCount: toPositiveInt(profile.freezerCount),
+    suppliers: sanitizeStringList(profile.suppliers, 80, 140),
+    // Activity fields from onboarding (Danish names)
+    tilberederVarmMad: sanitizeBoolean(profile.tilberederVarmMad),
+    modtagerKoelevarer: sanitizeBoolean(profile.modtagerKoelevarer),
+    modtagerFrostvarer: sanitizeBoolean(profile.modtagerFrostvarer),
+    varmholder: sanitizeBoolean(profile.varmholder),
+    nedkoelerMad: sanitizeBoolean(profile.nedkoelerMad),
+    servererKoldMad: sanitizeBoolean(profile.servererKoldMad),
+    antalKoeleskabe: toPositiveInt(profile.antalKoeleskabe),
+    antalFrysere: toPositiveInt(profile.antalFrysere),
+    walkInCoolerCount: toPositiveInt(profile.walkInCoolerCount),
+    walkInFreezerCount: toPositiveInt(profile.walkInFreezerCount),
+    antalIsterningemaskiner: toPositiveInt(profile.antalIsterningemaskiner),
+    antalIsbokse: toPositiveInt(profile.antalIsbokse),
+    antalFrityreGryder: toPositiveInt(profile.antalFrityreGryder),
+    hasIceMachine: sanitizeBoolean(profile.hasIceMachine || profile.hasIsterningemaskine),
+    hasIsboks: sanitizeBoolean(profile.hasIsboks),
+    hasFrituregryde: sanitizeBoolean(profile.hasFrituregryde),
+    madkoncept: sanitizeString(profile.madkoncept, 500),
+    produkter: sanitizeString(profile.produkter, 1000)
+  };
+}
+
+function sanitizeRiskModelInput(riskModel = {}) {
+  return {
+    hazards: toArray(riskModel.hazards).slice(0, 100).map((hazard) => ({
+      name: sanitizeString(hazard?.name, 180),
+      riskLevel: sanitizeString(hazard?.riskLevel, 40),
+      control: sanitizeString(hazard?.control, 220),
+      frequency: sanitizeString(hazard?.frequency, 80)
+    })),
+    controls: sanitizeStringList(riskModel.controls, 100, 180),
+    tasks: sanitizeStringList(riskModel.tasks, 200, 180),
+    suppliers: sanitizeStringList(riskModel.suppliers, 100, 140),
+    companyType: sanitizeString(riskModel.companyType, 80),
+    organizationName: sanitizeString(riskModel.organizationName, 140),
+    generatedAt: sanitizeString(riskModel.generatedAt, 80)
+  };
+}
+
+function extractCloudinaryAssets(...candidates) {
+  const assets = [];
+
+  candidates.forEach((candidate) => {
+    toArray(candidate).forEach((item) => {
+      if (!item || typeof item !== "object") return;
+
+      const asset = {
+        assetId: sanitizeString(item.assetId || item.cloudinaryAssetId || item.id, 180),
+        publicId: sanitizeString(item.publicId || item.cloudinaryPublicId, 240),
+        url: sanitizeString(item.url || item.secureUrl || item.secure_url, 2000),
+        thumbnailUrl: sanitizeString(item.thumbnailUrl || item.thumbnail_url, 2000),
+        format: sanitizeString(item.format, 40),
+        bytes: Number(item.bytes || 0) || 0,
+        width: Number(item.width || 0) || 0,
+        height: Number(item.height || 0) || 0,
+        moduleType: sanitizeString(item.moduleType, 80),
+        itemId: sanitizeString(item.itemId, 180),
+        uploadedAt: sanitizeString(item.uploadedAt || item.createdAt, 80)
+      };
+
+      if (!asset.url && !asset.publicId && !asset.assetId) return;
+      assets.push(asset);
+    });
+  });
+
+  const deduped = [];
+  const seen = new Set();
+
+  assets.forEach((asset) => {
+    const key = asset.assetId || asset.publicId || asset.url;
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    deduped.push(asset);
+  });
+
+  return deduped.slice(0, 50);
+}
+
+function deriveOnboardingAnswers(profile = {}) {
+  const businessTypeSlug = toAsciiSlug(profile.companyType || "restaurant", 80) || "restaurant";
+  const processes = [];
+  const specialConditions = [];
+  const ingredients = [];
+  const serviceTypes = [];
+
+  // ── Modtagelse ──────────────────────────────────────────────────────────
+  if (profile.receivesChilledGoods || profile.fridgeCount > 0 || profile.antalKoeleskabe > 0 || profile.modtagerKoelevarer) {
+    processes.push("receive_chilled_goods");
+  }
+  if (profile.receivesFrozenGoods || profile.freezerCount > 0 || profile.antalFrysere > 0 || profile.modtagerFrostvarer) {
+    processes.push("receive_frozen_goods");
+  }
+
+  // ── Opbevaring ──────────────────────────────────────────────────────────
+  if (profile.storesChilledGoods || profile.receivesChilledGoods || profile.fridgeCount > 0 || profile.antalKoeleskabe > 0) {
+    processes.push("store_chilled_goods");
+  }
+  if (profile.storesFrozenGoods || profile.receivesFrozenGoods || profile.freezerCount > 0 || profile.antalFrysere > 0) {
+    processes.push("store_frozen_goods");
+  }
+
+  // ── Tilberedning ─────────────────────────────────────────────────────────
+  if (profile.preparesHotFood || profile.servesHotFood || profile.hasWarmKitchen || profile.tilberederVarmMad) {
+    processes.push("cook_food");
+  }
+
+  // ── Varmholdelse ─────────────────────────────────────────────────────────
+  if (profile.holdsHotFood || profile.hasHotHolding || profile.varmholder) {
+    processes.push("hot_hold_food");
+  }
+
+  // ── Nedkøling ────────────────────────────────────────────────────────────
+  if (profile.coolsHotFood || profile.nedkoelerMad) {
+    processes.push("cool_food");
+  }
+
+  // ── Genopvarmning: kun relevant når der tilberedes OG evt. nedkøles ──────
+  if (profile.preparesHotFood || profile.servesHotFood || profile.tilberederVarmMad) {
+    processes.push("reheat_food");
+  }
+
+  // ── Servering koldt ──────────────────────────────────────────────────────
+  if (profile.servesColdFood || profile.hasColdKitchen || profile.servererKoldMad || profile.preparesColdFood) {
+    processes.push("serve_cold_food");
+  }
+
+  if (profile.packsTakeaway || profile.transportsHotTakeaway || profile.transportsChilledGoods || profile.transportsFrozenGoods) {
+    specialConditions.push("transport_food");
+    serviceTypes.push("takeaway");
+  }
+
+  if (profile.hasServingArea) {
+    serviceTypes.push("dine_in");
+  }
+
+  if (!serviceTypes.length) {
+    serviceTypes.push("production_only");
+  }
+
+  if (profile.handlesAllergens || profile.handlesDifferentFoods || profile.sellsFoodWithAllergens) {
+    specialConditions.push("handles_allergens");
+  }
+
+  if (profile.sellsRawFish) {
+    ingredients.push("raw_fish");
+  }
+
+  if (profile.makesDesserts) {
+    ingredients.push("desserts");
+  }
+
+  // ── Areas: afledt fra lokaleboolanerne i profilen ────────────────────────
+  const areas = ["kitchen"]; // alle lokationer har et køkken
+  if (profile.hasProductionKitchen) areas.push("production_kitchen");
+  if (profile.hasServingArea)       areas.push("serving_area");
+  if (profile.hasDryStorage)        areas.push("dry_storage");
+  if (profile.hasToilet)            areas.push("toilet");
+  if (profile.hasDishwashing)       areas.push("dishwashing_area");
+  if (profile.hasWashingRoom)       areas.push("washing_room");
+  if (profile.hasVegetableRoom)     areas.push("vegetable_room");
+  if (profile.hasWalkInCooler || profile.walkInCoolerCount > 0)   areas.push("walk_in_cooler_room");
+  if (profile.hasWalkInFreezer || profile.walkInFreezerCount > 0) areas.push("walk_in_freezer_room");
+
+  return {
+    businessTypes: [businessTypeSlug],
+    processes: [...new Set(processes)],
+    ingredients: [...new Set(ingredients)],
+    serviceTypes: [...new Set(serviceTypes)],
+    specialConditions: [...new Set(specialConditions)],
+    areas: [...new Set(areas)],
+    equipmentCounts: {
+      fridge: toPositiveInt(profile.antalKoeleskabe || profile.fridgeCount),
+      freezer: toPositiveInt(profile.antalFrysere || profile.freezerCount),
+      walk_in_cooler: toPositiveInt(profile.walkInCoolerCount) || (profile.hasWalkInCooler ? 1 : 0),
+      walk_in_freezer: toPositiveInt(profile.walkInFreezerCount) || (profile.hasWalkInFreezer ? 1 : 0),
+      ice_machine: toPositiveInt(profile.antalIsterningemaskiner) || (profile.hasIceMachine ? 1 : 0),
+      ice_box: toPositiveInt(profile.antalIsbokse) || (profile.hasIsboks ? 1 : 0),
+      fryer: toPositiveInt(profile.antalFrityreGryder) || (profile.hasFrituregryde ? 1 : 0),
+      softice_machine: profile.hasSofticeachine ? 1 : 0
+    }
+  };
+}
+
+function deriveCriticalPoints(riskModel = {}) {
+  const controls = sanitizeStringList(riskModel.controls, 10, 160);
+  if (controls.length) {
+    return controls.slice(0, 3);
+  }
+
+  return toArray(riskModel.hazards)
+    .map((hazard) => sanitizeString(hazard?.name, 160))
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
+function deriveCustomerName({ profile = {}, userData = {}, email = "" }) {
+  const rawName =
+    sanitizeString(profile.ownerName || profile.contactName, 120) ||
+    sanitizeString(userData.displayName || userData.name || userData.fullName, 120) ||
+    sanitizeString(String(email || "").split("@")[0], 80) ||
+    "Velkommen";
+
+  return sanitizeString(rawName.split(/\s+/)[0], 80) || "Velkommen";
+}
+
+function buildOnboardingSummary({ profile = {}, riskModel = {}, customerName = "Velkommen" }) {
+  return {
+    customerName,
+    companyName: sanitizeString(profile.companyName, 140),
+    companyType: sanitizeString(profile.companyType || riskModel.companyType, 80) || "Restaurant",
+    city: sanitizeString(profile.city, 80),
+    criticalPoints: deriveCriticalPoints(riskModel)
+  };
+}
+
+function buildLiveUserProfilePayload({ profile = {}, riskModel = {}, companyId, locationId, userId, userEmail, summary, cloudinaryAssets, draftId, checkoutSessionId }) {
+  const sanitizedProfile = sanitizeOnboardingProfile(profile);
+  const sanitizedRiskModel = sanitizeRiskModelInput(riskModel);
+  const onboardingAnswers = deriveOnboardingAnswers(sanitizedProfile);
+  
+  return {
+    documentType: "live_user_profile",
+    companyId,
+    locationId,
+    organizationId: companyId,
+    userId,
+    userEmail: sanitizeString(userEmail, 160),
+    profile: sanitizedProfile,
+    riskModel: sanitizedRiskModel,
+    onboardingAnswers,
+    summary: summary || {},
+    cloudinaryAssets: cloudinaryAssets || [],
+    draftId: sanitizeString(draftId, 180),
+    checkoutSessionId: sanitizeString(checkoutSessionId, 220),
+    status: "active",
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  };
+}
+
+function buildHaccpSnapshotPayload({ profile = {}, riskModel = {}, companyId, locationId, userId }) {
+  const sanitizedProfile = sanitizeOnboardingProfile(profile);
+  const sanitizedRiskModel = sanitizeRiskModelInput(riskModel);
+  const normalizedAddress = [sanitizedProfile.address, sanitizedProfile.zip, sanitizedProfile.city]
+    .filter(Boolean)
+    .join(", ");
+  const now = new Date();
+
+  // Generate comprehensive HACCP with all 7 KCPs (legacy)
+  const comprehensiveHaccp = generateComprehensiveHaccp({
+    profile: sanitizedProfile,
+    companyType: sanitizedProfile.companyType
+  });
+
+  // Generate task templates from KCPs (legacy)
+  const generatedTasks = generateTaskTemplatesFromKcps(comprehensiveHaccp.kcps);
+
+  // Generate scenario-based HACCP (new motor)
+  const scenarioHaccp = generateScenarioBasedHaccp({
+    profile: sanitizedProfile,
+    companyType: sanitizedProfile.companyType
+  });
+
+  // Transform risk analysis hazards to routine templates using controls field
+
+  // Derive legacy fields from new motor (preserve object shape)
+  const derivedHazards = scenarioHaccp.hazards.map(h => ({
+    name: h.title || "",
+    riskLevel: h.riskLevel || "medium",
+    control: h.controlMeasure || "",
+    frequency: h.monitoring?.frequency || "daily"
+  }));
+  const derivedControls = [...new Set(scenarioHaccp.hazards.map(h => h.controlMeasure).filter(Boolean))];
+  const derivedTasks = scenarioHaccp.taskTemplates.map(t => t.title);
+
+  return {
+    documentType: "lovpligtig_risikoanalyse_haccp",
+    title: `Lovpligtig Risikoanalyse & HACCP for ${sanitizedProfile.companyName || "Virksomhed"}`,
+    organizationId: companyId,
+    companyId,
+    locationId,
+    createdBy: userId,
+    companyName: sanitizedProfile.companyName,
+    cvr: sanitizedProfile.cvr,
+    address: normalizedAddress,
+    companyType: sanitizedProfile.companyType,
+    profile: {
+      ...sanitizedProfile,
+      address: sanitizedProfile.address,
+      zip: sanitizedProfile.zip,
+      city: sanitizedProfile.city,
+      suppliers: sanitizedRiskModel.suppliers.length ? sanitizedRiskModel.suppliers : sanitizedProfile.suppliers
+    },
+    // NEW: Scenario-based HACCP structure (v3.0)
+    haccp: {
+      version: scenarioHaccp.version,
+      scenarios: scenarioHaccp.scenarios,
+      processes: scenarioHaccp.processes,
+      hazards: scenarioHaccp.hazards,
+      verificationTasks: scenarioHaccp.verificationTasks,
+      documentationRequirements: scenarioHaccp.documentationRequirements,
+      taskTemplates: scenarioHaccp.taskTemplates,
+      summary: scenarioHaccp.summary,
+      // Legacy KCP structure for backward compatibility
+      kcps: comprehensiveHaccp.kcps,
+      generatedTasks: generatedTasks,
+      totalKcps: comprehensiveHaccp.summary.totalKcps
+    },
+    // LEGACY: Keep old structure for backwards compatibility
+    generated: {
+      hazards: sanitizedRiskModel.hazards.length ? sanitizedRiskModel.hazards : derivedHazards,
+      controls: sanitizedRiskModel.controls.length ? sanitizedRiskModel.controls : derivedControls,
+      tasks: sanitizedRiskModel.tasks.length ? sanitizedRiskModel.tasks : derivedTasks,
+      suppliers: sanitizedRiskModel.suppliers.length ? sanitizedRiskModel.suppliers : sanitizedProfile.suppliers
+    },
+    status: "generated",
+    source: "onboarding",
+    createdAt: FieldValue.serverTimestamp(),
+    createdAtIso: now.toISOString(),
+    createdAtEpochMs: now.getTime()
+  };
+}
+
+function removeUndefinedFields(obj) {
+  if (obj === null || obj === undefined) return null;
+  if (typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeUndefinedFields(item)).filter(item => item !== undefined);
+  }
+  
+  const cleaned = {};
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const value = obj[key];
+      if (value !== undefined) {
+        cleaned[key] = removeUndefinedFields(value);
+      }
+    }
+  }
+  return cleaned;
+}
+
+async function createHaccpSnapshotDocument({ profile = {}, riskModel = {}, companyId, locationId, userId }) {
+  const payload = buildHaccpSnapshotPayload({
+    profile,
+    riskModel,
+    companyId,
+    locationId,
+    userId
+  });
+
+  // Remove undefined fields to prevent Firestore errors
+  const cleanedPayload = removeUndefinedFields(payload);
+
+  const docRef = await db.collection("haccp_snapshots").add(cleanedPayload);
+  
+  // Create egenkontrol_programs document to enable operational task generation
+  const programId = `${companyId}__${locationId}`;
+  const programRef = db.collection("egenkontrol_programs").doc(programId);
+  
+  await programRef.set({
+    companyId,
+    locationId,
+    organizationId: companyId,
+    personalisering: {
+      antalKoeleskabe: parseInt(profile.antalKoeleskabe || 0, 10),
+      antalFrysere: parseInt(profile.antalFrysere || 0, 10),
+      tilberederVarmMad: profile.tilberederVarmMad || false,
+      nedkoelerMad: profile.nedkoelerMad || false,
+      varmholder: profile.varmholder || false
+    },
+    createdBy: userId,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+  
+  return {
+    snapshotId: docRef.id,
+    payload: cleanedPayload,
+    activatedAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  };
+}
+
+async function upsertOnboardingAnswersDocument({ companyId, locationId, userId, liveProfilePayload }) {
+  const onboardingDocId = toDocSafeId(`${companyId}__${locationId}__onboarding`);
+  const onboardingRef = db.collection("onboarding_answers").doc(onboardingDocId);
+  const answers = liveProfilePayload.onboardingAnswers || {};
+
+  await onboardingRef.set({
+    companyId,
+    locationId,
+    organizationId: companyId,
+    businessTypes: toArray(answers.businessTypes),
+    processes: toArray(answers.processes),
+    ingredients: toArray(answers.ingredients),
+    serviceTypes: toArray(answers.serviceTypes),
+    specialConditions: toArray(answers.specialConditions),
+    areas: toArray(answers.areas),
+    equipmentCounts: answers.equipmentCounts || {},
+    cloudinaryAssets: toArray(answers.cloudinaryAssets),
+    createdBy: sanitizeString(userId, 120),
+    source: "onboarding_checkout",
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  return onboardingDocId;
+}
+
+function resolveOperatingMode(data, todayKey) {
+  if (!data || data.isActive === false) return "open";
+
+  const untilDateKey =
+    normalizeDateKey(data.untilDateKey) ||
+    normalizeDateKey(data.until) ||
+    normalizeDateKey(data.endDate);
+
+  const stillValid = !untilDateKey || todayKey <= untilDateKey;
+  if (!stillValid) return "open";
+
+  if (data.closed === true) return "closed";
+  if (data.vacation === true) return "vacation";
+  return "open";
+}
+
+async function getOperatingModeForLocation({ companyId, locationId, todayKey }) {
+  const queries = [
+    db.collection("operating_overrides")
+      .where("companyId", "==", companyId)
+      .where("locationId", "==", locationId)
+      .limit(1),
+    db.collection("operating_overrides")
+      .where("locationId", "==", locationId)
+      .limit(1)
+  ];
+
+  for (const q of queries) {
+    const snap = await q.get();
+    if (snap.empty) continue;
+
+    const mode = resolveOperatingMode(snap.docs[0].data() || {}, todayKey);
+    if (mode !== "open") return mode;
+  }
+
+  return "open";
+}
+
+function resolveLexiStatus({ operatingMode, totalActive, dueToday }) {

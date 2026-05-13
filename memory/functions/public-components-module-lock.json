@@ -1,0 +1,104 @@
+{
+  "source_file": "public/components/module-lock.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "checkModuleAccess",
+    "hideUnpurchasedModules",
+    "showModuleLock"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "checkModuleAccess",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "hideUnpurchasedModules",
+        "injectStyles",
+        "populateModuleFeatures",
+        "renderUpgradeCards",
+        "showModuleLock"
+      ],
+      "selectors": [
+        "[data-requires-module]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "hideUnpurchasedModules",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "injectStyles",
+        "injectUpgradeStyles",
+        "renderUpgradeCards"
+      ],
+      "selectors": [
+        "[data-requires-module]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "injectStyles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "injectUpgradeStyles"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "injectUpgradeStyles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "populateModuleFeatures",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "hideUnpurchasedModules",
+        "injectStyles",
+        "injectUpgradeStyles",
+        "renderUpgradeCards"
+      ],
+      "selectors": [
+        "[data-requires-module]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderUpgradeCards",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "injectStyles",
+        "injectUpgradeStyles"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "showModuleLock",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "hideUnpurchasedModules",
+        "injectStyles",
+        "populateModuleFeatures",
+        "renderUpgradeCards"
+      ],
+      "selectors": [
+        "[data-requires-module]"
+      ],
+      "collections": []
+    }
+  ]
+}

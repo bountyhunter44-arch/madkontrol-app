@@ -1,0 +1,357 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vision | Madkontrollen Pro</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    :root{
+      --bg:#f3f8f3;
+      --panel:#ffffff;
+      --text:#182118;
+      --muted:#5e6f5f;
+      --border:#d8e5d8;
+      --green:#2e7d32;
+      --blue:#1565c0;
+      --amber:#b26a00;
+      --purple:#6a1b9a;
+      --shadow:0 14px 30px rgba(17,35,17,.08);
+    }
+
+    .vision-wrap{display:grid;gap:18px;}
+    .vision-hero{background:linear-gradient(145deg,#ffffff 0%,#f7fbf7 100%);border:1px solid var(--border);border-radius:22px;padding:22px;box-shadow:var(--shadow);}
+    .vision-hero h1{margin:0 0 8px;font-size:34px;line-height:1.08;color:var(--text);}
+    .vision-hero p{margin:0;color:var(--muted);line-height:1.65;font-size:15px;max-width:900px;}
+
+    .vision-grid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:14px;}
+    .vision-card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;display:grid;gap:10px;align-content:start;}
+    .vision-card h2{margin:0;font-size:20px;line-height:1.2;color:var(--text);}
+    .vision-card p{margin:0;color:var(--muted);line-height:1.6;font-size:14px;}
+    .vision-tag{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:800;width:max-content;border:1px solid transparent;}
+    .vision-tag.build{background:#fff4e5;border-color:#f1d7ab;color:var(--amber);}
+    .vision-tag.ai{background:#f3e5f5;border-color:#e0c9e7;color:var(--purple);}
+    .vision-tag.core{background:#e8f5e9;border-color:#cde0ce;color:var(--green);}
+    .vision-tag.scale{background:#e3f2fd;border-color:#c9dff4;color:var(--blue);}
+
+    .vision-actions{display:flex;gap:10px;flex-wrap:wrap;}
+    .vision-actions .btn{min-height:42px;}
+
+    .vision-checklist{background:#fff;border:1px solid var(--border);border-radius:18px;padding:16px;display:grid;gap:8px;}
+    .vision-checklist h3{margin:0;font-size:18px;color:var(--text);}
+    .vision-checklist ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.65;}
+
+    .checkout-wrap{background:#fff;border:1px solid var(--border);border-radius:20px;padding:18px;display:grid;gap:14px;}
+    .checkout-head h3{margin:0 0 6px;font-size:22px;color:var(--text);}
+    .checkout-head p{margin:0;color:var(--muted);line-height:1.6;}
+
+    .checkout-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:14px;align-items:start;}
+    .addon-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+    .addon-card{border:1px solid var(--border);border-radius:14px;padding:12px;background:#f9fcf9;display:grid;gap:8px;}
+    .addon-card h4{margin:0;font-size:16px;color:var(--text);}
+    .addon-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.5;}
+    .addon-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .addon-price{font-size:13px;font-weight:800;color:#1f5a23;}
+    .addon-toggle{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text);}
+
+    .summary-card{border:1px solid var(--border);border-radius:14px;padding:12px;background:#f5faf5;display:grid;gap:10px;}
+    .summary-card h4{margin:0;font-size:16px;color:var(--text);}
+    .summary-list{margin:0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.55;min-height:44px;}
+    .summary-rows{display:grid;gap:6px;}
+    .summary-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted);}
+    .summary-row strong{color:var(--text);}
+
+    .checkout-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .checkout-status{min-height:20px;font-size:13px;font-weight:700;color:#1f5a23;}
+    .checkout-status.is-error{color:#b42318;}
+
+    @media (max-width:980px){
+      .vision-grid{grid-template-columns:1fr;}
+      .vision-hero h1{font-size:28px;}
+      .checkout-grid{grid-template-columns:1fr;}
+      .addon-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+  <div id="headerMount"></div>
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+      <section class="page-content">
+        <div class="vision-wrap">
+          <article class="vision-hero">
+            <h1>Vision og vaekstspor</h1>
+            <p>
+              Her vises de moduler, der loefter Madkontrollen Pro fra kerneplatform til fuld virksomhedsplatform:
+              accounting, POS, Bon-AI, connector-support og auto-genererede rutiner.
+            </p>
+          </article>
+
+          <section class="vision-grid" aria-label="Vision moduler">
+            <article class="vision-card">
+              <span class="vision-tag build">V1</span>
+              <h2>Accounting modul</h2>
+              <p>Bilag, bogfoering, moms og klar-til-revisor flow i samme platform.</p>
+            </article>
+
+            <article class="vision-card">
+              <span class="vision-tag build">Planlagt</span>
+              <h2>POS-system</h2>
+              <p>Skat-compliant salg med kobling til menu, indkoeb og oekonomi.</p>
+            </article>
+
+            <article class="vision-card">
+              <span class="vision-tag ai">AI</span>
+              <h2>Bon-AI</h2>
+              <p>Scanner bonner, foreslaar kontering og laerer virksomhedens bilagsmoenstre.</p>
+            </article>
+
+            <article class="vision-card">
+              <span class="vision-tag scale">Bygges</span>
+              <h2>Connector og AI-support</h2>
+              <p>Kontekstbevidst support-assistent med adgang til kundens data og handlinger.</p>
+            </article>
+
+            <article class="vision-card">
+              <span class="vision-tag core">Naeste skridt</span>
+              <h2>Auto-genererede rutiner</h2>
+              <p>Automatisk generering af rutiner ud fra onboarding og risikoanalyse pr. lokation.</p>
+            </article>
+
+            <article class="vision-card">
+              <span class="vision-tag scale">Skalering</span>
+              <h2>Modul-abonnementer</h2>
+              <p>Kerne + tilkoebte moduler pr. organisation med central entitlement-styring.</p>
+            </article>
+          </section>
+
+          <article class="vision-checklist">
+            <h3>Demo-afslutning</h3>
+            <ul>
+              <li>Vis hvordan kunden starter i kernen og tilkoeber moduler over tid.</li>
+              <li>Forklar at roller og lokationer styrer adgang i multi-tenant setup.</li>
+              <li>Peg paa roadmap med accounting, POS og AI som vaekstlag.</li>
+            </ul>
+          </article>
+
+          <section class="checkout-wrap" id="module-checkout">
+            <div class="checkout-head">
+              <h3>Tilkoeb moduler (Stripe placeholder)</h3>
+              <p>Vae lg add-ons, se pris live og opret en checkout-kladde. Denne version gemmer kladden lokalt, klar til senere Stripe webhook-flow.</p>
+            </div>
+
+            <div class="checkout-grid">
+              <div class="addon-grid">
+                <article class="addon-card" data-addon="accounting" data-price="699">
+                  <h4>Accounting</h4>
+                  <p>Bilag, moms og bogfoering i samme platform.</p>
+                  <div class="addon-meta">
+                    <span class="addon-price">699 kr/md.</span>
+                    <label class="addon-toggle"><input type="checkbox" data-addon-input> Vaelg</label>
+                  </div>
+                </article>
+
+                <article class="addon-card" data-addon="pos" data-price="599">
+                  <h4>POS</h4>
+                  <p>Kassesystem med dataflow til drift og oekonomi.</p>
+                  <div class="addon-meta">
+                    <span class="addon-price">599 kr/md.</span>
+                    <label class="addon-toggle"><input type="checkbox" data-addon-input> Vaelg</label>
+                  </div>
+                </article>
+
+                <article class="addon-card" data-addon="bon-ai" data-price="399">
+                  <h4>Bon-AI</h4>
+                  <p>Automatisk bon-scanning og forslag til kontering.</p>
+                  <div class="addon-meta">
+                    <span class="addon-price">399 kr/md.</span>
+                    <label class="addon-toggle"><input type="checkbox" data-addon-input> Vaelg</label>
+                  </div>
+                </article>
+
+                <article class="addon-card" data-addon="connector" data-price="299">
+                  <h4>Connector Support</h4>
+                  <p>Udvidet support-assistent med kunde-kontekst.</p>
+                  <div class="addon-meta">
+                    <span class="addon-price">299 kr/md.</span>
+                    <label class="addon-toggle"><input type="checkbox" data-addon-input> Vaelg</label>
+                  </div>
+                </article>
+              </div>
+
+              <aside class="summary-card" aria-live="polite">
+                <h4>Ordre-resume</h4>
+                <ul id="checkoutSummaryList" class="summary-list"><li>Ingen add-ons valgt endnu.</li></ul>
+
+                <div class="summary-rows">
+                  <div class="summary-row"><span>Kerneplan</span><strong id="corePriceLabel">1.999 kr/md.</strong></div>
+                  <div class="summary-row"><span>Add-ons</span><strong id="addonsPriceLabel">0 kr/md.</strong></div>
+                  <div class="summary-row"><span>Total pr. md.</span><strong id="monthlyTotalLabel">1.999 kr/md.</strong></div>
+                  <div class="summary-row"><span>Total pr. aar</span><strong id="yearlyTotalLabel">23.988 kr/aar</strong></div>
+                </div>
+
+                <div class="checkout-actions">
+                  <button id="createCheckoutDraftBtn" class="btn btn-primary" type="button">Opret checkout-kladde</button>
+                  <button id="resetCheckoutBtn" class="btn btn-secondary" type="button">Nulstil valg</button>
+                </div>
+
+                <p id="checkoutStatus" class="checkout-status"></p>
+              </aside>
+            </div>
+          </section>
+
+          <div class="vision-actions">
+            <a class="btn btn-secondary" href="/modules/egenkontrol/front.html#demo-flow">Tilbage til demo-flow</a>
+            <a class="btn btn-primary" href="/dashboard">Aabn dashboard</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { loadLayout } from "/core/layout.js";
+    import app from "/core/firebase-config.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+    await loadLayout();
+
+    const CORE_MONTHLY_PRICE = 1999;
+    const CHECKOUT_STORAGE_KEY = "mkp_checkout_draft_v1";
+    const functions = getFunctions(app, "us-central1");
+    const createStripeCheckoutSession = httpsCallable(functions, "createStripeCheckoutSession");
+
+    const addonCards = Array.from(document.querySelectorAll("[data-addon]"));
+    const summaryListEl = document.getElementById("checkoutSummaryList");
+    const addonsPriceLabelEl = document.getElementById("addonsPriceLabel");
+    const monthlyTotalLabelEl = document.getElementById("monthlyTotalLabel");
+    const yearlyTotalLabelEl = document.getElementById("yearlyTotalLabel");
+    const statusEl = document.getElementById("checkoutStatus");
+    const createDraftBtn = document.getElementById("createCheckoutDraftBtn");
+    const resetBtn = document.getElementById("resetCheckoutBtn");
+
+    function formatDkk(value) {
+      return `${Number(value || 0).toLocaleString("da-DK")} kr`;
+    }
+
+    function getSelectedAddons() {
+      return addonCards
+        .map((card) => {
+          const input = card.querySelector("[data-addon-input]");
+          if (!input || !input.checked) return null;
+
+          return {
+            key: String(card.getAttribute("data-addon") || "").trim(),
+            name: String(card.querySelector("h4")?.textContent || "Modul").trim(),
+            monthlyPrice: Number(card.getAttribute("data-price") || 0)
+          };
+        })
+        .filter(Boolean);
+    }
+
+    function renderCheckoutSummary() {
+      const selected = getSelectedAddons();
+      const addonsMonthlyTotal = selected.reduce((sum, item) => sum + item.monthlyPrice, 0);
+      const monthlyTotal = CORE_MONTHLY_PRICE + addonsMonthlyTotal;
+      const yearlyTotal = monthlyTotal * 12;
+
+      if (summaryListEl) {
+        if (!selected.length) {
+          summaryListEl.innerHTML = "<li>Ingen add-ons valgt endnu.</li>";
+        } else {
+          summaryListEl.innerHTML = selected
+            .map((item) => `<li>${item.name} (${formatDkk(item.monthlyPrice)}/md.)</li>`)
+            .join("");
+        }
+      }
+
+      if (addonsPriceLabelEl) addonsPriceLabelEl.textContent = `${formatDkk(addonsMonthlyTotal)}/md.`;
+      if (monthlyTotalLabelEl) monthlyTotalLabelEl.textContent = `${formatDkk(monthlyTotal)}/md.`;
+      if (yearlyTotalLabelEl) yearlyTotalLabelEl.textContent = `${formatDkk(yearlyTotal)}/aar`;
+    }
+
+    async function createCheckoutDraft() {
+      const selected = getSelectedAddons();
+      const addonsMonthlyTotal = selected.reduce((sum, item) => sum + item.monthlyPrice, 0);
+
+      const draft = {
+        version: 1,
+        createdAt: new Date().toISOString(),
+        corePlan: {
+          key: "core",
+          name: "Madkontrollen Core",
+          monthlyPrice: CORE_MONTHLY_PRICE
+        },
+        addons: selected,
+        pricing: {
+          addonsMonthlyTotal,
+          monthlyTotal: CORE_MONTHLY_PRICE + addonsMonthlyTotal,
+          yearlyTotal: (CORE_MONTHLY_PRICE + addonsMonthlyTotal) * 12,
+          currency: "DKK"
+        },
+        provider: "stripe-placeholder"
+      };
+
+      localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(draft));
+
+      if (statusEl) {
+        statusEl.classList.remove("is-error");
+        statusEl.textContent = `Checkout-kladde gemt (${selected.length} add-ons valgt). Opretter Stripe Checkout...`;
+      }
+
+      try {
+        const companyId = String(sessionStorage.getItem("mkp_user_companyId") || "").trim();
+        const locationIds = JSON.parse(sessionStorage.getItem("mkp_user_locationIds") || "[]");
+        const locationId = String(sessionStorage.getItem("mkp_selected_locationId") || locationIds[0] || "").trim();
+
+        const result = await createStripeCheckoutSession({
+          addonKeys: selected.map((item) => item.key),
+          companyId,
+          locationId,
+          origin: window.location.origin
+        });
+
+        const checkoutUrl = result?.data?.url;
+        if (!checkoutUrl) {
+          throw new Error("Mangler checkout URL fra backend.");
+        }
+
+        window.location.href = checkoutUrl;
+      } catch (error) {
+        console.error("Stripe checkout fejl:", error);
+        if (statusEl) {
+          statusEl.classList.add("is-error");
+          statusEl.textContent = error?.message || "Kunne ikke oprette Stripe checkout.";
+        }
+      }
+    }
+
+    function resetCheckout() {
+      addonCards.forEach((card) => {
+        const input = card.querySelector("[data-addon-input]");
+        if (input) input.checked = false;
+      });
+
+      localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+      renderCheckoutSummary();
+
+      if (statusEl) {
+        statusEl.classList.remove("is-error");
+        statusEl.textContent = "Valg nulstillet.";
+      }
+    }
+
+    addonCards.forEach((card) => {
+      const input = card.querySelector("[data-addon-input]");
+      if (!input) return;
+      input.addEventListener("change", renderCheckoutSummary);
+    });
+
+    createDraftBtn?.addEventListener("click", createCheckoutDraft);
+    resetBtn?.addEventListener("click", resetCheckout);
+
+    renderCheckoutSummary();
+  </script>
+</body>
+</html>
+

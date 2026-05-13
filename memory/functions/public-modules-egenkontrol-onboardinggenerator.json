@@ -1,0 +1,138 @@
+{
+  "source_file": "public/modules/egenkontrol/onboardingGenerator.js",
+  "module": "onboarding",
+  "imports": [
+    "./onboardingPresets.js"
+  ],
+  "exports": [
+    "buildOnboardingPayload",
+    "buildRiskAnalysisDraft",
+    "buildRiskProfile",
+    "buildTaskTemplatesFromOnboarding",
+    "generateEquipmentUnits",
+    "generateProductsFromBusinessType"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "buildOnboardingPayload",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "generateProductsFromBusinessType",
+        "has",
+        "inc",
+        "qty"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildRiskAnalysisDraft",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildTaskTemplatesFromOnboarding",
+        "generateEquipmentUnits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildRiskProfile",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildRiskAnalysisDraft",
+        "buildTaskTemplatesFromOnboarding",
+        "generateEquipmentUnits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildTaskTemplatesFromOnboarding",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "generateEquipmentUnits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateEquipmentUnits",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildRiskAnalysisDraft",
+        "buildRiskProfile"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "generateProductsFromBusinessType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildRiskAnalysisDraft",
+        "buildRiskProfile",
+        "generateEquipmentUnits"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "has",
+      "type": "const_function",
+      "approx_occurrences": 11,
+      "calls": [
+        "generateProductsFromBusinessType",
+        "inc",
+        "qty"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "inc",
+      "type": "const_function",
+      "approx_occurrences": 12,
+      "calls": [
+        "generateProductsFromBusinessType",
+        "has",
+        "qty"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "qty",
+      "type": "const_function",
+      "approx_occurrences": 3,
+      "calls": [
+        "generateProductsFromBusinessType",
+        "has",
+        "inc"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "slugify",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildRiskAnalysisDraft",
+        "buildRiskProfile",
+        "generateEquipmentUnits",
+        "generateProductsFromBusinessType"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

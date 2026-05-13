@@ -1,0 +1,1608 @@
+{
+  "source_file": "public/modules/egenkontrol/rapporter.html",
+  "module": "general",
+  "imports": [
+    "./riskAnalysisService.js",
+    "/core/auth.js",
+    "/core/firebase-config.js",
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+  ],
+  "exports": [],
+  "collections": [
+    "alerts",
+    "companies",
+    "daily_reports",
+    "live_user_profiles",
+    "locations",
+    "media_assets",
+    "task_instances",
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "bindEvents",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "openPrintWindow"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "bindFoldDelegation",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getProfile",
+        "getReadableLocationName",
+        "getStoredLocationId",
+        "renderSignedOutState",
+        "resolveSettingsFromProfile",
+        "safeJsonParse"
+      ],
+      "selectors": [
+        ".task-collapse-head",
+        ".task-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "buildEntryComment",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildPill",
+        "entryMatchesPeriod",
+        "escapeHtml",
+        "getAlertAreaLabel",
+        "getAlertCorrectiveText",
+        "getAlertRiskReference",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "getDateKeyForDaysAgo",
+        "getEntryRiskReference",
+        "getPeriodLabel",
+        "getTodayKey",
+        "isTemperatureAuthorityEntry",
+        "renderAuthorityList",
+        "resolveEntryDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildEntryReferenceLine",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryComment",
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "getEntryAreaLabel",
+        "getEntryCreatedAt",
+        "getEntryEffectiveFrequency",
+        "getEntryHandledAt",
+        "getEntryRiskReference",
+        "getEntryStatusLabel",
+        "getFrequencyLabel",
+        "getReadableTaskReference",
+        "normalizeFrequencyValue",
+        "renderEntries"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "buildPill",
+      "type": "function",
+      "approx_occurrences": 19,
+      "calls": [
+        "escapeHtml",
+        "formatDateTime",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "isCleaningEntry",
+        "isHotHoldingEntry",
+        "isReceivingEntry",
+        "isReceivingLogbook",
+        "isTemperatureAuthorityEntry",
+        "renderAuthorityList",
+        "renderAuthorityReport"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "createReportCard",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "entryMatchesPeriod",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "buildPill",
+        "escapeHtml",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "getDateKeyForDaysAgo",
+        "getTodayKey",
+        "isCleaningEntry",
+        "isHotHoldingEntry",
+        "isReceivingEntry",
+        "isReceivingLogbook",
+        "isTemperatureAuthorityEntry",
+        "renderAuthorityList",
+        "renderAuthorityReport",
+        "resolveEntryDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "approx_occurrences": 57,
+      "calls": [
+        "formatDateOnly",
+        "formatDateTime",
+        "getAlertCreatedAt",
+        "getAlertHandledAt",
+        "getDateKeyForDaysAgo",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getNowLabel",
+        "getTodayKey",
+        "resolveEntryDateKey",
+        "toDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "extractComparableDate",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "normalizeEntryCategory"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDateOnly",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "formatStatusLabel",
+        "getDateDaysAgo",
+        "getDateKeyForDaysAgo",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getNowLabel",
+        "getStatusClass",
+        "getTodayKey",
+        "resolveEntryDateKey",
+        "resolveInitialPeriodValue",
+        "toDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDateTime",
+      "type": "function",
+      "approx_occurrences": 17,
+      "calls": [
+        "formatDateOnly",
+        "getAlertCreatedAt",
+        "getAlertHandledAt",
+        "getDateKeyForDaysAgo",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getNowLabel",
+        "getTodayKey",
+        "resolveEntryDateKey",
+        "toDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatDeadlineMeta",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryComment",
+        "escapeHtml",
+        "formatDateTime",
+        "getEntryAreaLabel",
+        "getEntryMediaAssets",
+        "getEntryRiskReference",
+        "getMeasurementLabel",
+        "getOptimizedImageUrl",
+        "getSeverityClass",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "formatStatusLabel",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "getEntryAreaLabel",
+        "getEntryRiskReference",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getMeasurementLabel",
+        "getOptimizedImageUrl",
+        "getSeverityClass",
+        "getStatusClass",
+        "isEntryDocumentedAsOverdue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAlertAreaLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildPill",
+        "entryMatchesPeriod",
+        "escapeHtml",
+        "getAlertCorrectiveText",
+        "getAlertRiskReference",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "getDateKeyForDaysAgo",
+        "getPeriodLabel",
+        "getTodayKey",
+        "isCleaningEntry",
+        "isHotHoldingEntry",
+        "isTemperatureAuthorityEntry",
+        "renderAuthorityList",
+        "resolveEntryDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAlertCorrectiveText",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildPill",
+        "entryMatchesPeriod",
+        "escapeHtml",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "getDateKeyForDaysAgo",
+        "getPeriodLabel",
+        "getTodayKey",
+        "isCleaningEntry",
+        "isHotHoldingEntry",
+        "isReceivingEntry",
+        "isReceivingLogbook",
+        "isTemperatureAuthorityEntry",
+        "renderAuthorityList",
+        "resolveEntryDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAlertCreatedAt",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatDateOnly",
+        "formatStatusLabel",
+        "getAlertHandledAt",
+        "getDateDaysAgo",
+        "getDateKeyForDaysAgo",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getNowLabel",
+        "getTodayKey",
+        "resolveEntryDateKey",
+        "resolveInitialPeriodValue",
+        "toDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAlertHandledAt",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatDateOnly",
+        "formatStatusLabel",
+        "getDateDaysAgo",
+        "getDateKeyForDaysAgo",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getNowLabel",
+        "getStatusClass",
+        "getTodayKey",
+        "resolveEntryDateKey",
+        "resolveInitialPeriodValue",
+        "toDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAlertRiskReference",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildPill",
+        "entryMatchesPeriod",
+        "escapeHtml",
+        "getAlertCorrectiveText",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "getDateKeyForDaysAgo",
+        "getPeriodLabel",
+        "getTodayKey",
+        "isCleaningEntry",
+        "isHotHoldingEntry",
+        "isReceivingEntry",
+        "isTemperatureAuthorityEntry",
+        "renderAuthorityList",
+        "resolveEntryDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAuthorityAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildPill",
+        "entryMatchesPeriod",
+        "escapeHtml",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "isCleaningEntry",
+        "isHotHoldingEntry",
+        "isReceivingEntry",
+        "isReceivingLogbook",
+        "isTemperatureAuthorityEntry",
+        "renderAuthorityList",
+        "renderAuthorityReport"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAuthorityEntries",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildPill",
+        "entryMatchesPeriod",
+        "escapeHtml",
+        "getAuthorityAlerts",
+        "getAuthorityLogbookEntries",
+        "isCleaningEntry",
+        "isHotHoldingEntry",
+        "isReceivingEntry",
+        "isReceivingLogbook",
+        "isTemperatureAuthorityEntry",
+        "renderAuthorityList",
+        "renderAuthorityReport"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getAuthorityLogbookEntries",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildPill",
+        "entryMatchesPeriod",
+        "escapeHtml",
+        "formatDateTime",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "isCleaningEntry",
+        "isHotHoldingEntry",
+        "isReceivingEntry",
+        "isReceivingLogbook",
+        "isTemperatureAuthorityEntry",
+        "renderAuthorityList",
+        "renderAuthorityReport"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDateDaysAgo",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "formatStatusLabel",
+        "getEntryAreaLabel",
+        "getEntryRiskReference",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getMeasurementLabel",
+        "getSeverityClass",
+        "getStatusClass",
+        "isEntryDocumentedAsOverdue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDateKeyForDaysAgo",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "formatStatusLabel",
+        "getDateDaysAgo",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getStatusClass",
+        "isEntryDocumentedAsOverdue",
+        "resolveEntryDateKey",
+        "resolveInitialPeriodValue",
+        "toDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEntryAreaLabel",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "buildEntryComment",
+        "escapeHtml",
+        "getAlertAreaLabel",
+        "getAlertCorrectiveText",
+        "getAlertRiskReference",
+        "getEntryMediaAssets",
+        "getEntryRiskReference",
+        "getOptimizedImageUrl",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEntryCreatedAt",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "formatDateOnly",
+        "getAlertCreatedAt",
+        "getAlertHandledAt",
+        "getDateDaysAgo",
+        "getDateKeyForDaysAgo",
+        "getEntryHandledAt",
+        "getNowLabel",
+        "getTodayKey",
+        "resolveEntryDateKey",
+        "resolveInitialPeriodValue",
+        "toDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEntryEffectiveFrequency",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryComment",
+        "buildEntryReferenceLine",
+        "escapeHtml",
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "getEntryAreaLabel",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getEntryRiskReference",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getFrequencyLabel",
+        "normalizeFrequencyValue",
+        "renderEntries"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEntryHandledAt",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "formatDateOnly",
+        "formatStatusLabel",
+        "getAlertCreatedAt",
+        "getAlertHandledAt",
+        "getDateDaysAgo",
+        "getDateKeyForDaysAgo",
+        "getEntryCreatedAt",
+        "getNowLabel",
+        "getTodayKey",
+        "resolveEntryDateKey",
+        "resolveInitialPeriodValue",
+        "toDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEntryMediaAssets",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryComment",
+        "entryMatchesPeriod",
+        "escapeHtml",
+        "getAlertAreaLabel",
+        "getAlertCorrectiveText",
+        "getAlertRiskReference",
+        "getEntryRiskReference",
+        "getOptimizedImageUrl",
+        "getPeriodLabel",
+        "getTodayKey",
+        "renderEntryMediaAssets",
+        "resolveEntryDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEntryRiskReference",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildEntryComment",
+        "escapeHtml",
+        "getAlertAreaLabel",
+        "getAlertCorrectiveText",
+        "getAlertRiskReference",
+        "getEntryMediaAssets",
+        "getOptimizedImageUrl",
+        "getPeriodLabel",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEntryStatusClass",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "getEntryAreaLabel",
+        "getEntryMediaAssets",
+        "getEntryRiskReference",
+        "getMeasurementLabel",
+        "getOptimizedImageUrl",
+        "getSeverityClass",
+        "getStatusClass",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getEntryStatusLabel",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "escapeHtml",
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "formatStatusLabel",
+        "getEntryAreaLabel",
+        "getEntryMediaAssets",
+        "getEntryRiskReference",
+        "getEntryStatusClass",
+        "getMeasurementLabel",
+        "getOptimizedImageUrl",
+        "getSeverityClass",
+        "getStatusClass",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getFilteredAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "entryMatchesPeriod",
+        "extractComparableDate",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "normalizeEntryCategory"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getFilteredEntries",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "entryMatchesPeriod",
+        "extractComparableDate",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getFilteredAlerts",
+        "isEntryDocumentedAsOverdue",
+        "normalizeEntryCategory"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getFrequencyLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryComment",
+        "buildEntryReferenceLine",
+        "escapeHtml",
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "formatStatusLabel",
+        "getAlertCreatedAt",
+        "getAlertHandledAt",
+        "getEntryAreaLabel",
+        "getEntryCreatedAt",
+        "getEntryEffectiveFrequency",
+        "getEntryHandledAt",
+        "getEntryRiskReference",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getMeasurementLabel",
+        "renderAlerts",
+        "renderEntries",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getMeasurementLabel",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildEntryComment",
+        "escapeHtml",
+        "getAlertAreaLabel",
+        "getEntryAreaLabel",
+        "getEntryMediaAssets",
+        "getEntryRiskReference",
+        "getOptimizedImageUrl",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getNowLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatStatusLabel",
+        "getDateDaysAgo",
+        "getDateKeyForDaysAgo",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getEntryStatusLabel",
+        "getStatusClass",
+        "getTodayKey",
+        "isEntryDocumentedAsOverdue",
+        "resolveEntryDateKey",
+        "resolveInitialPeriodValue",
+        "toDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getOptimizedImageUrl",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryComment",
+        "entryMatchesPeriod",
+        "escapeHtml",
+        "getAlertAreaLabel",
+        "getAlertCorrectiveText",
+        "getAlertRiskReference",
+        "getEntryMediaAssets",
+        "getEntryRiskReference",
+        "getPeriodLabel",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getPeriodLabel",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "buildPill",
+        "entryMatchesPeriod",
+        "escapeHtml",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "getDateKeyForDaysAgo",
+        "getTodayKey",
+        "isCleaningEntry",
+        "isHotHoldingEntry",
+        "isReceivingEntry",
+        "isReceivingLogbook",
+        "isTemperatureAuthorityEntry",
+        "renderAuthorityList",
+        "renderAuthorityReport",
+        "resolveEntryDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getReadableLocationName",
+        "getStoredLocationId",
+        "loadLiveProfileNames",
+        "resolveSettingsFromProfile",
+        "safeJsonParse"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations"
+      ]
+    },
+    {
+      "name": "getReadableLocationName",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadLiveProfileNames",
+        "loadScopedCollection"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations"
+      ]
+    },
+    {
+      "name": "getReadableTaskReference",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryReferenceLine",
+        "getEntryEffectiveFrequency",
+        "getFrequencyLabel",
+        "normalizeFrequencyValue",
+        "renderEntries"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getSeverityClass",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryComment",
+        "escapeHtml",
+        "getAlertAreaLabel",
+        "getEntryAreaLabel",
+        "getEntryMediaAssets",
+        "getEntryRiskReference",
+        "getMeasurementLabel",
+        "getOptimizedImageUrl",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStatusClass",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "formatStatusLabel",
+        "getEntryAreaLabel",
+        "getEntryMediaAssets",
+        "getEntryRiskReference",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getMeasurementLabel",
+        "getOptimizedImageUrl",
+        "getSeverityClass",
+        "isEntryDocumentedAsOverdue",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getStoredLocationId",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getProfile",
+        "getReadableLocationName",
+        "loadLiveProfileNames",
+        "resolveSettingsFromProfile"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations"
+      ]
+    },
+    {
+      "name": "getTodayKey",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "formatStatusLabel",
+        "getDateDaysAgo",
+        "getDateKeyForDaysAgo",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getStatusClass",
+        "isEntryDocumentedAsOverdue",
+        "resolveEntryDateKey",
+        "resolveInitialPeriodValue",
+        "toDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "init",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindEvents",
+        "loadActiveHaccpSnapshot",
+        "loadAlerts",
+        "loadCleaningPlanItems",
+        "loadEntries",
+        "loadLiveProfileNames",
+        "loadLogbookEntries",
+        "loadMediaAssets",
+        "populateCategoryFilter",
+        "renderReport",
+        "renderSignedOutState",
+        "resolveInitialPeriodValue",
+        "resolveSettingsFromProfile"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_reports"
+      ]
+    },
+    {
+      "name": "isCleaningEntry",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildPill",
+        "escapeHtml",
+        "formatDateTime",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "getEntryAreaLabel",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "isReceivingEntry",
+        "isReceivingLogbook",
+        "renderAuthorityList",
+        "renderAuthorityReport"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isEntryDocumentedAsOverdue",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "formatStatusLabel",
+        "getEntryAreaLabel",
+        "getEntryMediaAssets",
+        "getEntryRiskReference",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getMeasurementLabel",
+        "getOptimizedImageUrl",
+        "getSeverityClass",
+        "getStatusClass",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isHotHoldingEntry",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildPill",
+        "escapeHtml",
+        "formatDateTime",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "isCleaningEntry",
+        "isReceivingEntry",
+        "isReceivingLogbook",
+        "renderAuthorityList",
+        "renderAuthorityReport"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isReceivingEntry",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildPill",
+        "escapeHtml",
+        "formatDateTime",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "getEntryAreaLabel",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getEntryStatusLabel",
+        "getMeasurementLabel",
+        "isReceivingLogbook",
+        "renderAuthorityList",
+        "renderAuthorityReport"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isReceivingLogbook",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildPill",
+        "escapeHtml",
+        "formatDateTime",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "getEntryAreaLabel",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getEntryStatusLabel",
+        "getMeasurementLabel",
+        "renderAuthorityList",
+        "renderAuthorityReport"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isTemperatureAuthorityEntry",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "buildPill",
+        "escapeHtml",
+        "formatDateTime",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "isCleaningEntry",
+        "isHotHoldingEntry",
+        "isReceivingEntry",
+        "isReceivingLogbook",
+        "renderAuthorityList",
+        "renderAuthorityReport"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "loadActiveHaccpSnapshot",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindEvents",
+        "loadCleaningPlanItems",
+        "loadScopedCollection",
+        "openPrintWindow",
+        "renderReport",
+        "resetFilters",
+        "resolveInitialPeriodValue"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "loadAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindEvents",
+        "loadActiveHaccpSnapshot",
+        "loadCleaningPlanItems",
+        "loadLogbookEntries",
+        "loadMediaAssets",
+        "loadScopedCollection",
+        "openPrintWindow",
+        "renderReport",
+        "resetFilters",
+        "resolveInitialPeriodValue"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "media_assets",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "loadCleaningPlanItems",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindEvents",
+        "loadScopedCollection",
+        "openPrintWindow",
+        "renderReport",
+        "resetFilters",
+        "resolveInitialPeriodValue"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_instances"
+      ]
+    },
+    {
+      "name": "loadEntries",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadActiveHaccpSnapshot",
+        "loadAlerts",
+        "loadCleaningPlanItems",
+        "loadLogbookEntries",
+        "loadMediaAssets",
+        "loadScopedCollection"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "media_assets",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "loadLiveProfileNames",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getReadableLocationName",
+        "getTodayKey",
+        "loadScopedCollection"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations"
+      ]
+    },
+    {
+      "name": "loadLogbookEntries",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindEvents",
+        "loadActiveHaccpSnapshot",
+        "loadCleaningPlanItems",
+        "loadMediaAssets",
+        "loadScopedCollection",
+        "openPrintWindow",
+        "renderReport",
+        "resetFilters",
+        "resolveInitialPeriodValue"
+      ],
+      "selectors": [],
+      "collections": [
+        "media_assets",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "loadMediaAssets",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "bindEvents",
+        "loadActiveHaccpSnapshot",
+        "loadCleaningPlanItems",
+        "loadScopedCollection",
+        "openPrintWindow",
+        "renderReport",
+        "resetFilters",
+        "resolveInitialPeriodValue"
+      ],
+      "selectors": [],
+      "collections": [
+        "media_assets",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "loadReports",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "createReportCard"
+      ],
+      "selectors": [],
+      "collections": [
+        "daily_reports"
+      ]
+    },
+    {
+      "name": "loadScopedCollection",
+      "type": "function",
+      "approx_occurrences": 6,
+      "calls": [
+        "escapeHtml",
+        "formatDateTime",
+        "getAlertCreatedAt",
+        "getAlertHandledAt",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getTodayKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeEntryCategory",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeFrequencyValue",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "buildEntryComment",
+        "buildEntryReferenceLine",
+        "escapeHtml",
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "getEntryAreaLabel",
+        "getEntryCreatedAt",
+        "getEntryEffectiveFrequency",
+        "getEntryHandledAt",
+        "getEntryRiskReference",
+        "getEntryStatusLabel",
+        "getFrequencyLabel",
+        "renderEntries"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "openPrintWindow",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "populateCategoryFilter",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryReferenceLine",
+        "escapeHtml",
+        "getEntryEffectiveFrequency",
+        "getReadableTaskReference",
+        "normalizeEntryCategory",
+        "normalizeFrequencyValue",
+        "updateSummary"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderAlerts",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "escapeHtml",
+        "formatDateTime",
+        "formatStatusLabel",
+        "getAlertAreaLabel",
+        "getAlertCorrectiveText",
+        "getAlertCreatedAt",
+        "getAlertHandledAt",
+        "getAlertRiskReference",
+        "getFilteredAlerts",
+        "getFilteredEntries",
+        "getNowLabel",
+        "getPeriodLabel",
+        "getSeverityClass",
+        "getStatusClass",
+        "loadEntries",
+        "renderAuthorityReport",
+        "renderEntries",
+        "renderReport",
+        "updateMeta",
+        "updateSummary"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderAuthorityList",
+      "type": "function",
+      "approx_occurrences": 7,
+      "calls": [
+        "buildPill",
+        "formatDateTime",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "isCleaningEntry",
+        "isHotHoldingEntry",
+        "isReceivingEntry",
+        "isReceivingLogbook",
+        "isTemperatureAuthorityEntry",
+        "renderAuthorityReport"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderAuthorityReport",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildPill",
+        "escapeHtml",
+        "formatDateTime",
+        "getAuthorityAlerts",
+        "getAuthorityEntries",
+        "getAuthorityLogbookEntries",
+        "getEntryAreaLabel",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getEntryStatusLabel",
+        "getMeasurementLabel",
+        "renderAuthorityList"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderEntries",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryComment",
+        "buildEntryReferenceLine",
+        "escapeHtml",
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "formatStatusLabel",
+        "getAlertAreaLabel",
+        "getAlertCorrectiveText",
+        "getAlertCreatedAt",
+        "getAlertHandledAt",
+        "getAlertRiskReference",
+        "getEntryAreaLabel",
+        "getEntryCreatedAt",
+        "getEntryEffectiveFrequency",
+        "getEntryHandledAt",
+        "getEntryRiskReference",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getFrequencyLabel",
+        "getMeasurementLabel",
+        "renderAlerts",
+        "renderEntryMediaAssets"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderEntryMediaAssets",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryComment",
+        "entryMatchesPeriod",
+        "escapeHtml",
+        "getAlertAreaLabel",
+        "getAlertCorrectiveText",
+        "getAlertRiskReference",
+        "getDateKeyForDaysAgo",
+        "getEntryMediaAssets",
+        "getEntryRiskReference",
+        "getOptimizedImageUrl",
+        "getPeriodLabel",
+        "getTodayKey",
+        "resolveEntryDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "renderReport",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getFilteredAlerts",
+        "getFilteredEntries",
+        "loadActiveHaccpSnapshot",
+        "loadAlerts",
+        "loadEntries",
+        "loadLogbookEntries",
+        "loadMediaAssets",
+        "loadScopedCollection",
+        "renderAlerts",
+        "renderAuthorityReport",
+        "renderEntries",
+        "updateMeta",
+        "updateSummary"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "media_assets",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "renderSignedOutState",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "getProfile",
+        "getReadableLocationName",
+        "getStoredLocationId",
+        "loadLiveProfileNames",
+        "resolveSettingsFromProfile",
+        "safeJsonParse"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles"
+      ]
+    },
+    {
+      "name": "resetFilters",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "bindEvents",
+        "openPrintWindow",
+        "renderReport",
+        "resolveInitialPeriodValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "resolveEntryDateKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "formatStatusLabel",
+        "getDateDaysAgo",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getSeverityClass",
+        "getStatusClass",
+        "isEntryDocumentedAsOverdue",
+        "resolveInitialPeriodValue",
+        "toDateKey"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "resolveInitialPeriodValue",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "formatDateTime",
+        "formatDeadlineMeta",
+        "formatStatusLabel",
+        "getDateDaysAgo",
+        "getEntryAreaLabel",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getMeasurementLabel",
+        "getSeverityClass",
+        "getStatusClass",
+        "isEntryDocumentedAsOverdue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "resolveSettingsFromProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getProfile",
+        "getReadableLocationName",
+        "getStoredLocationId",
+        "loadLiveProfileNames"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations"
+      ]
+    },
+    {
+      "name": "safeJsonParse",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getProfile",
+        "getReadableLocationName",
+        "getStoredLocationId",
+        "loadLiveProfileNames",
+        "resolveSettingsFromProfile"
+      ],
+      "selectors": [],
+      "collections": [
+        "companies",
+        "live_user_profiles",
+        "locations"
+      ]
+    },
+    {
+      "name": "toDateKey",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "formatDeadlineMeta",
+        "formatStatusLabel",
+        "getDateDaysAgo",
+        "getDateKeyForDaysAgo",
+        "getEntryCreatedAt",
+        "getEntryHandledAt",
+        "getEntryStatusClass",
+        "getEntryStatusLabel",
+        "getStatusClass",
+        "isEntryDocumentedAsOverdue",
+        "resolveEntryDateKey",
+        "resolveInitialPeriodValue"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "updateMeta",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getFilteredAlerts",
+        "getFilteredEntries",
+        "getNowLabel",
+        "getPeriodLabel",
+        "loadActiveHaccpSnapshot",
+        "loadAlerts",
+        "loadEntries",
+        "loadLogbookEntries",
+        "loadMediaAssets",
+        "loadScopedCollection",
+        "renderAlerts",
+        "renderAuthorityReport",
+        "renderEntries",
+        "renderReport",
+        "updateSummary"
+      ],
+      "selectors": [],
+      "collections": [
+        "alerts",
+        "media_assets",
+        "task_instances"
+      ]
+    },
+    {
+      "name": "updateSummary",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "buildEntryReferenceLine",
+        "getEntryEffectiveFrequency",
+        "getReadableTaskReference",
+        "normalizeFrequencyValue"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

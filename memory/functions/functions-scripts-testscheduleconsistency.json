@@ -1,0 +1,225 @@
+{
+  "source_file": "functions/scripts/testScheduleConsistency.cjs",
+  "module": "scheduler",
+  "imports": [
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "equipment",
+    "locations",
+    "task_entries",
+    "task_templates"
+  ],
+  "flags": [
+    "startDayForLocation"
+  ],
+  "risks": [],
+  "functions": [
+    {
+      "name": "addDays",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "daysBetween",
+        "getDateKey",
+        "getWeekdayFromDateKey",
+        "isDueToday",
+        "parseFrequencyConfig",
+        "resolveTemplateSchedule",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "daysBetween",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "addDays",
+        "getWeekdayFromDateKey",
+        "isDueToday",
+        "parseFrequencyConfig",
+        "resolveTemplateSchedule",
+        "sanitizeString",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getDateKey",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "addDays",
+        "daysBetween",
+        "getWeekdayFromDateKey",
+        "isDueToday",
+        "parseFrequencyConfig",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "getLastCompleted",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDateKey",
+        "resolveTemplateSchedule",
+        "sanitizeEquipmentType",
+        "sanitizeString",
+        "testScheduleConsistency"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "locations",
+        "task_entries",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "getWeekdayFromDateKey",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "addDays",
+        "daysBetween",
+        "isDueToday",
+        "parseFrequencyConfig",
+        "resolveTemplateSchedule",
+        "sanitizeString",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "isDueToday",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "addDays",
+        "getWeekdayFromDateKey",
+        "parseFrequencyConfig",
+        "resolveTemplateSchedule",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "testScheduleConsistency"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "parseFrequencyConfig",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addDays",
+        "daysBetween",
+        "getWeekdayFromDateKey",
+        "isDueToday",
+        "resolveTemplateSchedule",
+        "sanitizeString",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "resolveTemplateSchedule",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getLastCompleted",
+        "sanitizeString",
+        "testScheduleConsistency"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_entries"
+      ]
+    },
+    {
+      "name": "sanitizeEquipmentType",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "addDays",
+        "daysBetween",
+        "getDateKey",
+        "getWeekdayFromDateKey",
+        "isDueToday",
+        "parseFrequencyConfig",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "sanitizeString",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "addDays",
+        "daysBetween",
+        "getDateKey",
+        "getWeekdayFromDateKey",
+        "isDueToday",
+        "parseFrequencyConfig",
+        "sanitizeEquipmentType",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldRunToday",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "addDays",
+        "daysBetween",
+        "getWeekdayFromDateKey",
+        "isDueToday",
+        "parseFrequencyConfig",
+        "resolveTemplateSchedule",
+        "sanitizeString"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "testScheduleConsistency",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDateKey",
+        "getLastCompleted",
+        "isDueToday",
+        "resolveTemplateSchedule",
+        "sanitizeEquipmentType",
+        "sanitizeString",
+        "shouldRunToday"
+      ],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "locations",
+        "task_templates"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,400 @@
+{
+  "source_file": "public/core/auth.js",
+  "module": "general",
+  "imports": [
+    "/core/firebase-config.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [
+    "setupAuthGate",
+    "showProfileErrorState"
+  ],
+  "collections": [
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "clearSessionScope",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureDemoBanner",
+        "getDemoCountdownLabel",
+        "hideDemoBanner",
+        "isDemoLocationId",
+        "parseDemoDateValue",
+        "stopDemoBannerTimer",
+        "syncDemoBanner"
+      ],
+      "selectors": [
+        "#mkpDemoBannerDismiss",
+        "#mkpDemoBannerLink",
+        "#mkpDemoBannerMeta",
+        "#mkpDemoBannerText",
+        "#mkpDemoBannerTitle"
+      ],
+      "collections": []
+    },
+    {
+      "name": "ensureAuthStyles",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "ensureAuthUi",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureAuthStyles",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "resolveOnboardingRedirect",
+        "shouldBypassOnboardingGate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "ensureDemoBanner",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "getDemoCountdownLabel",
+        "getUserRoleProfile",
+        "hideDemoBanner",
+        "isDemoLocationId",
+        "parseDemoDateValue",
+        "stopDemoBannerTimer",
+        "syncDemoBanner"
+      ],
+      "selectors": [
+        "#mkpDemoBannerDismiss",
+        "#mkpDemoBannerLink",
+        "#mkpDemoBannerMeta",
+        "#mkpDemoBannerText",
+        "#mkpDemoBannerTitle"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getDemoCountdownLabel",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureAuthUi",
+        "ensureDemoBanner",
+        "getPreferredLocationId",
+        "getUserRoleProfile",
+        "hideDemoBanner",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "parseDemoDateValue",
+        "setupAuthGate",
+        "stopDemoBannerTimer",
+        "syncDemoBanner"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "getPreferredLocationId",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "clearSessionScope",
+        "ensureDemoBanner",
+        "getDemoCountdownLabel",
+        "hideDemoBanner",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "parseDemoDateValue",
+        "persistSessionScope",
+        "stopDemoBannerTimer",
+        "syncDemoBanner"
+      ],
+      "selectors": [
+        "#mkpDemoBannerDismiss",
+        "#mkpDemoBannerLink",
+        "#mkpDemoBannerMeta",
+        "#mkpDemoBannerText",
+        "#mkpDemoBannerTitle"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getUserRoleProfile",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureAuthUi",
+        "getPreferredLocationId",
+        "normalizeProfileLocationIds",
+        "setupAuthGate"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "hideDemoBanner",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "ensureDemoBanner",
+        "getDemoCountdownLabel",
+        "getPreferredLocationId",
+        "getUserRoleProfile",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "parseDemoDateValue",
+        "stopDemoBannerTimer",
+        "syncDemoBanner"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "isDemoLocationId",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "clearSessionScope",
+        "ensureDemoBanner",
+        "getPreferredLocationId",
+        "normalizeProfileLocationIds",
+        "persistSessionScope",
+        "pushValue",
+        "resolveOnboardingRedirect",
+        "shouldBypassOnboardingGate"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "normalizeProfileLocationIds",
+      "type": "function",
+      "approx_occurrences": 4,
+      "calls": [
+        "clearSessionScope",
+        "ensureDemoBanner",
+        "getPreferredLocationId",
+        "hideDemoBanner",
+        "isDemoLocationId",
+        "parseDemoDateValue",
+        "persistSessionScope",
+        "pushValue",
+        "stopDemoBannerTimer"
+      ],
+      "selectors": [
+        "#mkpDemoBannerDismiss",
+        "#mkpDemoBannerLink",
+        "#mkpDemoBannerMeta",
+        "#mkpDemoBannerText",
+        "#mkpDemoBannerTitle"
+      ],
+      "collections": []
+    },
+    {
+      "name": "parseDemoDateValue",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "ensureDemoBanner",
+        "getDemoCountdownLabel",
+        "getPreferredLocationId",
+        "getUserRoleProfile",
+        "hideDemoBanner",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "stopDemoBannerTimer",
+        "syncDemoBanner"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "path",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "clearSessionScope",
+        "ensureDemoBanner",
+        "getPreferredLocationId",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "persistSessionScope",
+        "pushValue",
+        "resolveOnboardingRedirect"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "persistSessionScope",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "clearSessionScope",
+        "ensureDemoBanner",
+        "getDemoCountdownLabel",
+        "getPreferredLocationId",
+        "hideDemoBanner",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "parseDemoDateValue",
+        "stopDemoBannerTimer",
+        "syncDemoBanner"
+      ],
+      "selectors": [
+        "#mkpDemoBannerDismiss",
+        "#mkpDemoBannerLink",
+        "#mkpDemoBannerMeta",
+        "#mkpDemoBannerText",
+        "#mkpDemoBannerTitle"
+      ],
+      "collections": []
+    },
+    {
+      "name": "pushValue",
+      "type": "const_function",
+      "approx_occurrences": 2,
+      "calls": [
+        "clearSessionScope",
+        "ensureDemoBanner",
+        "getDemoCountdownLabel",
+        "getPreferredLocationId",
+        "hideDemoBanner",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "parseDemoDateValue",
+        "persistSessionScope",
+        "stopDemoBannerTimer"
+      ],
+      "selectors": [
+        "#mkpDemoBannerDismiss",
+        "#mkpDemoBannerLink",
+        "#mkpDemoBannerMeta",
+        "#mkpDemoBannerText",
+        "#mkpDemoBannerTitle"
+      ],
+      "collections": []
+    },
+    {
+      "name": "resolveOnboardingRedirect",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "clearSessionScope",
+        "ensureDemoBanner",
+        "getPreferredLocationId",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "persistSessionScope",
+        "pushValue",
+        "stopDemoBannerTimer"
+      ],
+      "selectors": [
+        "#mkpDemoBannerDismiss",
+        "#mkpDemoBannerLink",
+        "#mkpDemoBannerMeta",
+        "#mkpDemoBannerText",
+        "#mkpDemoBannerTitle"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setupAuthGate",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "clearSessionScope",
+        "ensureAuthUi",
+        "hideDemoBanner"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "shouldBypassOnboardingGate",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "clearSessionScope",
+        "ensureDemoBanner",
+        "getPreferredLocationId",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "persistSessionScope",
+        "pushValue",
+        "resolveOnboardingRedirect"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "showProfileErrorState",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [
+        "main"
+      ],
+      "collections": []
+    },
+    {
+      "name": "stopDemoBannerTimer",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "ensureDemoBanner",
+        "getDemoCountdownLabel",
+        "getPreferredLocationId",
+        "getUserRoleProfile",
+        "hideDemoBanner",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "parseDemoDateValue",
+        "syncDemoBanner"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    },
+    {
+      "name": "syncDemoBanner",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "ensureAuthUi",
+        "ensureDemoBanner",
+        "getDemoCountdownLabel",
+        "getPreferredLocationId",
+        "getUserRoleProfile",
+        "hideDemoBanner",
+        "isDemoLocationId",
+        "normalizeProfileLocationIds",
+        "parseDemoDateValue",
+        "setupAuthGate",
+        "stopDemoBannerTimer"
+      ],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    }
+  ]
+}

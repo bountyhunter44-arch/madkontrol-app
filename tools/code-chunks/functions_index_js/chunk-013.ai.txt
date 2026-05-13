@@ -1,0 +1,506 @@
+
+FILE: functions/index.js
+CHUNK: 013
+
+--- CODE START ---
+            throw error;
+          }
+        }
+        
+        if (userRecord) {
+          finalUserId = userRecord.uid;
+        }
+      } catch (error) {
+        console.error('[ensureOnboardingUserDocument] Firebase Auth user creation failed:', error);
+      }
+    }
+  }
+  
+  // Create or update Firestore users document
+  if (finalUserId) {
+    const userRef = db.collection("users").doc(finalUserId);
+    const userSnap = await userRef.get();
+    const existingUserData = userSnap.exists ? (userSnap.data() || {}) : {};
+    const nextLocationIds = buildPreferredLocationIds(existingUserData, locationId);
+    
+    const userPayload = {
+      uid: finalUserId,
+      userId: finalUserId,
+      email: actorEmail || authEmail || profile.accountEmail || "",
+      displayName: sanitizeString(profile.ownerName || profile.companyName || existingUserData.displayName || "Ejer", 120),
+      role: "owner",
+      companyId,
+      organizationId: companyId,
+      locationId,
+      primaryLocationId: locationId,
+      locationIds: nextLocationIds,
+      latestLiveProfileId: liveProfileId,
+      latestHaccpSnapshotId: snapshotId,
+      onboardingCompleted: true,
+      onboardingStatus: "completed",
+      onboardingCompletedAt: FieldValue.serverTimestamp(),
+      subscriptionStatus: "active",
+      plan: billingPlan,
+      billingPlan: billingPlan,
+      latestCloudinaryAssets: cloudinaryAssets,
+      status: "active",
+      updatedAt: FieldValue.serverTimestamp()
+    };
+    
+    // Add createdAt only if new document
+    if (!userSnap.exists) {
+      userPayload.createdAt = FieldValue.serverTimestamp();
+    }
+    
+    await userRef.set(userPayload, { merge: true });
+    console.log(`[ensureOnboardingUserDocument] Firestore user document ensured: ${finalUserId}`);
+  }
+  
+  console.log('[ensureOnboardingUserDocument] COMPLETE', { finalUserId });
+  return finalUserId;
+}
+
+exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"] },
+  async (request, context) => {
+  // Firebase Functions v2 callable wraps payload in request.data
+  const data = request.data || request;
+  const stripe = getStripeClient();
+  const authUid = sanitizeString(context.auth?.uid || "", 160);
+  const authEmail = sanitizeString(context.auth?.token?.email || "", 160);
+  const sessionId = sanitizeString(data?.sessionId || "", 220);
+  const requestedDraftId = sanitizeString(data?.draftId || "", 180);
+  const requestedProvisioningToken = sanitizeString(data?.provisioningToken || "", 220);
+
+  if (!sessionId) {
+    throw new functions.https.HttpsError("invalid-argument", "sessionId er påkrævet.");
+  }
+
+  const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId);
+  const sessionStatus = sanitizeString(checkoutSession?.status || "", 40).toLowerCase();
+  const paymentStatus = sanitizeString(checkoutSession?.payment_status || "", 40).toLowerCase();
+  const metadataDraftId = sanitizeString(checkoutSession?.metadata?.draftId || "", 180);
+  const draftId = requestedDraftId || metadataDraftId;
+  const companyId = sanitizeString(checkoutSession?.metadata?.companyId || data?.companyId || "", 120);
+  const locationId = sanitizeString(checkoutSession?.metadata?.locationId || data?.locationId || "", 120);
+  const metadataProvisioningToken = sanitizeString(checkoutSession?.metadata?.provisioningToken || "", 220);
+  const source = sanitizeString(checkoutSession?.metadata?.source || "", 80);
+  const billingPlan = sanitizeString(
+    checkoutSession?.metadata?.plan ||
+    checkoutSession?.metadata?.billingPlan ||
+    data?.billingPlan ||
+    "monthly",
+    40
+  );
+  
+  console.log("[FINALIZE] Billing plan from metadata:", billingPlan);
+
+  if (source !== "onboarding_checkout") {
+    throw new functions.https.HttpsError("failed-precondition", "Checkout-session tilhører ikke onboarding-flowet.");
+  }
+
+  if (!draftId || !companyId || !locationId) {
+    throw new functions.https.HttpsError("failed-precondition", "Checkout-session mangler draft/company/location metadata.");
+  }
+
+  const isPaid = sessionStatus === "complete" && (paymentStatus === "paid" || paymentStatus === "no_payment_required");
+  if (!isPaid) {
+    throw new functions.https.HttpsError("failed-precondition", "Betalingen er ikke gennemført endnu.");
+  }
+
+  const draftRef = db.collection("onboarding_checkout_drafts").doc(draftId);
+  const draftSnap = await draftRef.get();
+  if (!draftSnap.exists) {
+    throw new functions.https.HttpsError("not-found", "Onboarding-draft blev ikke fundet.");
+  }
+
+  const draft = draftSnap.data() || {};
+  if (sanitizeString(draft.companyId || draft.organizationId, 120) !== companyId || sanitizeString(draft.locationId, 120) !== locationId) {
+    throw new functions.https.HttpsError("permission-denied", "Draft tilhører ikke valgt company/location.");
+  }
+
+  const effectiveProvisioningToken = requestedProvisioningToken || metadataProvisioningToken;
+  const draftProvisioningToken = sanitizeString(draft.provisioningToken || "", 220);
+  const tokenMatches = Boolean(effectiveProvisioningToken && draftProvisioningToken && effectiveProvisioningToken === draftProvisioningToken);
+  const sameAuthOwner = Boolean(authUid && sanitizeString(draft.uid || "", 160) === authUid);
+
+  if (!tokenMatches && !sameAuthOwner) {
+    throw new functions.https.HttpsError("permission-denied", "Ugyldig eller manglende provisioning-token.");
+  }
+
+  const actorUserId = authUid || sanitizeString(draft.uid || "", 160) || `checkout_guest_${draftId}`;
+  const actorEmail = authEmail || sanitizeString(draft.userEmail || draft.onboardingEmail || "", 160);
+
+  const existingSnapshotId = sanitizeString(draft.snapshotId, 180);
+  const existingLiveProfileId = sanitizeString(draft.liveProfileId, 180);
+  if (existingSnapshotId && existingLiveProfileId) {
+    console.log(`⚠️ Onboarding already provisioned for ${companyId}__${locationId}, but checking risk analysis...`);
+    
+    // Check if risk analysis exists, if not generate it
+    const profile = sanitizeOnboardingProfile(draft.profile || draft.company || {});
+    const riskRef = db.collection("companies").doc(companyId).collection("locations").doc(locationId).collection("risk_analysis").doc("current");
+    const riskSnap = await riskRef.get();
+    
+    if (!riskSnap.exists) {
+      console.log('🔍 Risk analysis missing, generating now...');
+      try {
+        const { buildStructuredHaccpData } = require('./provisioning');
+        const controlPoints = buildStructuredHaccpData(profile);
+        
+        await riskRef.set({
+          status: "generated",
+          onboardingSnapshot: profile,
+          controlPoints: controlPoints,
+          totalControlPoints: controlPoints.length,
+          updatedAt: FieldValue.serverTimestamp()
+        }, { merge: true });
+        
+        console.log(`✅ Risk analysis generated: ${controlPoints.length} control points`);
+      } catch (riskError) {
+        console.error('❌ Risk analysis generation failed:', riskError);
+      }
+    } else {
+      console.log('✅ Risk analysis already exists');
+    }
+    
+    // CRITICAL: Ensure users document exists even in alreadyProvisioned flow
+    console.log('[finalizeOnboardingCheckoutProvisioning] ensuring users doc in alreadyProvisioned path');
+    const cloudinaryAssets = extractCloudinaryAssets(
+      draft.cloudinaryAssets,
+      draft.profile?.cloudinaryAssets,
+      draft.profile?.attachments,
+      draft.profile?.images
+    );
+    
+    const finalUserId = await ensureOnboardingUserDocument({
+      authUid,
+      authEmail,
+      profile,
+      actorEmail,
+      companyId,
+      locationId,
+      liveProfileId: existingLiveProfileId,
+      snapshotId: existingSnapshotId,
+      cloudinaryAssets,
+      billingPlan
+    });
+    console.log('[finalizeOnboardingCheckoutProvisioning] users doc ensured:', finalUserId);
+    
+    return {
+      ok: true,
+      alreadyProvisioned: true,
+      draftId,
+      snapshotId: existingSnapshotId,
+      liveProfileId: existingLiveProfileId,
+      finalUserId,
+      summary: draft.summary || {}
+    };
+  }
+
+  const userData = authUid
+    ? (await getUserAccessProfile({ uid: authUid, email: authEmail }) || {})
+    : {};
+  const profile = sanitizeOnboardingProfile(draft.profile || draft.company || {});
+  const riskModel = sanitizeRiskModelInput(draft.riskModel || {});
+  const customerName = deriveCustomerName({
+    profile,
+    userData,
+    email: actorEmail
+  });
+  const summary = buildOnboardingSummary({
+    profile,
+    riskModel,
+    customerName
+  });
+  const cloudinaryAssets = extractCloudinaryAssets(
+    draft.cloudinaryAssets,
+    draft.profile?.cloudinaryAssets,
+    draft.profile?.attachments,
+    draft.profile?.images
+  );
+
+  const liveProfileId = toDocSafeId(`${companyId}__${locationId}__live_profile`);
+  const liveProfilePayload = buildLiveUserProfilePayload({
+    profile,
+    riskModel,
+    companyId,
+    locationId,
+    userId: actorUserId,
+    userEmail: actorEmail,
+    summary,
+    cloudinaryAssets,
+    draftId,
+    checkoutSessionId: sessionId
+  });
+
+  const { snapshotId } = await createHaccpSnapshotDocument({
+    profile,
+    riskModel,
+    companyId,
+    locationId,
+    userId: actorUserId
+  });
+
+  // FJERNET: generateAndSaveEgenkontrolProgram (skriver til egenkontrol_programs, læses ikke af startDay)
+  // FJERNET: buildStructuredHaccpData / companies/{id}/locations/... (isoleret, læses ingensteds)
+
+  const onboardingAnswersId = await upsertOnboardingAnswersDocument({
+    companyId,
+    locationId,
+    userId: actorUserId,
+    liveProfilePayload
+  });
+
+  // ─── PIPELINE: onboarding_answers → risks → task_templates ───────────────
+  // Steg 1: Skriv risks fra onboarding (processer → CCP/GAG regler)
+  try {
+    const { generateRisksFromOnboardingAnswers } = require("./admin/generateRisksFromOnboardingAnswers");
+    const risksResult = await generateRisksFromOnboardingAnswers({ locationId });
+    console.log("[provisioning] generateRisksFromOnboardingAnswers:", risksResult);
+  } catch (risksErr) {
+    console.error("[provisioning] generateRisksFromOnboardingAnswers failed:", risksErr.message);
+  }
+
+  // Steg 2: Byg task_templates fra risks (aggregeret per kontrolkategori)
+  try {
+    const { generateEgenkontrolFromRiskAnalysis } = require("./admin/generateEgenkontrolFromRiskAnalysis");
+    const templatesResult = await generateEgenkontrolFromRiskAnalysis({ locationId, db });
+    console.log("[provisioning] generateEgenkontrolFromRiskAnalysis:", templatesResult);
+  } catch (templatesErr) {
+    console.error("[provisioning] generateEgenkontrolFromRiskAnalysis failed:", templatesErr.message);
+  }
+
+  // Materialiser equipment counts til konkrete equipment docs
+  try {
+    await syncOnboardingEquipmentUnits({
+      db,
+      companyId,
+      locationId,
+      equipmentCounts: liveProfilePayload.onboardingAnswers?.equipmentCounts || {},
+      profile
+    });
+  } catch (eqErr) {
+    console.error("[finalizeOnboardingCheckoutProvisioning] syncOnboardingEquipmentUnits failed:", eqErr.message);
+  }
+
+  // Ensure location has temperatureControlSettings for new schedule system
+  try {
+    const todayKey = new Date().toISOString().slice(0, 10);
+    await ensureLocationTemperatureSettings(db, companyId, locationId, todayKey);
+    console.log("[finalizeOnboardingCheckoutProvisioning] ensureLocationTemperatureSettings completed");
+  } catch (tempErr) {
+    console.error("[finalizeOnboardingCheckoutProvisioning] ensureLocationTemperatureSettings failed:", tempErr.message);
+  }
+
+  // Sync equipment-based cleaning task templates
+  try {
+    await syncEquipmentCleaningTemplates({ db, companyId, locationId });
+  } catch (cleanErr) {
+    console.error("[finalizeOnboardingCheckoutProvisioning] syncEquipmentCleaningTemplates failed:", cleanErr.message);
+  }
+
+  // Sync equipment-based maintenance task templates
+  try {
+    await syncEquipmentMaintenanceTemplates({ db, companyId, locationId });
+  } catch (maintErr) {
+    console.error("[finalizeOnboardingCheckoutProvisioning] syncEquipmentMaintenanceTemplates failed:", maintErr.message);
+  }
+
+  // Sync area-based cleaning task templates
+  try {
+    await syncAreaCleaningTemplates({ db, companyId, locationId });
+  } catch (areaErr) {
+    console.error("[finalizeOnboardingCheckoutProvisioning] syncAreaCleaningTemplates failed:", areaErr.message);
+  }
+
+  // Sync process-based drift task templates
+  try {
+    await syncProcessDriftTemplates({ db, companyId, locationId });
+  } catch (driftErr) {
+    console.error("[finalizeOnboardingCheckoutProvisioning] syncProcessDriftTemplates failed:", driftErr.message);
+  }
+
+  // FJERNET: syncWaterControlTemplates - vandkontrol deaktiveret
+
+  await db.collection("live_user_profiles").doc(liveProfileId).set({
+    ...liveProfilePayload,
+    haccpSnapshotId: snapshotId,
+    onboardingAnswersId,
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  // FJERNET: ensureLiveTaskTemplatesForProvisioning — genererede scenario_based_haccp templates
+  // som startDayForLocation eksplicit filtreréde væk. Erstattet af risks-pipeline ovenfor.
+
+  // Ensure users document using helper (replaces old inline logic)
+  console.log('[finalizeOnboardingCheckoutProvisioning] ensuring users doc');
+  const finalUserId = await ensureOnboardingUserDocument({
+    authUid,
+    authEmail,
+    profile,
+    actorEmail,
+    companyId,
+    locationId,
+    liveProfileId,
+    snapshotId,
+    cloudinaryAssets,
+    billingPlan
+  });
+  console.log('[finalizeOnboardingCheckoutProvisioning] users doc ensured:', finalUserId);
+
+  // STEP 5: Update company status to active with subscription info
+  const companyRef = db.collection("companies").doc(companyId);
+  await companyRef.set({
+    status: "active",
+    subscription: {
+      plan: billingPlan,
+      startedAt: FieldValue.serverTimestamp(),
+      stripeSessionId: sessionId
+    },
+    activatedAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+  
+  console.log("[FINALIZE] Company status updated to active with subscription:", billingPlan);
+
+  await draftRef.set({
+    summary,
+    cloudinaryAssets,
+    liveProfileId,
+    onboardingAnswersId,
+    snapshotId,
+    stripeSessionId: sessionId,
+    billingPlan,
+    status: "completed",
+    completedAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  const matchingCheckoutSessions = await db
+    .collection("checkout_sessions")
+    .where("stripeSessionId", "==", sessionId)
+    .limit(5)
+    .get();
+
+  if (!matchingCheckoutSessions.empty) {
+    const batch = db.batch();
+    matchingCheckoutSessions.docs.forEach((docSnap) => {
+      batch.set(docSnap.ref, {
+        status: "completed",
+        onboardingProvisioned: true,
+        onboardingDraftId: draftId,
+        liveProfileId,
+        onboardingAnswersId,
+        haccpSnapshotId: snapshotId,
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+    });
+    await batch.commit();
+  }
+
+  console.log('[finalizeOnboardingCheckoutProvisioning] completed');
+  
+  return {
+    ok: true,
+    draftId,
+    companyId,
+    locationId,
+    snapshotId,
+    liveProfileId,
+    onboardingAnswersId,
+    finalUserId,
+    taskTemplateCount: 0,
+    dashboardUrl: "/dashboard#haccp-print-section",
+    summary
+  };
+});
+
+exports.getCloudinarySignature = onCall({ region: "us-central1", secrets: ["FUNCTIONS_CONFIG_EXPORT"] }, async (request) => {
+  const data = request.data;
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Log ind for at uploade billeder.");
+  }
+
+  const crypto = require("crypto");
+  let config = {};
+  try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
+
+  const cloudName =
+    config?.cloudinary?.cloud_name ||
+    process.env.CLOUDINARY_CLOUD_NAME ||
+    "";
+  const apiKey =
+    config?.cloudinary?.api_key ||
+    process.env.CLOUDINARY_API_KEY ||
+    "";
+  const apiSecret =
+    config?.cloudinary?.api_secret ||
+    process.env.CLOUDINARY_API_SECRET ||
+    "";
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Cloudinary er ikke konfigureret. Kontakt administrator."
+    );
+  }
+
+  const cleanMetaValue = (value, maxLen = 160) => String(value || "")
+    .trim()
+    .replace(/[|=\\]/g, "-")
+    .replace(/\s+/g, " ")
+    .slice(0, maxLen);
+
+  const companyId = sanitizeString(data?.companyId || "", 120) || "unknown";
+  const locationId = sanitizeString(data?.locationId || "", 120) || "unknown";
+  const moduleType = cleanMetaValue(data?.moduleType || "Egenkontrol", 60) || "Egenkontrol";
+  const itemId = cleanMetaValue(data?.itemId || "Dokumentation", 140) || "Dokumentation";
+  const taskInstanceId = sanitizeString(data?.taskInstanceId || "", 140);
+  const taskId = sanitizeString(data?.taskId || "", 140);
+  const userId = request.auth.uid;
+
+  const folder = `madkontrol/${companyId}/${locationId}/${toAsciiSlug(moduleType || "module", 40) || "module"}`;
+  const timestamp = Math.floor(Date.now() / 1000);
+  const publicId = `${toAsciiSlug(userId, 60) || "user"}-${Date.now()}`;
+
+  const tags = [
+    `user_${toAsciiSlug(userId, 60) || "unknown"}`,
+    `module_${toAsciiSlug(moduleType, 40) || "unknown"}`,
+    `item_${toAsciiSlug(itemId, 80) || "unknown"}`,
+    `company_${toAsciiSlug(companyId, 60) || "unknown"}`,
+    `location_${toAsciiSlug(locationId, 60) || "unknown"}`
+  ].join(",");
+
+  const contextPairs = [
+    `user_id=${cleanMetaValue(userId, 120)}`,
+    `module_type=${cleanMetaValue(moduleType, 80)}`,
+    `item_id=${cleanMetaValue(itemId, 160)}`,
+    `company_id=${cleanMetaValue(companyId, 120)}`,
+    `location_id=${cleanMetaValue(locationId, 120)}`,
+    `task_instance_id=${cleanMetaValue(taskInstanceId, 140)}`,
+    `task_id=${cleanMetaValue(taskId, 140)}`
+  ].filter((pair) => !pair.endsWith("="));
+
+  const contextValue = contextPairs.join("|");
+
+  // Signature: alphabetically sorted params joined with &, then append api_secret, SHA1
+  const paramsToSign = [
+    `context=${contextValue}`,
+    `folder=${folder}`,
+    `public_id=${publicId}`,
+    `tags=${tags}`,
+    `timestamp=${timestamp}`
+  ].join("&");
+  const signature = crypto
+    .createHash("sha1")
+    .update(paramsToSign + apiSecret)
+    .digest("hex");
+
+  return {
+    cloudName,
+    apiKey,
+    timestamp,
+    signature,
+    folder,
+    publicId,
+--- CODE END ---

@@ -1,0 +1,1057 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu / Retter | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    .menu-page{
+      display:grid;
+      gap:24px;
+    }
+
+    .hero-menu{
+      position:relative;
+      overflow:hidden;
+      border-radius:28px;
+      padding:32px;
+      background:
+        radial-gradient(circle at top right, rgba(46,125,50,0.18), transparent 30%),
+        linear-gradient(135deg, #17361a 0%, #245c2b 55%, #2e7d32 100%);
+      color:#fff;
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow:0 24px 60px rgba(22,34,22,0.16);
+    }
+
+    .hero-menu::after{
+      content:"";
+      position:absolute;
+      right:-40px;
+      bottom:-50px;
+      width:220px;
+      height:220px;
+      border-radius:50%;
+      background:rgba(255,255,255,0.08);
+      filter:blur(8px);
+    }
+
+    .hero-menu-grid{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap:22px;
+      align-items:start;
+    }
+
+    .hero-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.14);
+      border:1px solid rgba(255,255,255,0.18);
+      font-size:13px;
+      font-weight:800;
+      margin-bottom:16px;
+    }
+
+    .hero-menu h1{
+      margin:0 0 10px;
+      font-size:clamp(2rem, 3vw, 2.8rem);
+      line-height:1.03;
+      font-weight:800;
+      letter-spacing:-0.03em;
+      max-width:760px;
+    }
+
+    .hero-menu p{
+      margin:0;
+      max-width:840px;
+      line-height:1.7;
+      color:rgba(255,255,255,0.88);
+      font-size:1rem;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:24px;
+    }
+
+    .hero-actions .btn-secondary{
+      background:rgba(255,255,255,0.14);
+      color:#fff;
+      border:1px solid rgba(255,255,255,0.16);
+    }
+
+    .hero-actions .btn-secondary:hover{
+      background:rgba(255,255,255,0.22);
+    }
+
+    .hero-side-card{
+      background:rgba(255,255,255,0.12);
+      border:1px solid rgba(255,255,255,0.16);
+      border-radius:24px;
+      padding:20px;
+      backdrop-filter:blur(6px);
+    }
+
+    .hero-side-title{
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:0.06em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,0.78);
+      margin-bottom:12px;
+    }
+
+    .hero-side-big{
+      font-size:2.1rem;
+      font-weight:800;
+      line-height:1.05;
+      margin-bottom:8px;
+    }
+
+    .hero-side-small{
+      color:rgba(255,255,255,0.78);
+      line-height:1.55;
+      font-size:0.92rem;
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:16px;
+    }
+
+    .stat-card{
+      background:#fff;
+      border:1px solid var(--border, #d9e4d9);
+      border-radius:22px;
+      padding:20px;
+      box-shadow:0 12px 30px rgba(19,34,20,0.06);
+    }
+
+    .stat-value{
+      font-size:1.9rem;
+      font-weight:800;
+      color:var(--text, #182118);
+      line-height:1;
+      margin-bottom:8px;
+    }
+
+    .stat-label{
+      color:var(--muted, #667267);
+      font-size:0.92rem;
+      line-height:1.45;
+    }
+
+    .menu-layout{
+      display:grid;
+      grid-template-columns:minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap:24px;
+      align-items:start;
+    }
+
+    .stack{
+      display:grid;
+      gap:24px;
+    }
+
+    .card{
+      background:#fff;
+      border:1px solid var(--border, #d9e4d9);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:0 14px 34px rgba(19,34,20,0.06);
+    }
+
+    .card h2{
+      margin:0 0 8px;
+      font-size:1.45rem;
+      letter-spacing:-0.02em;
+      color:#182118;
+    }
+
+    .card-lead{
+      margin:0 0 18px;
+      color:var(--muted, #667267);
+      line-height:1.6;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:18px;
+    }
+
+    .toolbar-left,
+    .toolbar-right{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .field,
+    .select{
+      border:1px solid #d8e3d8;
+      background:#f8fbf8;
+      border-radius:14px;
+      padding:12px 14px;
+      font:inherit;
+      color:#182118;
+      min-height:48px;
+      min-width:180px;
+      outline:none;
+    }
+
+    .field:focus,
+    .select:focus{
+      border-color:#2e7d32;
+      box-shadow:0 0 0 3px rgba(46,125,50,0.12);
+      background:#fff;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:46px;
+      padding:0 16px;
+      border-radius:14px;
+      border:none;
+      cursor:pointer;
+      font:inherit;
+      font-weight:800;
+      transition:0.18s ease;
+      text-decoration:none;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+    }
+
+    .btn-primary{
+      background:#2e7d32;
+      color:#fff;
+    }
+
+    .btn-primary:hover{
+      background:#25672a;
+    }
+
+    .btn-secondary{
+      background:#f5f8f5;
+      color:#1f2a20;
+      border:1px solid #d8e3d8;
+    }
+
+    .btn-secondary:hover{
+      background:#edf4ed;
+    }
+
+    .btn-dark{
+      background:#172117;
+      color:#fff;
+    }
+
+    .btn-dark:hover{
+      background:#0f170f;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      border:1px solid transparent;
+      white-space:nowrap;
+      text-transform:capitalize;
+    }
+
+    .pill.active{
+      color:#1f5a23;
+      background:#e8f5e9;
+      border-color:#cfe8d2;
+    }
+
+    .pill.preview{
+      color:#1d4ed8;
+      background:#eff6ff;
+      border-color:#c7ddff;
+    }
+
+    .pill.locked{
+      color:#b45309;
+      background:#fff7ed;
+      border-color:#fed7aa;
+    }
+
+    .menu-list,
+    .suggestion-list,
+    .event-list{
+      display:grid;
+      gap:14px;
+    }
+
+    .menu-card,
+    .suggestion-card,
+    .event-card{
+      border:1px solid #e3ece3;
+      border-radius:20px;
+      background:#f8fbf8;
+      padding:18px;
+    }
+
+    .menu-head,
+    .suggestion-head,
+    .event-head{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      margin-bottom:12px;
+    }
+
+    .menu-title,
+    .suggestion-title,
+    .event-title{
+      font-size:1.15rem;
+      font-weight:800;
+      line-height:1.15;
+      margin-bottom:4px;
+      color:#182118;
+    }
+
+    .menu-sub,
+    .suggestion-sub,
+    .event-sub{
+      color:#667267;
+      font-size:0.92rem;
+      line-height:1.55;
+    }
+
+    .meta-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .meta-box{
+      border:1px solid #e3ece3;
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+    }
+
+    .meta-label{
+      color:#667267;
+      font-size:0.75rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:0.05em;
+      margin-bottom:6px;
+    }
+
+    .meta-value{
+      font-size:0.95rem;
+      font-weight:700;
+      line-height:1.35;
+      color:#182118;
+    }
+
+    .dish-list{
+      display:grid;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .dish-item{
+      border:1px solid #e3ece3;
+      border-radius:14px;
+      background:#fff;
+      padding:12px 14px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+    }
+
+    .dish-name{
+      font-weight:800;
+      font-size:0.96rem;
+      margin-bottom:4px;
+      color:#182118;
+    }
+
+    .dish-desc{
+      font-size:0.84rem;
+      line-height:1.5;
+      color:#667267;
+    }
+
+    .summary-box{
+      background:linear-gradient(180deg, #f9fcf9 0%, #f1f8f1 100%);
+      border:1px solid #d7e7d8;
+      border-radius:22px;
+      padding:20px;
+    }
+
+    .summary-title{
+      font-size:1.35rem;
+      font-weight:800;
+      margin-bottom:8px;
+      color:#182118;
+    }
+
+    .summary-sub{
+      color:#667267;
+      line-height:1.6;
+      margin-bottom:16px;
+    }
+
+    .summary-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+
+    .summary-item{
+      background:#fff;
+      border:1px solid #e3ece3;
+      border-radius:16px;
+      padding:14px;
+    }
+
+    .summary-item strong{
+      display:block;
+      margin-bottom:6px;
+      font-size:0.95rem;
+      color:#182118;
+    }
+
+    .summary-item span{
+      color:#667267;
+      line-height:1.5;
+      font-size:0.92rem;
+    }
+
+    .status-box{
+      margin-top:16px;
+      border-radius:18px;
+      border:1px solid #e3ece3;
+      background:#fff;
+      padding:16px;
+    }
+
+    .status-title{
+      font-size:1rem;
+      font-weight:800;
+      margin-bottom:10px;
+      color:#182118;
+    }
+
+    .status-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .status-item{
+      border:1px solid #e3ece3;
+      border-radius:14px;
+      padding:12px 14px;
+      background:#f8fbf8;
+      font-size:0.92rem;
+      line-height:1.5;
+      color:#2b362c;
+    }
+
+    .page-note{
+      margin-top:18px;
+      color:#667267;
+      font-size:0.92rem;
+      text-align:center;
+    }
+
+    @media (max-width: 1180px){
+      .hero-menu-grid,
+      .menu-layout{
+        grid-template-columns:1fr;
+      }
+
+      .stats-grid{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+      }
+
+      .meta-grid{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px){
+      .hero-menu{
+        padding:24px;
+      }
+
+      .stats-grid,
+      .summary-grid,
+      .meta-grid{
+        grid-template-columns:1fr;
+      }
+
+      .toolbar-left,
+      .toolbar-right{
+        width:100%;
+      }
+
+      .field,
+      .select{
+        width:100%;
+        min-width:0;
+      }
+
+      .menu-head,
+      .suggestion-head,
+      .event-head,
+      .dish-item{
+        flex-direction:column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="headerMount"></div>
+
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+
+      <section class="page-content">
+        <div class="menu-page">
+
+          <section class="hero-menu">
+            <div class="hero-menu-grid">
+              <div>
+                <div class="hero-badge">🍽️ Menu / retter</div>
+                <h1>Styr menuer, sammensæt retter og brug de samme råvarer smartere på tværs af drift, selskaber og SEO</h1>
+                <p>
+                  Her samler du restaurantens menuer, enkeltretter og serveringsformer.
+                  Når menuen ændres, kan Madkontrollen Pro bruge de samme data til kostpriser,
+                  selskabsplanlægning, hjemmeside og SEO.
+                </p>
+
+                <div class="hero-actions">
+                  <button class="btn btn-primary" id="fillDemoBtn" type="button">Indsæt eksempelmenuer</button>
+                  <button class="btn btn-secondary" id="refreshBtn" type="button">Nulstil visning</button>
+                  <a href="/modules/drift/recipes.html" class="btn btn-secondary">Se opskrifter</a>
+                </div>
+              </div>
+
+              <aside class="hero-side-card">
+                <div class="hero-side-title">Menueffekt</div>
+                <div class="hero-side-big" id="heroBig">3 menuer</div>
+                <div class="hero-side-small" id="heroSmall">
+                  Menuer kan bruges til almindelig drift, selskaber, website og SEO.
+                  Når du opdaterer en ret, opdaterer du samtidig indhold og økonomi.
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="stats-grid">
+            <article class="stat-card">
+              <div class="stat-value" id="statMenus">0</div>
+              <div class="stat-label">Aktive menuer</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-value" id="statDishes">0</div>
+              <div class="stat-label">Retter samlet i menuerne</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-value" id="statAvgCost">0,-</div>
+              <div class="stat-label">Gennemsnitlig kostpris pr. ret</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-value" id="statReusable">0</div>
+              <div class="stat-label">Råvaregenbrug på tværs af menuer</div>
+            </article>
+          </section>
+
+          <section class="menu-layout">
+            <div class="stack">
+              <section class="card">
+                <div class="toolbar">
+                  <div class="toolbar-left">
+                    <input class="field" id="searchInput" placeholder="Søg i menuer eller retter" />
+                    <select class="select" id="channelFilter">
+                      <option value="all">Alle kanaler</option>
+                      <option value="restaurant">Restaurant</option>
+                      <option value="selskab">Selskab</option>
+                      <option value="takeaway">Takeaway</option>
+                      <option value="seo">SEO</option>
+                    </select>
+                  </div>
+
+                  <div class="toolbar-right">
+                    <button class="btn btn-dark" type="button">Ny menu</button>
+                    <button class="btn btn-secondary" type="button">Importer fra opskrifter</button>
+                  </div>
+                </div>
+
+                <h2>Menuoversigt</h2>
+                <p class="card-lead">
+                  Se alle menuer, deres retter, priser og hvordan de kan bruges i forskellige kanaler.
+                  God til drift, selskaber og dialog med kunder.
+                </p>
+
+                <div class="menu-list" id="menuList"></div>
+              </section>
+
+              <section class="card">
+                <h2>Forslag til smartere salg</h2>
+                <p class="card-lead">
+                  Når du har de samme råvarer i flere retter, kan systemet hjælpe med at foreslå menuer
+                  der er nemme at sælge og gode at tjene på.
+                </p>
+                <div class="suggestion-list" id="suggestionList"></div>
+              </section>
+            </div>
+
+            <div class="stack">
+              <section class="card">
+                <h2>Menuopsummering</h2>
+                <p class="card-lead">
+                  Hurtigt overblik over den valgte visning og hvordan menuen arbejder sammen med resten af platformen.
+                </p>
+
+                <div class="summary-box">
+                  <div class="summary-title" id="summaryTitle">Ingen filter valgt</div>
+                  <div class="summary-sub" id="summarySub">
+                    Vælg kanal eller søg på en ret for at fokusere listen.
+                  </div>
+
+                  <div class="summary-grid">
+                    <div class="summary-item">
+                      <strong>Aktuel kanal</strong>
+                      <span id="summaryChannel">Alle kanaler</span>
+                    </div>
+                    <div class="summary-item">
+                      <strong>SEO-effekt</strong>
+                      <span id="summarySeo">Menuen kan blive til website- og SEO-indhold</span>
+                    </div>
+                    <div class="summary-item">
+                      <strong>Selskaber</strong>
+                      <span id="summaryEvents">Kan bruges i selskabsforslag og kuvertberegning</span>
+                    </div>
+                    <div class="summary-item">
+                      <strong>Køkkenøkonomi</strong>
+                      <span id="summaryFinance">Kostpris og avance følger menuen</span>
+                    </div>
+                  </div>
+
+                  <div class="status-box">
+                    <div class="status-title">Systemet bruger menuen til</div>
+                    <div class="status-list" id="statusList"></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card">
+                <h2>Aktive anvendelser</h2>
+                <p class="card-lead">
+                  Se hvordan menuerne allerede spiller sammen med selskaber, kundepræsentation og online synlighed.
+                </p>
+                <div class="event-list" id="eventList"></div>
+              </section>
+            </div>
+          </section>
+
+          <div class="page-note">
+            Gem denne fil som <strong>public/modules/drift/menu.html</strong>.
+            Næste naturlige kobling er til <strong>recipes.html</strong>, så menuerne kan trækkes direkte fra opskrifter.
+          </div>
+
+        </div>
+      </section>
+    </div>
+  </main>
+<script src="/modules/drift/drift.js"></script>
+  <script>
+    const menus = [
+      {
+        id: "menu_restaurant_main",
+        name: "Signatur menu",
+        type: "restaurant",
+        priceFrom: 129,
+        averageCost: 46,
+        margin: 83,
+        reusableIngredients: 9,
+        description: "Husets hovedmenu til almindelige gæster med fokus på fortjeneste og hurtig produktion.",
+        channels: ["restaurant", "seo"],
+        dishes: [
+          { name: "BBQ Burger", description: "Oksekød, brioche, cheddar, tomat og hjemmelavet BBQ sauce.", cost: 32, sales: 95 },
+          { name: "Loaded Fries", description: "Kartofler, cheddarcreme, syltede løg og urter.", cost: 14, sales: 39 },
+          { name: "Chokolademousse", description: "Luftig mousse med bær og sprød topping.", cost: 8, sales: 35 }
+        ]
+      },
+      {
+        id: "menu_selskab_okse",
+        name: "Selskabsmenu Okse",
+        type: "selskab",
+        priceFrom: 298,
+        averageCost: 102,
+        margin: 196,
+        reusableIngredients: 12,
+        description: "Tre-retters selskabsmenu med oksekød som hovedsalgspunkt og råvarer der kan genbruges i andre koncepter.",
+        channels: ["selskab", "seo"],
+        dishes: [
+          { name: "Tomatforret", description: "Friske tomater, urter, olie og sprøde chips.", cost: 18, sales: 79 },
+          { name: "Oksecuvette med kartoffel", description: "Langtidsstegt okse, kartoffel, sauce og sæsongrønt.", cost: 61, sales: 159 },
+          { name: "Cheesecake glas", description: "Cremet dessert med bær og crumble.", cost: 23, sales: 60 }
+        ]
+      },
+      {
+        id: "menu_takeaway_combo",
+        name: "Takeaway Combo",
+        type: "takeaway",
+        priceFrom: 149,
+        averageCost: 49,
+        margin: 100,
+        reusableIngredients: 8,
+        description: "Klikvenlig takeaway menu med retter der også fungerer godt på hjemmeside og som SEO-indhold.",
+        channels: ["takeaway", "seo", "restaurant"],
+        dishes: [
+          { name: "Cheeseburger Menu", description: "Burger, fritter og dip til online bestilling.", cost: 37, sales: 109 },
+          { name: "Vegetar Burger Menu", description: "Grøntsagsbøf, sprød salat og fritter.", cost: 29, sales: 99 },
+          { name: "Family Add-on", description: "Ekstra fritter, dip og dessert til deling.", cost: 12, sales: 40 }
+        ]
+      }
+    ];
+
+    const suggestions = [
+      {
+        title: "Sælg mere oksekød i morgen",
+        text: "Du har både selskabsmenu og signaturmenu med okseretter. Brug samme råvarer og drej dialogen over på en menu med højere avance.",
+        status: "active"
+      },
+      {
+        title: "Menuen kan bruges i SEO",
+        text: "BBQ Burger, takeaway og selskabsmenu kan automatisk blive til sider som 'burger i Aarhus', 'takeaway Aarhus' og 'selskabsmenu Aarhus'.",
+        status: "preview"
+      },
+      {
+        title: "Genbrug råvarer i tre retter",
+        text: "Tomat, kartoffel og oksekød går igen på tværs af menuerne. Det gør indkøb nemmere og reducerer spild.",
+        status: "active"
+      }
+    ];
+
+    const activeUses = [
+      {
+        title: "Selskabssalg",
+        text: "Menuer bruges som visuelle forslag når køkkenchef og restaurantmanager taler med kunder om arrangementer.",
+        status: "active"
+      },
+      {
+        title: "Kostpris og avance",
+        text: "Hver ret er knyttet til økonomi, så du kan se hvad der er bedst at sælge.",
+        status: "active"
+      },
+      {
+        title: "Website og SEO",
+        text: "Når menuen ændres, kan website, menukort og SEO-sider følge med automatisk.",
+        status: "preview"
+      }
+    ];
+
+    const els = {
+      fillDemoBtn: document.getElementById("fillDemoBtn"),
+      refreshBtn: document.getElementById("refreshBtn"),
+      searchInput: document.getElementById("searchInput"),
+      channelFilter: document.getElementById("channelFilter"),
+      menuList: document.getElementById("menuList"),
+      suggestionList: document.getElementById("suggestionList"),
+      eventList: document.getElementById("eventList"),
+      statMenus: document.getElementById("statMenus"),
+      statDishes: document.getElementById("statDishes"),
+      statAvgCost: document.getElementById("statAvgCost"),
+      statReusable: document.getElementById("statReusable"),
+      heroBig: document.getElementById("heroBig"),
+      heroSmall: document.getElementById("heroSmall"),
+      summaryTitle: document.getElementById("summaryTitle"),
+      summarySub: document.getElementById("summarySub"),
+      summaryChannel: document.getElementById("summaryChannel"),
+      summarySeo: document.getElementById("summarySeo"),
+      summaryEvents: document.getElementById("summaryEvents"),
+      summaryFinance: document.getElementById("summaryFinance"),
+      statusList: document.getElementById("statusList")
+    };
+
+    const state = {
+      search: "",
+      channel: "all"
+    };
+
+    function badgeClass(status) {
+      if (status === "active") return "active";
+      if (status === "preview") return "preview";
+      return "locked";
+    }
+
+    function channelLabel(channel) {
+      const map = {
+        all: "Alle kanaler",
+        restaurant: "Restaurant",
+        selskab: "Selskab",
+        takeaway: "Takeaway",
+        seo: "SEO"
+      };
+      return map[channel] || channel;
+    }
+
+    function filteredMenus() {
+      const search = state.search.toLowerCase().trim();
+
+      return menus.filter((menu) => {
+        const channelMatch = state.channel === "all" || menu.channels.includes(state.channel);
+        const searchBlob = [
+          menu.name,
+          menu.description,
+          ...menu.dishes.map((dish) => `${dish.name} ${dish.description}`)
+        ].join(" ").toLowerCase();
+
+        const searchMatch = !search || searchBlob.includes(search);
+        return channelMatch && searchMatch;
+      });
+    }
+
+    function renderStats(list) {
+      const dishCount = list.reduce((sum, menu) => sum + menu.dishes.length, 0);
+      const avgCost = list.length
+        ? Math.round(list.reduce((sum, menu) => sum + menu.averageCost, 0) / list.length)
+        : 0;
+      const reusable = list.reduce((sum, menu) => sum + menu.reusableIngredients, 0);
+
+      els.statMenus.textContent = String(list.length);
+      els.statDishes.textContent = String(dishCount);
+      els.statAvgCost.textContent = `${avgCost},-`;
+      els.statReusable.textContent = String(reusable);
+      els.heroBig.textContent = `${list.length} menuer`;
+      els.heroSmall.textContent = list.length
+        ? "Menudata kan genbruges til kostpris, selskabsforslag, hjemmeside og SEO. Jo mere du opdaterer menuen, jo mere værdi skaber systemet."
+        : "Ingen menuer matcher det valgte filter endnu.";
+    }
+
+    function renderMenus(list) {
+      if (!list.length) {
+        els.menuList.innerHTML = `
+          <div class="menu-card">
+            <div class="menu-title">Ingen menuer fundet</div>
+            <div class="menu-sub">Prøv at fjerne filter eller søg på noget andet.</div>
+          </div>
+        `;
+        return;
+      }
+
+      els.menuList.innerHTML = list.map((menu) => `
+        <article class="menu-card">
+          <div class="menu-head">
+            <div>
+              <div class="menu-title">${menu.name}</div>
+              <div class="menu-sub">${menu.description}</div>
+            </div>
+            <span class="pill ${menu.type === "selskab" ? "preview" : "active"}">${channelLabel(menu.type)}</span>
+          </div>
+
+          <div class="meta-grid">
+            <div class="meta-box">
+              <div class="meta-label">Pris fra</div>
+              <div class="meta-value">${menu.priceFrom},-</div>
+            </div>
+            <div class="meta-box">
+              <div class="meta-label">Kostpris</div>
+              <div class="meta-value">${menu.averageCost},- pr. ret</div>
+            </div>
+            <div class="meta-box">
+              <div class="meta-label">Bruttofortjeneste</div>
+              <div class="meta-value">${menu.margin},-</div>
+            </div>
+            <div class="meta-box">
+              <div class="meta-label">Råvaregenbrug</div>
+              <div class="meta-value">${menu.reusableIngredients} fælles råvarer</div>
+            </div>
+          </div>
+
+          <div class="dish-list">
+            ${menu.dishes.map((dish) => `
+              <div class="dish-item">
+                <div>
+                  <div class="dish-name">${dish.name}</div>
+                  <div class="dish-desc">${dish.description}</div>
+                </div>
+                <div style="text-align:right;white-space:nowrap;">
+                  <div class="dish-name">${dish.sales},-</div>
+                  <div class="dish-desc">Kostpris ${dish.cost},-</div>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderSuggestions() {
+      els.suggestionList.innerHTML = suggestions.map((item) => `
+        <article class="suggestion-card">
+          <div class="suggestion-head">
+            <div>
+              <div class="suggestion-title">${item.title}</div>
+              <div class="suggestion-sub">${item.text}</div>
+            </div>
+            <span class="pill ${badgeClass(item.status)}">${item.status}</span>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderEvents() {
+      els.eventList.innerHTML = activeUses.map((item) => `
+        <article class="event-card">
+          <div class="event-head">
+            <div>
+              <div class="event-title">${item.title}</div>
+              <div class="event-sub">${item.text}</div>
+            </div>
+            <span class="pill ${badgeClass(item.status)}">${item.status}</span>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderSummary(list) {
+      const channelText = channelLabel(state.channel);
+
+      els.summaryTitle.textContent = state.search
+        ? `Fokus på “${state.search}”`
+        : `${list.length} menu(er) i visningen`;
+
+      els.summarySub.textContent = state.search
+        ? "Du ser kun menuer og retter der matcher din søgning. Brug det når du skal finde retter hurtigt i samtalen med en kunde."
+        : "Denne visning viser hvordan menuerne kan sælges, genbruges i køkkenet og bruges i SEO og selskabsforslag.";
+
+      els.summaryChannel.textContent = channelText;
+
+      els.summarySeo.textContent = state.channel === "seo"
+        ? "Denne visning er klar til at blive omsat til SEO-landingssider og hjemmesideindhold"
+        : "Menuen kan blive til website- og SEO-indhold";
+
+      els.summaryEvents.textContent = state.channel === "selskab"
+        ? "Retterne passer direkte ind i kuvertberegning og selskabstilbud"
+        : "Kan bruges i selskabsforslag og kuvertberegning";
+
+      els.summaryFinance.textContent = list.length
+        ? "Kostpris og avance følger menuen og kan bruges i kalkulation"
+        : "Ingen økonomidata i den nuværende filtrering";
+
+      els.statusList.innerHTML = [
+        "Menuen kan bruges som salgsværktøj ved selskaber og møder med kunder",
+        "Retter kan genbruges på tværs af restaurant, takeaway og selskab",
+        "Kostpriser og avancer følger menuerne automatisk",
+        "Detaljerede beskrivelser gør menuen stærkere på hjemmeside og SEO",
+        "Samme råvarer i flere retter giver smartere indkøb og mindre spild"
+      ].map((text) => `<div class="status-item">${text}</div>`).join("");
+    }
+
+    function renderAll() {
+      const list = filteredMenus();
+      renderStats(list);
+      renderMenus(list);
+      renderSuggestions();
+      renderEvents();
+      renderSummary(list);
+    }
+
+    async function loadSharedPartials() {
+      const headerMount = document.getElementById("headerMount");
+      const sidebarMount = document.getElementById("sidebarMount");
+
+      try {
+        const [headerRes, sidebarRes] = await Promise.all([
+          fetch("/components/header.html"),
+          fetch("/components/sidebar.html")
+        ]);
+
+        if (headerRes.ok) {
+          headerMount.innerHTML = await headerRes.text();
+        }
+
+        if (sidebarRes.ok) {
+          sidebarMount.innerHTML = await sidebarRes.text();
+        }
+
+        const currentPath = window.location.pathname;
+        document.querySelectorAll(".sidebar-link, .nav a").forEach(link => {
+          const href = link.getAttribute("href");
+          if (href && currentPath.includes(href.replace("/index.html", "/"))) {
+            link.classList.add("active");
+          }
+          if (href === currentPath) {
+            link.classList.add("active");
+          }
+        });
+      } catch (error) {
+        console.error("Kunne ikke indlæse header/sidebar:", error);
+      }
+    }
+
+    els.searchInput.addEventListener("input", (event) => {
+      state.search = event.target.value;
+      renderAll();
+    });
+
+    els.channelFilter.addEventListener("change", (event) => {
+      state.channel = event.target.value;
+      renderAll();
+    });
+
+    els.fillDemoBtn.addEventListener("click", () => {
+      state.search = "okse";
+      state.channel = "selskab";
+      els.searchInput.value = state.search;
+      els.channelFilter.value = state.channel;
+      renderAll();
+    });
+
+    els.refreshBtn.addEventListener("click", () => {
+      state.search = "";
+      state.channel = "all";
+      els.searchInput.value = "";
+      els.channelFilter.value = "all";
+      renderAll();
+    });
+
+    loadSharedPartials();
+    renderAll();
+  </script>
+
+</body>
+</html>

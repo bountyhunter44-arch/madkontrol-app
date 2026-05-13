@@ -1,0 +1,31 @@
+{
+  "source_file": "public/modules/egenkontrol/syncControlTemplatesToFirestore.js",
+  "module": "general",
+  "imports": [
+    "../../core/firebase-config.js",
+    "./generateControlTemplates.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  ],
+  "exports": [
+    "syncControlTemplatesToFirestore"
+  ],
+  "collections": [
+    "program_sections",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "syncControlTemplatesToFirestore",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "program_sections",
+        "task_templates"
+      ]
+    }
+  ]
+}

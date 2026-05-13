@@ -1,0 +1,27 @@
+{
+  "source_file": "scripts/verify-super-admin.js",
+  "module": "general",
+  "imports": [
+    "firebase/app",
+    "firebase/auth",
+    "firebase/firestore"
+  ],
+  "exports": [],
+  "collections": [
+    "users"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "verifySuperAdmin",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "users"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+<!-- Active Process Instances Section -->
+<!-- Include this in dashboard.html and rutiner.html -->
+
+<!-- CSS -->
+<link rel="stylesheet" href="/css/process-cards.css">
+
+<!-- Process Section -->
+<section id="active-processes-section" style="display: none;">
+  <h2>🔥 Aktive processer</h2>
+  <div id="active-processes-list">
+    <!-- Process cards will be rendered here dynamically -->
+  </div>
+</section>
+
+<!-- Start Process Actions -->
+<section id="process-actions" style="margin-bottom: 24px;">
+  <button id="btn-start-cooling" type="button">
+    🧊 Start nedkøling
+  </button>
+</section>
+
+<!-- Scripts -->
+<script type="module" src="/core/processInstances.js"></script>
+<script src="/modules/egenkontrol/process-dashboard.js"></script>

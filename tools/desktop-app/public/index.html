@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <title>Desktop App</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #4c00ff, #9d00ff, #fb7185);
+      height: 100vh;
+      overflow: hidden;
+      color: white;
+    }
+
+    .desktop {
+      padding: 12px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      width: 260px;
+    }
+
+    .icon {
+      width: 72px;
+      cursor: pointer;
+      text-align: center;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,.4);
+      user-select: none;
+    }
+
+    .icon div {
+      width: 50px;
+      height: 50px;
+      background: #111;
+      border-radius: 10px;
+      line-height: 50px;
+      font-weight: bold;
+      margin: 0 auto 5px;
+    }
+
+    .window {
+      position: absolute;
+      top: 90px;
+      left: 90px;
+      width: 820px;
+      height: 520px;
+      min-width: 420px;
+      min-height: 260px;
+      background: white;
+      color: black;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      resize: both;
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      border: 1px solid rgba(0,0,0,.25);
+    }
+
+    .titlebar {
+      background: #ddd;
+      padding: 9px 10px;
+      cursor: move;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      border-bottom: 1px solid #aaa;
+    }
+
+    .window-title {
+      flex: 1;
+    }
+
+    .window-close {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: none;
+      background: #ef4444;
+      color: white;
+      cursor: pointer;
+      text-align: center;
+      padding: 0;
+      font-weight: bold;
+    }
+
+    .window-inner {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .window-content {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 270px;
+      min-width: 220px;
+      max-width: 360px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      border-right: 1px solid #ccc;
+      padding: 10px;
+      background: #f8fafc;
+    }
+
+    .main {
+      flex: 1;
+      min-width: 0;
+      padding: 10px;
+      overflow: auto;
+      background: #fff;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      margin-bottom: 6px;
+      padding: 9px;
+      border: none;
+      background: #22c55e;
+      cursor: pointer;
+      border-radius: 5px;
+      text-align: left;
+      color: black;
+    }
+
+    button:hover {
+      filter: brightness(.95);
+    }
+
+    input {
+      width: 100%;
+      margin-bottom: 6px;
+      padding: 8px;
+      border: 1px solid #aaa;
+      border-radius: 5px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 340px;
+      height: calc(100% - 45px);
+      resize: vertical;
+      border: none;
+      padding: 10px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #00ff44;
+      border-radius: 6px;
+      outline: none;
+      white-space: pre;
+      overflow: auto;
+    }
+
+    pre {
+      background: #111;
+      color: #00ff44;
+      padding: 12px;
+      overflow: auto;
+      border-radius: 6px;
+      min-height: 360px;
+      max-height: 100%;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .row button {
+      width: auto;
+      flex: 1;
+      text-align: center;
+    }
+
+    .danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .secondary {
+      background: #38bdf8;
+    }
+
+    .muted {
+      font-size: 12px;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+
+    select {
+      width: 100%;
+      margin-bottom: 6px;
+      padding: 8px;
+      border: 1px solid #aaa;
+      border-radius: 5px;
+      background: white;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 12px 0;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    .data-table th {
+      background: #f8fafc;
+      font-weight: bold;
+    }
+
+    .data-table textarea {
+      min-height: 60px;
+      height: auto;
+    }
+
+    .data-table select {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="desktop">
+  <div class="icon" onclick="openKnowledge()">
+    <div>�</div>
+    Knowledge
+  </div>
+
+  <div class="icon" onclick="openPrompts()">
+    <div>💬</div>
+    Prompts
+  </div>
+
+  <div class="icon" onclick="openOperations()">
+    <div>⚙️</div>
+    Operations
+  </div>
+
+  <div class="icon" onclick="openExplorer()">
+    <div>📁</div>
+    Explorer
+  </div>
+
+  <div class="icon" onclick="openAIPanel()">
+    <div>AI</div>
+    Helper
+  </div>
+
+  <div class="icon" onclick="openSplitter()">
+    <div>✦</div>
+    Splitter
+  </div>
+
+  <div class="icon" onclick="openSmartMerge()">
+    <div>SM</div>
+    Smart Merge
+  </div>
+
+  <div class="icon" onclick="openCompanyImporter()">
+    <div>CVR</div>
+    Firma Import
+  </div>
+</div>
+
+<script src="/desktop.js"></script>
+<script src="/modules/knowledge.module.js"></script>
+<script src="/modules/prompts.module.js"></script>
+<script src="/modules/operations.module.js"></script>
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daglig Rapport | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import app, { auth, db } from "/core/firebase-config.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    let currentUser = null;
+
+    setupAuthGate({
+      appName: "Madkontrollen Pro - Rapport",
+      onAuthenticated: async ({ user, profile }) => {
+        currentUser = user;
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const reportId = urlParams.get("reportId");
+        
+        if (!reportId) {
+          document.getElementById("report-content").innerHTML = '<div class="error-box">Ingen rapport-ID angivet.</div>';
+          return;
+        }
+        
+        await loadReport(reportId);
+      },
+      onSignedOut: async () => {
+        document.body.innerHTML = '<div style="text-align:center;padding:100px 20px;"><h2>Log ind for at se rapport</h2></div>';
+      }
+    });
+
+    async function loadReport(reportId) {
+      const reportContent = document.getElementById("report-content");
+      
+      try {
+        const reportDoc = await getDoc(doc(db, "reports", reportId));
+        
+        if (!reportDoc.exists()) {
+          reportContent.innerHTML = '<div class="error-box">Rapport ikke fundet.</div>';
+          return;
+        }
+        
+        const report = reportDoc.data();
+        renderReport(report);
+      } catch (error) {
+        console.error("Fejl ved indlæsning af rapport:", error);
+        reportContent.innerHTML = '<div class="error-box">Kunne ikke indlæse rapport.</div>';
+      }
+    }
+
+    function renderReport(report) {
+      const reportContent = document.getElementById("report-content");
+      const reportDate = report.reportDate?.toDate?.() || new Date(report.dateKey);
+      const dateStr = reportDate.toLocaleDateString("da-DK", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      
+      reportContent.innerHTML = `
+        <div class="report-header no-print">
+          <div>
+            <h1>Daglig Egenkontrol Rapport</h1>
+            <p class="report-date">${dateStr}</p>
+          </div>
+          <div class="report-actions">
+            <button onclick="window.print()" class="btn btn-primary">🖨️ Print / Gem som PDF</button>
+            <a href="/modules/egenkontrol/rapporter.html" class="btn btn-secondary">← Tilbage til rapporter</a>
+          </div>
+        </div>
+
+        <div class="print-header">
+          <div class="print-logo">
+            <div class="logo-mark">🍽️</div>
+            <div class="logo-text">
+              <div class="logo-title">Madkontrollen Pro</div>
+              <div class="logo-subtitle">Egenkontrol Rapport</div>
+            </div>
+          </div>
+          <div class="print-date">${dateStr}</div>
+        </div>
+
+        <div class="report-summary">
+          <h2>Sammendrag</h2>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="summary-label">Rutiner i alt</div>
+              <div class="summary-value">${report.summary.totalTasks}</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Fuldførte</div>
+              <div class="summary-value text-success">${report.summary.completedTasks}</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Afvigelser</div>
+              <div class="summary-value ${report.summary.totalDeviations > 0 ? 'text-warning' : ''}">${report.summary.totalDeviations}</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Afvigelser løst</div>
+              <div class="summary-value text-success">${report.summary.resolvedDeviations}</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Fotos</div>
+              <div class="summary-value">${report.summary.totalPhotos}</div>
+            </div>
+          </div>
+        </div>
+
+        ${report.deviations && report.deviations.length > 0 ? `
+          <div class="report-section">
+            <h2>🚨 Afvigelser og Korrektive Handlinger</h2>
+            ${report.deviations.map(dev => `
+              <div class="deviation-report-card">
+                <div class="deviation-header">
+                  <h3>${escapeHtml(dev.taskTitle || "Ukendt opgave")}</h3>
+                  <span class="severity-badge severity-${dev.severity || 'medium'}">${dev.severity === 'critical' ? 'Kritisk' : 'Moderat'}</span>
+                </div>
+                
+                <div class="deviation-meta">
+                  <div><strong>Udstyr:</strong> ${escapeHtml(dev.equipmentName || "-")}</div>
+                  <div><strong>Område:</strong> ${escapeHtml(dev.areaName || "-")}</div>
+                  ${dev.actualMeasurement ? `<div><strong>Måling:</strong> ${dev.actualMeasurement}${dev.measurementUnit || ""}</div>` : ""}
+                </div>
+
+                <div class="before-after-grid">
+                  <div class="image-column">
+                    <h4>FØR (Afvigelse fundet)</h4>
+                    ${dev.beforeImage?.optimizedUrl || dev.beforeImage?.imageUrl ? `
+                      <img src="${dev.beforeImage.optimizedUrl || dev.beforeImage.imageUrl}" alt="Før-billede" class="report-image">
+                    ` : '<div class="no-image-placeholder">Intet billede</div>'}
+                    <div class="image-info">
+                      <div><strong>Tidspunkt:</strong> ${dev.beforeImage?.detectedAt ? new Date(dev.beforeImage.detectedAt).toLocaleString("da-DK") : "-"}</div>
+                      <div><strong>AI Analyse:</strong></div>
+                      <div class="ai-text">${escapeHtml(dev.beforeImage?.aiDescription || dev.aiAnalysis?.beskrivelse || "-")}</div>
+                    </div>
+                  </div>
+
+                  <div class="image-column">
+                    <h4>EFTER (Udbedret)</h4>
+                    ${dev.afterImage?.optimizedUrl || dev.afterImage?.imageUrl ? `
+                      <img src="${dev.afterImage.optimizedUrl || dev.afterImage.imageUrl}" alt="Efter-billede" class="report-image">
+                    ` : '<div class="no-image-placeholder">Afventer efter-billede</div>'}
+                    ${dev.afterImage ? `
+                      <div class="image-info">
+                        <div><strong>Tidspunkt:</strong> ${dev.afterImage.detectedAt ? new Date(dev.afterImage.detectedAt).toLocaleString("da-DK") : "-"}</div>
+                        ${dev.correctedMeasurement ? `<div><strong>Måling:</strong> ${dev.correctedMeasurement}${dev.measurementUnit || ""}</div>` : ""}
+                        <div><strong>AI Analyse:</strong></div>
+                        <div class="ai-text">${escapeHtml(dev.afterImage.aiDescription || "-")}</div>
+                      </div>
+                    ` : ""}
+                  </div>
+                </div>
+
+                ${dev.resolutionTimeMinutes ? `
+                  <div class="resolution-badge">⏱️ Reaktionstid: ${dev.resolutionTimeMinutes} minutter</div>
+                ` : ""}
+
+                ${dev.manualNote ? `
+                  <div class="manual-note">
+                    <strong>Manuel note:</strong>
+                    <p>${escapeHtml(dev.manualNote)}</p>
+                  </div>
+                ` : ""}
+              </div>
+            `).join('')}
+          </div>
+        ` : ""}
+
+        <div class="report-section">
+          <h2>✅ Fuldførte Rutiner</h2>
+          ${report.tasks && report.tasks.length > 0 ? `
+            <div class="tasks-grid">
+              ${report.tasks.map(task => `
+                <div class="task-report-card">
+                  <div class="task-header">
+                    <h3>${escapeHtml(task.title || "Ukendt opgave")}</h3>
+                    <span class="status-badge status-completed">Fuldført</span>
+                  </div>
+                  
+                  <div class="task-meta">
+                    ${task.equipmentName ? `<div><strong>Udstyr:</strong> ${escapeHtml(task.equipmentName)}</div>` : ""}
+                    ${task.areaName ? `<div><strong>Område:</strong> ${escapeHtml(task.areaName)}</div>` : ""}
+                    ${task.completedAt ? `<div><strong>Fuldført:</strong> ${new Date(task.completedAt.seconds * 1000).toLocaleString("da-DK")}</div>` : ""}
+                    ${task.completedByName ? `<div><strong>Udført af:</strong> ${escapeHtml(task.completedByName)}</div>` : ""}
+                  </div>
+
+                  ${task.photoUrls && task.photoUrls.length > 0 ? `
+                    <div class="task-photos">
+                      ${task.photoUrls.map(url => `
+                        <img src="${url}" alt="Opgave foto" class="task-photo">
+                      `).join('')}
+                    </div>
+                  ` : ""}
+
+                  ${task.measurementValue ? `
+                    <div class="measurement-box">
+                      <strong>Måling:</strong> ${task.measurementValue}${task.measurementUnit || ""}
+                    </div>
+                  ` : ""}
+
+                  ${task.lastAiSuggestion?.beskrivelse ? `
+                    <div class="ai-suggestion">
+                      <strong>AI Analyse:</strong>
+                      <p>${escapeHtml(task.lastAiSuggestion.beskrivelse)}</p>
+                      ${task.lastAiSuggestion.confidence ? `<div class="confidence">Konfidans: ${Math.round(task.lastAiSuggestion.confidence * 100)}%</div>` : ""}
+                    </div>
+                  ` : ""}
+
+                  ${task.note ? `
+                    <div class="task-note">
+                      <strong>Note:</strong>
+                      <p>${escapeHtml(task.note)}</p>
+                    </div>
+                  ` : ""}
+                </div>
+              `).join('')}
+            </div>
+          ` : '<div class="empty-state">Ingen fuldførte rutiner.</div>'}
+        </div>
+
+        <div class="report-footer">
+          <div class="footer-info">
+            <div><strong>Rapport genereret:</strong> ${report.generatedAt?.toDate?.().toLocaleString("da-DK") || "-"}</div>
+            <div><strong>Rapport-ID:</strong> ${report.reportId}</div>
+          </div>
+          <div class="footer-signature">
+            <div class="signature-line"></div>
+            <div class="signature-label">Underskrift ansvarlig</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text || "";
+      return div.innerHTML;
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 0;
+      color: #111827;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    #report-content {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 32px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .report-header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin: 0 0 8px;
+      color: #111827;
+    }
+
+    .report-date {
+      font-size: 16px;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .report-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .print-header {
+      display: none;
+    }
+
+    .report-summary {
+      padding: 32px;
+      background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .report-summary h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 20px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+    }
+
+    .summary-item {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .text-success {
+      color: #059669;
+    }
+
+    .text-warning {
+      color: #d97706;
+    }
+
+    .report-section {
+      padding: 32px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .report-section:last-of-type {
+      border-bottom: none;
+    }
+
+    .report-section h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 24px;
+    }
+
+    .deviation-report-card {
+      background: #fff;
+      border: 2px solid #fecaca;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      page-break-inside: avoid;
+    }
+
+    .deviation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .deviation-header h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .severity-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .severity-critical {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .severity-medium {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .deviation-meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .before-after-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .image-column h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      color: #374151;
+    }
+
+    .report-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 12px;
+    }
+
+    .no-image-placeholder {
+      width: 100%;
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f3f4f6;
+      border: 2px dashed #d1d5db;
+      border-radius: 8px;
+      color: #9ca3af;
+      margin-bottom: 12px;
+    }
+
+    .image-info {
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .ai-text {
+      padding: 8px 12px;
+      background: #fff;
+      border-left: 3px solid #3b82f6;
+      border-radius: 4px;
+      margin-top: 6px;
+    }
+
+    .resolution-badge {
+      padding: 12px 16px;
+      background: #d1fae5;
+      border: 1px solid #a7f3d0;
+      border-radius: 8px;
+      color: #065f46;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .manual-note {
+      padding: 16px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+    }
+
+    .manual-note p {
+      margin: 8px 0 0;
+      line-height: 1.6;
+    }
+
+    .tasks-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .task-report-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+      page-break-inside: avoid;
+    }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .task-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .status-completed {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .task-meta {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .task-photos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .task-photo {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .measurement-box {
+      padding: 12px;
+      background: #e0e7ff;
+      border: 1px solid #c7d2fe;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .ai-suggestion {
+      padding: 12px;
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .ai-suggestion p {
+      margin: 6px 0 0;
+      line-height: 1.6;
+    }
+
+    .confidence {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .task-note {
+      padding: 12px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .task-note p {
+      margin: 6px 0 0;
+      line-height: 1.6;
+    }
+
+    .report-footer {
+      padding: 32px;
+      background: #f9fafb;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .footer-info {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.8;
+    }
+
+    .footer-signature {
+      text-align: center;
+    }
+
+    .signature-line {
+      width: 250px;
+      height: 1px;
+      background: #d1d5db;
+      margin-bottom: 8px;
+    }
+
+    .signature-label {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .empty-state {
+      padding: 40px;
+      text-align: center;
+      color: #9ca3af;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+
+    .error-box {
+      padding: 20px;
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      color: #991b1b;
+      margin: 20px;
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .container {
+        max-width: 100%;
+        padding: 0;
+      }
+
+      #report-content {
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .print-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 32px;
+        border-bottom: 2px solid #111827;
+        margin-bottom: 20px;
+      }
+
+      .print-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-mark {
+        width: 48px;
+        height: 48px;
+        background: #111827;
+        color: #fff;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+      }
+
+      .logo-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: #111827;
+      }
+
+      .logo-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+      }
+
+      .print-date {
+        font-size: 14px;
+        color: #6b7280;
+      }
+
+      .report-section {
+        page-break-inside: avoid;
+      }
+
+      .deviation-report-card,
+      .task-report-card {
+        page-break-inside: avoid;
+      }
+
+      .report-image,
+      .task-photo {
+        max-height: 250px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="report-content"></div>
+  </div>
+</body>
+</html>

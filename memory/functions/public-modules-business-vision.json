@@ -1,0 +1,88 @@
+{
+  "source_file": "public/modules/business/vision.html",
+  "module": "general",
+  "imports": [
+    "/core/firebase-config.js",
+    "/core/layout.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"
+  ],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "createCheckoutDraft",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "getSelectedAddons",
+        "renderCheckoutSummary",
+        "resetCheckout"
+      ],
+      "selectors": [
+        "[data-addon-input]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "formatDkk",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "createCheckoutDraft",
+        "getSelectedAddons",
+        "renderCheckoutSummary",
+        "resetCheckout"
+      ],
+      "selectors": [
+        "[data-addon-input]",
+        "h4"
+      ],
+      "collections": []
+    },
+    {
+      "name": "getSelectedAddons",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "createCheckoutDraft",
+        "formatDkk",
+        "renderCheckoutSummary",
+        "resetCheckout"
+      ],
+      "selectors": [
+        "[data-addon-input]",
+        "h4"
+      ],
+      "collections": []
+    },
+    {
+      "name": "renderCheckoutSummary",
+      "type": "function",
+      "approx_occurrences": 3,
+      "calls": [
+        "createCheckoutDraft",
+        "formatDkk",
+        "getSelectedAddons",
+        "resetCheckout"
+      ],
+      "selectors": [
+        "[data-addon-input]"
+      ],
+      "collections": []
+    },
+    {
+      "name": "resetCheckout",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "renderCheckoutSummary"
+      ],
+      "selectors": [
+        "[data-addon-input]"
+      ],
+      "collections": []
+    }
+  ]
+}

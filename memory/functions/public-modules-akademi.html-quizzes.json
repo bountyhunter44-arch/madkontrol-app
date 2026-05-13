@@ -1,0 +1,63 @@
+{
+  "source_file": "public/modules/akademi.html/quizzes.html",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "loadSharedPartials",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "normalize",
+        "setupQuizFilters",
+        "updateFilters"
+      ],
+      "selectors": [
+        ".quiz-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "normalize",
+      "type": "function",
+      "approx_occurrences": 10,
+      "calls": [
+        "loadSharedPartials",
+        "setupQuizFilters",
+        "updateFilters"
+      ],
+      "selectors": [],
+      "collections": []
+    },
+    {
+      "name": "setupQuizFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadSharedPartials",
+        "normalize",
+        "updateFilters"
+      ],
+      "selectors": [
+        ".quiz-card"
+      ],
+      "collections": []
+    },
+    {
+      "name": "updateFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "loadSharedPartials",
+        "normalize",
+        "setupQuizFilters"
+      ],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

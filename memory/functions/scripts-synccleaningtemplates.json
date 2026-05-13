@@ -1,0 +1,40 @@
+{
+  "source_file": "scripts/syncCleaningTemplates.cjs",
+  "module": "general",
+  "imports": [
+    "../serviceAccountKey.json",
+    "firebase-admin"
+  ],
+  "exports": [],
+  "collections": [
+    "equipment",
+    "task_templates"
+  ],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "main",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [],
+      "selectors": [],
+      "collections": [
+        "equipment",
+        "task_templates"
+      ]
+    },
+    {
+      "name": "type",
+      "type": "const_function",
+      "approx_occurrences": 0,
+      "calls": [
+        "main"
+      ],
+      "selectors": [],
+      "collections": [
+        "task_templates"
+      ]
+    }
+  ]
+}

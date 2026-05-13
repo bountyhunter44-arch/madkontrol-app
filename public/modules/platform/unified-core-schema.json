@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://madkontrollen.dk/schemas/unified-core.schema.json",
+  "title": "Madkontrollen Unified Core",
+  "type": "object",
+  "required": [
+    "tenant",
+    "modules",
+    "featureFlags",
+    "entities",
+    "events"
+  ],
+  "properties": {
+    "tenant": {
+      "type": "object",
+      "required": ["companyId", "name", "segment"],
+      "properties": {
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "segment": {
+          "type": "string",
+          "enum": ["institution", "commercial", "hybrid"]
+        },
+        "context": {
+          "type": "string",
+          "enum": ["plejehjem", "skole", "kantine", "pizzeria", "restaurant", "cafe"]
+        }
+      }
+    },
+    "modules": {
+      "type": "object",
+      "properties": {
+        "core": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "temperatureLogs": { "type": "array" },
+            "cleaningTasks": { "type": "array" },
+            "goodsReceipts": { "type": "array" }
+          }
+        },
+        "institutional": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "citizens": { "type": "array" },
+            "mealPlans": { "type": "array" },
+            "nutritionLedger": { "type": "array" }
+          }
+        },
+        "commercial": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "tableBookings": { "type": "array" },
+            "menuItems": { "type": "array" },
+            "seoPages": { "type": "array" }
+          }
+        },
+        "kalkulation": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "recipes": { "type": "array" },
+            "ingredientCosts": { "type": "array" },
+            "inventory": { "type": "array" }
+          }
+        },
+        "financeTax": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "receipts": { "type": "array" },
+            "vatReports": { "type": "array" },
+            "taxEstimates": { "type": "array" }
+          }
+        },
+        "lexiVoice": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "legalRequests": { "type": "array" },
+            "contractReviews": { "type": "array" }
+          }
+        }
+      }
+    },
+    "featureFlags": {
+      "type": "object",
+      "required": [
+        "commercial.seo",
+        "commercial.tableBooking",
+        "institutional.dysphagia",
+        "institutional.patientData",
+        "finance.scanning",
+        "finance.vat",
+        "finance.taxForecast",
+        "lexiVoice.legalAdvisor"
+      ],
+      "properties": {
+        "commercial.seo": { "type": "boolean" },
+        "commercial.tableBooking": { "type": "boolean" },
+        "institutional.dysphagia": { "type": "boolean" },
+        "institutional.patientData": { "type": "boolean" },
+        "finance.scanning": { "type": "boolean" },
+        "finance.vat": { "type": "boolean" },
+        "finance.taxForecast": { "type": "boolean" },
+        "lexiVoice.legalAdvisor": { "type": "boolean" }
+      }
+    },
+    "entities": {
+      "type": "object",
+      "properties": {
+        "citizenProfile": {
+          "type": "object",
+          "required": ["citizenId", "name", "diet", "allergens", "proteinTarget", "dysphagiaLevel"],
+          "properties": {
+            "citizenId": { "type": "string" },
+            "name": { "type": "string" },
+            "diet": { "type": "string" },
+            "allergens": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "proteinTarget": { "type": "number" },
+            "dysphagiaLevel": {
+              "type": "string",
+              "enum": ["none", "idssi-4", "idssi-5", "idssi-6", "idssi-7"]
+            }
+          }
+        },
+        "recipe": {
+          "type": "object",
+          "required": ["recipeId", "name", "salesPrice", "ingredients"],
+          "properties": {
+            "recipeId": { "type": "string" },
+            "name": { "type": "string" },
+            "salesPrice": { "type": "number" },
+            "ingredients": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["sku", "name", "qty", "unitCost"],
+                "properties": {
+                  "sku": { "type": "string" },
+                  "name": { "type": "string" },
+                  "qty": { "type": "number" },
+                  "unitCost": { "type": "number" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["eventId", "type", "timestamp", "tenantId", "payload"],
+        "properties": {
+          "eventId": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": [
+              "finance.purchase.logged",
+              "core.goods-receipt.created",
+              "kalkulation.margin.recalculated",
+              "commercial.booking.received",
+              "commercial.booking.allergy-alert",
+              "institution.meal.served",
+              "institution.intake.updated"
+            ]
+          },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "tenantId": { "type": "string" },
+          "payload": { "type": "object" }
+        }
+      }
+    }
+  }
+}

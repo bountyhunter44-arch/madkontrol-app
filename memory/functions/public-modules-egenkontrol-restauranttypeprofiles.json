@@ -1,0 +1,22 @@
+{
+  "source_file": "public/modules/egenkontrol/restaurantTypeProfiles.js",
+  "module": "general",
+  "imports": [],
+  "exports": [
+    "RESTAURANT_TYPE_PROFILES",
+    "getRestaurantTypeProfile"
+  ],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "getRestaurantTypeProfile",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [],
+      "collections": []
+    }
+  ]
+}

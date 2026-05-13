@@ -1,0 +1,87 @@
+{
+  "source_file": "public/modules/accounting/js/akademi.js",
+  "module": "general",
+  "imports": [],
+  "exports": [],
+  "collections": [],
+  "flags": [],
+  "risks": [],
+  "functions": [
+    {
+      "name": "applyFilters",
+      "type": "function",
+      "approx_occurrences": 2,
+      "calls": [
+        "normalizeValue",
+        "setupFaqAccordion"
+      ],
+      "selectors": [
+        ".faq-btn",
+        ".faq-btn span:last-child",
+        ".faq-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "loadAkademiSharedPartials",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "applyFilters",
+        "normalizeValue",
+        "setupCollectionFilters",
+        "setupFaqAccordion"
+      ],
+      "selectors": [
+        ".faq-btn",
+        ".faq-btn span:last-child",
+        ".faq-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "normalizeValue",
+      "type": "function",
+      "approx_occurrences": 5,
+      "calls": [
+        "applyFilters",
+        "setupCollectionFilters",
+        "setupFaqAccordion"
+      ],
+      "selectors": [
+        ".faq-btn",
+        ".faq-btn span:last-child",
+        ".faq-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setupCollectionFilters",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [
+        "applyFilters",
+        "normalizeValue",
+        "setupFaqAccordion"
+      ],
+      "selectors": [
+        ".faq-btn",
+        ".faq-btn span:last-child",
+        ".faq-item"
+      ],
+      "collections": []
+    },
+    {
+      "name": "setupFaqAccordion",
+      "type": "function",
+      "approx_occurrences": 1,
+      "calls": [],
+      "selectors": [
+        ".faq-btn",
+        ".faq-btn span:last-child",
+        ".faq-item"
+      ],
+      "collections": []
+    }
+  ]
+}

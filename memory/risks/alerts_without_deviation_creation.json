@@ -1,0 +1,57 @@
+{
+  "risk": "alerts_without_deviation_creation",
+  "occurrences": [
+    {
+      "source_file": "firestore.indexes.json",
+      "module": "general"
+    },
+    {
+      "source_file": "functions/admin/softArchive.js",
+      "module": "general"
+    },
+    {
+      "source_file": "functions/water-module.js",
+      "module": "general"
+    },
+    {
+      "source_file": "public/dashboard.html",
+      "module": "dashboard"
+    },
+    {
+      "source_file": "public/kontrol.html",
+      "module": "general"
+    },
+    {
+      "source_file": "public/modules/lager/dashboard.html",
+      "module": "dashboard"
+    },
+    {
+      "source_file": "public/scripts/seed-firestore-collections.js",
+      "module": "general"
+    },
+    {
+      "source_file": "public/seed-data/importAlerts.js",
+      "module": "general"
+    },
+    {
+      "source_file": "public/seed-data/importUsers.js",
+      "module": "general"
+    },
+    {
+      "source_file": "public/seed-data/resetDailyData.js",
+      "module": "general"
+    },
+    {
+      "source_file": "public/seed-data/resetDatabase.js",
+      "module": "general"
+    },
+    {
+      "source_file": "scripts/cleanupDuplicateTaskInstances.cjs",
+      "module": "general"
+    },
+    {
+      "source_file": "scripts/cleanupLegacyTaskTemplates.cjs",
+      "module": "general"
+    }
+  ]
+}

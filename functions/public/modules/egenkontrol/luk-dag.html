@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luk dag | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import app, { auth, db } from "/core/firebase-config.js";
+    import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+    const functions = getFunctions(app, "europe-west1");
+
+    let currentUser = null;
+    let userSettings = {};
+    let todayKey = "";
+
+    setupAuthGate({
+      appName: "Madkontrollen Pro - Luk Dag",
+      onAuthenticated: async ({ user, profile }) => {
+        currentUser = user;
+        userSettings = profile || {};
+
+        const today = new Date();
+        todayKey = today.toISOString().split("T")[0];
+        
+        await loadDayStatus();
+      },
+      onSignedOut: async () => {
+        document.body.innerHTML = '<div style="text-align:center;padding:100px 20px;"><h2>Log ind for at lukke dag</h2></div>';
+      }
+    });
+
+    async function loadDayStatus() {
+      const statusEl = document.getElementById("day-status");
+      const closeDayBtn = document.getElementById("close-day-btn");
+      const summaryEl = document.getElementById("summary-content");
+
+      if (!userSettings.companyId || !userSettings.locationId) {
+        statusEl.innerHTML = '<div class="error-box">Brugerens companyId/locationId mangler.</div>';
+        closeDayBtn.disabled = true;
+        return;
+      }
+
+      // Check if day is started
+      const runQuery = query(
+        collection(db, "daily_runs"),
+        where("companyId", "==", userSettings.companyId),
+        where("locationId", "==", userSettings.locationId),
+        where("dateKey", "==", todayKey)
+      );
+
+      const runSnapshot = await getDocs(runQuery);
+
+      if (runSnapshot.empty) {
+        statusEl.innerHTML = '<div class="warning-box">Ingen aktiv dag fundet. Start dagen først.</div>';
+        closeDayBtn.disabled = true;
+        return;
+      }
+
+      const runDoc = runSnapshot.docs[0];
+      const runData = runDoc.data();
+
+      if (runData.status === "closed") {
+        statusEl.innerHTML = '<div class="success-box">✅ Dagen er allerede lukket og rapporten er genereret.</div>';
+        closeDayBtn.disabled = true;
+        
+        if (runData.reportId) {
+          summaryEl.innerHTML = `
+            <div class="report-link-box">
+              <p>Rapporten er klar til visning:</p>
+              <a href="/modules/egenkontrol/rapporter.html?reportId=${runData.reportId}" class="btn btn-primary">
+                📄 Se rapport
+              </a>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // Load validation data
+      const tasksQuery = query(
+        collection(db, "task_instances"),
+        where("companyId", "==", userSettings.companyId),
+        where("locationId", "==", userSettings.locationId),
+        where("dateKey", "==", todayKey)
+      );
+
+      const tasksSnapshot = await getDocs(tasksQuery);
+      const allTasks = tasksSnapshot.docs.map((d) => ({
+        id: d.id,
+        ...d.data()
+      }));
+
+      const entriesQuery = query(
+        collection(db, "task_entries"),
+        where("locationId", "==", userSettings.locationId)
+      );
+
+      const entriesSnapshot = await getDocs(entriesQuery);
+      const taskEntries = entriesSnapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      }));
+
+      const deviationsQuery = query(
+        collection(db, "deviations"),
+        where("companyId", "==", userSettings.companyId),
+        where("locationId", "==", userSettings.locationId)
+      );
+
+      const deviationsSnapshot = await getDocs(deviationsQuery);
+      const allDeviations = deviationsSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const todayDeviations = allDeviations.filter(dev => {
+        const createdDate = dev.createdAt?.toDate?.();
+        if (!createdDate) return false;
+        const devDateKey = createdDate.toISOString().split("T")[0];
+        return devDateKey === todayKey;
+      });
+
+      const openDeviations = todayDeviations.filter(d => d.status === "open");
+
+      function isTaskCompletedForClosure(task) {
+        const status = task.status || "";
+        
+        if (status === "completed" || status === "failed") return true;
+        if (status === "not_in_use" || status === "not_applicable") return true;
+        if (status === "done" || status === "closed") return true;
+        
+        if (task.completedAt) return true;
+        if (task.handledAt) return true;
+        if (task.resolvedAt) return true;
+        if (task.archivedAt) return true;
+        
+        if (task.registrationCompleted === true) return true;
+        if (task.registrationDeferred === true) return true;
+        
+        const hasEntry = taskEntries.some((e) =>
+          e.taskInstanceId === task.id ||
+          e.taskId === task.taskId
+        );
+        if (hasEntry) return true;
+        
+        const relatedDeviation = allDeviations.find(d => 
+          d.taskInstanceId === task.id ||
+          d.sourceTaskInstanceId === task.id ||
+          d.taskId === task.taskId
+        );
+        if (relatedDeviation && (relatedDeviation.status === "resolved" || relatedDeviation.status === "closed")) {
+          return true;
+        }
+        
+        return false;
+      }
+
+      const incompleteTasks = allTasks.filter((t) => {
+        if (isTaskCompletedForClosure(t)) return false;
+        
+        const deadline = t.deadlineAt || t.dueDate || "";
+        const deadlineKey = deadline ? String(deadline).split("T")[0] : "";
+
+        if (!deadlineKey) {
+          const status = t.status || "";
+          return status === "pending" || status === "failed" || status === "overdue";
+        }
+
+        return deadlineKey <= todayKey;
+      });
+
+      console.log("[luk-dag] Incomplete tasks:", incompleteTasks.length, "of", allTasks.length);
+      console.log("[luk-dag] Open deviations:", openDeviations.length, "of", todayDeviations.length);
+
+      // Display summary
+      summaryEl.innerHTML = `
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-label">Rutiner i alt</div>
+            <div class="summary-value">${allTasks.length}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Fuldførte</div>
+            <div class="summary-value ${allTasks.length - incompleteTasks.length === allTasks.length ? 'text-success' : ''}">${allTasks.length - incompleteTasks.length}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Manglende</div>
+            <div class="summary-value ${incompleteTasks.length > 0 ? 'text-error' : ''}">${incompleteTasks.length}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Afvigelser</div>
+            <div class="summary-value">${todayDeviations.length}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Åbne afvigelser</div>
+            <div class="summary-value ${openDeviations.length > 0 ? 'text-error' : 'text-success'}">${openDeviations.length}</div>
+          </div>
+        </div>
+      `;
+
+      // Validation warnings
+      const warnings = [];
+      if (incompleteTasks.length > 0) {
+        warnings.push(`⚠️ Du har ${incompleteTasks.length} ufuldførte rutine${incompleteTasks.length > 1 ? 'r' : ''}. Fuldfør alle opgaver før lukning.`);
+      }
+      if (openDeviations.length > 0) {
+        warnings.push(`🚨 Du mangler at udbedre ${openDeviations.length} afvigelse${openDeviations.length > 1 ? 'r' : ''}, før dagen kan lukkes.`);
+      }
+
+      if (warnings.length > 0) {
+        statusEl.innerHTML = `
+          <div class="warning-box">
+            ${warnings.map(w => `<div>${w}</div>`).join('')}
+          </div>
+        `;
+        closeDayBtn.disabled = true;
+      } else {
+        statusEl.innerHTML = `
+          <div class="success-box">
+            ✅ Alle rutiner er fuldført og alle afvigelser er udbedret. Dagen er klar til lukning.
+          </div>
+        `;
+        closeDayBtn.disabled = false;
+      }
+    }
+
+    window.closeDayNow = async function() {
+      const closeDayBtn = document.getElementById("close-day-btn");
+      const statusEl = document.getElementById("day-status");
+
+      if (!confirm("Er du sikker på at du vil lukke dagen og arkivere rapporten?\n\nDette vil generere en permanent rapport og låse dagens data.")) {
+        return;
+      }
+
+      closeDayBtn.disabled = true;
+      closeDayBtn.textContent = "Lukker dag...";
+      statusEl.innerHTML = '<div class="loading-box">⏳ Arkiverer dagens data og genererer rapport...</div>';
+
+      try {
+        const closeDailyRunFn = httpsCallable(functions, "closeDailyRun");
+        const result = await closeDailyRunFn({
+          companyId: userSettings.companyId,
+          locationId: userSettings.locationId,
+          dateKey: todayKey
+        });
+
+        const data = result.data;
+
+        if (!data.success) {
+          throw new Error("Fejl ved lukning");
+        }
+
+        statusEl.innerHTML = `
+          <div class="success-box">
+            ✅ Dagen er afsluttet, rapporten er gemt og klar til udskrift.
+          </div>
+        `;
+
+        const summaryEl = document.getElementById("summary-content");
+        summaryEl.innerHTML = `
+          <div class="report-link-box">
+            <p><strong>Dagen er arkiveret!</strong> Rapporten er låst og klar til PDF.</p>
+            <a href="/modules/egenkontrol/rapporter.html?reportId=${data.reportId}" class="btn btn-primary">
+              📄 Se rapport
+            </a>
+            <a href="/modules/egenkontrol/rutiner.html" class="btn btn-secondary" style="margin-left: 12px;">
+              🏠 Tilbage til dashboard
+            </a>
+          </div>
+        `;
+
+        closeDayBtn.textContent = "✓ Dag lukket";
+      } catch (error) {
+        console.error("Fejl ved lukning af dag:", error);
+        
+        const errorMsg = error.message === "internal" 
+          ? "Dagen kunne ikke lukkes endnu. Prøv igen."
+          : error.message || "Kunne ikke lukke dagen. Prøv igen.";
+        
+        statusEl.innerHTML = `
+          <div class="error-box">
+            ❌ ${errorMsg}
+          </div>
+        `;
+        closeDayBtn.disabled = false;
+        closeDayBtn.textContent = "Luk dagen og arkivér rapport";
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #111827;
+      margin: 0 0 8px;
+    }
+
+    .page-header p {
+      font-size: 15px;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 20px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .text-success {
+      color: #059669;
+    }
+
+    .text-error {
+      color: #dc2626;
+    }
+
+    .warning-box, .error-box, .success-box, .loading-box {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .warning-box {
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      color: #92400e;
+    }
+
+    .error-box {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    .success-box {
+      background: #d1fae5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+    }
+
+    .loading-box {
+      background: #e0e7ff;
+      border: 1px solid #c7d2fe;
+      color: #3730a3;
+    }
+
+    .report-link-box {
+      padding: 20px;
+      background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+      border: 1px solid #a7f3d0;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .report-link-box p {
+      margin: 0 0 16px;
+      font-size: 15px;
+      color: #065f46;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #2563eb;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-large {
+      padding: 16px 32px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .actions {
+      text-align: center;
+      margin-top: 28px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-header">
+      <h1>Luk dagen og arkivér rapport</h1>
+      <p>Afslut dagens dokumentation og gem permanent rapport</p>
+    </div>
+
+    <div class="card">
+      <h2>Dagens status</h2>
+      <div id="summary-content"></div>
+      <div id="day-status"></div>
+    </div>
+
+    <div class="actions">
+      <button id="close-day-btn" class="btn btn-primary btn-large" onclick="closeDayNow()" disabled>
+        🔒 Luk dagen og arkivér rapport
+      </button>
+    </div>
+
+    <div class="card" style="margin-top: 32px;">
+      <h2>Hvad sker der ved lukning?</h2>
+      <ul style="line-height: 1.8; color: #374151;">
+        <li><strong>Validering:</strong> Systemet tjekker at alle rutiner er fuldført og alle afvigelser er udbedret</li>
+        <li><strong>Rapport genereres:</strong> Alle dagens data samles i en permanent rapport</li>
+        <li><strong>Data arkiveres:</strong> Rapporten gemmes permanent i daily_reports collection</li>
+        <li><strong>Rapport låses:</strong> Dagens data kan ikke længere ændres</li>
+        <li><strong>Klar til PDF:</strong> Rapporten kan udvides til PDF-generering senere</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
