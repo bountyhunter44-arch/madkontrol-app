@@ -3436,16 +3436,225 @@ function setLocationLabel() {
             const key = raw.toLowerCase().replace(/[_-]+/g, " ");
 
             if (!key) return "Ukendt dokument";
-            if (key.includes("følgeseddel") || key.includes("foelgeseddel") || key.includes("delivery note")) return "Følgeseddel";
-            if (key.includes("fragtbrev") || key.includes("waybill") || key.includes("bill of lading")) return "Fragtbrev";
-            if (key.includes("leveringsseddel") || key.includes("packing slip")) return "Leveringsseddel";
-            if (key.includes("invoice") || key.includes("faktura")) return "Invoice";
+            if (key.includes("delivery document") || key.includes("leveringsdokument")) return "Leveringsdokument";
+            if (key.includes("følgeseddel") || key.includes("foelgeseddel") || key.includes("følge seddel") || key.includes("folge seddel") || key.includes("folgeseddel") || key.includes("delivery note")) return "Følgeseddel";
+            if (key.includes("fragtbrev") || key.includes("fragt brev") || key.includes("waybill") || key.includes("bill of lading")) return "Fragtbrev/leveringsdokument";
+            if (key.includes("leveringsseddel") || key.includes("packing slip") || key.includes("shipment note")) return "Følgeseddel";
+            if (key.includes("invoice") || key.includes("faktura") || key.includes("regning")) return "Faktura";
+            if (key.includes("receipt") || key.includes("kvittering")) return "Kvittering";
             if (key.includes("unknown") || key.includes("ukendt")) return "Ukendt dokument";
 
             return raw;
         }
 
+        function getDocumentText(media = {}) {
+            return [
+                media.documentType,
+                media.documentKind,
+                media.deliveryCategory,
+                media.rejectionReason,
+                media.analysisResult?.documentType,
+                media.cloudinaryAnalysis?.documentType,
+                media.aiAnalysis?.suggestedIssue,
+                media.aiAnalysis?.warning,
+                media.aiSuggestion?.beskrivelse,
+                media.aiDescription,
+                media.beskrivelse,
+                media.finance?.leverandor,
+                media.aiSuggestion?.finance?.leverandor,
+                media.analysisResult?.finance?.leverandor,
+                ...(Array.isArray(media.aiAnalysis?.labels) ? media.aiAnalysis.labels : []),
+                ...(Array.isArray(media.observationer) ? media.observationer : []),
+                ...(Array.isArray(media.aiSuggestion?.observationer) ? media.aiSuggestion.observationer : [])
+            ].map((value) => String(value || "").toLowerCase()).join(" ");
+        }
+
+        function getDocumentContentText(media = {}) {
+            return [
+                media.rejectionReason,
+                media.aiAnalysis?.suggestedIssue,
+                media.aiAnalysis?.warning,
+                media.aiSuggestion?.beskrivelse,
+                media.aiDescription,
+                media.beskrivelse,
+                media.finance?.leverandor,
+                media.aiSuggestion?.finance?.leverandor,
+                media.analysisResult?.finance?.leverandor,
+                ...(Array.isArray(media.aiAnalysis?.labels) ? media.aiAnalysis.labels : []),
+                ...(Array.isArray(media.observationer) ? media.observationer : []),
+                ...(Array.isArray(media.aiSuggestion?.observationer) ? media.aiSuggestion.observationer : [])
+            ].map((value) => String(value || "").toLowerCase()).join(" ");
+        }
+
+        function hasAnyDocumentWord(text, words = []) {
+            const haystack = String(text || "").toLowerCase();
+            return words.some((word) => haystack.includes(word));
+        }
+
+        function getDocumentWordFlags(media = {}) {
+            const text = getDocumentText(media);
+            const contentText = getDocumentContentText(media);
+            const deliveryWords = [
+                "følgeseddel",
+                "foelgeseddel",
+                "følge seddel",
+                "folge seddel",
+                "folgeseddel",
+                "fragtbrev",
+                "fragt brev",
+                "leveringsseddel",
+                "delivery note",
+                "packing slip",
+                "shipment note"
+            ];
+            const strongInvoiceWords = [
+                "faktura",
+                "regning",
+                "pris i alt",
+                "moms",
+                "subtotal",
+                "total",
+                "betalingsbetingelser",
+                "fakturanr",
+                "faktura nr",
+                "cvr",
+                "vat"
+            ];
+            const hasDeliveryWords = hasAnyDocumentWord(text, deliveryWords);
+            const hasContentInvoiceWord = hasAnyDocumentWord(contentText, ["invoice"]);
+            const hasStrongInvoiceWords = hasAnyDocumentWord(contentText, strongInvoiceWords);
+            const hasMetadataInvoiceOnly = hasAnyDocumentWord(text, ["invoice"]) && !hasContentInvoiceWord && !hasStrongInvoiceWords;
+
+            return {
+                text,
+                hasDeliveryWords,
+                hasInvoiceWords: hasStrongInvoiceWords || hasContentInvoiceWord || (hasMetadataInvoiceOnly && !hasDeliveryWords),
+                hasFreightWords: hasAnyDocumentWord(text, ["fragtbrev", "fragt brev"]),
+                hasReceiptWords: hasAnyDocumentWord(text, ["receipt", "kvittering"])
+            };
+        }
+
+        function resolveDocumentKind(media = {}) {
+            const explicit = String(firstPresent(
+                media.documentKind,
+                media.document_kind,
+                media.analysisResult?.documentKind,
+                media.cloudinaryAnalysis?.documentKind
+            ) || "").toLowerCase();
+            const flags = getDocumentWordFlags(media);
+            const text = `${explicit} ${flags.text}`;
+
+            if (flags.hasInvoiceWords) return "invoice";
+            if (text.includes("fragtbrev") || text.includes("waybill") || text.includes("bill of lading")) return "freight_document";
+            if (flags.hasDeliveryWords || text.includes("ordreseddel") || text.includes("leveringsdokument")) return "delivery_note";
+            if (String(media.kategori || media.aiSuggestion?.kategori || "").toLowerCase() === "finance" || text.includes("invoice") || text.includes("faktura")) return "invoice";
+            if (text.includes("service") || text.includes("vedligehold") || text.includes("maintenance") || text.includes("reparation")) return "maintenance_document";
+            if (flags.hasReceiptWords) return "receipt";
+
+            return "unknown";
+        }
+
+        function resolveDeliveryCategory(media = {}) {
+            const explicit = String(firstPresent(
+                media.deliveryCategory,
+                media.delivery_category,
+                media.analysisResult?.deliveryCategory,
+                media.cloudinaryAnalysis?.deliveryCategory
+            ) || "").toLowerCase();
+            const text = `${explicit} ${getDocumentText(media)}`;
+
+            if (text.includes("glas") || text.includes("inventar") || text.includes("service") || text.includes("køkkenudstyr") || text.includes("koekkenudstyr")) return "non_food_inventory";
+            if (text.includes("emballage") || text.includes("packaging") || text.includes("pose") || text.includes("bakke") || text.includes("bæger")) return "packaging";
+            if (text.includes("rengøring") || text.includes("rengoring") || text.includes("cleaning") || text.includes("kemi") || text.includes("sæbe") || text.includes("saebe")) return "cleaning";
+            if (text.includes("udstyr") || text.includes("equipment") || text.includes("reservedele") || text.includes("reservedel")) return "equipment";
+            if (text.includes("fødevare") || text.includes("foedevare") || text.includes("food") || text.includes("kød") || text.includes("koed") || text.includes("fisk") || text.includes("mejeri") || text.includes("grønt") || text.includes("groent")) return "food";
+
+            return "unknown";
+        }
+
+        function formatDeliveryCategoryLabel(value) {
+            const labels = {
+                food: "Fødevarer",
+                non_food_inventory: "Ikke-fødevarer / inventar",
+                packaging: "Emballage",
+                cleaning: "Rengøring",
+                equipment: "Udstyr",
+                unknown: "Ukendt kategori"
+            };
+            return labels[value] || labels.unknown;
+        }
+
+        // TODO: Faktura-dokumenter kan senere sendes til bogføring/Dinero-flow med moms, total og leverandør.
+
+        function resolveFoodSafetyRelevant(documentKind, deliveryCategory) {
+            if (deliveryCategory === "food" || deliveryCategory === "cleaning" || deliveryCategory === "packaging") return true;
+            if (["delivery_note", "invoice", "freight_document", "maintenance_document", "receipt"].includes(documentKind)) return false;
+            return false;
+        }
+
+        function extractDocumentDetails(media = {}) {
+            const sourceText = [
+                media.orderNumber,
+                media.orderNo,
+                media.ordrenr,
+                media.aiSuggestion?.beskrivelse,
+                media.aiDescription,
+                media.beskrivelse,
+                media.rejectionReason,
+                ...(Array.isArray(media.observationer) ? media.observationer : []),
+                ...(Array.isArray(media.aiSuggestion?.observationer) ? media.aiSuggestion.observationer : [])
+            ].map((value) => String(value || "")).join(" ");
+            const orderNumber = firstPresent(
+                media.orderNumber,
+                media.orderNo,
+                media.ordrenr,
+                sourceText.match(/\bRoyal\d{3,}\b/i)?.[0],
+                sourceText.match(/\b(?:ordre|order|ordrenr)[\s.:#-]*([A-Z0-9-]{4,})\b/i)?.[1]
+            );
+            const content = firstPresent(
+                media.contentSummary,
+                media.deliveryContent,
+                media.analysisResult?.contentSummary,
+                media.cloudinaryAnalysis?.contentSummary,
+                getDocumentText(media).includes("glas") || getDocumentText(media).includes("inventar") ? "Glas / inventar" : ""
+            );
+
+            return {
+                orderNumber: orderNumber ? String(orderNumber) : "",
+                content: content ? String(content) : ""
+            };
+        }
+
+        function classifyDocumentMedia(media = {}) {
+            const documentKind = resolveDocumentKind(media);
+            const deliveryCategory = resolveDeliveryCategory(media);
+            const foodSafetyRelevant = resolveFoodSafetyRelevant(documentKind, deliveryCategory);
+            const acceptedAsDocumentation = ["delivery_note", "invoice", "freight_document", "maintenance_document", "receipt"].includes(documentKind);
+            return {
+                documentKind,
+                documentDisplayType: resolveDocumentDisplayType(media, documentKind),
+                deliveryCategory,
+                foodSafetyRelevant,
+                acceptedAsDocumentation,
+                ...extractDocumentDetails(media)
+            };
+        }
+
+        function resolveDocumentDisplayType(media = {}, documentKind = resolveDocumentKind(media)) {
+            const flags = getDocumentWordFlags(media);
+
+            if (flags.hasInvoiceWords || documentKind === "invoice") return "Faktura";
+            if (flags.hasFreightWords || documentKind === "freight_document") return "Fragtbrev/leveringsdokument";
+            if (flags.hasDeliveryWords || documentKind === "delivery_note") return "Følgeseddel";
+            if (flags.hasReceiptWords || documentKind === "receipt") return "Kvittering";
+
+            return "Ukendt dokument";
+        }
+
         function resolveDocumentType(media = {}) {
+            const displayType = resolveDocumentDisplayType(media);
+            if (displayType !== "Ukendt dokument") return displayType;
+
             const explicitType = firstPresent(
                 media.documentType,
                 media.document_type,
@@ -3459,20 +3668,15 @@ function setLocationLabel() {
 
             if (explicitType) return formatDocumentTypeLabel(explicitType);
 
-            const text = [
-                media.rejectionReason,
-                media.aiAnalysis?.suggestedIssue,
-                media.aiAnalysis?.warning,
-                media.aiSuggestion?.beskrivelse,
-                media.aiDescription,
-                media.beskrivelse,
-                ...(Array.isArray(media.aiAnalysis?.labels) ? media.aiAnalysis.labels : [])
-            ].map((value) => String(value || "").toLowerCase()).join(" ");
+            const text = getDocumentText(media);
 
-            if (text.includes("følgeseddel") || text.includes("foelgeseddel") || text.includes("delivery note")) return "Følgeseddel";
-            if (text.includes("fragtbrev") || text.includes("waybill")) return "Fragtbrev";
-            if (text.includes("leveringsseddel") || text.includes("packing slip")) return "Leveringsseddel";
-            if (text.includes("invoice") || text.includes("faktura")) return "Invoice";
+            if (text.includes("leveringsdokument")) return "Leveringsdokument";
+            if (text.includes("følgeseddel") || text.includes("foelgeseddel") || text.includes("følge seddel") || text.includes("folge seddel") || text.includes("folgeseddel") || text.includes("delivery note")) return "Følgeseddel";
+            if (text.includes("fragtbrev") || text.includes("fragt brev") || text.includes("waybill")) return "Fragtbrev/leveringsdokument";
+            if (text.includes("leveringsseddel") || text.includes("packing slip") || text.includes("shipment note")) return "Følgeseddel";
+            if (text.includes("invoice") || text.includes("faktura") || text.includes("regning")) return "Faktura";
+            if (text.includes("ordreseddel")) return "Følgeseddel";
+            if (text.includes("kvittering") || text.includes("receipt")) return "Kvittering";
 
             return "Ukendt dokument";
         }
@@ -3488,6 +3692,8 @@ function setLocationLabel() {
                 media.analysisResult?.confidence
             ));
             const documentType = resolveDocumentType(media);
+            const classification = classifyDocumentMedia(media);
+            const acceptedAsDocumentation = media.acceptedAsDocumentation === true || classification.acceptedAsDocumentation;
             const hasAnalysis = Boolean(
                 media.analyzedAt ||
                 media.aiModel ||
@@ -3523,13 +3729,25 @@ function setLocationLabel() {
                 };
             }
 
+            if (acceptedAsDocumentation) {
+                return {
+                    status: "approved",
+                    title: `✓ ${documentType === "Ukendt dokument" ? "Leveringsdokument" : documentType} genkendt`,
+                    message: "Dokumentation gemt.",
+                    documentType,
+                    confidence,
+                    ...classification
+                };
+            }
+
             if (media.rejected === true || media.acceptedAsDocumentation === false) {
                 return {
                     status: "rejected",
-                    title: "✖ Dokument ligner ikke fragtbrev/følgeseddel",
-                    message: String(media.rejectionReason || "Upload et tydeligt billede af fragtbrev eller følgeseddel."),
+                    title: "✖ Dokument ikke genkendt",
+                    message: String(media.rejectionReason || "Upload et tydeligt billede af et leveringsdokument."),
                     documentType,
-                    confidence
+                    confidence,
+                    ...classification
                 };
             }
 
@@ -3539,7 +3757,8 @@ function setLocationLabel() {
                     title: "⚠ Dokument kunne ikke genkendes sikkert",
                     message: "Billedet er gemt til manuel kontrol.",
                     documentType,
-                    confidence
+                    confidence,
+                    ...classification
                 };
             }
 
@@ -3549,7 +3768,8 @@ function setLocationLabel() {
                     title: "⚠ Lav sikkerhed i dokumentanalyse",
                     message: "Kontrollér manuelt dokumentet.",
                     documentType,
-                    confidence
+                    confidence,
+                    ...classification
                 };
             }
 
@@ -3559,7 +3779,8 @@ function setLocationLabel() {
                     title: "⚠ Manuel kontrol anbefales",
                     message: String(media.aiAnalysis.warning),
                     documentType,
-                    confidence
+                    confidence,
+                    ...classification
                 };
             }
 
@@ -3568,7 +3789,8 @@ function setLocationLabel() {
                 title: `✓ ${documentType === "Ukendt dokument" ? "Dokument" : documentType} genkendt`,
                 message: "Dokumentation accepteret.",
                 documentType,
-                confidence
+                confidence,
+                ...classification
             };
         }
 
@@ -3580,6 +3802,15 @@ function setLocationLabel() {
             const documentTypeText = review.documentType
                 ? `<div class="task-docs-review-detail">Dokumenttype: ${escapeHtml(review.documentType)}</div>`
                 : "";
+            const orderNumberText = review.orderNumber
+                ? `<div class="task-docs-review-detail">Ordrenr: ${escapeHtml(review.orderNumber)}</div>`
+                : "";
+            const contentText = review.content
+                ? `<div class="task-docs-review-detail">Indhold: ${escapeHtml(review.content)}</div>`
+                : "";
+            const deliveryCategoryText = review.deliveryCategory
+                ? `<div class="task-docs-review-detail">Kategori: ${escapeHtml(formatDeliveryCategoryLabel(review.deliveryCategory))}</div>`
+                : "";
             const messageText = review.message
                 ? `<div class="task-docs-review-message">${escapeHtml(review.message)}</div>`
                 : "";
@@ -3589,6 +3820,9 @@ function setLocationLabel() {
                     <div class="task-docs-review-title">${escapeHtml(review.title)}</div>
                     ${confidenceText}
                     ${documentTypeText}
+                    ${orderNumberText}
+                    ${contentText}
+                    ${deliveryCategoryText}
                     ${messageText}
                 </div>
             `;
@@ -8630,6 +8864,52 @@ const buildFryerRoutineCompletionEntry = () => {
                                 cameraButton.textContent = "✓ Foto gemt";
                             } else if (aiResult && !isRelevant) {
                                 // IMAGE REJECTED - Not relevant for egenkontrol
+                                const documentClassification = classifyDocumentMedia({
+                                    ...aiResult,
+                                    aiSuggestion: aiResult,
+                                    finance: aiResult.finance,
+                                    documentType: String(aiResult.kategori || "").toLowerCase() === "finance" ? "invoice" : "",
+                                    beskrivelse: [aiResult.beskrivelse, task?.title, task?.description, task?.category].filter(Boolean).join(" "),
+                                    observationer: aiResult.observationer || []
+                                });
+                                const documentLooksValid = documentClassification.acceptedAsDocumentation && String(aiResult.image_clarity || "").toLowerCase() !== "unclear" && Number(aiResult.confidence || 0) >= 0.4;
+
+                                if (documentLooksValid) {
+                                    if (mediaAssetRef) {
+                                        await updateDoc(mediaAssetRef, {
+                                            rejected: false,
+                                            acceptedAsDocumentation: true,
+                                            needsManualReview: false,
+                                            documentKind: documentClassification.documentKind,
+                                            deliveryCategory: documentClassification.deliveryCategory,
+                                            foodSafetyRelevant: documentClassification.foodSafetyRelevant,
+                                            documentType: documentClassification.documentKind === "invoice" ? "invoice" : "delivery_note",
+                                            documentConfidence: Number(aiResult.confidence || 0),
+                                            orderNumber: documentClassification.orderNumber || "",
+                                            contentSummary: documentClassification.content || "",
+                                            aiAnalysis: {
+                                                confidence: aiAnalysis?.confidence || 0,
+                                                labels: aiAnalysis?.labels || [],
+                                                warning: "",
+                                                severity: aiAnalysis?.severity || "low",
+                                                suggestedIssue: aiAnalysis?.suggestedIssue || "",
+                                                createdAt: aiAnalysis?.createdAt || new Date().toISOString()
+                                            },
+                                            aiSuggestion: {
+                                                handling_udfort: aiResult.handling_udfort === true,
+                                                beskrivelse: String(aiResult.beskrivelse || ""),
+                                                confidence: Number(aiResult.confidence || 0),
+                                                kategori: String(aiResult.kategori || "")
+                                            },
+                                            aiModel: String(analyzeResp?.data?.model || ""),
+                                            analyzedAt: serverTimestamp()
+                                        });
+                                    }
+
+                                    cameraButton.textContent = "✓ Dokument gemt";
+                                    cameraButton.style.backgroundColor = "";
+                                    cameraButton.style.color = "";
+                                } else {
                                 const actionEl = cameraButton.closest(".task-action");
                                 if (actionEl) {
                                     let rejectionCard = actionEl.querySelector(".task-ai-rejection");
@@ -8697,6 +8977,7 @@ const buildFryerRoutineCompletionEntry = () => {
                                 cameraButton.style.backgroundColor = "#f8d7da";
                                 cameraButton.style.color = "#721c24";
                                 return;
+                                }
                             }
 
                             if (aiResult && isRelevant) {
