@@ -1874,6 +1874,7 @@ requiredBeforeEdit:
             loadOnboardingFromFirestore, 
             ensureRiskAnalysisForLocation 
         } from "/modules/egenkontrol/riskAnalysisService.js";
+        import { resolveDocumentTypeFromRegistry } from "./config/document-type-registry.js";
         import { resolvePrettyCompanyInfo } from "/core/prettyName.js";
         import { startCoolingRun, getActiveCoolingRun, getActiveCoolingRuns } from "/core/cooling-overlay.js";
         import { createAuditUpdateFields, createAuditCompleteFields } from "/core/auditFields.js";
@@ -3486,6 +3487,65 @@ function setLocationLabel() {
             ].map((value) => String(value || "").toLowerCase()).join(" ");
         }
 
+        function collectDocumentRegistryText(media = {}) {
+            const pushObjectValues = (source = {}) => Object.values(source || {})
+                .filter((value) => ["string", "number", "boolean"].includes(typeof value))
+                .map((value) => String(value));
+
+            return [
+                media.documentDisplayType,
+                media.documentType,
+                media.document_type,
+                media.documentKind,
+                media.document_kind,
+                media.title,
+                media.label,
+                media.name,
+                media.itemName,
+                media.rejectionReason,
+                media.aiDescription,
+                media.beskrivelse,
+                media.description,
+                media.orderNumber,
+                media.orderNo,
+                media.ordrenr,
+                media.contentSummary,
+                media.deliveryContent,
+                media.aiAnalysis?.documentType,
+                media.aiAnalysis?.document_type,
+                media.aiAnalysis?.suggestedIssue,
+                media.aiAnalysis?.warning,
+                media.aiSuggestion?.documentType,
+                media.aiSuggestion?.document_type,
+                media.aiSuggestion?.beskrivelse,
+                media.aiSuggestion?.kategori,
+                media.lastAiSuggestion?.documentType,
+                media.lastAiSuggestion?.document_type,
+                media.lastAiSuggestion?.beskrivelse,
+                media.analysisResult?.documentType,
+                media.analysisResult?.document_type,
+                media.analysisResult?.beskrivelse,
+                media.cloudinaryAnalysis?.documentType,
+                media.cloudinaryAnalysis?.document_type,
+                media.cloudinaryAnalysis?.beskrivelse,
+                ...pushObjectValues(media.finance),
+                ...pushObjectValues(media.aiSuggestion?.finance),
+                ...pushObjectValues(media.lastAiSuggestion?.finance),
+                ...pushObjectValues(media.analysisResult?.finance),
+                ...(Array.isArray(media.aiAnalysis?.labels) ? media.aiAnalysis.labels : []),
+                ...(Array.isArray(media.observationer) ? media.observationer : []),
+                ...(Array.isArray(media.aiSuggestion?.observationer) ? media.aiSuggestion.observationer : []),
+                ...(Array.isArray(media.lastAiSuggestion?.observationer) ? media.lastAiSuggestion.observationer : [])
+            ].map((value) => String(value || "")).join(" ");
+        }
+
+        function resolveDocumentRegistryType(media = {}) {
+            return resolveDocumentTypeFromRegistry(
+                collectDocumentRegistryText(media),
+                firstPresent(media.documentType, media.document_type, media.aiAnalysis?.documentType, media.aiSuggestion?.documentType, media.analysisResult?.documentType, "")
+            );
+        }
+
         function hasAnyDocumentWord(text, words = []) {
             const haystack = String(text || "").toLowerCase();
             return words.some((word) => haystack.includes(word));
@@ -3535,6 +3595,9 @@ function setLocationLabel() {
         }
 
         function resolveDocumentKind(media = {}) {
+            const registryType = resolveDocumentRegistryType(media);
+            if (registryType.documentKind !== "unknown") return registryType.documentKind;
+
             const explicit = String(firstPresent(
                 media.documentKind,
                 media.document_kind,
@@ -3547,7 +3610,6 @@ function setLocationLabel() {
             if (flags.hasInvoiceWords) return "invoice";
             if (text.includes("fragtbrev") || text.includes("waybill") || text.includes("bill of lading")) return "freight_document";
             if (flags.hasDeliveryWords || text.includes("ordreseddel") || text.includes("leveringsdokument")) return "delivery_note";
-            if (String(media.kategori || media.aiSuggestion?.kategori || "").toLowerCase() === "finance" || text.includes("invoice") || text.includes("faktura")) return "invoice";
             if (text.includes("service") || text.includes("vedligehold") || text.includes("maintenance") || text.includes("reparation")) return "maintenance_document";
             if (flags.hasReceiptWords) return "receipt";
 
@@ -3641,10 +3703,13 @@ function setLocationLabel() {
         }
 
         function resolveDocumentDisplayType(media = {}, documentKind = resolveDocumentKind(media)) {
+            const registryType = resolveDocumentRegistryType(media);
+            if (registryType.documentKind !== "unknown") return registryType.displayName;
+
             const flags = getDocumentWordFlags(media);
 
             if (flags.hasInvoiceWords || documentKind === "invoice") return "Faktura";
-            if (flags.hasFreightWords || documentKind === "freight_document") return "Fragtbrev/leveringsdokument";
+            if (flags.hasFreightWords || documentKind === "freight_document") return "Fragtbrev";
             if (flags.hasDeliveryWords || documentKind === "delivery_note") return "Følgeseddel";
             if (flags.hasReceiptWords || documentKind === "receipt") return "Kvittering";
 
