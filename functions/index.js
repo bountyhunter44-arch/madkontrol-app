@@ -73,6 +73,8 @@ const EMAIL_USER = defineSecret("EMAIL_USER");
 const EMAIL_PASSWORD = defineSecret("EMAIL_PASSWORD");
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
+const AZURE_TTS_KEY = defineSecret("AZURE_TTS_KEY");
+const AZURE_TTS_REGION = defineSecret("AZURE_TTS_REGION");
 
 function getStripeConfig() {
   const config = FUNCTIONS_CONFIG.value();
@@ -9826,6 +9828,623 @@ function extractSeoRelevantText(html) {
     text ? `Content: ${text}` : ""
   ].filter(Boolean).join(" | ").slice(0, 3000);
 }
+
+function estimatePodcastAudioDurationSeconds(text) {
+  const words = String(text || "").trim().split(/\s+/).filter(Boolean).length;
+  if (!words) return null;
+  return Math.max(1, Math.round((words / 145) * 60));
+}
+
+function chunkPodcastText(text, maxChars = 4800) {
+  const raw = String(text || "").replace(/\s+/g, " ").trim();
+  if (!raw) return [];
+  if (raw.length <= maxChars) return [raw];
+
+  const chunks = [];
+  let remaining = raw;
+  while (remaining.length) {
+    if (remaining.length <= maxChars) {
+      chunks.push(remaining.trim());
+      break;
+    }
+
+    const slice = remaining.slice(0, maxChars);
+    const breakAt = Math.max(
+      slice.lastIndexOf(". "),
+      slice.lastIndexOf("! "),
+      slice.lastIndexOf("? "),
+      slice.lastIndexOf("; "),
+      slice.lastIndexOf(", ")
+    );
+    const splitAt = breakAt > 1200 ? breakAt + 1 : maxChars;
+    chunks.push(remaining.slice(0, splitAt).trim());
+    remaining = remaining.slice(splitAt).trim();
+  }
+
+  return chunks.filter(Boolean);
+}
+
+function resolveAzureTtsConfig() {
+  const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+  const apiKey = isEmulator
+    ? process.env.AZURE_TTS_KEY || ""
+    : AZURE_TTS_KEY.value() || "";
+  const region = isEmulator
+    ? process.env.AZURE_TTS_REGION || ""
+    : AZURE_TTS_REGION.value() || "";
+  const endpoint = process.env.AZURE_TTS_ENDPOINT || `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
+
+  if (!apiKey || !region) {
+    throw new HttpsError(
+      "failed-precondition",
+      isEmulator
+        ? "Azure TTS config missing in emulator. Add AZURE_TTS_KEY and AZURE_TTS_REGION to functions/.env."
+        : "Azure TTS config missing in production. Set AZURE_TTS_KEY and AZURE_TTS_REGION as Firebase Secrets."
+    );
+  }
+
+  return { apiKey, region, endpoint };
+}
+
+function escapeSsmlText(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function resolveAzureLanguage(language) {
+  const normalized = String(language || "da").trim().toLowerCase();
+  if (normalized === "da") return "da-DK";
+  return normalized || "da-DK";
+}
+
+function resolveAzureVoiceName(voiceName) {
+  return sanitizeString(voiceName || "da-DK-ChristelNeural", 160);
+}
+
+function resolveAzureOutputFormat(outputFormat) {
+  const normalized = sanitizeString(outputFormat || "mp3", 20).toLowerCase() || "mp3";
+  if (normalized !== "mp3") {
+    throw new HttpsError("invalid-argument", "Azure TTS understotter kun mp3 i dette flow.");
+  }
+  return "mp3";
+}
+
+async function callAzureTtsProvider({
+  inputText,
+  voiceName,
+  outputFormat,
+  language
+}) {
+  const config = resolveAzureTtsConfig();
+  const safeFormat = resolveAzureOutputFormat(outputFormat);
+  const locale = resolveAzureLanguage(language);
+  const resolvedVoiceName = resolveAzureVoiceName(voiceName);
+  const safeVoiceName = escapeSsmlText(resolvedVoiceName);
+  const ssml = [
+    `<speak version="1.0" xml:lang="${locale}">`,
+    `<voice xml:lang="${locale}" name="${safeVoiceName}">`,
+    escapeSsmlText(inputText),
+    "</voice>",
+    "</speak>"
+  ].join("");
+
+  const response = await fetch(config.endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/ssml+xml",
+      "Ocp-Apim-Subscription-Key": config.apiKey,
+      "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
+      "User-Agent": "madkontrollen-pro"
+    },
+    body: ssml
+  });
+
+  if (!response.ok) {
+    const providerStatus = await response.text().catch(() => String(response.status));
+    throw new HttpsError(
+      response.status === 429 ? "resource-exhausted" : "internal",
+      `Azure TTS failed with provider status: ${sanitizeString(providerStatus || response.status, 180)}`
+    );
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  const audioBuffer = Buffer.from(arrayBuffer);
+  if (!audioBuffer.length) {
+    throw new HttpsError("internal", "Azure TTS returned empty audio.");
+  }
+
+  return {
+    provider: "azure",
+    status: "synthesized",
+    audioBuffer,
+    contentType: "audio/mpeg",
+    voiceName: resolvedVoiceName,
+    charactersCount: String(inputText || "").length,
+    providerCreatedTime: new Date().toISOString(),
+    language,
+    locale,
+    outputFormat: safeFormat
+  };
+}
+
+const PODCAST_AUDIO_MAX_BYTES = 50 * 1024 * 1024;
+const PODCAST_AUDIO_CONTENT_TYPES = new Set(["audio/mpeg", "audio/mp3"]);
+
+function validatePodcastAudioSave({ buffer, storagePath, contentType }) {
+  if (!Buffer.isBuffer(buffer) || !buffer.length) {
+    throw new HttpsError("internal", "Podcast audio buffer er tom.");
+  }
+  if (buffer.length > PODCAST_AUDIO_MAX_BYTES) {
+    throw new HttpsError("resource-exhausted", "Podcast audio er for stor til sikker upload.");
+  }
+  if (!PODCAST_AUDIO_CONTENT_TYPES.has(String(contentType || "").toLowerCase())) {
+    throw new HttpsError("invalid-argument", "Podcast audio contentType er ikke tilladt.");
+  }
+  if (!String(storagePath || "").toLowerCase().endsWith(".mp3")) {
+    throw new HttpsError("invalid-argument", "Podcast audio storage path skal ende paa .mp3.");
+  }
+  if (!String(storagePath || "").startsWith("companies/")) {
+    throw new HttpsError("permission-denied", "Podcast audio skal gemmes i company-scoped storage path.");
+  }
+}
+
+function isMissingBucketError(error) {
+  const message = String(error?.message || error || "").toLowerCase();
+  return message.includes("bucket does not exist") || message.includes("specified bucket does not exist");
+}
+
+function resolveStorageBucketCandidates() {
+  let firebaseConfig = {};
+  try {
+    firebaseConfig = process.env.FIREBASE_CONFIG ? JSON.parse(process.env.FIREBASE_CONFIG) : {};
+  } catch (error) {
+    console.warn("[podcast tts] could not parse FIREBASE_CONFIG for bucket resolution", {
+      error: sanitizeString(error?.message || error, 160)
+    });
+  }
+
+  const projectId = String(
+    admin.app().options?.projectId ||
+    process.env.GCLOUD_PROJECT ||
+    process.env.GCP_PROJECT ||
+    firebaseConfig.projectId ||
+    ""
+  ).trim();
+  const candidates = [
+    admin.app().options?.storageBucket,
+    process.env.FIREBASE_STORAGE_BUCKET,
+    firebaseConfig.storageBucket,
+    projectId ? `${projectId}.appspot.com` : "",
+    projectId ? `${projectId}.firebasestorage.app` : ""
+  ];
+
+  return [...new Set(candidates.map((value) => String(value || "").trim()).filter(Boolean))];
+}
+
+async function savePodcastAudioBufferToStorage({ buffer, storagePath, contentType = "audio/mpeg", auditContext = {} }) {
+  validatePodcastAudioSave({ buffer, storagePath, contentType });
+
+  const crypto = require("crypto");
+  const token = crypto.randomUUID();
+  const appStorageBucket = admin.app().options?.storageBucket || "";
+  const bucketCandidates = resolveStorageBucketCandidates();
+  if (!appStorageBucket) {
+    console.warn("[podcast tts] default storage bucket missing from admin app options", {
+      resolvedStorageBucket: appStorageBucket || null
+    });
+  }
+
+  let lastError = null;
+  for (const bucketNameCandidate of bucketCandidates) {
+    const bucket = admin.storage().bucket(bucketNameCandidate);
+    console.log("[podcast tts] storage bucket selected", {
+      bucketName: bucket.name || null,
+      resolvedStorageBucket: appStorageBucket || null,
+      actorUid: auditContext.actorUid || null,
+      companyId: auditContext.companyId || null,
+      locationId: auditContext.locationId || null,
+      uploadType: "podcast_audio",
+      provider: auditContext.provider || null,
+      storagePath,
+      bytes: buffer.length,
+      contentType
+    });
+
+    try {
+      const file = bucket.file(storagePath);
+      await file.save(buffer, {
+        resumable: false,
+        contentType,
+        metadata: {
+          cacheControl: "private, max-age=3600",
+          metadata: {
+            firebaseStorageDownloadTokens: token
+          }
+        }
+      });
+
+      const encodedPath = encodeURIComponent(storagePath);
+      return {
+        storagePath,
+        bucketName: bucket.name,
+        audioUrl: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${token}`,
+        bytes: buffer.length
+      };
+    } catch (error) {
+      lastError = error;
+      if (!isMissingBucketError(error)) throw error;
+      console.warn("[podcast tts] storage bucket candidate missing", {
+        bucketName: bucket.name || null,
+        resolvedStorageBucket: appStorageBucket || null,
+        companyId: auditContext.companyId || null,
+        locationId: auditContext.locationId || null,
+        uploadType: "podcast_audio"
+      });
+    }
+  }
+
+  if (!bucketCandidates.length) {
+    console.warn("[podcast tts] no storage bucket candidates resolved", {
+      resolvedStorageBucket: appStorageBucket || null
+    });
+  }
+
+  throw new HttpsError(
+    "failed-precondition",
+    `Ingen gyldig Firebase Storage bucket kunne bruges: ${sanitizeString(lastError?.message || "ukendt bucket-fejl", 180)}`
+  );
+}
+
+async function savePodcastAudioSegmentToStorage({ providerResult, storagePath, auditContext = {} }) {
+  return savePodcastAudioBufferToStorage({
+    buffer: providerResult.audioBuffer,
+    storagePath,
+    contentType: providerResult.contentType || "audio/mpeg",
+    auditContext
+  });
+}
+
+function toPublicAudioSegment(segment = {}) {
+  return {
+    index: segment.index,
+    provider: segment.provider,
+    language: segment.language,
+    locale: segment.locale || null,
+    outputFormat: segment.outputFormat,
+    audioUrl: segment.audioUrl,
+    storagePath: segment.storagePath,
+    bytes: segment.bytes,
+    durationSeconds: segment.durationSeconds,
+    charactersCount: segment.charactersCount
+  };
+}
+
+exports.generatePodcastAudioFromText = onCall(
+  { region: "us-central1", secrets: [AZURE_TTS_KEY, AZURE_TTS_REGION] },
+  async (request) => {
+    const data = request.data || {};
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Log ind for at generere podcast-lyd.");
+    }
+
+    const actorUid = request.auth.uid;
+    const companyId = sanitizeString(data.companyId || "", 120);
+    const locationId = sanitizeString(data.locationId || "", 120);
+    if (!companyId || !locationId) {
+      throw new HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
+    }
+
+    await assertAdminAccess({
+      uid: actorUid,
+      email: request.auth.token?.email || "",
+      companyId,
+      locationId
+    });
+
+    const provider = sanitizeString(data.provider || "azure", 40).toLowerCase();
+    if (provider !== "azure") {
+      throw new HttpsError("invalid-argument", "Kun provider 'azure' er understottet.");
+    }
+
+    const language = sanitizeString(data.language || "da", 20).toLowerCase() || "da";
+    const outputFormat = resolveAzureOutputFormat(data.outputFormat || "mp3");
+    const voiceName = resolveAzureVoiceName(data.voiceName || data.voiceId || "da-DK-ChristelNeural");
+    const episodeIdInput = sanitizeString(data.episodeId || "", 160);
+    const generationId = toAsciiSlug(data.generationId || `${episodeIdInput || "episode"}-${Date.now()}`, 180);
+    const title = sanitizeString(data.title || "PolicyBridge podcast audio", 180);
+    const requestedText = String(data.inputText || "").trim();
+    let inputText = requestedText;
+    let episodeRef = episodeIdInput ? db.collection("podcast_episodes").doc(episodeIdInput) : null;
+    let episodeSnapshot = null;
+
+    if (!inputText && episodeRef) {
+      episodeSnapshot = await episodeRef.get();
+      if (episodeSnapshot.exists) {
+        const episode = episodeSnapshot.data() || {};
+        inputText = String(
+          episode.manuscript ||
+          episode.script ||
+          episode.summaryScript ||
+          episode.newsScript ||
+          episode.inputText ||
+          ""
+        ).trim();
+      }
+    }
+
+    if (!inputText) {
+      throw new HttpsError("invalid-argument", "inputText eller episodeId med manuscript/script er paakraevet.");
+    }
+
+    if (!episodeRef) {
+      episodeRef = db.collection("podcast_episodes").doc(generationId);
+    }
+
+    const textLength = inputText.length;
+    const chunks = chunkPodcastText(inputText, 4800);
+    if (!chunks.length) {
+      throw new HttpsError("invalid-argument", "Teksten er tom efter normalisering.");
+    }
+    if (chunks.length > 8) {
+      throw new HttpsError("invalid-argument", "Teksten er for lang til sikker TTS-generering i en enkelt request.");
+    }
+
+    console.log("[podcast tts] request started", {
+      provider,
+      companyId,
+      locationId,
+      episodeId: episodeRef.id,
+      generationId,
+      textLength,
+      chunkCount: chunks.length,
+      language,
+      outputFormat
+    });
+    console.log("[podcast tts] provider selected", { provider, voiceName: voiceName || null });
+
+    const baseEpisodeUpdate = {
+      companyId,
+      locationId,
+      title,
+      ttsProvider: provider,
+      ttsStatus: "processing",
+      ttsLanguage: language,
+      ttsOutputFormat: outputFormat,
+      ttsTextLength: textLength,
+      ttsChunkCount: chunks.length,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: actorUid
+    };
+
+    await episodeRef.set({
+      ...baseEpisodeUpdate,
+      createdAt: episodeSnapshot?.exists ? undefined : FieldValue.serverTimestamp(),
+      createdBy: episodeSnapshot?.exists ? undefined : actorUid
+    }, { merge: true });
+
+    const audioSegments = [];
+    const providerTasks = [];
+
+    try {
+      for (let index = 0; index < chunks.length; index += 1) {
+        const chunk = chunks[index];
+        console.log("[podcast tts] text chunk", {
+          episodeId: episodeRef.id,
+          generationId,
+          chunkIndex: index,
+          chunkLength: chunk.length
+        });
+
+        const providerResult = await callAzureTtsProvider({
+          inputText: chunk,
+          outputFormat,
+          language,
+          voiceName
+        });
+
+        console.log("[podcast tts] provider response status", {
+          episodeId: episodeRef.id,
+          generationId,
+          chunkIndex: index,
+          status: providerResult.status,
+          charactersCount: providerResult.charactersCount
+        });
+
+        const storagePath = [
+          "companies",
+          companyId,
+          "podcasts",
+          locationId,
+          episodeRef.id,
+          `${generationId}-${index + 1}.mp3`
+        ].join("/");
+        const audioAuditContext = {
+          actorUid,
+          companyId,
+          locationId,
+          provider
+        };
+
+        const saved = await savePodcastAudioSegmentToStorage({
+          providerResult,
+          storagePath,
+          auditContext: audioAuditContext
+        });
+
+        console.log("[podcast tts] audio saved", {
+          episodeId: episodeRef.id,
+          generationId,
+          chunkIndex: index,
+          storagePath: saved.storagePath,
+          bucketName: saved.bucketName || null,
+          actorUid,
+          companyId,
+          locationId,
+          uploadType: "podcast_audio",
+          provider,
+          bytes: saved.bytes
+        });
+
+        providerTasks.push({
+          provider,
+          voiceName: providerResult.voiceName,
+          charactersCount: providerResult.charactersCount,
+          providerCreatedTime: providerResult.providerCreatedTime
+        });
+        audioSegments.push({
+          index,
+          provider,
+          language,
+          locale: providerResult.locale || null,
+          outputFormat,
+          audioUrl: saved.audioUrl,
+          storagePath: saved.storagePath,
+          bytes: saved.bytes,
+          durationSeconds: estimatePodcastAudioDurationSeconds(chunk),
+          charactersCount: providerResult.charactersCount
+        });
+      }
+
+      const totalDurationSeconds = audioSegments
+        .map((segment) => Number(segment.durationSeconds || 0))
+        .reduce((sum, value) => sum + value, 0) || null;
+      const totalBytes = audioSegments
+        .map((segment) => Number(segment.bytes || 0))
+        .reduce((sum, value) => sum + value, 0);
+      const totalCharacters = audioSegments
+        .map((segment) => Number(segment.charactersCount || 0))
+        .reduce((sum, value) => sum + value, 0) || textLength;
+      const primaryAudioUrl = audioSegments.length === 1 ? audioSegments[0].audioUrl : "";
+      const primaryStoragePath = audioSegments.length === 1 ? audioSegments[0].storagePath : "";
+
+      const ttsResult = {
+        provider,
+        inputTextLength: textLength,
+        language,
+        voiceName: providerTasks.find((task) => task.voiceName)?.voiceName || voiceName,
+        outputFormat,
+        speed: null,
+        pitch: null,
+        status: "completed",
+        audioUrl: primaryAudioUrl,
+        audioSegments,
+        durationSeconds: totalDurationSeconds,
+        costEstimate: null,
+        providerTasks,
+        generatedAt: new Date().toISOString()
+      };
+      const publicTtsResult = {
+        ...ttsResult,
+        audioSegments: audioSegments.map(toPublicAudioSegment),
+        providerTasks: providerTasks.map((task) => ({
+          provider: task.provider,
+          voiceName: task.voiceName,
+          charactersCount: task.charactersCount,
+          providerCreatedTime: task.providerCreatedTime
+        }))
+      };
+
+      await episodeRef.set({
+        ttsStatus: "completed",
+        status: "audio_ready",
+        audioUrl: primaryAudioUrl,
+        audioSegments,
+        durationSeconds: totalDurationSeconds,
+        tts: ttsResult,
+        updatedAt: FieldValue.serverTimestamp(),
+        audioGeneratedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      const firestorePath = `companies/${companyId}/locations/${locationId}/podcast_audio/${episodeRef.id}`;
+      console.log("[podcast firestore] saving metadata", {
+        episodeId: episodeRef.id,
+        companyId,
+        locationId,
+        firestorePath
+      });
+      try {
+        await db.doc(firestorePath).set({
+          episodeId: episodeRef.id,
+          generationId,
+          provider,
+          voiceName: ttsResult.voiceName,
+          language,
+          outputFormat,
+          audioUrl: primaryAudioUrl,
+          storagePath: primaryStoragePath,
+          bytes: totalBytes,
+          chunkCount: chunks.length,
+          charactersCount: totalCharacters,
+          durationSeconds: totalDurationSeconds,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdBy: actorUid,
+          companyId,
+          locationId,
+          status: "completed"
+        }, { merge: true });
+        console.log("[podcast firestore] saved", {
+          episodeId: episodeRef.id,
+          companyId,
+          locationId,
+          firestorePath
+        });
+      } catch (firestoreError) {
+        console.warn("[podcast firestore] failed", {
+          episodeId: episodeRef.id,
+          companyId,
+          locationId,
+          firestorePath,
+          error: sanitizeString(firestoreError?.message || firestoreError, 220)
+        });
+      }
+
+      console.log("[podcast tts] episode updated", {
+        episodeId: episodeRef.id,
+        generationId,
+        status: "completed",
+        segmentCount: audioSegments.length,
+        durationSeconds: totalDurationSeconds
+      });
+
+      return {
+        ok: true,
+        success: true,
+        audioUrl: primaryAudioUrl,
+        storagePath: primaryStoragePath,
+        firestorePath,
+        episodeId: episodeRef.id,
+        generationId,
+        provider,
+        bytes: totalBytes,
+        chunkCount: chunks.length,
+        ...publicTtsResult
+      };
+    } catch (error) {
+      const safeMessage = sanitizeString(error?.message || "Podcast TTS failed", 220);
+      await episodeRef.set({
+        ttsStatus: "failed",
+        status: "audio_failed",
+        ttsError: safeMessage,
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      console.warn("[podcast tts] failed", {
+        episodeId: episodeRef.id,
+        generationId,
+        provider,
+        textLength,
+        error: safeMessage
+      });
+
+      if (error instanceof HttpsError) throw error;
+      throw new HttpsError("internal", safeMessage);
+    }
+  }
+);
 
 function buildSeoAiPrompt({ businessName, address, city, cuisineType, offerings, description, keyword, websiteContent }) {
   const parts = [
