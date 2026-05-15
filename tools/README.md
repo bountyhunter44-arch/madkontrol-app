@@ -36,6 +36,27 @@ Track all code entities to prevent duplication and understand dependencies.
 - `workflow-registry.json` - Development workflows
 - `prompt-registry.json` - AI prompts
 - `dependency-map.json` - Relationships between entities
+- `../registry.json` - Root registry index
+- `../seo/seo.registry.json` - SEO extraction registry
+
+## SEO TOOLBOX
+
+### Purpose
+Shared MadCore SEO foundation for tenant-aware SEO generation, publisher contracts, and adapter boundaries.
+
+### Files
+- `seo/README.md` - SEO toolbox rules and current runtime map
+- `seo/seo.registry.json` - Existing SEO helpers and move-readiness
+- `seo/schema/tenant-seo-config.schema.json` - Tenant SEO config contract
+- `seo/schema/seo-page.schema.json` - SEO page contract
+- `seo/generator/core.js` - Tenant-neutral phase 1 generator primitives
+- `seo/publisher/publisher-adapter.contract.json` - Publisher adapter contract
+
+### Critical Rules
+1. SEO core must not depend on Madkontrollen UI.
+2. Firebase/Firestore must be adapter code, not core.
+3. Publisher targets must stay adapter-based.
+4. Existing app SEO runtime stays in place until a later migration changes imports.
 
 ### Usage
 **Before creating new code:**

@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SEO Page",
+  "type": "object",
+  "required": ["pageId", "tenantId", "slug", "title", "metaDescription", "h1", "status"],
+  "properties": {
+    "pageId": { "type": "string" },
+    "tenantId": { "type": "string" },
+    "slug": { "type": "string" },
+    "title": { "type": "string" },
+    "metaDescription": { "type": "string" },
+    "h1": { "type": "string" },
+    "sections": { "type": "array", "items": { "type": "object" } },
+    "faq": { "type": "array", "items": { "type": "object" } },
+    "schema": { "type": "array", "items": { "type": "object" } },
+    "images": { "type": "array", "items": { "type": "object" } },
+    "status": { "type": "string" },
+    "createdAt": {},
+    "updatedAt": {},
+    "publishedAt": {}
+  },
+  "additionalProperties": true
+}
