@@ -214,6 +214,24 @@
       "runtime": "shared",
       "canMoveNow": true,
       "notes": "Phase 5 Firestore draft adapter. Pure ESM. No Firebase import or initializeApp. Does not alter runtime imports."
+    },
+    {
+      "name": "mapSaveSeoGeneratorConfigPayload",
+      "sourceFile": "tools/seo/adapters/firestore/save-seo-generator-config-mapper.js",
+      "purpose": "Map existing saveSeoGeneratorConfig callable payload shape to shared tenant SEO generator config contract.",
+      "dependencies": [],
+      "runtime": "shared",
+      "canMoveNow": true,
+      "notes": "Phase 6 mapper. Pure ESM. Requires explicit domain or baseDomain option; no app domain hardcoding."
+    },
+    {
+      "name": "saveSeoGeneratorConfigDraft",
+      "sourceFile": "tools/seo/adapters/firestore/save-seo-generator-config-mapper.js",
+      "purpose": "Save an existing saveSeoGeneratorConfig payload through the shared Firestore draft publisher adapter.",
+      "dependencies": ["saveGeneratorConfig", "injected db.collection"],
+      "runtime": "shared",
+      "canMoveNow": true,
+      "notes": "Phase 6 wrapper. Pure ESM. No Firebase import or initializeApp. Does not alter runtime imports."
     }
   ],
   "phase1Extraction": {
@@ -245,6 +263,17 @@
     "collections": [
       "seo_pages",
       "seo_generator_configs"
+    ],
+    "runtimeImportsChanged": false,
+    "deletedLegacyFiles": false,
+    "deployRun": false
+  },
+  "phase6Extraction": {
+    "createdMappers": [
+      "tools/seo/adapters/firestore/save-seo-generator-config-mapper.js"
+    ],
+    "createdTests": [
+      "tools/seo/tests/save-seo-generator-config-mapper.contract.test.mjs"
     ],
     "runtimeImportsChanged": false,
     "deletedLegacyFiles": false,
