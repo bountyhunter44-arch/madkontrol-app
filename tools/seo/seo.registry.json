@@ -232,6 +232,15 @@
       "runtime": "shared",
       "canMoveNow": true,
       "notes": "Phase 6 wrapper. Pure ESM. No Firebase import or initializeApp. Does not alter runtime imports."
+    },
+    {
+      "name": "createSaveSeoGeneratorConfigRuntimeWrapper",
+      "sourceFile": "tools/seo/adapters/firestore/save-seo-generator-config-runtime-wrapper.js",
+      "purpose": "Prepare the existing saveSeoGeneratorConfig callable signature to use the shared mapper and Firestore draft adapter via dependency injection.",
+      "dependencies": ["mapSaveSeoGeneratorConfigPayload", "saveSeoGeneratorConfigDraft", "injected db.collection"],
+      "runtime": "shared",
+      "canMoveNow": false,
+      "notes": "Phase 7 preparation wrapper only. Not wired into functions runtime. Preserves callable-style data/context signature in tests and returns ok/configId/subdomain."
     }
   ],
   "phase1Extraction": {
@@ -274,6 +283,17 @@
     ],
     "createdTests": [
       "tools/seo/tests/save-seo-generator-config-mapper.contract.test.mjs"
+    ],
+    "runtimeImportsChanged": false,
+    "deletedLegacyFiles": false,
+    "deployRun": false
+  },
+  "phase7Extraction": {
+    "createdWrappers": [
+      "tools/seo/adapters/firestore/save-seo-generator-config-runtime-wrapper.js"
+    ],
+    "createdTests": [
+      "tools/seo/tests/save-seo-generator-config-runtime-wrapper.contract.test.mjs"
     ],
     "runtimeImportsChanged": false,
     "deletedLegacyFiles": false,
