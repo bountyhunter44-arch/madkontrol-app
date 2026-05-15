@@ -178,6 +178,42 @@
       "runtime": "node",
       "canMoveNow": false,
       "notes": "Firestore publisher adapter."
+    },
+    {
+      "name": "saveDraftSeoPage",
+      "sourceFile": "tools/seo/adapters/firestore/draft-publisher.js",
+      "purpose": "Save a draft SEO page to the seo_pages collection using injected Firestore-like db.",
+      "dependencies": ["injected db.collection"],
+      "runtime": "shared",
+      "canMoveNow": true,
+      "notes": "Phase 5 Firestore draft adapter. Pure ESM. No Firebase import or initializeApp. Does not alter runtime imports."
+    },
+    {
+      "name": "updateDraftSeoPage",
+      "sourceFile": "tools/seo/adapters/firestore/draft-publisher.js",
+      "purpose": "Patch a draft SEO page in seo_pages using merge semantics and injected db.",
+      "dependencies": ["injected db.collection"],
+      "runtime": "shared",
+      "canMoveNow": true,
+      "notes": "Phase 5 Firestore draft adapter. Pure ESM. No Firebase import or initializeApp. Does not alter runtime imports."
+    },
+    {
+      "name": "getDraftSeoPage",
+      "sourceFile": "tools/seo/adapters/firestore/draft-publisher.js",
+      "purpose": "Fetch a draft SEO page from seo_pages by pageId using injected db.",
+      "dependencies": ["injected db.collection"],
+      "runtime": "shared",
+      "canMoveNow": true,
+      "notes": "Phase 5 Firestore draft adapter. Pure ESM. No Firebase import or initializeApp. Does not alter runtime imports."
+    },
+    {
+      "name": "saveGeneratorConfig",
+      "sourceFile": "tools/seo/adapters/firestore/draft-publisher.js",
+      "purpose": "Save tenant SEO generator config to seo_generator_configs using injected db.",
+      "dependencies": ["injected db.collection"],
+      "runtime": "shared",
+      "canMoveNow": true,
+      "notes": "Phase 5 Firestore draft adapter. Pure ESM. No Firebase import or initializeApp. Does not alter runtime imports."
     }
   ],
   "phase1Extraction": {
@@ -194,6 +230,21 @@
     "createdTests": [
       "tools/seo/tests/sitemap.contract.test.mjs",
       "tools/seo/tests/robots.contract.test.mjs"
+    ],
+    "runtimeImportsChanged": false,
+    "deletedLegacyFiles": false,
+    "deployRun": false
+  },
+  "phase5Extraction": {
+    "createdAdapters": [
+      "tools/seo/adapters/firestore/draft-publisher.js"
+    ],
+    "createdTests": [
+      "tools/seo/tests/firestore-draft-publisher.contract.test.mjs"
+    ],
+    "collections": [
+      "seo_pages",
+      "seo_generator_configs"
     ],
     "runtimeImportsChanged": false,
     "deletedLegacyFiles": false,
