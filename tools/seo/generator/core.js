@@ -147,7 +147,7 @@ function generateSeoBundle(config = {}, inputPages = []) {
   };
 }
 
-module.exports = {
+export {
   escapeHtml,
   generateRobots,
   generateSeoBundle,
