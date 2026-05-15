@@ -28,21 +28,21 @@
     },
     {
       "name": "generateSitemap",
-      "sourceFile": "public/modules/seo/generator/generator-core.js",
+      "sourceFile": "tools/seo/publisher/sitemap.js",
       "purpose": "Generate sitemap XML for generated pages.",
       "dependencies": [],
       "runtime": "shared",
       "canMoveNow": true,
-      "notes": "Tenant-neutral equivalent exists in tools/seo/generator/core.js."
+      "notes": "Phase 3 shared helper. Pure ESM. No Firebase dependency. Existing app runtime still has old local copies until import migration."
     },
     {
       "name": "generateRobots",
-      "sourceFile": "public/modules/seo/generator/generator-core.js",
+      "sourceFile": "tools/seo/publisher/robots.js",
       "purpose": "Generate robots.txt pointing to sitemap.",
-      "dependencies": [],
+      "dependencies": ["normalizeDomain", "buildCanonicalUrl"],
       "runtime": "shared",
       "canMoveNow": true,
-      "notes": "Tenant-neutral equivalent exists in tools/seo/generator/core.js."
+      "notes": "Phase 3 shared helper. Pure ESM. No Firebase dependency. Existing app runtime still has old local copies until import migration."
     },
     {
       "name": "runGenerator",
@@ -182,6 +182,19 @@
   ],
   "phase1Extraction": {
     "createdCore": "tools/seo/generator/core.js",
+    "runtimeImportsChanged": false,
+    "deletedLegacyFiles": false,
+    "deployRun": false
+  },
+  "phase3Extraction": {
+    "createdPublisherHelpers": [
+      "tools/seo/publisher/sitemap.js",
+      "tools/seo/publisher/robots.js"
+    ],
+    "createdTests": [
+      "tools/seo/tests/sitemap.contract.test.mjs",
+      "tools/seo/tests/robots.contract.test.mjs"
+    ],
     "runtimeImportsChanged": false,
     "deletedLegacyFiles": false,
     "deployRun": false

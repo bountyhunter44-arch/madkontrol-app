@@ -1,3 +1,6 @@
+import { generateRobots } from "../publisher/robots.js";
+import { generateSitemap } from "../publisher/sitemap.js";
+
 function toArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -108,26 +111,6 @@ ${sectionsHtml}
 </main>
 </body>
 </html>`;
-}
-
-function generateSitemap(tenantConfig, pages) {
-  const domain = trimString(tenantConfig.domain);
-  if (!domain) return "";
-  const urls = toArray(pages)
-    .filter((page) => page.status === "published" || page.status === "draft")
-    .map((page) => `  <url><loc>${escapeHtml(joinUrl(domain, page.slug))}</loc></url>`)
-    .join("\n");
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls}
-</urlset>`;
-}
-
-function generateRobots(tenantConfig) {
-  const domain = trimString(tenantConfig.domain);
-  return `User-agent: *
-Allow: /
-${domain ? `\nSitemap: ${joinUrl(domain, "sitemap.xml")}` : ""}`;
 }
 
 function generateSeoBundle(config = {}, inputPages = []) {

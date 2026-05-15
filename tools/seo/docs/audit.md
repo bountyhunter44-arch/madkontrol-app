@@ -78,6 +78,48 @@ Date: 2026-05-15
 - `scripts/publishLandingSite.js`
   - Firestore publisher.
 
+## Phase 3 Sitemap/Robots Classification
+
+### Pure Shared Logic
+
+- `tools/seo/publisher/sitemap.js::generateSitemap`
+  - Pure ESM helper.
+  - Takes config/domain and page list as input.
+  - Returns XML string.
+  - No Firebase dependency.
+- `tools/seo/publisher/robots.js::generateRobots`
+  - Pure ESM helper.
+  - Takes domain/config as input.
+  - Returns robots.txt string.
+  - No Firebase dependency.
+
+### App-Specific Logic
+
+- `public/modules/seo/generator/generator-core.js::generateSitemap`
+  - Still hardcodes `https://${config.subdomain}.madkontrollen.dk`.
+- `public/modules/seo/generator/generator-core.js::generateRobots`
+  - Still hardcodes Madkontrollen subdomain sitemap URL.
+- `scripts/build-landing-pages.cjs::generateSitemap`
+  - Uses `https://madkontrollen.dk` and `/landing-pages/${slug}/`.
+- `scripts/build-landing-pages.cjs::generateRobotsTxt`
+  - Uses `https://madkontrollen.dk/sitemap.xml`.
+
+### Firebase Adapter Logic
+
+- `scripts/publishLandingSite.js`
+  - Initializes Firebase Admin.
+  - Writes `websites` and `seo_pages`.
+  - Not moved in phase 3.
+
+### Publish/Runtime Logic
+
+- `scripts/build-landing-pages.cjs`
+  - Writes `public/sitemap.xml` and `public/robots.txt`.
+- `public/sitemap.xml`
+  - Generated static runtime artifact.
+- `public/robots.txt`
+  - Generated static runtime artifact.
+
 ## Not Moved In Phase 1
 
 - No existing imports changed.
