@@ -131,6 +131,32 @@ test("keeps onboarding auth bypass behavior", async () => {
   assert.equal(accessCalled, false);
 });
 
+test("allows runtime to inject legacy-compatible draft save", async () => {
+  const db = createMockDb();
+  const saveCalls = [];
+  const handler = createSaveSeoGeneratorConfigRuntimeWrapper({
+    db,
+    baseDomain: "madkontrollen.dk",
+    saveDraft: async (injectedDb, payload, options) => {
+      saveCalls.push({ injectedDb, payload, options });
+      return { configId: options.mapped.configId };
+    }
+  });
+
+  const result = await handler(legacyPayload, {
+    auth: { uid: "uid-1", token: {} }
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.configId, "company-a__location-a__existing");
+  assert.equal(result.subdomain, "aroi-d");
+  assert.equal(saveCalls.length, 1);
+  assert.equal(saveCalls[0].injectedDb, db);
+  assert.equal(saveCalls[0].payload.configId, "company-a__location-a__existing");
+  assert.equal(saveCalls[0].options.mapped.domain, "https://aroi-d.madkontrollen.dk");
+  assert.equal(db.writes.length, 0);
+});
+
 test("validates missing auth and required ids", async () => {
   const db = createMockDb();
   const handler = createSaveSeoGeneratorConfigRuntimeWrapper({

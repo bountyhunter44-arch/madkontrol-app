@@ -240,7 +240,7 @@
       "dependencies": ["mapSaveSeoGeneratorConfigPayload", "saveSeoGeneratorConfigDraft", "injected db.collection"],
       "runtime": "shared",
       "canMoveNow": false,
-      "notes": "Phase 7 preparation wrapper only. Not wired into functions runtime. Preserves callable-style data/context signature in tests and returns ok/configId/subdomain."
+      "notes": "Phase 8 wires this behind functions/index.js::saveSeoGeneratorConfig with a legacy-compatible saveDraft override and fallback to the original write path."
     }
   ],
   "phase1Extraction": {
@@ -296,6 +296,14 @@
       "tools/seo/tests/save-seo-generator-config-runtime-wrapper.contract.test.mjs"
     ],
     "runtimeImportsChanged": false,
+    "deletedLegacyFiles": false,
+    "deployRun": false
+  },
+  "phase8Extraction": {
+    "runtimeIntegration": "functions/index.js::saveSeoGeneratorConfig",
+    "sharedWrapper": "tools/seo/adapters/firestore/save-seo-generator-config-runtime-wrapper.js",
+    "fallback": "legacy seo_generator_configs write path remains active on shared wrapper failure",
+    "frontendImportsChanged": false,
     "deletedLegacyFiles": false,
     "deployRun": false
   }

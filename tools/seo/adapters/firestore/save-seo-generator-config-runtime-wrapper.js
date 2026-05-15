@@ -27,7 +27,8 @@ function createSaveSeoGeneratorConfigRuntimeWrapper(options = {}) {
     baseDomain,
     defaultLanguage,
     defaultCountry,
-    createHttpsError
+    createHttpsError,
+    saveDraft = saveSeoGeneratorConfigDraft
   } = options;
 
   if (!db || typeof db.collection !== "function") {
@@ -62,10 +63,11 @@ function createSaveSeoGeneratorConfigRuntimeWrapper(options = {}) {
       defaultLanguage,
       defaultCountry
     });
-    const saved = await saveSeoGeneratorConfigDraft(db, payload, {
+    const saved = await saveDraft(db, payload, {
       baseDomain,
       defaultLanguage,
-      defaultCountry
+      defaultCountry,
+      mapped
     });
 
     return {

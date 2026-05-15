@@ -28,6 +28,8 @@ require("dotenv").config();
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const path = require("path");
+const { pathToFileURL } = require("url");
 const { defineSecret } = require("firebase-functions/params");
 const { defineJsonSecret } = require("firebase-functions/params");
 const { logger } = require("firebase-functions");
@@ -75,6 +77,18 @@ const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 const AZURE_TTS_KEY = defineSecret("AZURE_TTS_KEY");
 const AZURE_TTS_REGION = defineSecret("AZURE_TTS_REGION");
+
+let saveSeoGeneratorConfigRuntimeWrapperPromise = null;
+
+async function loadSaveSeoGeneratorConfigRuntimeWrapper() {
+  if (!saveSeoGeneratorConfigRuntimeWrapperPromise) {
+    const moduleUrl = pathToFileURL(
+      path.resolve(__dirname, "../tools/seo/adapters/firestore/save-seo-generator-config-runtime-wrapper.js")
+    ).href;
+    saveSeoGeneratorConfigRuntimeWrapperPromise = import(moduleUrl);
+  }
+  return saveSeoGeneratorConfigRuntimeWrapperPromise;
+}
 
 function getStripeConfig() {
   const config = FUNCTIONS_CONFIG.value();
@@ -7104,45 +7118,20 @@ exports.checkSubdomainAvailability = functions.https.onCall(async (data, context
   }
 });
 
-exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) => {
-  try {
-    const payload =
-      data?.data && typeof data.data === "object"
-        ? data.data
-        : data;
+function buildLegacySeoGeneratorConfigSave(payload, context) {
+  const companyId = sanitizeString(payload?.companyId || "", 120);
+  const locationId = sanitizeString(payload?.locationId || "", 120);
+  const config = payload?.config || {};
+  const configDocId = sanitizeString(payload?.configId || "", 180) || toDocSafeId(`${companyId}__${locationId}__${Date.now()}`);
+  const subdomain = toAsciiSlug(config?.subdomain || config?.businessName || "restaurant", 120) || "restaurant";
 
-    console.log("RAW DATA - companyId:", payload?.companyId, "locationId:", payload?.locationId);
-    console.log("PARSED PAYLOAD - keys:", Object.keys(payload || {}));
-    
-    const companyId = sanitizeString(payload?.companyId || "", 120);
-    const locationId = sanitizeString(payload?.locationId || "", 120);
-
-    console.log("companyId:", companyId);
-    console.log("locationId:", locationId);
-    const config = payload?.config || {};
-    const isOnboarding = companyId.toLowerCase().startsWith("onboarding_");
-
-    if (!companyId || !locationId) {
-      throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
-    }
-
-    if (!isOnboarding && !context.auth?.uid) {
-      throw new functions.https.HttpsError("unauthenticated", "Log ind for at gemme generator-data.");
-    }
-
-    if (!isOnboarding) {
-      await assertSeoGeneratorAccess({
-        uid: context.auth.uid,
-        email: context.auth.token?.email || "",
-        companyId,
-        locationId
-      });
-    }
-
-    const configDocId = sanitizeString(payload?.configId || "", 180) || toDocSafeId(`${companyId}__${locationId}__${Date.now()}`);
-    const subdomain = toAsciiSlug(config?.subdomain || config?.businessName || "restaurant", 120) || "restaurant";
-
-    const dbPayload = {
+  return {
+    companyId,
+    locationId,
+    config,
+    configDocId,
+    subdomain,
+    dbPayload: {
       companyId,
       organizationId: companyId,
       locationId,
@@ -7175,19 +7164,98 @@ exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) =>
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: context.auth?.uid || null,
       updatedByEmail: sanitizeString(context.auth?.token?.email || "", 160)
-    };
+    }
+  };
+}
 
-    await db.collection("seo_generator_configs").doc(configDocId).set({
-      ...dbPayload,
-      createdAt: FieldValue.serverTimestamp(),
-      createdBy: context.auth?.uid || null
-    }, { merge: true });
+async function saveSeoGeneratorConfigLegacy(data, context) {
+  const payload =
+    data?.data && typeof data.data === "object"
+      ? data.data
+      : data;
 
-    return {
-      ok: true,
-      configId: configDocId,
-      subdomain
-    };
+  console.log("RAW DATA - companyId:", payload?.companyId, "locationId:", payload?.locationId);
+  console.log("PARSED PAYLOAD - keys:", Object.keys(payload || {}));
+
+  const legacySave = buildLegacySeoGeneratorConfigSave(payload, context);
+  const { companyId, locationId, configDocId, subdomain, dbPayload } = legacySave;
+  const isOnboarding = companyId.toLowerCase().startsWith("onboarding_");
+
+  console.log("companyId:", companyId);
+  console.log("locationId:", locationId);
+
+  if (!companyId || !locationId) {
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
+  }
+
+  if (!isOnboarding && !context.auth?.uid) {
+    throw new functions.https.HttpsError("unauthenticated", "Log ind for at gemme generator-data.");
+  }
+
+  if (!isOnboarding) {
+    await assertSeoGeneratorAccess({
+      uid: context.auth.uid,
+      email: context.auth.token?.email || "",
+      companyId,
+      locationId
+    });
+  }
+
+  await db.collection("seo_generator_configs").doc(configDocId).set({
+    ...dbPayload,
+    createdAt: FieldValue.serverTimestamp(),
+    createdBy: context.auth?.uid || null
+  }, { merge: true });
+
+  return {
+    ok: true,
+    configId: configDocId,
+    subdomain
+  };
+}
+
+async function saveSeoGeneratorConfigViaToolbox(data, context) {
+  const payload =
+    data?.data && typeof data.data === "object"
+      ? data.data
+      : data;
+  const legacySave = buildLegacySeoGeneratorConfigSave(payload, context);
+  const sharedPayload = {
+    ...payload,
+    configId: legacySave.configDocId
+  };
+  const { createSaveSeoGeneratorConfigRuntimeWrapper } = await loadSaveSeoGeneratorConfigRuntimeWrapper();
+  const sharedSave = createSaveSeoGeneratorConfigRuntimeWrapper({
+    db,
+    baseDomain: "madkontrollen.dk",
+    assertSeoGeneratorAccess,
+    createHttpsError: (code, message) => new functions.https.HttpsError(code, message),
+    saveDraft: async () => {
+      await db.collection("seo_generator_configs").doc(legacySave.configDocId).set({
+        ...legacySave.dbPayload,
+        createdAt: FieldValue.serverTimestamp(),
+        createdBy: context.auth?.uid || null
+      }, { merge: true });
+
+      return {
+        configId: legacySave.configDocId
+      };
+    }
+  });
+
+  console.log("[seo toolbox] shared save path");
+  return sharedSave(sharedPayload, context);
+}
+
+exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) => {
+  try {
+    try {
+      return await saveSeoGeneratorConfigViaToolbox(data, context);
+    } catch (sharedErr) {
+      console.error("[seo toolbox] shared save failed", String(sharedErr?.message || "Unknown error"));
+      console.log("[seo toolbox] fallback legacy save");
+      return await saveSeoGeneratorConfigLegacy(data, context);
+    }
   } catch (err) {
     console.error("SAVE CONFIG ERROR:", String(err?.message || "Unknown error"));
     
