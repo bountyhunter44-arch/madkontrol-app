@@ -597,6 +597,246 @@ function getSessionLocationId(){
   return "";
 }
 
+function cleanSeoText(value){
+  const text=String(value ?? "").trim();
+  return text && text !== "–" && text !== "..." && text !== "…" ? text : "";
+}
+
+function firstSeoText(...values){
+  for(const value of values){
+    const text=cleanSeoText(value);
+    if(text) return text;
+  }
+  return "";
+}
+
+function topbarText(id){
+  const el=document.getElementById(id);
+  return cleanSeoText(el ? el.textContent : "");
+}
+
+function setSeoField(id,value,{overwrite=false}={}){
+  const el=document.getElementById(id);
+  const text=cleanSeoText(value);
+  if(!el || !text) return false;
+  if(!overwrite && cleanSeoText(el.value)) return false;
+  if(el.tagName === "SELECT" && !Array.from(el.options || []).some((option) => option.value === text || option.textContent === text)){
+    const option=document.createElement("option");
+    option.value=text;
+    option.textContent=text;
+    el.appendChild(option);
+  }
+  el.value=text;
+  return true;
+}
+
+function buildSeoAddress(data={}){
+  const address=firstSeoText(data.address,data.companyAddress,data.streetAddress);
+  const postal=firstSeoText(data.postalCode,data.zip);
+  const city=firstSeoText(data.city,data.by);
+  return [address,[postal,city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+}
+
+function mapQuickIndustryToCuisine(value){
+  const raw=String(value || "").trim();
+  const lower=raw.toLowerCase();
+  const map={
+    restaurant:"Klassisk dansk restaurant",
+    cafe:"Café",
+    "cafÃ©":"Café",
+    takeaway:"Takeaway",
+    ice_shop:"Isbutik",
+    bakery:"Bageri og konditori",
+    kiosk:"Takeaway",
+    catering:"Catering",
+    other:"Restaurant"
+  };
+  return map[lower] || raw || "Restaurant";
+}
+
+function buildPrimaryKeyword({restaurantName,cuisineType,city}){
+  const type=cleanSeoText(cuisineType);
+  const by=cleanSeoText(city);
+  const name=cleanSeoText(restaurantName);
+  if(type && by) return `${type} ${by}`;
+  if(name && by) return `${name} ${by}`;
+  return name || type || "";
+}
+
+async function readFirstSeoDoc(reads){
+  for(const read of reads){
+    try{
+      const snap=await read();
+      if(snap?.exists?.()) return { id:snap.id, data:snap.data() || {} };
+    }catch(error){
+      console.warn("[seo hydration] doc read failed:", error?.message || error);
+    }
+  }
+  return { id:"", data:{} };
+}
+
+function applySeoContextDefaults(defaults,{overwrite=false}={}){
+  setSeoField("name", defaults.restaurantName, { overwrite });
+  setSeoField("subdomain", defaults.subdomain, { overwrite });
+  setSeoField("city", defaults.city, { overwrite });
+  setSeoField("type", defaults.cuisineType, { overwrite });
+  setSeoField("offerings", defaults.offerings, { overwrite });
+  setSeoField("keyword", defaults.primaryKeyword, { overwrite });
+  setSeoField("phone", defaults.phone, { overwrite });
+  setSeoField("address", defaults.address, { overwrite });
+  setSeoField("description", defaults.businessDescription, { overwrite });
+  setSeoField("websiteUrl", defaults.existingWebsite, { overwrite });
+  lastAutoSubdomain=slugify(defaults.restaurantName || defaults.subdomain || "");
+  subdomainTouched=Boolean(cleanSeoText(document.getElementById("subdomain")?.value) && cleanSeoText(document.getElementById("subdomain")?.value) !== lastAutoSubdomain);
+}
+
+function clearSeoBusinessFields(){
+  ["name","subdomain","city","type","offerings","keyword","phone","address","description","websiteUrl","ctaText","ctaUrl"].forEach((id)=>{
+    const el=document.getElementById(id);
+    if(el) el.value="";
+  });
+  savedConfigId="";
+  subdomainTouched=false;
+  lastAutoSubdomain="";
+}
+
+async function hydrateSeoFormFromActiveOnboardingContext({ overwrite=false }={}){
+  const activeCompanyId=String(currentCompanyId || getSessionCompanyId() || "").trim();
+  const activeLocationId=String(currentLocationId || getSessionLocationId() || "").trim();
+  if(!activeCompanyId || !activeLocationId) return false;
+
+  const liveId=`${activeCompanyId}__${activeLocationId}__live_profile`;
+  const [liveDoc, companyDoc, locationDoc, onboardingDoc]=await Promise.all([
+    readFirstSeoDoc([
+      () => getDoc(doc(db,"live_user_profiles",liveId)),
+      async () => {
+        const q=query(collection(db,"live_user_profiles"),where("companyId","==",activeCompanyId),where("locationId","==",activeLocationId),limit(1));
+        const snap=await getDocs(q);
+        return snap.docs[0] || null;
+      }
+    ]),
+    readFirstSeoDoc([() => getDoc(doc(db,"companies",activeCompanyId))]),
+    readFirstSeoDoc([
+      () => getDoc(doc(db,"companies",activeCompanyId,"locations",activeLocationId)),
+      () => getDoc(doc(db,"locations",activeLocationId))
+    ]),
+    readFirstSeoDoc([
+      () => getDoc(doc(db,"onboarding_answers",`${activeCompanyId}__${activeLocationId}`)),
+      () => getDoc(doc(db,"onboarding_answers",`${activeCompanyId}__${activeLocationId}__onboarding`))
+    ])
+  ]);
+
+  const live=liveDoc.data || {};
+  const liveProfile=live.profile || {};
+  const company=companyDoc.data || {};
+  const location=locationDoc.data || {};
+  const onboarding=onboardingDoc.data || {};
+  const onboardingProfile=onboarding.profile || {};
+  const onboardingCompany=onboarding.company || {};
+  const onboardingBusiness=onboarding.business || {};
+
+  const restaurantName=firstSeoText(
+    liveProfile.companyName,
+    liveProfile.profileCompanyName,
+    liveProfile.name,
+    live.companyName,
+    company.companyName,
+    company.name,
+    company.displayName,
+    location.companyName,
+    location.name,
+    topbarText("mkpTopbarCompany")
+  );
+  const city=firstSeoText(
+    liveProfile.city,
+    company.city,
+    location.city,
+    onboardingProfile.city,
+    onboardingCompany.city
+  );
+  const cuisineType=mapQuickIndustryToCuisine(firstSeoText(
+    liveProfile.kitchenType,
+    liveProfile.businessType,
+    liveProfile.companyType,
+    company.kitchenType,
+    company.businessType,
+    company.industry,
+    location.kitchenType,
+    location.businessType,
+    onboardingBusiness.type,
+    onboardingProfile.companyType
+  ));
+  const offerings=firstSeoText(
+    liveProfile.offerings,
+    liveProfile.description,
+    liveProfile.businessDescription,
+    company.offerings,
+    company.description,
+    company.industryText,
+    company.businessType,
+    onboardingBusiness.type,
+    cuisineType
+  );
+  const address=firstSeoText(
+    buildSeoAddress(liveProfile),
+    buildSeoAddress(company),
+    buildSeoAddress(location),
+    buildSeoAddress(onboardingProfile),
+    buildSeoAddress(onboardingCompany),
+    topbarText("mkpTopbarAddress")
+  );
+  const phone=firstSeoText(
+    liveProfile.phone,
+    liveProfile.phoneNumber,
+    liveProfile.companyPhone,
+    live.phone,
+    company.phone,
+    company.phoneNumber,
+    location.phone,
+    location.phoneNumber,
+    topbarText("mkpTopbarPhone")
+  );
+  const businessDescription=firstSeoText(
+    liveProfile.description,
+    liveProfile.businessDescription,
+    company.description,
+    company.industryText,
+    onboardingProfile.description,
+    onboardingBusiness.description,
+    offerings ? `${restaurantName} tilbyder ${offerings}${city ? ` i ${city}` : ""}.` : ""
+  );
+  const existingWebsite=firstSeoText(
+    liveProfile.website,
+    liveProfile.websiteUrl,
+    company.website,
+    company.websiteUrl,
+    location.website,
+    location.websiteUrl
+  );
+  const subdomain=slugify(restaurantName || company.subdomain || liveProfile.subdomain || "") || "";
+  const primaryKeyword=buildPrimaryKeyword({ restaurantName, cuisineType, city });
+
+  const defaults={restaurantName,subdomain,city,cuisineType,offerings,primaryKeyword,phone,address,businessDescription,existingWebsite};
+  applySeoContextDefaults(defaults,{overwrite});
+
+  console.debug("[seo hydration]", {
+    quickOnboardingCompanyId: companyDoc.id || activeCompanyId,
+    quickOnboardingLocationId: locationDoc.id || activeLocationId,
+    activeCompanyId,
+    activeLocationId,
+    hydrationSource: [
+      liveDoc.id ? "live_user_profiles" : "",
+      companyDoc.id ? "companies" : "",
+      locationDoc.id ? "locations" : "",
+      onboardingDoc.id ? "onboarding_answers" : ""
+    ].filter(Boolean).join("+") || "topbar/session",
+    restaurantName,
+    subdomain
+  });
+
+  return Boolean(restaurantName || city || phone || address);
+}
+
 function getSeoAiInputData(){
   const topbar = (id) => {
     const el = document.getElementById(id);
@@ -718,8 +958,9 @@ function buildLandingPageObjects(name,type,city,keyword,count,subdomain,theme){
   const titles=buildLandingPages(name,type,city,keyword,count,subdomain,dishes);
   const citySlug=slugify(city,"by");
   const businessSlug=slugify(subdomain || name,"restaurant");
-  const canonicalPath=`/${citySlug}/${businessSlug}/`;
+  const canonicalPath=`/${citySlug}/`;
   const outputPath=buildSeoOutputPath({citySlug,businessSlug});
+  const pageUrl=`https://${businessSlug}.madkontrollen.dk/${citySlug}/`;
   const h2Pool=[
     `Hvorfor vælge ${name} i ${city}?`,
     `${name} – din foretrukne ${type.toLowerCase()} i ${city}`,
@@ -767,8 +1008,10 @@ function buildLandingPageObjects(name,type,city,keyword,count,subdomain,theme){
       bodyText:bodyVariants[index%bodyVariants.length],
       menuItems:pageMenuItems,
       sections:sectionOrders[index%sectionOrders.length],
+      routePath:canonicalPath,
       canonicalPath,
       outputPath,
+      url:pageUrl,
       themePrimary:theme?.primary||"#1f7a3d",
       themeSecondary:theme?.secondary||"#f8f4ea",
       themeAccent:theme?.accent||"#b91c1c",
@@ -857,12 +1100,20 @@ function isOnboardingUser(){
   return id.startsWith("onboarding_");
 }
 
-const LS_KEY = "seo_generator_draft";
+function getScopedSeoDraftKey(companyId=currentCompanyId, locationId=currentLocationId){
+  const c=String(companyId || "").trim();
+  const l=String(locationId || "").trim();
+  return c && l ? `seoGenerator:${c}:${l}` : "";
+}
 
 function saveLocalDraft(){
   try{
+    const draftKey=getScopedSeoDraftKey();
+    if(!draftKey) return;
     const c = getGeneratorConfig();
     const draft = {
+      companyId: currentCompanyId,
+      locationId: currentLocationId,
       businessName: c.businessName,
       subdomain:    c.subdomain,
       city:         c.city,
@@ -882,16 +1133,19 @@ function saveLocalDraft(){
       heroImageUrl: c.heroImageUrl || "",
       savedAt:      Date.now()
     };
-    localStorage.setItem(LS_KEY, JSON.stringify(draft));
+    localStorage.setItem(draftKey, JSON.stringify(draft));
   }catch(e){ console.warn("saveLocalDraft:", e); }
 }
 
 function restoreLocalDraft(){
   try{
-    const raw = localStorage.getItem(LS_KEY);
+    const draftKey=getScopedSeoDraftKey();
+    if(!draftKey) return false;
+    const raw = localStorage.getItem(draftKey);
     if(!raw) return false;
     const d = JSON.parse(raw);
     if(!d || !d.businessName) return false;
+    if(String(d.companyId || "") !== String(currentCompanyId || "") || String(d.locationId || "") !== String(currentLocationId || "")) return false;
     const set = (id, val) => { const el = document.getElementById(id); if(el && val != null && val !== "") el.value = val; };
     set("name",         d.businessName);
     set("subdomain",    d.subdomain);
@@ -917,6 +1171,13 @@ function restoreLocalDraft(){
       const lbl = document.getElementById("selectedTemplateLabel");
       if(lbl) lbl.innerText = "Valgt design: " + (templateTitles[selectedTemplate] || selectedTemplate);
     }
+    console.debug("[seo hydration]", {
+      activeCompanyId: currentCompanyId,
+      activeLocationId: currentLocationId,
+      hydrationSource: "scopedLocalStorage",
+      restaurantName: d.businessName,
+      subdomain: d.subdomain
+    });
     return true;
   }catch(e){ console.warn("restoreLocalDraft:", e); return false; }
 }
@@ -930,11 +1191,18 @@ async function persistConfig(silent){
   }
 
   try{
+    const config=getGeneratorConfig();
+    console.debug("[seo save payload]", {
+      companyId,
+      locationId,
+      restaurantName: config.businessName,
+      subdomain: config.subdomain
+    });
     const response=await saveSeoGeneratorConfig({
       companyId,
       locationId,
       configId:savedConfigId || undefined,
-      config:getGeneratorConfig()
+      config
     });
     const nextId=String(response?.data?.configId || "").trim();
     if(nextId) savedConfigId=nextId;
@@ -1773,10 +2041,11 @@ function buildLandingPageConfigFromGenerator() {
   const subdomain = String(config.subdomain || slugify(businessName, "restaurant") || "restaurant").trim();
   const citySlug = slugify(city, "by");
   const businessSlug = slugify(subdomain || businessName, "restaurant");
-  const routePath = `/${citySlug}/${businessSlug}/`;
+  const routePath = "/";
+  const rootUrl = `https://${businessSlug}.madkontrollen.dk/`;
 
-  // Build folder-route slug from city and business
-  const slug = `${citySlug}/${businessSlug}`;
+  // Build business-root route for the primary SEO site.
+  const slug = businessSlug;
 
   // Build SEO texts
   const title = `${businessName} - ${cuisineTypeRaw} i ${city}`;
@@ -1838,7 +2107,8 @@ function buildLandingPageConfigFromGenerator() {
     citySlug,
     businessSlug,
     routePath,
-    outputPath: buildSeoOutputPath({ citySlug, businessSlug }),
+    canonicalPath: routePath,
+    outputPath: `${businessSlug}/index.html`,
     companyName: businessName,
     businessName,
     displayBusinessName: businessName,
@@ -1853,11 +2123,11 @@ function buildLandingPageConfigFromGenerator() {
     sections,
     sectionsHtml,
     heroImage: config.heroImageUrl || "",
-    websiteUrl: `https://madkontrollen.dk${routePath}`,
+    websiteUrl: rootUrl,
     externalWebsite: config.websiteUrl || "",
     facebookUrl: "",
     instagramUrl: "",
-    orderingUrl: `https://madkontrollen.dk${routePath}`,
+    orderingUrl: rootUrl,
     phone,
     address,
     logoInitials,
@@ -2262,6 +2532,14 @@ async function loadSavedConfig(){
     subdomainTouched = !!String(c.subdomain || "").trim();
     lastAutoSubdomain = slugify(c.subdomain || c.businessName || "");
 
+    console.debug("[seo hydration]", {
+      activeCompanyId: currentCompanyId,
+      activeLocationId: currentLocationId,
+      hydrationSource: "seoConfig",
+      restaurantName: c.businessName,
+      subdomain: c.subdomain
+    });
+
     return true;
   } catch(e) {
     console.warn("loadSavedConfig fejl:", e);
@@ -2270,39 +2548,7 @@ async function loadSavedConfig(){
 }
 
 async function prefillFromLiveProfile(){
-  if(!currentCompanyId || !currentLocationId) return;
-
-  const topbar = (id) => {
-    const el = document.getElementById(id);
-    const v = el ? el.textContent.trim() : "";
-    return (v && v !== "–") ? v : "";
-  };
-
-  const setIfEmpty = (id, val) => {
-    if(val && document.getElementById(id) && !document.getElementById(id).value){
-      document.getElementById(id).value = val;
-    }
-  };
-
-  setIfEmpty("name",    topbar("mkpTopbarCompany"));
-  setIfEmpty("phone",   topbar("mkpTopbarPhone"));
-  setIfEmpty("address", topbar("mkpTopbarAddress"));
-
-  try{
-    const snap=await getDoc(doc(db,"live_user_profiles",`${currentCompanyId}__${currentLocationId}__live_profile`));
-    if(snap.exists()){
-      const p=snap.data()?.profile || snap.data() || {};
-      setIfEmpty("name",    p.companyName);
-      setIfEmpty("city",    p.city);
-      setIfEmpty("phone",   p.phone || p.phoneNumber || "");
-      setIfEmpty("address", [p.address, p.zip, p.city].filter(Boolean).join(", "));
-      setIfEmpty("description", p.description || p.businessDescription || "");
-    }
-  }catch(e){
-    console.warn("prefillFromLiveProfile fejl:",e);
-  }
-
-  syncSubdomainFromName(false);
+  return hydrateSeoFormFromActiveOnboardingContext({ overwrite:false });
 }
 
 await loadLayout();
@@ -2316,7 +2562,7 @@ await setupAuthGate({
     const sessionCompanyId = getSessionCompanyId() || "";
     const sessionLocationId = getSessionLocationId() || "";
     currentCompanyId = String(profile?.companyId || profile?.organizationId || sessionCompanyId).trim();
-    currentLocationId = String(profile?.locationId || sessionLocationId).trim();
+    currentLocationId = String(profile?.primaryLocationId || profile?.locationId || (Array.isArray(profile?.locationIds) ? profile.locationIds[0] : "") || sessionLocationId).trim();
     
     // Verify user is actually logged in
     if(!currentCompanyId || !currentLocationId) {
@@ -2337,10 +2583,12 @@ await setupAuthGate({
     authReady=true;
     setGeneratorStatus("✓ Logget ind som " + (currentUserProfile?.displayName || currentCompanyId),false);
     
+    clearSeoBusinessFields();
+    await hydrateSeoFormFromActiveOnboardingContext({ overwrite:true });
     const restored = await loadSavedConfig();
     if(!restored) restoreLocalDraft();
-    await prefillFromLiveProfile();
-    if(restored) generateSite();
+    syncSubdomainFromName(false);
+    generateSite();
     setTimeout(() => setGeneratorStatus("",false), 3000);
     await maybeFinalizeSeoCheckout();
   },
