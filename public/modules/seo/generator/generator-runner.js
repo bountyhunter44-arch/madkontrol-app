@@ -5,7 +5,7 @@ import { generateWebsiteFiles } from "./generator-core.js";
 export function runGenerator(config) {
   const result = generateWebsiteFiles(config);
 
-  console.log("GENERATED FILES:", result);
+  console.log("GENERATED FILES (preview/in-memory only):", result);
 
   saveFiles(result);
 
@@ -22,12 +22,14 @@ function saveFiles(files) {
     return;
   }
 
-  const pages = Array.isArray(files.pages) ? files.pages : [];
+  const pages = files.pages && typeof files.pages === "object" ? files.pages : {};
+  const paths = Object.keys(pages);
 
-  console.log("Saving pages:", pages.length);
+  console.log("saveFiles: preview/in-memory output only. No local files, Firestore docs, VPS upload or hosting publish is performed here.");
+  console.log("Output paths:", paths.length);
 
-  pages.forEach((page) => {
-    console.log("SAVE:", page.path);
+  paths.forEach((path) => {
+    console.log("PREVIEW OUTPUT:", path);
   });
 
   console.log("Sitemap:", files.sitemap || "");

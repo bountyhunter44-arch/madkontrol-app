@@ -1,35 +1,8 @@
-/**
- * @madkontrollen-registry-stamp
- * fileRole: "cloud-functions-entrypoint"
- * projectArea: "functions"
- * canonicalSystem: true
- * usesHelpers:
- *   - generateAndSaveEgenkontrolProgram
- *   - guardDangerousOperation
- *   - provisioning
- *   - FieldValue.serverTimestamp
- * owns:
- *   - Firebase Cloud Functions exports
- *   - Stripe checkout and webhook entrypoints
- *   - onboarding provisioning entrypoints
- *   - protected backend orchestration
- * mustNotCreate:
- *   - duplicate Stripe flows
- *   - duplicate onboarding provisioning flows
- *   - duplicate auth flows
- *   - duplicate live_user_profiles contracts
- * requiredBeforeEdit:
- *   - read docs/AI_TOOLBOX.md
- *   - inspect existing helpers
- *   - verify protected systems before editing
- */
 // Load environment variables from .env file (for local development)
 require("dotenv").config();
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const path = require("path");
-const { pathToFileURL } = require("url");
 const { defineSecret } = require("firebase-functions/params");
 const { defineJsonSecret } = require("firebase-functions/params");
 const { logger } = require("firebase-functions");
@@ -64,31 +37,9 @@ const Stripe = require("stripe");
 const db = admin.firestore();
 db.settings({ ignoreUndefinedProperties: true });
 const { FieldValue } = admin.firestore;
-
-// Secret Manager - requires Firebase billing for production
 const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
+const PEXELS_API_KEY = defineSecret("PEXELS_API_KEY");
 const FUNCTIONS_CONFIG = defineJsonSecret("FUNCTIONS_CONFIG_EXPORT");
-const CLOUDINARY_CLOUD_NAME = defineSecret("CLOUDINARY_CLOUD_NAME");
-const CLOUDINARY_API_KEY = defineSecret("CLOUDINARY_API_KEY");
-const CLOUDINARY_API_SECRET = defineSecret("CLOUDINARY_API_SECRET");
-const EMAIL_USER = defineSecret("EMAIL_USER");
-const EMAIL_PASSWORD = defineSecret("EMAIL_PASSWORD");
-const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
-const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
-const AZURE_TTS_KEY = defineSecret("AZURE_TTS_KEY");
-const AZURE_TTS_REGION = defineSecret("AZURE_TTS_REGION");
-
-let saveSeoGeneratorConfigRuntimeWrapperPromise = null;
-
-async function loadSaveSeoGeneratorConfigRuntimeWrapper() {
-  if (!saveSeoGeneratorConfigRuntimeWrapperPromise) {
-    const moduleUrl = pathToFileURL(
-      path.resolve(__dirname, "../tools/seo/adapters/firestore/save-seo-generator-config-runtime-wrapper.js")
-    ).href;
-    saveSeoGeneratorConfigRuntimeWrapperPromise = import(moduleUrl);
-  }
-  return saveSeoGeneratorConfigRuntimeWrapperPromise;
-}
 
 function getStripeConfig() {
   const config = FUNCTIONS_CONFIG.value();
@@ -151,7 +102,7 @@ const { onRequest } = require("firebase-functions/v2/https");
 exports.stripeWebhook = onRequest(
   {
     region: "us-central1",
-    secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET],
+    secrets: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"],
   },
   async (req, res) => {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -298,11 +249,27 @@ const ADDON_CATALOG = {
 function toAsciiSlug(value, maxLen = 120) {
   return String(value || "")
     .toLowerCase()
+    .replace(/æ/g, "ae")
+    .replace(/ø/g, "oe")
+    .replace(/å/g, "aa")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, maxLen);
+}
+
+function buildSeoFolderRoute(config = {}) {
+  const citySlug = toAsciiSlug(config.city || "by", 80) || "by";
+  const businessSlug = toAsciiSlug(config.subdomain || config.businessSlug || config.businessName || "restaurant", 120) || "restaurant";
+  const routePath = `/${citySlug}/${businessSlug}/`;
+  return {
+    citySlug,
+    businessSlug,
+    routePath,
+    outputPath: `${citySlug}/${businessSlug}/index.html`,
+    canonicalUrl: `https://madkontrollen.dk${routePath}`
+  };
 }
 
 function toLegacyId(value) {
@@ -377,47 +344,124 @@ function buildSeoLandingPages(config, count) {
   const cuisineType = sanitizeString(config?.cuisineType || "Restaurant", 80) || "Restaurant";
   const city = sanitizeString(config?.city || "Kobenhavn", 80) || "Kobenhavn";
   const keyword = sanitizeString(config?.keyword || `bedste ${String(cuisineType).toLowerCase()} i ${city}`, 120);
-  const subdomain = sanitizeString(config?.subdomain || toAsciiSlug(businessName), 120);
+  const route = buildSeoFolderRoute(config);
+  const title = sanitizeString(`${businessName} | ${keyword}`, 220);
+  const metaDescription = sanitizeString(
+    `${businessName} i ${city}. ${keyword}. Book bord eller bestil online via madkontrollen.dk${route.routePath}.`,
+    320
+  );
 
-  const seeds = [
+  return [{
+    sourceTitle: `${businessName} - ${keyword}`,
+    slug: `${route.citySlug}/${route.businessSlug}`,
+    citySlug: route.citySlug,
+    businessSlug: route.businessSlug,
+    outputPath: route.outputPath,
     keyword,
-    `${cuisineType} i ${city}`,
-    `Takeaway ${city}`,
-    `Restaurant ${city}`,
-    `Bedste ${String(cuisineType).toLowerCase()} i ${city}`,
-    `Billig ${String(cuisineType).toLowerCase()} i ${city}`,
-    `Familie restaurant i ${city}`,
-    `Online bestilling ${city}`,
-    `${cuisineType} menu i ${city}`,
-    `${subdomain}.madkontrollen.dk`
-  ];
+    title,
+    metaDescription,
+    h1: sanitizeString(`${businessName} - ${keyword}`, 220),
+    h2: sanitizeString(`Hvorfor vaelge ${businessName} i ${city}?`, 220),
+    h3: sanitizeString(`Bestil ${String(cuisineType).toLowerCase()} online i ${city}`, 220),
+    canonicalPath: route.routePath
+  }];
+}
 
-  const pages = [];
-  for (let i = 0; i < count; i += 1) {
-    const seed = sanitizeString(seeds[i % seeds.length], 140) || `Landing side ${i + 1}`;
-    const variant = Math.floor(i / seeds.length) + 1;
-    const pageTitleSeed = `${businessName} - ${seed}${variant > 1 ? ` #${variant}` : ""}`;
-    const slugBase = toAsciiSlug(`${seed}${variant > 1 ? `-${variant}` : ""}`, 100) || `landing-side-${i + 1}`;
-    const title = sanitizeString(`${businessName} | ${seed}`, 220);
-    const metaDescription = sanitizeString(
-      `${businessName} i ${city}. ${seed}. Book bord eller bestil online via ${subdomain}.madkontrollen.dk.`,
-      320
-    );
-
-    pages.push({
-      sourceTitle: pageTitleSeed,
-      slug: slugBase,
-      keyword: seed,
-      title,
-      metaDescription,
-      h1: sanitizeString(`${businessName} - ${seed}`, 220),
-      h2: sanitizeString(`Hvorfor vaelge ${businessName} i ${city}?`, 220),
-      h3: sanitizeString(`Bestil ${String(cuisineType).toLowerCase()} online i ${city}`, 220),
-      canonicalPath: `/${slugBase}`
-    });
+function getSeoGatewayInvalidateConfig() {
+  let functionsConfig = {};
+  try {
+    functionsConfig = FUNCTIONS_CONFIG.value() || {};
+  } catch (_error) {
+    functionsConfig = {};
   }
 
-  return pages;
+  const seoGatewayConfig = functionsConfig?.seo_gateway || functionsConfig?.seoGateway || {};
+  const baseUrl = String(
+    process.env.SEO_GATEWAY_INVALIDATE_URL ||
+    seoGatewayConfig.invalidate_url ||
+    seoGatewayConfig.invalidateUrl ||
+    ""
+  ).trim().replace(/\/+$/, "");
+  const token = String(
+    process.env.SEO_GATEWAY_INTERNAL_TOKEN ||
+    seoGatewayConfig.internal_token ||
+    seoGatewayConfig.internalToken ||
+    ""
+  ).trim();
+
+  if (!baseUrl || !token) {
+    return {
+      ok: false,
+      result: {
+        attempted: false,
+        reason: "missing_config"
+      }
+    };
+  }
+
+  try {
+    const parsed = new URL(baseUrl);
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return {
+        ok: false,
+        result: {
+          attempted: false,
+          reason: "invalid_config"
+        }
+      };
+    }
+  } catch (_error) {
+    return {
+      ok: false,
+      result: {
+        attempted: false,
+        reason: "invalid_config"
+      }
+    };
+  }
+
+  return { ok: true, baseUrl, token };
+}
+
+async function invalidateSeoGatewayCache({ citySlug, businessSlug }) {
+  const config = getSeoGatewayInvalidateConfig();
+  if (!config.ok) return config.result;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 3000);
+
+  try {
+    const response = await fetch(`${config.baseUrl}/__internal/seo-cache/invalidate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.token}`
+      },
+      body: JSON.stringify({ citySlug, businessSlug }),
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      return {
+        attempted: true,
+        ok: false,
+        error: `http_${response.status}`
+      };
+    }
+
+    return {
+      attempted: true,
+      ok: true
+    };
+  } catch (error) {
+    return {
+      attempted: true,
+      ok: false,
+      error: error?.name === "AbortError" ? "timeout" : String(error?.message || "request_failed").slice(0, 180)
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activatedByUid }) {
@@ -427,6 +471,7 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
   const selectedTemplate = sanitizeString(config?.selectedTemplate || "classic", 60) || "classic";
   const pageCount = parsePageCount(config?.pageCount, 50);
   const logoDataUrl = sanitizeString(config?.logoDataUrl || "", 500000);
+  const route = buildSeoFolderRoute({ ...config, subdomain });
 
   if (!subdomain) {
     throw new functions.https.HttpsError("invalid-argument", "Subdomaene mangler i generator-konfigurationen.");
@@ -440,6 +485,10 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
     companyId,
     locationId,
     subdomain,
+    citySlug: route.citySlug,
+    businessSlug: route.businessSlug,
+    routePath: route.routePath,
+    outputPath: route.outputPath,
     template: selectedTemplate,
     brandMode: "madkontrollen_default",
     logoUrl: logoDataUrl || null,
@@ -474,8 +523,11 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
       locationId,
       websiteId,
       subdomain,
+      citySlug: page.citySlug || route.citySlug,
+      businessSlug: page.businessSlug || route.businessSlug,
+      outputPath: page.outputPath || route.outputPath,
       slug: page.slug,
-      url: `https://${subdomain}.madkontrollen.dk/${page.slug}`,
+      url: `https://madkontrollen.dk${page.canonicalPath}`,
       keyword: page.keyword,
       title: page.title,
       metaDescription: page.metaDescription,
@@ -494,10 +546,26 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
 
   await batch.commit();
 
+  const cacheInvalidation = await invalidateSeoGatewayCache({
+    citySlug: route.citySlug,
+    businessSlug: route.businessSlug
+  });
+
+  if (cacheInvalidation.attempted && !cacheInvalidation.ok) {
+    logger.warn("SEO gateway cache invalidation failed", {
+      citySlug: route.citySlug,
+      businessSlug: route.businessSlug,
+      error: cacheInvalidation.error || "unknown"
+    });
+  }
+
   return {
     websiteId,
     generatedPages: pages.length,
-    subdomain
+    subdomain,
+    citySlug: route.citySlug,
+    businessSlug: route.businessSlug,
+    cacheInvalidation
   };
 }
 
@@ -691,31 +759,14 @@ function sanitizeStringList(value, maxItems = 50, maxLen = 140) {
 }
 
 function sanitizeOnboardingProfile(profile = {}) {
-  const companyName = sanitizeString(profile.companyName || profile.name, 140);
-  const contactPersonName = sanitizeString(
-    profile.contactPersonName ||
-    profile.profilename ||
-    profile.profilname ||
-    profile.ownerName ||
-    profile.contactName ||
-    profile.leader,
-    120
-  );
-
   return {
-    companyName,
-    profileCompanyName: companyName,
-    name: companyName,
-    displayName: companyName,
-    locationName: sanitizeString(profile.locationName || "Hovedlokation", 140),
+    companyName: sanitizeString(profile.companyName || profile.name, 140),
     cvr: sanitizeString(profile.cvr, 30),
     address: sanitizeString(profile.address, 180),
     city: sanitizeString(profile.city, 80),
     zip: sanitizeString(profile.zip, 20),
     companyType: sanitizeString(profile.companyType || profile.businessType, 80),
-    ownerName: contactPersonName,
-    contactPersonName,
-    profilename: contactPersonName,
+    ownerName: sanitizeString(profile.ownerName || profile.contactName || profile.leader, 120),
     phone: sanitizeString(profile.phone || profile.phoneNumber, 40),
     accountEmail: sanitizeString(profile.accountEmail, 160),
     accountPassword: sanitizeString(profile.accountPassword, 200),
@@ -1011,240 +1062,6 @@ function buildOnboardingSummary({ profile = {}, riskModel = {}, customerName = "
     companyType: sanitizeString(profile.companyType || riskModel.companyType, 80) || "Restaurant",
     city: sanitizeString(profile.city, 80),
     criticalPoints: deriveCriticalPoints(riskModel)
-  };
-}
-
-async function sendOnboardingWelcomeEmail({ to, companyName, locationName, loginEmail, onboardingSummary, billing, emailUser, emailPassword }) {
-  const nodemailer = require("nodemailer");
-  
-  // Validate email credentials
-  if (!emailUser || !emailPassword) {
-    throw new Error("EMAIL_USER eller EMAIL_PASSWORD mangler - kan ikke sende email");
-  }
-  
-  // Email content in Danish
-  const subject = "Velkommen til Madkontrollen Pro";
-  
-  const equipmentList = (onboardingSummary?.selectedSetup?.equipment || [])
-    .map(eq => {
-      const typeNames = {
-        fridge: "Køleskab",
-        freezer: "Fryser",
-        walkin_cooler: "Walk-in køler",
-        walkin_freezer: "Walk-in fryser",
-        dishwasher: "Opvaskemaskine",
-        fryer: "Friture"
-      };
-      return `${typeNames[eq.type] || eq.type}: ${eq.count}`;
-    })
-    .join(", ") || "Ingen udstyr valgt";
-  
-  const setupDetails = onboardingSummary?.selectedSetup || {};
-  
-  const loginUrl = "https://madkontrollen.web.app/login.html";
-  
-  const textBody = `
-Hej ${companyName},
-
-Jeres Madkontrollen-konto er nu oprettet.
-
-Login:
-Email: ${loginEmail}
-Login-side: ${loginUrl}
-Adgangskode: Den adgangskode du valgte ved onboarding. Hvis du har glemt den, kan du nulstille den via login-siden.
-
-Valgt opsætning:
-- Branche: ${setupDetails.industry || "Restaurant"}
-- Køl: ${setupDetails.hasCooling ? "Ja" : "Nej"} (${setupDetails.fridgeCount || 0} køleskabe, ${setupDetails.freezerCount || 0} frysere)
-- Opvarmning: ${setupDetails.hasHeating ? "Ja" : "Nej"}
-- Varmholdelse: ${setupDetails.hasHotHolding ? "Ja" : "Nej"}
-- Varemodtagelse: ${setupDetails.hasReceiving ? "Ja" : "Nej"}
-- Opvaskemaskine: ${setupDetails.hasDishwasher ? "Ja" : "Nej"}
-- Udstyr: ${equipmentList}
-
-Betaling:
-I har ${billing?.trialDays || 14} dages gratis prøveperiode.
-${billing?.trialEndsAt ? `Prøveperioden udløber: ${new Date(billing.trialEndsAt).toLocaleDateString("da-DK")}` : ""}
-Efter prøveperioden starter abonnementet automatisk, medmindre I opsiger inden udløb.
-
-Venlig hilsen
-Madkontrollen
-info@madkontrollen.dk
-  `.trim();
-  
-  const htmlBody = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    h1 { color: #2c5282; }
-    .info-box { background: #f7fafc; border-left: 4px solid #4299e1; padding: 15px; margin: 20px 0; }
-    .setup-list { background: #fff; border: 1px solid #e2e8f0; padding: 15px; margin: 15px 0; }
-    .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 0.9em; color: #718096; }
-    a { color: #4299e1; text-decoration: none; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Velkommen til Madkontrollen</h1>
-    <p>Hej <strong>${companyName}</strong>,</p>
-    <p>Jeres Madkontrollen-konto er nu oprettet.</p>
-    
-    <div class="info-box">
-      <h3>Login Information</h3>
-      <p><strong>Email:</strong> ${loginEmail}</p>
-      <p><strong>Login-side:</strong> <a href="${loginUrl}">${loginUrl}</a></p>
-      <p><strong>Adgangskode:</strong> Den adgangskode du valgte ved onboarding. Hvis du har glemt den, kan du nulstille den via login-siden.</p>
-    </div>
-    
-    <div class="setup-list">
-      <h3>Valgt opsætning</h3>
-      <ul>
-        <li><strong>Branche:</strong> ${setupDetails.industry || "Restaurant"}</li>
-        <li><strong>Køl:</strong> ${setupDetails.hasCooling ? "Ja" : "Nej"} (${setupDetails.fridgeCount || 0} køleskabe, ${setupDetails.freezerCount || 0} frysere)</li>
-        <li><strong>Opvarmning:</strong> ${setupDetails.hasHeating ? "Ja" : "Nej"}</li>
-        <li><strong>Varmholdelse:</strong> ${setupDetails.hasHotHolding ? "Ja" : "Nej"}</li>
-        <li><strong>Varemodtagelse:</strong> ${setupDetails.hasReceiving ? "Ja" : "Nej"}</li>
-        <li><strong>Opvaskemaskine:</strong> ${setupDetails.hasDishwasher ? "Ja" : "Nej"}</li>
-        <li><strong>Udstyr:</strong> ${equipmentList}</li>
-      </ul>
-    </div>
-    
-    <div class="info-box">
-      <h3>Betaling</h3>
-      <p>I har <strong>${billing?.trialDays || 14} dages gratis prøveperiode</strong>.</p>
-      ${billing?.trialEndsAt ? `<p>Prøveperioden udløber: <strong>${new Date(billing.trialEndsAt).toLocaleDateString("da-DK")}</strong></p>` : ""}
-      <p>Efter prøveperioden starter abonnementet automatisk, medmindre I opsiger inden udløb.</p>
-    </div>
-    
-    <div class="footer">
-      <p>Venlig hilsen<br>
-      <strong>Madkontrollen</strong><br>
-      <a href="mailto:info@madkontrollen.dk">info@madkontrollen.dk</a></p>
-    </div>
-  </div>
-</body>
-</html>
-  `.trim();
-  
-  console.log("[EMAIL] sending onboarding email");
-  console.log("[EMAIL] onboarding summary:", {
-    to,
-    companyName,
-    locationName,
-    industry: setupDetails.industry,
-    hasCooling: setupDetails.hasCooling,
-    hasHeating: setupDetails.hasHeating,
-    fridgeCount: setupDetails.fridgeCount,
-    freezerCount: setupDetails.freezerCount,
-    trialDays: billing?.trialDays,
-    trialEndsAt: billing?.trialEndsAt
-  });
-  
-  try {
-    // Create transporter with Hostinger SMTP (initialized per-call, not globally)
-    const transporter = nodemailer.createTransport({
-      host: "smtp.hostinger.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: emailUser,
-        pass: emailPassword
-      }
-    });
-    
-    // Send email
-    const info = await transporter.sendMail({
-      from: '"Madkontrollen" <info@madkontrollen.dk>',
-      to: to,
-      subject: subject,
-      text: textBody,
-      html: htmlBody
-    });
-    
-    console.log("[EMAIL] email sent successfully");
-    console.log("[EMAIL] Message ID:", info.messageId);
-    console.log("[EMAIL] Response:", info.response);
-    
-    return {
-      sent: true,
-      messageId: info.messageId,
-      to,
-      subject
-    };
-  } catch (error) {
-    console.error("[EMAIL] failed:", error.message);
-    console.error("[EMAIL] Error code:", error.code);
-    
-    // Log error but don't expose sensitive details
-    return {
-      sent: false,
-      error: error.message,
-      to,
-      subject
-    };
-  }
-}
-
-function buildDetailedOnboardingSummary({ profile = {}, riskModel = {}, companyId, locationId, draftId, billing = {} }) {
-  const sanitizedProfile = sanitizeOnboardingProfile(profile);
-  
-  // Extract equipment info
-  const equipment = [];
-  if (sanitizedProfile.hasFridge) equipment.push({ type: "fridge", count: sanitizedProfile.fridgeCount || 1 });
-  if (sanitizedProfile.hasFreezer) equipment.push({ type: "freezer", count: sanitizedProfile.freezerCount || 1 });
-  if (sanitizedProfile.hasWalkinCooler) equipment.push({ type: "walkin_cooler", count: sanitizedProfile.walkinCoolerCount || 1 });
-  if (sanitizedProfile.hasWalkinFreezer) equipment.push({ type: "walkin_freezer", count: sanitizedProfile.walkinFreezerCount || 1 });
-  if (sanitizedProfile.hasDishwasher) equipment.push({ type: "dishwasher", count: 1 });
-  if (sanitizedProfile.hasFryer) equipment.push({ type: "fryer", count: 1 });
-  
-  return {
-    companyId,
-    locationId,
-    draftId,
-    createdAt: FieldValue.serverTimestamp(),
-    updatedAt: FieldValue.serverTimestamp(),
-    source: "onboarding",
-    company: {
-      name: sanitizedProfile.companyName || "",
-      cvr: sanitizedProfile.cvr || "",
-      address: sanitizedProfile.address || "",
-      zip: sanitizedProfile.zip || "",
-      city: sanitizedProfile.city || "",
-      phone: sanitizedProfile.phone || "",
-      email: sanitizedProfile.accountEmail || ""
-    },
-    location: {
-      name: sanitizedProfile.locationName || "Hovedlokation",
-      address: sanitizedProfile.address || ""
-    },
-    selectedSetup: {
-      industry: sanitizedProfile.companyType || "Restaurant",
-      hasCooling: Boolean(sanitizedProfile.hasFridge || sanitizedProfile.hasFreezer || sanitizedProfile.hasWalkinCooler || sanitizedProfile.hasWalkinFreezer),
-      hasHeating: Boolean(sanitizedProfile.hasReheating),
-      hasHotHolding: Boolean(sanitizedProfile.hasHotHolding),
-      hasDishwasher: Boolean(sanitizedProfile.hasDishwasher),
-      hasFryer: Boolean(sanitizedProfile.hasFryer),
-      fridgeCount: sanitizedProfile.fridgeCount || 0,
-      freezerCount: sanitizedProfile.freezerCount || 0,
-      walkinCoolerCount: sanitizedProfile.walkinCoolerCount || 0,
-      walkinFreezerCount: sanitizedProfile.walkinFreezerCount || 0,
-      hasReceiving: Boolean(sanitizedProfile.hasReceiving),
-      equipment
-    },
-    billing: {
-      provider: billing.provider || "stripe",
-      status: billing.status || "trialing",
-      trialDays: billing.trialDays || 14,
-      trialEndsAt: billing.trialEndsAt || null,
-      checkoutSessionId: billing.checkoutSessionId || null,
-      subscriptionId: billing.subscriptionId || null,
-      priceId: billing.priceId || null,
-      plan: billing.plan || "monthly"
-    }
   };
 }
 
@@ -4819,93 +4636,6 @@ async function ensureEgenkontrolTaskTemplates({
   return { ok: true };
 }
 
-// ─── ROUTINE TYPE NORMALIZATION ──────────────────────────────────────────────
-
-/**
- * Normalize legacy/minimal templateKey and controlType to canonical routineType
- * This ensures daily CCP override works for both new and legacy templates
- * @param {Object} template - The template object
- * @param {string} targetEquipmentType - Optional equipment type from target
- */
-function normalizeRoutineType(template, targetEquipmentType = "") {
-  const templateKey = (template.templateKey || "").toLowerCase();
-  const controlType = (template.controlType || "").toLowerCase();
-  const title = (template.title || "").toLowerCase();
-  const guideKey = (template.guideKey || "").toLowerCase();
-  const equipmentType = (targetEquipmentType || template.equipmentType || "").toLowerCase();
-  const unitType = (template.equipmentUnit?.type || "").toLowerCase();
-  
-  // Check if already has canonical routineType
-  if (template.routineType) {
-    return template.routineType;
-  }
-  
-  // Map receiving_control
-  if (templateKey === "receiving_control" || controlType === "receiving_control" || 
-      title.includes("varemodtagelse") || guideKey.includes("receiving")) {
-    return "varemodtagelse";
-  }
-  
-  // Map cooling_control (nedkøling)
-  if (templateKey === "cooling_control" || controlType === "cooling_control" ||
-      title.includes("nedkøling") || title.includes("nedkoel") || guideKey.includes("cooling")) {
-    return "nedkoeling";
-  }
-  
-  // Map heating_control and reheating_control (opvarmning)
-  if (templateKey === "heating_control" || templateKey === "reheating_control" || 
-      controlType === "heating_control" || controlType === "reheating_control" ||
-      title.includes("opvarmning") || title.includes("genopvarm") || 
-      guideKey.includes("heating") || guideKey.includes("reheating")) {
-    return "opvarmning";
-  }
-  
-  // Map hot_holding_control (varmholdelse)
-  if (templateKey === "hot_holding_control" || controlType === "hot_holding_control" ||
-      title.includes("varmholdelse") || guideKey.includes("hot_holding")) {
-    return "varmholdelse";
-  }
-  
-  // Map dishwasher_control (opvaskemaskine)
-  if (templateKey === "dishwasher_control" || controlType === "dishwasher_control" ||
-      title.includes("opvaskemaskine") || title.includes("skyllevand") || guideKey.includes("dishwasher")) {
-    return "opvaskemaskine_skyllevand";
-  }
-  
-  // Map temperature_control - need to distinguish between køl and frost
-  if (templateKey === "temperature_control" || controlType === "temperature_control" ||
-      guideKey.includes("temperature")) {
-    
-    // Check for freezer/frost indicators FIRST (more specific)
-    if (title.includes("fryser") || title.includes("frost") || title.includes("freeze") ||
-        guideKey.includes("freezer") || 
-        equipmentType.includes("freezer") || equipmentType.includes("freezing") ||
-        unitType.includes("freezer") || unitType.includes("freezing")) {
-      return "fryser_temperatur";
-    }
-    
-    // Check for fridge/køl indicators
-    if (title.includes("køleskab") || title.includes("koleskab") || title.includes("køl") ||
-        guideKey.includes("fridge") || 
-        equipmentType.includes("fridge") || equipmentType.includes("cooling") ||
-        unitType.includes("fridge") || unitType.includes("cooling")) {
-      return "koeleskab_temperatur";
-    }
-    
-    // Default to køl if unclear
-    return "koeleskab_temperatur";
-  }
-  
-  // Map cleaning_control - keep frequency from template
-  if (templateKey === "cleaning_control" || controlType === "cleaning_control" ||
-      title.includes("rengøring") || title.includes("rengoering") || guideKey.includes("cleaning")) {
-    return "rengoering";
-  }
-  
-  // Return canonicalTaskKey or templateKey as fallback
-  return template.canonicalTaskKey || templateKey || controlType || "";
-}
-
 // ─── START-DAY IDEMPOTENCY HELPERS ───────────────────────────────────────────
 
 const INSTANCE_COMPARABLE_FIELDS = [
@@ -5031,14 +4761,6 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
   const forceRefresh = data?.forceRefresh === true;
   const runId = `${companyId}__${locationId}__${todayKey}`;
 
-  console.log("[startDayForLocation] CALLED with:", {
-    companyId,
-    locationId,
-    todayKey,
-    forceRefresh,
-    runId
-  });
-
   // Ensure location has temperature control settings for new schedule system
   let locationTemperatureSettings = null;
   try {
@@ -5050,12 +4772,6 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
   const runRef = db.collection("daily_runs").doc(runId);
   const runSnap = await runRef.get();
   const alreadyStarted = runSnap.exists;
-  
-  console.log("[startDayForLocation] Daily run check:", {
-    runId,
-    alreadyStarted,
-    forceRefresh
-  });
 
   const operatingMode = await getOperatingModeForLocation({
     companyId,
@@ -5334,100 +5050,6 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
         due = isDueToday(template, todayKey, lastCompleted, "frequency");
       }
       
-      // DAILY CCP OVERRIDE: Force daily scheduling for critical CCP routines
-      const dailyCCPRoutines = [
-        // Canonical routine types
-        "koeleskab_temperatur",
-        "fryser_temperatur", 
-        "varemodtagelse",
-        "opvarmning",
-        "nedkoeling",
-        "varmholdelse",
-        "tre_timers_regel",
-        "opvaskemaskine_skyllevand",
-        // Legacy template keys
-        "temperature_control",
-        "receiving_control",
-        "heating_control",
-        "reheating_control",
-        "cooling_control",
-        "hot_holding_control",
-        "dishwasher_control"
-      ];
-      
-      // Normalize routine type for both new and legacy templates
-      const normalizedRoutineType = normalizeRoutineType(template, target.equipmentType);
-      const originalRoutineType = template.routineType || template.canonicalTaskKey || template.templateKey || template.controlType || "";
-      
-      // SKIP GENERIC TEMPERATURE ROUTINES if equipment-specific ones exist
-      const isGenericTempRoutine = (
-        normalizedRoutineType === "koeleskab_temperatur" || 
-        normalizedRoutineType === "fryser_temperatur"
-      ) && !template.equipmentUnit && !template.equipmentId && !target.equipmentId;
-      
-      if (isGenericTempRoutine) {
-        // Check if we have equipment-specific temperature templates
-        const relevantEquipmentType = normalizedRoutineType === "koeleskab_temperatur" 
-          ? ["fridge", "cooling", "walk_in_cooler"] 
-          : ["freezer", "freezing", "walk_in_freezer", "isboks"];
-        
-        const matchingEquipment = allEquipment.filter(eq => 
-          relevantEquipmentType.some(type => eq.type.includes(type))
-        );
-        
-        if (matchingEquipment.length > 0) {
-          console.log("[SKIP_GENERIC_TEMP_ROUTINE]", {
-            routineType: normalizedRoutineType,
-            title: template.title,
-            reason: "equipment-specific temperature routines exist",
-            matchingEquipmentCount: matchingEquipment.length,
-            matchingEquipment: matchingEquipment.map(eq => ({ id: eq.id, type: eq.type, name: eq.name }))
-          });
-          continue;
-        }
-      }
-      
-      const isDailyCCP = dailyCCPRoutines.some(ccpType => 
-        normalizedRoutineType.toLowerCase().includes(ccpType.toLowerCase()) ||
-        originalRoutineType.toLowerCase().includes(ccpType.toLowerCase()) ||
-        (template.title || "").toLowerCase().includes(ccpType.replace(/_/g, " "))
-      );
-      
-      // Comprehensive logging for each template
-      console.log("[TEMPLATE_PROCESSING]", {
-        templateId: template.id || doc.id,
-        title: template.title,
-        templateKey: template.templateKey,
-        controlType: template.controlType,
-        originalRoutineType,
-        normalizedRoutineType,
-        frequency: template.frequency,
-        scheduleConfig: template.scheduleConfig,
-        dueBeforeOverride: due,
-        isDailyCCP,
-        isGenericTempRoutine,
-        equipmentUnit: template.equipmentUnit,
-        equipmentId: target.equipmentId,
-        equipmentType: target.equipmentType,
-        equipmentName: target.equipmentName
-      });
-      
-      if (isDailyCCP && !due) {
-        console.log("[DAILY_CCP_OVERRIDE]", {
-          templateId: template.id || doc.id,
-          title: template.title,
-          templateKey: template.templateKey,
-          controlType: template.controlType,
-          originalRoutineType,
-          normalizedRoutineType,
-          dueBeforeOverride: due,
-          dueAfterOverride: true,
-          frequency: template.frequency,
-          scheduleConfig: template.scheduleConfig
-        });
-        due = true;
-      }
-      
       const registrationDue = isDueToday(template, todayKey, lastCompleted, "registrationFrequency");
       
       // Debug logging for schedule consistency validation
@@ -5508,22 +5130,9 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
       if (!existing) {
         batch.set(ref, instanceData, { merge: true });
         createdCount++;
-        console.log("[INSTANCE_CREATED]", {
-          instanceId,
-          templateId: template.id || doc.id,
-          title: scopedTitle,
-          templateKey: template.templateKey,
-          normalizedRoutineType,
-          dateKey: todayKey,
-          equipmentId: target.equipmentId || "",
-          equipmentName: target.equipmentName || ""
-        });
+        console.log("[startDay] create instance", { instanceId });
       } else if (materiallyEqualInstance(existingData, instanceData)) {
         skippedCount++;
-        console.log("[INSTANCE_SKIPPED]", {
-          instanceId,
-          reason: "materially equal"
-        });
         // ingen write
       } else {
         const changedFields = diffComparableFields(
@@ -5532,12 +5141,7 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
         );
         batch.set(ref, instanceData, { merge: false });
         updatedCount++;
-        console.log("[INSTANCE_UPDATED]", {
-          instanceId,
-          templateId: template.id || doc.id,
-          title: scopedTitle,
-          changedFields
-        });
+        console.log("[startDay] update instance", { instanceId, changedFields });
       }
       ensuredCount++;
     }
@@ -5558,32 +5162,16 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
 
   console.log(`[startDayForLocation] Schedule system usage: newSchedule=${newScheduleCount}, legacy=${legacyScheduleCount}, disabledUnits=${disabledUnitCount}`);
 
-  const result = {
+  return {
     ok: true,
     alreadyStarted,
     created: createdCount,
     updated: updatedCount,
     skipped: skippedCount,
-    ensured: ensuredCount,
-    templatesCount: templateDocs.length,
-    dateKey: todayKey,
     message: runSnap.exists
       ? `Dagens kort er opdateret (${createdCount} nye, ${updatedCount} opdateret, ${skippedCount} uændret).`
       : `Oprettet ${createdCount} opgaver`
   };
-  
-  console.log("[startDayForLocation] RETURNING:", result);
-  
-  if (createdCount === 0 && templateDocs.length > 0) {
-    console.warn("[startDayForLocation] WARNING: Had templates but created 0 instances!", {
-      templatesCount: templateDocs.length,
-      ensured: ensuredCount,
-      skipped: skippedCount,
-      alreadyStarted
-    });
-  }
-  
-  return result;
 });
 
 exports.saveRoutineTask = functions.https.onCall(async (request) => {
@@ -6513,7 +6101,7 @@ exports.createLocationUser = onCall(
 );
 
 exports.createStripeCheckoutSession = functions.https.onCall(
-  { secrets: [FUNCTIONS_CONFIG] },
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"] },
   async (data, context) => {
   if (!context.auth?.uid) {
     throw new functions.https.HttpsError("unauthenticated", "Log ind for at oprette checkout.");
@@ -6778,7 +6366,7 @@ async function getOrCreateCompany(tx, input) {
 // ─── ONBOARDING CHECKOUT SESSION ────────────────────────────────────────────
 
 exports.createOnboardingCheckoutSession = functions.https.onCall(
-  { secrets: [FUNCTIONS_CONFIG] },
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"] },
   async (request, context) => {
   const data = request.data || request;
 
@@ -6808,8 +6396,6 @@ exports.createOnboardingCheckoutSession = functions.https.onCall(
     city: data?.profile?.city || data?.company?.city || "",
     phone: data?.profile?.phone || data?.company?.phone || "",
     ownerName: data?.profile?.ownerName || data?.company?.leader || "",
-    contactPersonName: data?.profile?.contactPersonName || data?.profile?.profilename || data?.company?.leader || "",
-    profilename: data?.profile?.profilename || data?.profile?.contactPersonName || data?.company?.leader || "",
     companyType: data?.profile?.companyType || data?.company?.businessType || ""
   };
   
@@ -6922,14 +6508,6 @@ exports.createOnboardingCheckoutSession = functions.https.onCall(
     );
   }
 
-  if (!profile.contactPersonName) {
-    throw new functions.https.HttpsError("invalid-argument", "Kontaktperson / ansvarlig person er p\u00e5kr\u00e6vet.");
-  }
-
-  if (profile.contactPersonName.toLowerCase() === profile.companyName.toLowerCase()) {
-    throw new functions.https.HttpsError("invalid-argument", "Kontaktperson skal v\u00e6re et personnavn, ikke firmanavn.");
-  }
-
   const userData = authUid
     ? (await getUserAccessProfile({ uid: authUid, email: authEmail }) || {})
     : {};
@@ -6987,15 +6565,6 @@ exports.createOnboardingCheckoutSession = functions.https.onCall(
     customer_email: onboardingEmail || authEmail || undefined,
     success_url: successUrlWithToken,
     cancel_url: cancelUrl,
-    subscription_data: {
-      trial_period_days: 14,
-      metadata: {
-        flow: "onboarding_trial",
-        draftId: draftRef.id,
-        companyId,
-        locationId
-      }
-    },
     metadata: {
       source: sourceType,
       uid: authUid || "guest",
@@ -7006,8 +6575,7 @@ exports.createOnboardingCheckoutSession = functions.https.onCall(
       onboardingEmail,
       plan: normalizedBillingPlan,
       companyKey: companyKey || "",
-      keyType: keyType || "",
-      trialDays: "14"
+      keyType: keyType || ""
     }
   });
 
@@ -7118,20 +6686,45 @@ exports.checkSubdomainAvailability = functions.https.onCall(async (data, context
   }
 });
 
-function buildLegacySeoGeneratorConfigSave(payload, context) {
-  const companyId = sanitizeString(payload?.companyId || "", 120);
-  const locationId = sanitizeString(payload?.locationId || "", 120);
-  const config = payload?.config || {};
-  const configDocId = sanitizeString(payload?.configId || "", 180) || toDocSafeId(`${companyId}__${locationId}__${Date.now()}`);
-  const subdomain = toAsciiSlug(config?.subdomain || config?.businessName || "restaurant", 120) || "restaurant";
+exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) => {
+  try {
+    const payload =
+      data?.data && typeof data.data === "object"
+        ? data.data
+        : data;
 
-  return {
-    companyId,
-    locationId,
-    config,
-    configDocId,
-    subdomain,
-    dbPayload: {
+    console.log("RAW DATA - companyId:", payload?.companyId, "locationId:", payload?.locationId);
+    console.log("PARSED PAYLOAD - keys:", Object.keys(payload || {}));
+    
+    const companyId = sanitizeString(payload?.companyId || "", 120);
+    const locationId = sanitizeString(payload?.locationId || "", 120);
+
+    console.log("companyId:", companyId);
+    console.log("locationId:", locationId);
+    const config = payload?.config || {};
+    const isOnboarding = companyId.toLowerCase().startsWith("onboarding_");
+
+    if (!companyId || !locationId) {
+      throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
+    }
+
+    if (!isOnboarding && !context.auth?.uid) {
+      throw new functions.https.HttpsError("unauthenticated", "Log ind for at gemme generator-data.");
+    }
+
+    if (!isOnboarding) {
+      await assertSeoGeneratorAccess({
+        uid: context.auth.uid,
+        email: context.auth.token?.email || "",
+        companyId,
+        locationId
+      });
+    }
+
+    const configDocId = sanitizeString(payload?.configId || "", 180) || toDocSafeId(`${companyId}__${locationId}__${Date.now()}`);
+    const subdomain = toAsciiSlug(config?.subdomain || config?.businessName || "restaurant", 120) || "restaurant";
+
+    const dbPayload = {
       companyId,
       organizationId: companyId,
       locationId,
@@ -7164,98 +6757,19 @@ function buildLegacySeoGeneratorConfigSave(payload, context) {
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: context.auth?.uid || null,
       updatedByEmail: sanitizeString(context.auth?.token?.email || "", 160)
-    }
-  };
-}
+    };
 
-async function saveSeoGeneratorConfigLegacy(data, context) {
-  const payload =
-    data?.data && typeof data.data === "object"
-      ? data.data
-      : data;
+    await db.collection("seo_generator_configs").doc(configDocId).set({
+      ...dbPayload,
+      createdAt: FieldValue.serverTimestamp(),
+      createdBy: context.auth?.uid || null
+    }, { merge: true });
 
-  console.log("RAW DATA - companyId:", payload?.companyId, "locationId:", payload?.locationId);
-  console.log("PARSED PAYLOAD - keys:", Object.keys(payload || {}));
-
-  const legacySave = buildLegacySeoGeneratorConfigSave(payload, context);
-  const { companyId, locationId, configDocId, subdomain, dbPayload } = legacySave;
-  const isOnboarding = companyId.toLowerCase().startsWith("onboarding_");
-
-  console.log("companyId:", companyId);
-  console.log("locationId:", locationId);
-
-  if (!companyId || !locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
-  }
-
-  if (!isOnboarding && !context.auth?.uid) {
-    throw new functions.https.HttpsError("unauthenticated", "Log ind for at gemme generator-data.");
-  }
-
-  if (!isOnboarding) {
-    await assertSeoGeneratorAccess({
-      uid: context.auth.uid,
-      email: context.auth.token?.email || "",
-      companyId,
-      locationId
-    });
-  }
-
-  await db.collection("seo_generator_configs").doc(configDocId).set({
-    ...dbPayload,
-    createdAt: FieldValue.serverTimestamp(),
-    createdBy: context.auth?.uid || null
-  }, { merge: true });
-
-  return {
-    ok: true,
-    configId: configDocId,
-    subdomain
-  };
-}
-
-async function saveSeoGeneratorConfigViaToolbox(data, context) {
-  const payload =
-    data?.data && typeof data.data === "object"
-      ? data.data
-      : data;
-  const legacySave = buildLegacySeoGeneratorConfigSave(payload, context);
-  const sharedPayload = {
-    ...payload,
-    configId: legacySave.configDocId
-  };
-  const { createSaveSeoGeneratorConfigRuntimeWrapper } = await loadSaveSeoGeneratorConfigRuntimeWrapper();
-  const sharedSave = createSaveSeoGeneratorConfigRuntimeWrapper({
-    db,
-    baseDomain: "madkontrollen.dk",
-    assertSeoGeneratorAccess,
-    createHttpsError: (code, message) => new functions.https.HttpsError(code, message),
-    saveDraft: async () => {
-      await db.collection("seo_generator_configs").doc(legacySave.configDocId).set({
-        ...legacySave.dbPayload,
-        createdAt: FieldValue.serverTimestamp(),
-        createdBy: context.auth?.uid || null
-      }, { merge: true });
-
-      return {
-        configId: legacySave.configDocId
-      };
-    }
-  });
-
-  console.log("[seo toolbox] shared save path");
-  return sharedSave(sharedPayload, context);
-}
-
-exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) => {
-  try {
-    try {
-      return await saveSeoGeneratorConfigViaToolbox(data, context);
-    } catch (sharedErr) {
-      console.error("[seo toolbox] shared save failed", String(sharedErr?.message || "Unknown error"));
-      console.log("[seo toolbox] fallback legacy save");
-      return await saveSeoGeneratorConfigLegacy(data, context);
-    }
+    return {
+      ok: true,
+      configId: configDocId,
+      subdomain
+    };
   } catch (err) {
     console.error("SAVE CONFIG ERROR:", String(err?.message || "Unknown error"));
     
@@ -7362,7 +6876,8 @@ exports.finalizeSeoCheckoutProvisioning = functions.https.onCall(async (data, co
     ok: true,
     websiteId: result.websiteId,
     generatedPages: result.generatedPages,
-    subdomain: result.subdomain
+    subdomain: result.subdomain,
+    cacheInvalidation: result.cacheInvalidation
   };
 });
 
@@ -7395,7 +6910,13 @@ exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
     updatedAt: FieldValue.serverTimestamp()
   }, { merge: true }).catch(() => {});
 
-  return { ok: true, websiteId: result.websiteId, generatedPages: result.generatedPages, subdomain: result.subdomain };
+  return {
+    ok: true,
+    websiteId: result.websiteId,
+    generatedPages: result.generatedPages,
+    subdomain: result.subdomain,
+    cacheInvalidation: result.cacheInvalidation
+  };
 });
 
 // ── SEO SITE RENDERER ────────────────────────────────────────────────────────
@@ -7412,15 +6933,31 @@ exports.seoSiteRenderer = functions.https.onRequest(async (req, res) => {
     return;
   }
   const subdomain = sanitizeString(match[1], 120);
+  const requestPath = (req.path || "/").replace(/^\//,"").replace(/\/$/,"") || "";
+  const pathParts = requestPath.split("/").filter(Boolean);
 
   let websiteDoc = null;
   let websiteDocId = null;
   try {
-    const snap = await db.collection("websites")
-      .where("subdomain", "==", subdomain)
-      .where("status", "==", "published")
-      .limit(1)
-      .get();
+    let snap = null;
+
+    if (pathParts[0]) {
+      snap = await db.collection("websites")
+        .where("citySlug", "==", subdomain)
+        .where("businessSlug", "==", pathParts[0])
+        .where("status", "==", "published")
+        .limit(1)
+        .get();
+    }
+
+    if (!snap || snap.empty) {
+      snap = await db.collection("websites")
+        .where("subdomain", "==", subdomain)
+        .where("status", "==", "published")
+        .limit(1)
+        .get();
+    }
+
     if (!snap.empty) {
       websiteDoc = snap.docs[0].data();
       websiteDocId = snap.docs[0].id;
@@ -7448,7 +6985,7 @@ exports.seoSiteRenderer = functions.https.onRequest(async (req, res) => {
     console.warn("seoSiteRenderer: pages lookup error", e);
   }
 
-  const slugPath = (req.path || "/").replace(/^\//,"").replace(/\/$/,"") || "";
+  const slugPath = requestPath || String(websiteDoc.routePath || "").replace(/^\//,"").replace(/\/$/,"") || "";
   const page = seoPages.find(p => p.slug === slugPath) || null;
 
   const esc = (v) => String(v || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -7481,7 +7018,7 @@ exports.seoSiteRenderer = functions.https.onRequest(async (req, res) => {
 <title>${title}</title>
 <meta name="description" content="${metaDesc}">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://madkontrollen.dk/landing-pages/${slug}/">
+<link rel="canonical" href="${esc(page?.canonicalPath ? `https://madkontrollen.dk${page.canonicalPath}` : `https://madkontrollen.dk/${slug}/`)}">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -7696,7 +7233,6 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
   const email = String(payload.email || "").trim().toLowerCase();
   const password = String(payload.password || "");
   const companyName = String(payload.companyName || "").trim();
-  const contactPersonName = String(payload.contactPersonName || payload.profilename || payload.ownerName || "").trim();
   const address = String(payload.address || "").trim();
   const postalCode = String(payload.postalCode || "").trim();
   const city = String(payload.city || "").trim();
@@ -7714,18 +7250,14 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
   });
   
   // Validate input
-  if (!email || !password || !companyName || !contactPersonName) {
-    throw new HttpsError("invalid-argument", "Email, password, firmanavn og kontaktperson er påkrævet.");
+  if (!email || !password || !companyName) {
+    throw new HttpsError("invalid-argument", "Email, password og firmanavn er påkrævet.");
   }
   
   if (password.length < 6) {
     throw new HttpsError("invalid-argument", "Kodeordet skal være mindst 6 tegn.");
   }
   
-  if (contactPersonName.toLowerCase() === companyName.toLowerCase()) {
-    throw new HttpsError("invalid-argument", "Kontaktperson skal v\u00e6re et personnavn, ikke firmanavn.");
-  }
-
   console.log("[createQuickOnboardingAccount] START", { email, companyName, industry });
   
   let uid;
@@ -7835,8 +7367,6 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
       locationId: locationId,
       locationIds: [locationId],
       organizationId: companyId,
-      profilename: contactPersonName,
-      contactPersonName: contactPersonName,
       role: "owner",
       onboardingCompleted: false,
       trialStartedAt: FieldValue.serverTimestamp(),
@@ -7869,8 +7399,6 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
         companyName: companyName,
         profileCompanyName: companyName,
         accountEmail: email,
-        profilename: contactPersonName,
-        contactPersonName: contactPersonName,
         
         // FALLBACK FELTER (bruges i UI)
         name: companyName,
@@ -8271,7 +7799,7 @@ exports.provisionQuickOnboardingAccount = functions.https.onCall(async (request,
 });
 
 exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
-  { secrets: [FUNCTIONS_CONFIG, EMAIL_USER, EMAIL_PASSWORD] },
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"] },
   async (request, context) => {
   // Firebase Functions v2 callable wraps payload in request.data
   const data = request.data || request;
@@ -8298,30 +7826,6 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
   const billingPlan = sanitizeString(checkoutSession?.metadata?.plan || "monthly", 40);
   
   console.log("[FINALIZE] Billing plan from metadata:", billingPlan);
-  
-  // Retrieve subscription info for trial tracking
-  let subscriptionId = null;
-  let subscriptionStatus = null;
-  let trialEnd = null;
-  let priceId = null;
-  
-  if (checkoutSession.subscription) {
-    subscriptionId = String(checkoutSession.subscription);
-    try {
-      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-      subscriptionStatus = subscription.status;
-      trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
-      priceId = subscription.items?.data?.[0]?.price?.id || null;
-      console.log("[FINALIZE] Subscription retrieved:", {
-        subscriptionId,
-        status: subscriptionStatus,
-        trialEnd,
-        priceId
-      });
-    } catch (subErr) {
-      console.error("[FINALIZE] Failed to retrieve subscription:", subErr.message);
-    }
-  }
 
   if (source !== "onboarding_checkout") {
     throw new functions.https.HttpsError("failed-precondition", "Checkout-session tilhører ikke onboarding-flowet.");
@@ -8582,8 +8086,6 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
             userId: userRecord.uid,
             displayName,
             email,
-            profilename: profile.profilename || profile.contactPersonName || "",
-            contactPersonName: profile.contactPersonName || profile.profilename || "",
             role: "owner",
             companyId,
             organizationId: companyId,
@@ -8618,8 +8120,6 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
       companyId,
       organizationId: companyId,
       email: actorEmail,
-      profilename: profile.profilename || profile.contactPersonName || "",
-      contactPersonName: profile.contactPersonName || profile.profilename || "",
       primaryLocationId: locationId,
       locationId,
       locationIds: nextLocationIds,
@@ -8651,13 +8151,7 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
     city: sanitizeString(profile.city || "", 120) || null,
     status: "active",
     subscription: {
-      provider: "stripe",
       plan: billingPlan,
-      status: subscriptionStatus || "active",
-      subscriptionId: subscriptionId || null,
-      priceId: priceId || null,
-      trialDays: 14,
-      trialEndsAt: trialEnd || null,
       startedAt: FieldValue.serverTimestamp(),
       stripeSessionId: sessionId
     },
@@ -8679,46 +8173,6 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
   }, { merge: true });
   
   console.log("[FINALIZE] Company status updated to active with subscription:", billingPlan);
-  
-  // Save detailed onboarding summary
-  const detailedSummary = buildDetailedOnboardingSummary({
-    profile,
-    riskModel,
-    companyId,
-    locationId,
-    draftId,
-    billing: {
-      provider: "stripe",
-      status: subscriptionStatus || "trialing",
-      trialDays: 14,
-      trialEndsAt: trialEnd,
-      checkoutSessionId: sessionId,
-      subscriptionId,
-      priceId,
-      plan: billingPlan
-    }
-  });
-  
-  await companyRef.collection("onboarding_summary").doc("current").set(detailedSummary, { merge: true });
-  console.log("[FINALIZE] Onboarding summary saved to companies/{companyId}/onboarding_summary/current");
-  
-  // Send welcome email
-  try {
-    await sendOnboardingWelcomeEmail({
-      to: actorEmail,
-      companyName: companyDisplayName,
-      locationName: locationDisplayName,
-      loginEmail: actorEmail,
-      onboardingSummary: detailedSummary,
-      billing: detailedSummary.billing,
-      emailUser: EMAIL_USER.value(),
-      emailPassword: EMAIL_PASSWORD.value()
-    });
-    console.log("[FINALIZE] Welcome email sent to:", actorEmail);
-  } catch (emailErr) {
-    console.error("[FINALIZE] Failed to send welcome email:", emailErr.message);
-    // Don't throw - continue with provisioning even if email fails
-  }
 
   await draftRef.set({
     summary,
@@ -8769,99 +8223,47 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
   };
 });
 
-// ─── GET ONBOARDING SUMMARY ─────────────────────────────────────────────────
-exports.getOnboardingSummary = functions.https.onCall(async (request, context) => {
-  const data = request.data || request;
-  const authUid = sanitizeString(context.auth?.uid || "", 160);
-  const authEmail = sanitizeString(context.auth?.token?.email || "", 160);
-  const requestedCompanyId = sanitizeString(data?.companyId || "", 120);
-  
-  if (!authUid) {
-    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
-  }
-  
-  if (!requestedCompanyId) {
-    throw new functions.https.HttpsError("invalid-argument", "companyId er påkrævet.");
-  }
-  
-  // Verify user has access to this company
-  const userRef = db.collection("users").doc(authUid);
-  const userSnap = await userRef.get();
-  const userData = userSnap.exists ? (userSnap.data() || {}) : {};
-  const userCompanyId = sanitizeString(userData.companyId || userData.organizationId || "", 120);
-  
-  if (userCompanyId !== requestedCompanyId) {
-    throw new functions.https.HttpsError("permission-denied", "Du har ikke adgang til dette firma.");
-  }
-  
-  // Retrieve onboarding summary
-  const summaryRef = db.collection("companies").doc(requestedCompanyId).collection("onboarding_summary").doc("current");
-  const summarySnap = await summaryRef.get();
-  
-  if (!summarySnap.exists) {
-    return {
-      ok: false,
-      found: false,
-      message: "Ingen onboarding summary fundet for dette firma."
-    };
-  }
-  
-  const summaryData = summarySnap.data() || {};
-  
-  return {
-    ok: true,
-    found: true,
-    summary: summaryData
-  };
-});
-
-exports.getCloudinarySignature = onCall({ 
-  region: "us-central1",
-  secrets: [CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET]
-}, async (request) => {
+exports.getCloudinarySignature = onCall({ region: "us-central1", secrets: ["FUNCTIONS_CONFIG_EXPORT"] }, async (request) => {
   const data = request.data;
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Log ind for at uploade billeder.");
   }
 
   const crypto = require("crypto");
-  const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
-  
-  let cloudName = "";
-  let apiKey = "";
-  let apiSecret = "";
+  let config = {};
+  try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
 
-  if (isEmulator) {
-    // Emulator: Use .env file
-    cloudName = process.env.CLOUDINARY_CLOUD_NAME || "";
-    apiKey = process.env.CLOUDINARY_API_KEY || "";
-    apiSecret = process.env.CLOUDINARY_API_SECRET || "";
-    
-    console.log("[Cloudinary Emulator] Loading from .env:", {
-      hasCloudName: Boolean(cloudName),
-      hasApiKey: Boolean(apiKey),
-      hasApiSecret: Boolean(apiSecret)
-    });
-  } else {
-    // Production: Use Secret Manager
-    cloudName = CLOUDINARY_CLOUD_NAME.value() || "";
-    apiKey = CLOUDINARY_API_KEY.value() || "";
-    apiSecret = CLOUDINARY_API_SECRET.value() || "";
-  }
+  const cloudName =
+    config?.cloudinary?.cloud_name ||
+    process.env.CLOUDINARY_CLOUD_NAME ||
+    "";
+  const apiKey =
+    config?.cloudinary?.api_key ||
+    process.env.CLOUDINARY_API_KEY ||
+    "";
+  const apiSecret =
+    config?.cloudinary?.api_secret ||
+    process.env.CLOUDINARY_API_SECRET ||
+    "";
+
+  console.log("[Cloudinary] Config check:", {
+    hasCloudName: Boolean(cloudName),
+    hasApiKey: Boolean(apiKey),
+    hasApiSecret: Boolean(apiSecret),
+    cloudNameSource: cloudName ? (config?.cloudinary?.cloud_name ? "FUNCTIONS_CONFIG_EXPORT" : "process.env") : "none",
+    envVarsAvailable: {
+      CLOUDINARY_CLOUD_NAME: Boolean(process.env.CLOUDINARY_CLOUD_NAME),
+      CLOUDINARY_API_KEY: Boolean(process.env.CLOUDINARY_API_KEY),
+      CLOUDINARY_API_SECRET: Boolean(process.env.CLOUDINARY_API_SECRET)
+    }
+  });
 
   if (!cloudName || !apiKey || !apiSecret) {
-    const errorMsg = isEmulator 
-      ? "Cloudinary credentials missing in emulator. Check functions/.env file. Se CLOUDINARY_SETUP.md"
-      : "Cloudinary secrets missing in production. Ensure Firebase billing is active and secrets are set via Secret Manager.";
-    
-    console.error("[Cloudinary] Missing credentials:", {
-      isEmulator,
-      hasCloudName: Boolean(cloudName),
-      hasApiKey: Boolean(apiKey),
-      hasApiSecret: Boolean(apiSecret)
-    });
-    
-    throw new HttpsError("failed-precondition", errorMsg);
+    console.error("[Cloudinary] Missing credentials. Check functions/.env file or Firebase secrets.");
+    throw new HttpsError(
+      "failed-precondition",
+      "Cloudinary er ikke konfigureret. Kontakt administrator. Se CLOUDINARY_SETUP.md for instruktioner."
+    );
   }
 
   const cleanMetaValue = (value, maxLen = 160) => String(value || "")
@@ -9155,7 +8557,7 @@ function buildVisionPrompt({ moduleType, itemId, contextType, citizenProfile, ta
 }
 
 exports.analyzeCloudinaryAsset = onCall(
-  { region: "us-central1", secrets: [OPENAI_API_KEY] },
+  { secrets: [OPENAI_API_KEY], region: "us-central1" },
   async (request) => {
   const data = request.data;
   if (!request.auth?.uid) {
@@ -9185,16 +8587,16 @@ exports.analyzeCloudinaryAsset = onCall(
     });
   }
 
-  const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
-  const openAiApiKey = isEmulator 
-    ? process.env.OPENAI_API_KEY || ""
-    : OPENAI_API_KEY.value() || "";
+  const openAiApiKey =
+    OPENAI_API_KEY.value() ||
+    process.env.OPENAI_API_KEY ||
+    "";
 
   if (!openAiApiKey) {
-    const errorMsg = isEmulator
-      ? "OpenAI API key missing in emulator. Add OPENAI_API_KEY to functions/.env"
-      : "OpenAI API key missing in production. Set OPENAI_API_KEY secret via Secret Manager.";
-    throw new HttpsError("failed-precondition", errorMsg);
+    throw new HttpsError(
+      "failed-precondition",
+      "Vision AI API-noegle mangler. Saet OPENAI_API_KEY som function secret."
+    );
   }
 
   const modelName =
@@ -9376,19 +8778,17 @@ exports.analyzeCloudinaryAsset = onCall(
   };
 });
 
-exports.getCloudinaryAssets = onCall({ 
-  region: "us-central1", 
-  secrets: [CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET] 
-}, async (request) => {
+exports.getCloudinaryAssets = onCall({ region: "us-central1", secrets: ["FUNCTIONS_CONFIG_EXPORT"] }, async (request) => {
   const data = request.data;
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Log ind for at hente billeder.");
   }
 
-  const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
-  const cloudName = isEmulator ? process.env.CLOUDINARY_CLOUD_NAME || "" : CLOUDINARY_CLOUD_NAME.value() || "";
-  const apiKey = isEmulator ? process.env.CLOUDINARY_API_KEY || "" : CLOUDINARY_API_KEY.value() || "";
-  const apiSecret = isEmulator ? process.env.CLOUDINARY_API_SECRET || "" : CLOUDINARY_API_SECRET.value() || "";
+  let config = {};
+  try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
+  const cloudName = config?.cloudinary?.cloud_name || process.env.CLOUDINARY_CLOUD_NAME || "";
+  const apiKey = config?.cloudinary?.api_key || process.env.CLOUDINARY_API_KEY || "";
+  const apiSecret = config?.cloudinary?.api_secret || process.env.CLOUDINARY_API_SECRET || "";
 
   if (!cloudName || !apiKey || !apiSecret) {
     throw new HttpsError(
@@ -9493,8 +8893,339 @@ function scoreStockPhoto(photo) {
   return score;
 }
 
+const OFFICIAL_RECALL_PAGE_URL = "https://foedevarestyrelsen.dk/nyheder/tilbagekaldte-produkter";
+let officialRecallFeedCache = {
+  expiresAt: 0,
+  payload: null
+};
+
+function decodeXmlEntities(value = "") {
+  return String(value || "")
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(parseInt(num, 10)));
+}
+
+function stripHtml(value = "") {
+  return decodeXmlEntities(String(value || "").replace(/<[^>]+>/g, " "))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function readXmlTag(xml = "", tag = "") {
+  const match = String(xml || "").match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "i"));
+  return match ? decodeXmlEntities(match[1]).trim() : "";
+}
+
+function absolutizeUrl(url = "", baseUrl = OFFICIAL_RECALL_PAGE_URL) {
+  try {
+    return new URL(decodeXmlEntities(url), baseUrl).toString();
+  } catch (_error) {
+    return "";
+  }
+}
+
+function parseRecallFeedItems(xml = "") {
+  const source = String(xml || "");
+  const blocks = [...source.matchAll(/<item(?:\s[^>]*)?>[\s\S]*?<\/item>/gi)].map(match => match[0]);
+  const feedBlocks = blocks.length
+    ? blocks
+    : [...source.matchAll(/<entry(?:\s[^>]*)?>[\s\S]*?<\/entry>/gi)].map(match => match[0]);
+
+  return feedBlocks.slice(0, 10).map((block, index) => {
+    const title = stripHtml(readXmlTag(block, "title"));
+    const summary = stripHtml(readXmlTag(block, "description") || readXmlTag(block, "summary") || readXmlTag(block, "content")).slice(0, 280);
+    let link = readXmlTag(block, "link");
+    if (!link) {
+      const linkHref = block.match(/<link[^>]+href=["']([^"']+)["']/i);
+      link = linkHref ? linkHref[1] : "";
+    }
+    const publishedAt = readXmlTag(block, "pubDate") || readXmlTag(block, "published") || readXmlTag(block, "updated") || "";
+    const guid = stripHtml(readXmlTag(block, "guid") || readXmlTag(block, "id") || "");
+    const normalizedLink = absolutizeUrl(link);
+    const id = sanitizeString(guid || normalizedLink || `${title}_${publishedAt}_${index}`, 500);
+    return {
+      id,
+      title: sanitizeString(title, 240),
+      summary: sanitizeString(summary, 500),
+      link: sanitizeString(normalizedLink, 800),
+      publishedAt: sanitizeString(publishedAt, 120)
+    };
+  }).filter(item => item.title && item.link);
+}
+
+function discoverRecallRssUrl(pageHtml = "") {
+  const links = [...String(pageHtml || "").matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
+  for (const [, href, label] of links) {
+    const cleanLabel = stripHtml(label).toLowerCase();
+    if (cleanLabel === "rss" || cleanLabel.includes("rss")) {
+      return absolutizeUrl(href, OFFICIAL_RECALL_PAGE_URL);
+    }
+  }
+
+  const relMatch = String(pageHtml || "").match(/<link\b[^>]*(?:type=["']application\/rss\+xml["']|rel=["']alternate["'])[^>]*href=["']([^"']+)["'][^>]*>/i);
+  return relMatch ? absolutizeUrl(relMatch[1], OFFICIAL_RECALL_PAGE_URL) : "";
+}
+
+async function fetchOfficialRecallFeed() {
+  const pageResp = await fetch(OFFICIAL_RECALL_PAGE_URL, {
+    headers: {
+      "Accept": "text/html,application/xhtml+xml",
+      "User-Agent": "Madkontrollen/1.0 recall-feed"
+    }
+  });
+  if (!pageResp.ok) {
+    throw new Error(`Official recall page failed: ${pageResp.status}`);
+  }
+
+  const pageHtml = await pageResp.text();
+  const feedUrl = discoverRecallRssUrl(pageHtml);
+  if (!feedUrl) {
+    throw new Error("Official RSS link was not found on recall page.");
+  }
+
+  const feedResp = await fetch(feedUrl, {
+    headers: {
+      "Accept": "application/rss+xml,application/xml,text/xml",
+      "User-Agent": "Madkontrollen/1.0 recall-feed"
+    }
+  });
+  if (!feedResp.ok) {
+    throw new Error(`Official recall RSS failed: ${feedResp.status}`);
+  }
+
+  const xml = await feedResp.text();
+  const items = parseRecallFeedItems(xml);
+  return {
+    ok: true,
+    sourcePageUrl: OFFICIAL_RECALL_PAGE_URL,
+    feedUrl,
+    items,
+    fetchedAt: new Date().toISOString(),
+    cacheMaxAgeMinutes: 60
+  };
+}
+
+exports.getOfficialRecallFeed = onCall(
+  { region: "us-central1", timeoutSeconds: 30 },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Log ind for at hente tilbagekaldelser.");
+    }
+
+    const now = Date.now();
+    if (officialRecallFeedCache.payload && officialRecallFeedCache.expiresAt > now) {
+      return {
+        ...officialRecallFeedCache.payload,
+        fromCache: true
+      };
+    }
+
+    try {
+      const payload = await fetchOfficialRecallFeed();
+      officialRecallFeedCache = {
+        payload,
+        expiresAt: now + (60 * 60 * 1000)
+      };
+      return {
+        ...payload,
+        fromCache: false
+      };
+    } catch (error) {
+      console.warn("[official recall feed] failed", error?.message || error);
+      return {
+        ok: false,
+        sourcePageUrl: OFFICIAL_RECALL_PAGE_URL,
+        feedUrl: "",
+        items: [],
+        error: sanitizeString(error?.message || "Feed kunne ikke hentes.", 300),
+        fetchedAt: new Date().toISOString(),
+        cacheMaxAgeMinutes: 60,
+        fromCache: false
+      };
+    }
+  }
+);
+
+function buildRestaurantHeroImagePrompt(data) {
+  const businessName = sanitizeString(data?.businessName || "restaurant", 120);
+  const cuisineType = sanitizeString(data?.cuisineType || "restaurant", 100);
+  const mood = sanitizeString(data?.mood || data?.style || "warm cinematic", 100);
+  const offerings = sanitizeString(data?.offerings || "", 240);
+  const description = sanitizeString(data?.description || "", 400);
+  const primary = sanitizeString(data?.theme?.primary || "", 20);
+  const secondary = sanitizeString(data?.theme?.secondary || "", 20);
+  const accent = sanitizeString(data?.theme?.accent || "", 20);
+  const hasLogo = Boolean(data?.logoDataUrl || data?.hasLogo);
+  const brandLine = hasLogo
+    ? `Use the uploaded logo and brand colors as a subtle style reference. Brand colors: ${[primary, secondary, accent].filter(Boolean).join(", ") || "from the uploaded logo"}.`
+    : `Use brand colors when relevant: ${[primary, secondary, accent].filter(Boolean).join(", ") || "premium restaurant palette"}.`;
+  const promptParts = [
+    `Modern ${cuisineType} restaurant hero image for ${businessName}.`,
+    offerings ? `Concept and menu cues: ${offerings}.` : "",
+    description ? `Restaurant description: ${description}.` : "",
+    `${mood} atmosphere, warm cinematic lighting, premium realistic food photography, Nordic restaurant marketing banner composition.`,
+    brandLine,
+    "Landscape 16:9 hero banner, appetizing food in foreground, tasteful restaurant ambience, no empty background, no stock-photo watermark, no readable text overlays."
+  ].filter(Boolean);
+  return promptParts.join(" ");
+}
+
+async function uploadRestaurantHeroToCloudinary({ file, companyId, locationId, config }) {
+  const cloudName = config?.cloudinary?.cloud_name || process.env.CLOUDINARY_CLOUD_NAME || "";
+  const apiKey = config?.cloudinary?.api_key || process.env.CLOUDINARY_API_KEY || "";
+  const apiSecret = config?.cloudinary?.api_secret || process.env.CLOUDINARY_API_SECRET || "";
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new HttpsError("failed-precondition", "Cloudinary er ikke konfigureret.");
+  }
+
+  const crypto = require("crypto");
+  const timestamp = Math.floor(Date.now() / 1000);
+  const folder = `madkontrol/${toAsciiSlug(companyId, 60)}/${toAsciiSlug(locationId, 60)}/seo_hero`;
+  const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
+  const signature = crypto.createHash("sha1").update(paramsToSign + apiSecret).digest("hex");
+  const uploadParams = new URLSearchParams();
+  uploadParams.append("file", file);
+  uploadParams.append("folder", folder);
+  uploadParams.append("timestamp", String(timestamp));
+  uploadParams.append("api_key", apiKey);
+  uploadParams.append("signature", signature);
+
+  const uploadResp = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: uploadParams.toString()
+  });
+
+  if (!uploadResp.ok) {
+    const errText = await uploadResp.text().catch(() => "");
+    throw new Error(`Cloudinary upload: ${uploadResp.status} - ${errText.slice(0, 200)}`);
+  }
+
+  const uploadResult = await uploadResp.json();
+  return {
+    cloudName,
+    publicId: uploadResult.public_id || "",
+    url: uploadResult.secure_url || ""
+  };
+}
+
+exports.generateRestaurantHeroImage = onCall(
+  { secrets: [OPENAI_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 180 },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Log ind for at generere billede.");
+    }
+
+    const data = request.data || {};
+    const companyId = sanitizeString(data?.companyId || "", 120);
+    const locationId = sanitizeString(data?.locationId || "", 120);
+    const style = sanitizeString(data?.style || "warm", 40);
+    const category = sanitizeString(data?.category || "", 80);
+
+    if (!companyId || !locationId) {
+      throw new HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
+    }
+
+    let config = {};
+    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
+    const apiKey = OPENAI_API_KEY.value() || process.env.OPENAI_API_KEY || "";
+    if (!apiKey) {
+      throw new HttpsError("failed-precondition", "OpenAI API-noegle mangler. Saet OPENAI_API_KEY som function secret.");
+    }
+
+    const prompt = sanitizeString(data?.prompt || buildRestaurantHeroImagePrompt(data), 1800);
+    const resp = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-image-1",
+        prompt,
+        n: 1,
+        size: "1536x1024",
+        quality: "medium",
+        output_format: "jpeg",
+        output_compression: 85
+      })
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => "");
+      throw new HttpsError("internal", `AI image generation fejlede: ${resp.status}. ${errText.slice(0, 200)}`);
+    }
+
+    const imageData = await resp.json();
+    const first = imageData?.data?.[0] || {};
+    const generatedFile = first.b64_json
+      ? `data:image/jpeg;base64,${first.b64_json}`
+      : sanitizeString(first.url || "", 2000);
+
+    if (!generatedFile) {
+      throw new HttpsError("internal", "AI image generation returnerede ikke et billede.");
+    }
+
+    const uploaded = await uploadRestaurantHeroToCloudinary({ file: generatedFile, companyId, locationId, config });
+    const docId = `${companyId}__${locationId}__hero_${Date.now()}`;
+    await db.collection("seo_hero_images").doc(docId).set({
+      companyId,
+      locationId,
+      url: uploaded.url,
+      thumbUrl: uploaded.url,
+      enhancedUrl: uploaded.url,
+      category,
+      style,
+      source: "openai",
+      sourceUrl: "",
+      photographer: "OpenAI",
+      photographerUrl: "",
+      alt: sanitizeString(data?.alt || `${data?.businessName || "Restaurant"} hero image`, 200),
+      prompt,
+      publicId: uploaded.publicId,
+      cloudName: uploaded.cloudName,
+      enhanced: true,
+      createdBy: request.auth.uid,
+      createdAt: FieldValue.serverTimestamp(),
+      isActive: true
+    });
+
+    try {
+      const sitesSnap = await db.collection("websites")
+        .where("companyId", "==", companyId)
+        .where("locationId", "==", locationId)
+        .where("status", "==", "published")
+        .limit(5)
+        .get();
+      if (!sitesSnap.empty) {
+        const siteBatch = db.batch();
+        sitesSnap.docs.forEach(d => {
+          siteBatch.set(d.ref, {
+            heroImageUrl: uploaded.url,
+            heroThumbUrl: uploaded.url,
+            heroImageStyle: style,
+            updatedAt: FieldValue.serverTimestamp()
+          }, { merge: true });
+        });
+        await siteBatch.commit();
+      }
+    } catch (siteErr) {
+      console.warn("[generateRestaurantHeroImage] Kunne ikke opdatere websites:", siteErr.message);
+    }
+
+    return { ok: true, docId, url: uploaded.url, enhancedUrl: uploaded.url, source: "openai", prompt };
+  }
+);
+
 exports.searchRestaurantImages = onCall(
-  { secrets: [FUNCTIONS_CONFIG, CLOUDINARY_CLOUD_NAME], region: "us-central1" },
+  { secrets: [PEXELS_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1" },
   async (request) => {
     if (!request.auth?.uid) {
       throw new HttpsError("unauthenticated", "Log ind for at søge billeder.");
@@ -9508,11 +9239,10 @@ exports.searchRestaurantImages = onCall(
       throw new HttpsError("invalid-argument", "Søgeord mangler.");
     }
 
-    const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
     let config = {};
     try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
-    const pexelsKey = config?.pexels?.api_key || process.env.PEXELS_API_KEY || "";
-    const cloudName = isEmulator ? process.env.CLOUDINARY_CLOUD_NAME || "" : CLOUDINARY_CLOUD_NAME.value() || "";
+    const pexelsKey = config?.pexels?.api_key || PEXELS_API_KEY.value() || process.env.PEXELS_API_KEY || "";
+    const cloudName = config?.cloudinary?.cloud_name || process.env.CLOUDINARY_CLOUD_NAME || "";
 
     if (!pexelsKey) {
       throw new HttpsError(
@@ -9593,7 +9323,7 @@ exports.saveRestaurantHeroImage = onCall(
 );
 
 exports.enhanceAndUploadRestaurantImage = onCall(
-  { secrets: [FUNCTIONS_CONFIG, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET], region: "us-central1" },
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"], region: "us-central1" },
   async (request) => {
     if (!request.auth?.uid) {
       throw new HttpsError("unauthenticated", "Log ind for at behandle billeder.");
@@ -9624,10 +9354,11 @@ exports.enhanceAndUploadRestaurantImage = onCall(
       clean:  "e_improve,e_sharpen,ar_16:9,c_fill,w_1600,q_auto,f_auto"
     };
 
-    const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
-    const cloudName = isEmulator ? process.env.CLOUDINARY_CLOUD_NAME || "" : CLOUDINARY_CLOUD_NAME.value() || "";
-    const apiKey = isEmulator ? process.env.CLOUDINARY_API_KEY || "" : CLOUDINARY_API_KEY.value() || "";
-    const apiSecret = isEmulator ? process.env.CLOUDINARY_API_SECRET || "" : CLOUDINARY_API_SECRET.value() || "";
+    let config = {};
+    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
+    const cloudName = config?.cloudinary?.cloud_name || process.env.CLOUDINARY_CLOUD_NAME || "";
+    const apiKey = config?.cloudinary?.api_key || process.env.CLOUDINARY_API_KEY || "";
+    const apiSecret = config?.cloudinary?.api_secret || process.env.CLOUDINARY_API_SECRET || "";
 
     if (!cloudName || !apiKey || !apiSecret) {
       throw new HttpsError("failed-precondition", "Cloudinary er ikke konfigureret.");
@@ -9718,7 +9449,7 @@ exports.enhanceAndUploadRestaurantImage = onCall(
 );
 
 exports.generateSeoAiSuggestions = onCall(
-  { region: "us-central1", secrets: [OPENAI_API_KEY] },
+  { secrets: [OPENAI_API_KEY], region: "us-central1" },
   async (request) => {
     const data = request.data;
 
@@ -9768,16 +9499,14 @@ exports.generateSeoAiSuggestions = onCall(
       }
     }
 
-    const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
-    const openAiApiKey = isEmulator
-      ? process.env.OPENAI_API_KEY || ""
-      : OPENAI_API_KEY.value() || "";
+    const openAiApiKey =
+      OPENAI_API_KEY.value() || process.env.OPENAI_API_KEY || "";
 
     if (!openAiApiKey) {
-      const errorMsg = isEmulator
-        ? "OpenAI API key missing in emulator. Add OPENAI_API_KEY to functions/.env"
-        : "OpenAI API key missing in production. Set OPENAI_API_KEY secret via Secret Manager.";
-      throw new HttpsError("failed-precondition", errorMsg);
+      throw new HttpsError(
+        "failed-precondition",
+        "OpenAI API-nøgle mangler. Sæt OPENAI_API_KEY som function secret."
+      );
     }
 
     const prompt = buildSeoAiPrompt({
@@ -9897,623 +9626,6 @@ function extractSeoRelevantText(html) {
   ].filter(Boolean).join(" | ").slice(0, 3000);
 }
 
-function estimatePodcastAudioDurationSeconds(text) {
-  const words = String(text || "").trim().split(/\s+/).filter(Boolean).length;
-  if (!words) return null;
-  return Math.max(1, Math.round((words / 145) * 60));
-}
-
-function chunkPodcastText(text, maxChars = 4800) {
-  const raw = String(text || "").replace(/\s+/g, " ").trim();
-  if (!raw) return [];
-  if (raw.length <= maxChars) return [raw];
-
-  const chunks = [];
-  let remaining = raw;
-  while (remaining.length) {
-    if (remaining.length <= maxChars) {
-      chunks.push(remaining.trim());
-      break;
-    }
-
-    const slice = remaining.slice(0, maxChars);
-    const breakAt = Math.max(
-      slice.lastIndexOf(". "),
-      slice.lastIndexOf("! "),
-      slice.lastIndexOf("? "),
-      slice.lastIndexOf("; "),
-      slice.lastIndexOf(", ")
-    );
-    const splitAt = breakAt > 1200 ? breakAt + 1 : maxChars;
-    chunks.push(remaining.slice(0, splitAt).trim());
-    remaining = remaining.slice(splitAt).trim();
-  }
-
-  return chunks.filter(Boolean);
-}
-
-function resolveAzureTtsConfig() {
-  const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
-  const apiKey = isEmulator
-    ? process.env.AZURE_TTS_KEY || ""
-    : AZURE_TTS_KEY.value() || "";
-  const region = isEmulator
-    ? process.env.AZURE_TTS_REGION || ""
-    : AZURE_TTS_REGION.value() || "";
-  const endpoint = process.env.AZURE_TTS_ENDPOINT || `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
-
-  if (!apiKey || !region) {
-    throw new HttpsError(
-      "failed-precondition",
-      isEmulator
-        ? "Azure TTS config missing in emulator. Add AZURE_TTS_KEY and AZURE_TTS_REGION to functions/.env."
-        : "Azure TTS config missing in production. Set AZURE_TTS_KEY and AZURE_TTS_REGION as Firebase Secrets."
-    );
-  }
-
-  return { apiKey, region, endpoint };
-}
-
-function escapeSsmlText(value) {
-  return String(value || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-function resolveAzureLanguage(language) {
-  const normalized = String(language || "da").trim().toLowerCase();
-  if (normalized === "da") return "da-DK";
-  return normalized || "da-DK";
-}
-
-function resolveAzureVoiceName(voiceName) {
-  return sanitizeString(voiceName || "da-DK-ChristelNeural", 160);
-}
-
-function resolveAzureOutputFormat(outputFormat) {
-  const normalized = sanitizeString(outputFormat || "mp3", 20).toLowerCase() || "mp3";
-  if (normalized !== "mp3") {
-    throw new HttpsError("invalid-argument", "Azure TTS understotter kun mp3 i dette flow.");
-  }
-  return "mp3";
-}
-
-async function callAzureTtsProvider({
-  inputText,
-  voiceName,
-  outputFormat,
-  language
-}) {
-  const config = resolveAzureTtsConfig();
-  const safeFormat = resolveAzureOutputFormat(outputFormat);
-  const locale = resolveAzureLanguage(language);
-  const resolvedVoiceName = resolveAzureVoiceName(voiceName);
-  const safeVoiceName = escapeSsmlText(resolvedVoiceName);
-  const ssml = [
-    `<speak version="1.0" xml:lang="${locale}">`,
-    `<voice xml:lang="${locale}" name="${safeVoiceName}">`,
-    escapeSsmlText(inputText),
-    "</voice>",
-    "</speak>"
-  ].join("");
-
-  const response = await fetch(config.endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/ssml+xml",
-      "Ocp-Apim-Subscription-Key": config.apiKey,
-      "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
-      "User-Agent": "madkontrollen-pro"
-    },
-    body: ssml
-  });
-
-  if (!response.ok) {
-    const providerStatus = await response.text().catch(() => String(response.status));
-    throw new HttpsError(
-      response.status === 429 ? "resource-exhausted" : "internal",
-      `Azure TTS failed with provider status: ${sanitizeString(providerStatus || response.status, 180)}`
-    );
-  }
-
-  const arrayBuffer = await response.arrayBuffer();
-  const audioBuffer = Buffer.from(arrayBuffer);
-  if (!audioBuffer.length) {
-    throw new HttpsError("internal", "Azure TTS returned empty audio.");
-  }
-
-  return {
-    provider: "azure",
-    status: "synthesized",
-    audioBuffer,
-    contentType: "audio/mpeg",
-    voiceName: resolvedVoiceName,
-    charactersCount: String(inputText || "").length,
-    providerCreatedTime: new Date().toISOString(),
-    language,
-    locale,
-    outputFormat: safeFormat
-  };
-}
-
-const PODCAST_AUDIO_MAX_BYTES = 50 * 1024 * 1024;
-const PODCAST_AUDIO_CONTENT_TYPES = new Set(["audio/mpeg", "audio/mp3"]);
-
-function validatePodcastAudioSave({ buffer, storagePath, contentType }) {
-  if (!Buffer.isBuffer(buffer) || !buffer.length) {
-    throw new HttpsError("internal", "Podcast audio buffer er tom.");
-  }
-  if (buffer.length > PODCAST_AUDIO_MAX_BYTES) {
-    throw new HttpsError("resource-exhausted", "Podcast audio er for stor til sikker upload.");
-  }
-  if (!PODCAST_AUDIO_CONTENT_TYPES.has(String(contentType || "").toLowerCase())) {
-    throw new HttpsError("invalid-argument", "Podcast audio contentType er ikke tilladt.");
-  }
-  if (!String(storagePath || "").toLowerCase().endsWith(".mp3")) {
-    throw new HttpsError("invalid-argument", "Podcast audio storage path skal ende paa .mp3.");
-  }
-  if (!String(storagePath || "").startsWith("companies/")) {
-    throw new HttpsError("permission-denied", "Podcast audio skal gemmes i company-scoped storage path.");
-  }
-}
-
-function isMissingBucketError(error) {
-  const message = String(error?.message || error || "").toLowerCase();
-  return message.includes("bucket does not exist") || message.includes("specified bucket does not exist");
-}
-
-function resolveStorageBucketCandidates() {
-  let firebaseConfig = {};
-  try {
-    firebaseConfig = process.env.FIREBASE_CONFIG ? JSON.parse(process.env.FIREBASE_CONFIG) : {};
-  } catch (error) {
-    console.warn("[podcast tts] could not parse FIREBASE_CONFIG for bucket resolution", {
-      error: sanitizeString(error?.message || error, 160)
-    });
-  }
-
-  const projectId = String(
-    admin.app().options?.projectId ||
-    process.env.GCLOUD_PROJECT ||
-    process.env.GCP_PROJECT ||
-    firebaseConfig.projectId ||
-    ""
-  ).trim();
-  const candidates = [
-    admin.app().options?.storageBucket,
-    process.env.FIREBASE_STORAGE_BUCKET,
-    firebaseConfig.storageBucket,
-    projectId ? `${projectId}.appspot.com` : "",
-    projectId ? `${projectId}.firebasestorage.app` : ""
-  ];
-
-  return [...new Set(candidates.map((value) => String(value || "").trim()).filter(Boolean))];
-}
-
-async function savePodcastAudioBufferToStorage({ buffer, storagePath, contentType = "audio/mpeg", auditContext = {} }) {
-  validatePodcastAudioSave({ buffer, storagePath, contentType });
-
-  const crypto = require("crypto");
-  const token = crypto.randomUUID();
-  const appStorageBucket = admin.app().options?.storageBucket || "";
-  const bucketCandidates = resolveStorageBucketCandidates();
-  if (!appStorageBucket) {
-    console.warn("[podcast tts] default storage bucket missing from admin app options", {
-      resolvedStorageBucket: appStorageBucket || null
-    });
-  }
-
-  let lastError = null;
-  for (const bucketNameCandidate of bucketCandidates) {
-    const bucket = admin.storage().bucket(bucketNameCandidate);
-    console.log("[podcast tts] storage bucket selected", {
-      bucketName: bucket.name || null,
-      resolvedStorageBucket: appStorageBucket || null,
-      actorUid: auditContext.actorUid || null,
-      companyId: auditContext.companyId || null,
-      locationId: auditContext.locationId || null,
-      uploadType: "podcast_audio",
-      provider: auditContext.provider || null,
-      storagePath,
-      bytes: buffer.length,
-      contentType
-    });
-
-    try {
-      const file = bucket.file(storagePath);
-      await file.save(buffer, {
-        resumable: false,
-        contentType,
-        metadata: {
-          cacheControl: "private, max-age=3600",
-          metadata: {
-            firebaseStorageDownloadTokens: token
-          }
-        }
-      });
-
-      const encodedPath = encodeURIComponent(storagePath);
-      return {
-        storagePath,
-        bucketName: bucket.name,
-        audioUrl: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${token}`,
-        bytes: buffer.length
-      };
-    } catch (error) {
-      lastError = error;
-      if (!isMissingBucketError(error)) throw error;
-      console.warn("[podcast tts] storage bucket candidate missing", {
-        bucketName: bucket.name || null,
-        resolvedStorageBucket: appStorageBucket || null,
-        companyId: auditContext.companyId || null,
-        locationId: auditContext.locationId || null,
-        uploadType: "podcast_audio"
-      });
-    }
-  }
-
-  if (!bucketCandidates.length) {
-    console.warn("[podcast tts] no storage bucket candidates resolved", {
-      resolvedStorageBucket: appStorageBucket || null
-    });
-  }
-
-  throw new HttpsError(
-    "failed-precondition",
-    `Ingen gyldig Firebase Storage bucket kunne bruges: ${sanitizeString(lastError?.message || "ukendt bucket-fejl", 180)}`
-  );
-}
-
-async function savePodcastAudioSegmentToStorage({ providerResult, storagePath, auditContext = {} }) {
-  return savePodcastAudioBufferToStorage({
-    buffer: providerResult.audioBuffer,
-    storagePath,
-    contentType: providerResult.contentType || "audio/mpeg",
-    auditContext
-  });
-}
-
-function toPublicAudioSegment(segment = {}) {
-  return {
-    index: segment.index,
-    provider: segment.provider,
-    language: segment.language,
-    locale: segment.locale || null,
-    outputFormat: segment.outputFormat,
-    audioUrl: segment.audioUrl,
-    storagePath: segment.storagePath,
-    bytes: segment.bytes,
-    durationSeconds: segment.durationSeconds,
-    charactersCount: segment.charactersCount
-  };
-}
-
-exports.generatePodcastAudioFromText = onCall(
-  { region: "us-central1", secrets: [AZURE_TTS_KEY, AZURE_TTS_REGION] },
-  async (request) => {
-    const data = request.data || {};
-    if (!request.auth?.uid) {
-      throw new HttpsError("unauthenticated", "Log ind for at generere podcast-lyd.");
-    }
-
-    const actorUid = request.auth.uid;
-    const companyId = sanitizeString(data.companyId || "", 120);
-    const locationId = sanitizeString(data.locationId || "", 120);
-    if (!companyId || !locationId) {
-      throw new HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
-    }
-
-    await assertAdminAccess({
-      uid: actorUid,
-      email: request.auth.token?.email || "",
-      companyId,
-      locationId
-    });
-
-    const provider = sanitizeString(data.provider || "azure", 40).toLowerCase();
-    if (provider !== "azure") {
-      throw new HttpsError("invalid-argument", "Kun provider 'azure' er understottet.");
-    }
-
-    const language = sanitizeString(data.language || "da", 20).toLowerCase() || "da";
-    const outputFormat = resolveAzureOutputFormat(data.outputFormat || "mp3");
-    const voiceName = resolveAzureVoiceName(data.voiceName || data.voiceId || "da-DK-ChristelNeural");
-    const episodeIdInput = sanitizeString(data.episodeId || "", 160);
-    const generationId = toAsciiSlug(data.generationId || `${episodeIdInput || "episode"}-${Date.now()}`, 180);
-    const title = sanitizeString(data.title || "PolicyBridge podcast audio", 180);
-    const requestedText = String(data.inputText || "").trim();
-    let inputText = requestedText;
-    let episodeRef = episodeIdInput ? db.collection("podcast_episodes").doc(episodeIdInput) : null;
-    let episodeSnapshot = null;
-
-    if (!inputText && episodeRef) {
-      episodeSnapshot = await episodeRef.get();
-      if (episodeSnapshot.exists) {
-        const episode = episodeSnapshot.data() || {};
-        inputText = String(
-          episode.manuscript ||
-          episode.script ||
-          episode.summaryScript ||
-          episode.newsScript ||
-          episode.inputText ||
-          ""
-        ).trim();
-      }
-    }
-
-    if (!inputText) {
-      throw new HttpsError("invalid-argument", "inputText eller episodeId med manuscript/script er paakraevet.");
-    }
-
-    if (!episodeRef) {
-      episodeRef = db.collection("podcast_episodes").doc(generationId);
-    }
-
-    const textLength = inputText.length;
-    const chunks = chunkPodcastText(inputText, 4800);
-    if (!chunks.length) {
-      throw new HttpsError("invalid-argument", "Teksten er tom efter normalisering.");
-    }
-    if (chunks.length > 8) {
-      throw new HttpsError("invalid-argument", "Teksten er for lang til sikker TTS-generering i en enkelt request.");
-    }
-
-    console.log("[podcast tts] request started", {
-      provider,
-      companyId,
-      locationId,
-      episodeId: episodeRef.id,
-      generationId,
-      textLength,
-      chunkCount: chunks.length,
-      language,
-      outputFormat
-    });
-    console.log("[podcast tts] provider selected", { provider, voiceName: voiceName || null });
-
-    const baseEpisodeUpdate = {
-      companyId,
-      locationId,
-      title,
-      ttsProvider: provider,
-      ttsStatus: "processing",
-      ttsLanguage: language,
-      ttsOutputFormat: outputFormat,
-      ttsTextLength: textLength,
-      ttsChunkCount: chunks.length,
-      updatedAt: FieldValue.serverTimestamp(),
-      updatedBy: actorUid
-    };
-
-    await episodeRef.set({
-      ...baseEpisodeUpdate,
-      createdAt: episodeSnapshot?.exists ? undefined : FieldValue.serverTimestamp(),
-      createdBy: episodeSnapshot?.exists ? undefined : actorUid
-    }, { merge: true });
-
-    const audioSegments = [];
-    const providerTasks = [];
-
-    try {
-      for (let index = 0; index < chunks.length; index += 1) {
-        const chunk = chunks[index];
-        console.log("[podcast tts] text chunk", {
-          episodeId: episodeRef.id,
-          generationId,
-          chunkIndex: index,
-          chunkLength: chunk.length
-        });
-
-        const providerResult = await callAzureTtsProvider({
-          inputText: chunk,
-          outputFormat,
-          language,
-          voiceName
-        });
-
-        console.log("[podcast tts] provider response status", {
-          episodeId: episodeRef.id,
-          generationId,
-          chunkIndex: index,
-          status: providerResult.status,
-          charactersCount: providerResult.charactersCount
-        });
-
-        const storagePath = [
-          "companies",
-          companyId,
-          "podcasts",
-          locationId,
-          episodeRef.id,
-          `${generationId}-${index + 1}.mp3`
-        ].join("/");
-        const audioAuditContext = {
-          actorUid,
-          companyId,
-          locationId,
-          provider
-        };
-
-        const saved = await savePodcastAudioSegmentToStorage({
-          providerResult,
-          storagePath,
-          auditContext: audioAuditContext
-        });
-
-        console.log("[podcast tts] audio saved", {
-          episodeId: episodeRef.id,
-          generationId,
-          chunkIndex: index,
-          storagePath: saved.storagePath,
-          bucketName: saved.bucketName || null,
-          actorUid,
-          companyId,
-          locationId,
-          uploadType: "podcast_audio",
-          provider,
-          bytes: saved.bytes
-        });
-
-        providerTasks.push({
-          provider,
-          voiceName: providerResult.voiceName,
-          charactersCount: providerResult.charactersCount,
-          providerCreatedTime: providerResult.providerCreatedTime
-        });
-        audioSegments.push({
-          index,
-          provider,
-          language,
-          locale: providerResult.locale || null,
-          outputFormat,
-          audioUrl: saved.audioUrl,
-          storagePath: saved.storagePath,
-          bytes: saved.bytes,
-          durationSeconds: estimatePodcastAudioDurationSeconds(chunk),
-          charactersCount: providerResult.charactersCount
-        });
-      }
-
-      const totalDurationSeconds = audioSegments
-        .map((segment) => Number(segment.durationSeconds || 0))
-        .reduce((sum, value) => sum + value, 0) || null;
-      const totalBytes = audioSegments
-        .map((segment) => Number(segment.bytes || 0))
-        .reduce((sum, value) => sum + value, 0);
-      const totalCharacters = audioSegments
-        .map((segment) => Number(segment.charactersCount || 0))
-        .reduce((sum, value) => sum + value, 0) || textLength;
-      const primaryAudioUrl = audioSegments.length === 1 ? audioSegments[0].audioUrl : "";
-      const primaryStoragePath = audioSegments.length === 1 ? audioSegments[0].storagePath : "";
-
-      const ttsResult = {
-        provider,
-        inputTextLength: textLength,
-        language,
-        voiceName: providerTasks.find((task) => task.voiceName)?.voiceName || voiceName,
-        outputFormat,
-        speed: null,
-        pitch: null,
-        status: "completed",
-        audioUrl: primaryAudioUrl,
-        audioSegments,
-        durationSeconds: totalDurationSeconds,
-        costEstimate: null,
-        providerTasks,
-        generatedAt: new Date().toISOString()
-      };
-      const publicTtsResult = {
-        ...ttsResult,
-        audioSegments: audioSegments.map(toPublicAudioSegment),
-        providerTasks: providerTasks.map((task) => ({
-          provider: task.provider,
-          voiceName: task.voiceName,
-          charactersCount: task.charactersCount,
-          providerCreatedTime: task.providerCreatedTime
-        }))
-      };
-
-      await episodeRef.set({
-        ttsStatus: "completed",
-        status: "audio_ready",
-        audioUrl: primaryAudioUrl,
-        audioSegments,
-        durationSeconds: totalDurationSeconds,
-        tts: ttsResult,
-        updatedAt: FieldValue.serverTimestamp(),
-        audioGeneratedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
-
-      const firestorePath = `companies/${companyId}/locations/${locationId}/podcast_audio/${episodeRef.id}`;
-      console.log("[podcast firestore] saving metadata", {
-        episodeId: episodeRef.id,
-        companyId,
-        locationId,
-        firestorePath
-      });
-      try {
-        await db.doc(firestorePath).set({
-          episodeId: episodeRef.id,
-          generationId,
-          provider,
-          voiceName: ttsResult.voiceName,
-          language,
-          outputFormat,
-          audioUrl: primaryAudioUrl,
-          storagePath: primaryStoragePath,
-          bytes: totalBytes,
-          chunkCount: chunks.length,
-          charactersCount: totalCharacters,
-          durationSeconds: totalDurationSeconds,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          createdBy: actorUid,
-          companyId,
-          locationId,
-          status: "completed"
-        }, { merge: true });
-        console.log("[podcast firestore] saved", {
-          episodeId: episodeRef.id,
-          companyId,
-          locationId,
-          firestorePath
-        });
-      } catch (firestoreError) {
-        console.warn("[podcast firestore] failed", {
-          episodeId: episodeRef.id,
-          companyId,
-          locationId,
-          firestorePath,
-          error: sanitizeString(firestoreError?.message || firestoreError, 220)
-        });
-      }
-
-      console.log("[podcast tts] episode updated", {
-        episodeId: episodeRef.id,
-        generationId,
-        status: "completed",
-        segmentCount: audioSegments.length,
-        durationSeconds: totalDurationSeconds
-      });
-
-      return {
-        ok: true,
-        success: true,
-        audioUrl: primaryAudioUrl,
-        storagePath: primaryStoragePath,
-        firestorePath,
-        episodeId: episodeRef.id,
-        generationId,
-        provider,
-        bytes: totalBytes,
-        chunkCount: chunks.length,
-        ...publicTtsResult
-      };
-    } catch (error) {
-      const safeMessage = sanitizeString(error?.message || "Podcast TTS failed", 220);
-      await episodeRef.set({
-        ttsStatus: "failed",
-        status: "audio_failed",
-        ttsError: safeMessage,
-        updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
-
-      console.warn("[podcast tts] failed", {
-        episodeId: episodeRef.id,
-        generationId,
-        provider,
-        textLength,
-        error: safeMessage
-      });
-
-      if (error instanceof HttpsError) throw error;
-      throw new HttpsError("internal", safeMessage);
-    }
-  }
-);
-
 function buildSeoAiPrompt({ businessName, address, city, cuisineType, offerings, description, keyword, websiteContent }) {
   const parts = [
     "Generer SEO-forslag til en dansk restaurant.",
@@ -10575,8 +9687,7 @@ exports.createEgenkontrolProgramForLocation =
     getUserAccessProfile,
     assertSeoGeneratorAccess,
     sanitizeOnboardingProfile,
-    sanitizeRiskModelInput,
-    FUNCTIONS_CONFIG
+    sanitizeRiskModelInput
   });
   
 exports.addCoolingMeasurement = functions.https.onCall(async (data, context) => {

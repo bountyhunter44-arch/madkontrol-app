@@ -1,27 +1,3 @@
-/**
- * @madkontrollen-registry-stamp
- * fileRole: "functions-canonical-routines"
- * projectArea: "functions"
- * canonicalSystem: true
- * usesHelpers:
- *   - normalizeRoutineType
- *   - buildCanonicalTaskKey
- *   - buildDisplayTitle
- *   - buildCanonicalRoutineFields
- * owns:
- *   - backend canonical routine definitions
- *   - routine type normalization
- *   - canonical task key construction
- *   - canonical routine field mapping
- * mustNotCreate:
- *   - duplicate routine catalogs
- *   - duplicate routine key normalizers
- *   - parallel canonical task mappings
- * requiredBeforeEdit:
- *   - read docs/AI_TOOLBOX.md
- *   - inspect existing helpers
- *   - verify canonical task ownership
- */
 // ============================================================================
 // CANONICAL ROUTINES - Madkontrollen Pro
 // Single Source of Truth for all routine types
@@ -55,35 +31,6 @@ const CANONICAL_ROUTINES = [
       deviationTrigger: "Målt temperatur under 75 °C.",
       defaultCorrectiveAction: "Fortsæt opvarmningen indtil mindst 75 °C er opnået. Mål igen og dokumentér resultatet.",
       prefilledDeviationText: "Opvarmningen nåede ikke den krævede temperatur. Jeg fortsætter opvarmningen, indtil fødevaren er mindst 75 °C i centrum/tykkeste punkt. Temperaturen måles igen og dokumenteres."
-    }
-  },
-  {
-    routineType: "roegning",
-    displayTitle: "Røgning / varmrøgning",
-    frequencyDays: 1,
-    group: "CCP",
-    category: "Røgning",
-    controlType: "smoking_control",
-    longDescription: "Ved røgning og varmrøgning kontrolleres tid og temperatur, så produktet opnår dokumenteret fødevaresikkerhed. Varmrøgede fiskeprodukter skal som udgangspunkt opnå minimum 70 °C i centrum.",
-    purpose: "At sikre at røgede og varmrøgede produkter opnår tilstrækkelig varmebehandling til at eliminere sygdomsfremkaldende bakterier.",
-    controlCheckpoints: [
-      "Kernetemperatur i produktet måles",
-      "Temperatur registreres",
-      "Tidspunkt registreres",
-      "Produkttype registreres",
-      "Batch/lot registreres",
-      "Røgproces dokumenteres"
-    ],
-    whatToCheck: "Temperatur, tid, produkt, batch og røgproces",
-    howToCheck: "Mål kernetemperatur i produktet med kalibreret termometer. Registrér temperatur, tidspunkt, produkttype og batch.",
-    acceptCriteria: "Minimum 70 °C i centrum for varmrøgede fiskeprodukter, medmindre anden dokumenteret proces anvendes.",
-    documentation: "Registrér temperatur, tidspunkt, produkt, batch og medarbejder.",
-    risk: {
-      hazard: "Overlevelse af sygdomsfremkaldende bakterier ved utilstrækkelig varmebehandling under røgning.",
-      criticalLimit: "Minimum 70 °C i centrum for varmrøgede fiskeprodukter, medmindre anden dokumenteret sikker tid/temperatur anvendes.",
-      deviationTrigger: "Målt kernetemperatur under 70 °C.",
-      defaultCorrectiveAction: "Fortsæt varmebehandling indtil minimum 70 °C er opnået, eller kassér produktet hvis sikker temperatur ikke kan dokumenteres.",
-      prefilledDeviationText: "Røgningen/varmrøgningen nåede ikke den krævede kernetemperatur. Jeg fortsætter varmebehandlingen indtil minimum 70 °C er opnået i centrum, eller kasserer produktet hvis fødevaresikkerheden ikke kan dokumenteres."
     }
   },
   {
@@ -879,16 +826,6 @@ function normalizeRoutineType(input) {
     "reheating": "opvarmning",
     "reheating_control": "opvarmning",
     "minimal_opvarmning": "opvarmning",
-    
-    // Røgning variants
-    "roegning": "roegning",
-    "rogning": "roegning",
-    "varmroegning": "roegning",
-    "varmrogning": "roegning",
-    "smoking": "roegning",
-    "hot_smoking": "roegning",
-    "smoke_control": "roegning",
-    "smoking_control": "roegning",
     
     // Varemodtagelse variants
     "varemodtagelse": "varemodtagelse",

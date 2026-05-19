@@ -1,14 +1,64 @@
 // generator-core.js
 
-export function generateWebsiteFiles(config) {
-  const pages = generatePages(config);
-  const sitemap = generateSitemap(config, pages);
-  const robots = generateRobots(config);
+const SITE_ORIGIN = "https://madkontrollen.dk";
+
+export function slugifySeoPathPart(value, fallback = "restaurant") {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/æ/g, "ae")
+    .replace(/ø/g, "oe")
+    .replace(/å/g, "aa")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalized || fallback;
+}
+
+export function buildSeoOutputPath({ citySlug, businessSlug, file = "index.html" }) {
+  const safeCitySlug = slugifySeoPathPart(citySlug, "by");
+  const safeBusinessSlug = slugifySeoPathPart(businessSlug, "restaurant");
+  const safeFile = String(file || "index.html").replace(/^\/+/, "");
+  return `${safeCitySlug}/${safeBusinessSlug}/${safeFile}`;
+}
+
+function buildSeoRoute(config) {
+  const citySlug = slugifySeoPathPart(config?.city, "by");
+  const businessSlug = slugifySeoPathPart(config?.subdomain || config?.businessSlug || config?.businessName, "restaurant");
+  const routePath = `/${citySlug}/${businessSlug}/`;
+  const canonicalUrl = `${SITE_ORIGIN}${routePath}`;
 
   return {
-    pages,
+    citySlug,
+    businessSlug,
+    routePath,
+    canonicalUrl,
+    outputBasePath: `${citySlug}/${businessSlug}`
+  };
+}
+
+export function generateWebsiteFiles(config) {
+  const route = buildSeoRoute(config);
+  const indexHtml = generateMainPage(config, route);
+  const sitemap = generateSitemap(route);
+  const robots = generateRobots(route);
+
+  return {
+    pages: {
+      [buildSeoOutputPath({ ...route, file: "index.html" })]: indexHtml,
+      [buildSeoOutputPath({ ...route, file: "robots.txt" })]: robots,
+      [buildSeoOutputPath({ ...route, file: "sitemap.xml" })]: sitemap
+    },
     sitemap,
-    robots
+    robots,
+    citySlug: route.citySlug,
+    businessSlug: route.businessSlug,
+    routePath: route.routePath,
+    canonicalUrl: route.canonicalUrl,
+    published: false,
+    publishMode: "preview-in-memory"
   };
 }
 
@@ -16,92 +66,41 @@ export function generateWebsiteFiles(config) {
 // PAGES
 // ======================
 
-function generatePages(config) {
-  const base = generateMainPage(config);
+function generateMainPage(config, route) {
+  const city = config.city || "";
+  const businessName = config.businessName || "";
+  const cuisineType = config.cuisineType || "Restaurant";
+  const description = config.description || "";
+  const seoNarrative = config.seoNarrative || description;
+  const title = config.title || `${businessName} | ${cuisineType} i ${city}`;
+  const h1 = config.h1 || `${cuisineType} i ${city}`;
 
-  const landingPages = (config.landingPages || []).map(p =>
-    generateLandingPage(config, p)
-  );
-
-  return [
-    { path: "index.html", content: base },
-    ...landingPages.map(p => ({
-      path: p.path,
-      content: p.html
-    }))
-  ];
-}
-
-// ======================
-// MAIN PAGE
-// ======================
-
-function generateMainPage(config) {
   return `
 <!DOCTYPE html>
 <html lang="da">
 <head>
 <meta charset="UTF-8">
-<title>${config.businessName}</title>
-<meta name="description" content="${config.seoNarrative}">
+<title>${title}</title>
+<meta name="description" content="${seoNarrative}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="${route.canonicalUrl}">
 </head>
 <body>
-<h1>${config.businessName}</h1>
-<p>${config.description}</p>
+<h1>${h1}</h1>
+<p>${description}</p>
 </body>
 </html>
 `;
-}
-
-// ======================
-// LANDING PAGE
-// ======================
-
-function generateLandingPage(config, page) {
-  const pagePath = `landing-pages/${page.slug}.html`;
-
-  const html = `
-<!DOCTYPE html>
-<html lang="da">
-<head>
-<meta charset="UTF-8">
-<title>${page.title}</title>
-<meta name="description" content="${page.metaDescription}">
-<link rel="canonical" href="https://${config.subdomain}.madkontrollen.dk/${pagePath}">
-</head>
-<body>
-<h1>${page.h1}</h1>
-<h2>${page.h2}</h2>
-<p>${page.bodyText}</p>
-</body>
-</html>
-`;
-
-  return {
-    slug: page.slug,
-    path: pagePath,
-    html
-  };
 }
 
 // ======================
 // SITEMAP
 // ======================
 
-function generateSitemap(config, pages) {
-  const baseUrl = `https://${config.subdomain}.madkontrollen.dk`;
-
-  const urls = pages.map(p => {
-    const loc = p.path === "index.html"
-      ? `${baseUrl}/`
-      : `${baseUrl}/${p.path}`;
-
-    return `<url><loc>${loc}</loc></url>`;
-  });
-
+function generateSitemap(route) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.join("\n")}
+<url><loc>${route.canonicalUrl}</loc></url>
 </urlset>`;
 }
 
@@ -109,9 +108,9 @@ ${urls.join("\n")}
 // ROBOTS
 // ======================
 
-function generateRobots(config) {
+function generateRobots(route) {
   return `User-agent: *
 Allow: /
 
-Sitemap: https://${config.subdomain}.madkontrollen.dk/sitemap.xml`;
+Sitemap: ${SITE_ORIGIN}${route.routePath}sitemap.xml`;
 }

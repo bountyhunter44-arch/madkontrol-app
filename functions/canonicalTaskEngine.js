@@ -1,29 +1,4 @@
 /**
- * @madkontrollen-registry-stamp
- * fileRole: "functions-canonical-task-engine"
- * projectArea: "functions"
- * canonicalSystem: true
- * usesHelpers:
- *   - normalizeRoutineType
- *   - buildCanonicalTaskKey
- *   - buildDisplayTitle
- *   - buildCanonicalRoutineFields
- * owns:
- *   - canonical task template generation
- *   - single task instance dedupe
- *   - canonical day-start generation
- *   - task_templates/task_instances engine contract
- * mustNotCreate:
- *   - duplicate task engines
- *   - duplicate task instance dedupe logic
- *   - parallel day-start flows
- *   - parallel canonical routine mappings
- * requiredBeforeEdit:
- *   - read docs/AI_TOOLBOX.md
- *   - inspect existing helpers
- *   - verify task_templates/task_instances contracts
- */
-/**
  * CANONICAL TASK ENGINE
  * 
  * Core engine for canonical routine management.

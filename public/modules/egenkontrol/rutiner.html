@@ -1711,13 +1711,13 @@ requiredBeforeEdit:
                         </div>
 
                         <div class="risk-compliance-grid">
-                            <div class="risk-compliance-card">
+                            <div class="risk-compliance-card nav-link-card" data-nav-action="hidden-periodic" role="button" tabindex="0">
                                 <div class="risk-compliance-card-top">
-                                    <span class="risk-compliance-icon" aria-hidden="true">📘</span>
-                                    <span class="risk-compliance-label">Aktive logbøger</span>
+                                    <span class="risk-compliance-icon" aria-hidden="true">🗂️</span>
+                                    <span class="risk-compliance-label">Skjulte / periodiske rutiner</span>
                                 </div>
-                                <strong id="riskLinkedCount" class="risk-compliance-value">0</strong>
-                                <div id="riskLinkedSub" class="risk-compliance-sub">Ingen aktive kontroller fundet endnu.</div>
+                                <strong id="hiddenPeriodicCount" class="risk-compliance-value">0</strong>
+                                <div id="hiddenPeriodicSub" class="risk-compliance-sub">Ingen rutiner er skjult fra daglig visning.</div>
                             </div>
 
                             <div class="risk-compliance-card">
@@ -1739,11 +1739,12 @@ requiredBeforeEdit:
                             </div>
                         </div>
 
+                        <div id="hiddenPeriodicPanel" class="risk-compliance-note" style="display:none;margin-top:12px;"></div>
+
                         <div class="risk-compliance-actions-wrap">
                             <span class="risk-compliance-actions-label">Hurtige genveje</span>
                             <div class="risk-compliance-actions">
-                                <a class="btn btn-secondary" href="/modules/egenkontrol/logbooks.html">Åbn logbøger</a>
-                                <a class="btn btn-secondary" href="/modules/egenkontrol/rapporter.html?view=today">Åbn rapporter</a>
+                                <a class="btn btn-secondary" href="/modules/egenkontrol/rapporter.html?mode=authority">Åbn rapporter</a>
                                 <a class="btn btn-secondary" href="/modules/egenkontrol/afvigelser.html?filter=open">Åbn afvigelser</a>
                                 <a class="btn btn-secondary" href="/modules/egenkontrol/risikoanalyse.html">Åbn risikoanalyse</a>
                             </div>
@@ -1912,6 +1913,7 @@ requiredBeforeEdit:
         const startDayForLocationCallable = httpsCallable(functionsClient, "startDayForLocation");
         const getCloudinarySignatureCallable = httpsCallable(functionsClient, "getCloudinarySignature");
         const analyzeCloudinaryAssetCallable = httpsCallable(functionsClient, "analyzeCloudinaryAsset");
+        const getOfficialRecallFeedCallable = httpsCallable(functionsClient, "getOfficialRecallFeed");
 
         const taskListEl = document.getElementById("taskList");
         taskListEl.addEventListener("click", (e) => {
@@ -1948,8 +1950,9 @@ requiredBeforeEdit:
         const operatingAdminBoxEl = document.getElementById("operatingAdminBox");
         const routineAdminRowEl = document.getElementById("routineAdminRow");
         const routineAdminRowTextEl = document.getElementById("routineAdminRowText");
-        const riskLinkedCountEl = document.getElementById("riskLinkedCount");
-        const riskLinkedSubEl = document.getElementById("riskLinkedSub");
+        const hiddenPeriodicCountEl = document.getElementById("hiddenPeriodicCount");
+        const hiddenPeriodicSubEl = document.getElementById("hiddenPeriodicSub");
+        const hiddenPeriodicPanelEl = document.getElementById("hiddenPeriodicPanel");
         const deviationActionCountEl = document.getElementById("deviationActionCount");
         const deviationActionSubEl = document.getElementById("deviationActionSub");
         const cleaningPlanCountEl = document.getElementById("cleaningPlanCount");
@@ -4020,10 +4023,6 @@ function setLocationLabel() {
             const taskType = (task.taskType || "").toLowerCase();
             const guideKey = (task.guideKey || "").toLowerCase();
             const title = (task.title || "").toLowerCase();
-            const status = getTaskStatus(task);
-            const todayKey = getTodayKey();
-            const activeUntilDateKey = normalizeDateKey(task.activeUntilDateKey);
-
             const blocked = (
                 task.archived === true ||
                 task.disabled === true ||
@@ -4037,8 +4036,6 @@ function setLocationLabel() {
             );
 
             if (blocked) return false;
-            if (!["active", "open", "pending", "overdue"].includes(status)) return false;
-            if (activeUntilDateKey && activeUntilDateKey < todayKey) return false;
 
             return true;
         }
@@ -4140,17 +4137,24 @@ function setLocationLabel() {
         }
 
         function updateRiskCompliancePanel() {
-            if (!riskLinkedCountEl || !deviationActionCountEl || !cleaningPlanCountEl) return;
+            if (!deviationActionCountEl || !cleaningPlanCountEl) return;
 
             const riskLinkedTasks = getRiskLinkedTasks();
             const cleaningTasks = getCleaningTasks();
+            const hiddenPeriodicTasks = getHiddenPeriodicTasks();
             const openDeviationCount = operatingState.isClosed || operatingState.isVacation ? 0 : alertCount;
-            const riskLinkedCompleted = riskLinkedTasks.filter((task) => task.status === "completed").length;
 
-            riskLinkedCountEl.textContent = String(riskLinkedTasks.length);
-            riskLinkedSubEl.textContent = riskLinkedTasks.length
-                ? `${riskLinkedCompleted} af ${riskLinkedTasks.length} risikostyrede kontroller er allerede dokumenteret i dag.`
-                : "Ingen risikostyrede dagskontroller er fundet. Gennemgå risikoanalyse og onboarding.";
+            if (hiddenPeriodicCountEl) {
+                hiddenPeriodicCountEl.textContent = String(hiddenPeriodicTasks.length);
+            }
+
+            if (hiddenPeriodicSubEl) {
+                hiddenPeriodicSubEl.textContent = hiddenPeriodicTasks.length
+                    ? `${hiddenPeriodicTasks.length} rutine${hiddenPeriodicTasks.length !== 1 ? "r" : ""} er skjult indtil næste forfald.`
+                    : "Ingen rutiner er skjult fra daglig visning.";
+            }
+
+            renderHiddenPeriodicPanel(hiddenPeriodicTasks);
 
             deviationActionCountEl.textContent = String(openDeviationCount);
             deviationActionSubEl.textContent = openDeviationCount
@@ -4174,7 +4178,7 @@ function setLocationLabel() {
 
             if (riskComplianceNoteEl) {
                 if (!riskLinkedTasks.length) {
-                    riskComplianceNoteEl.textContent = "Risikoanalysen skal ledsages af aktive logbøger. Der er ikke fundet daglige risikostyrede kontroller på denne lokation endnu.";
+                    riskComplianceNoteEl.textContent = "Der er ikke fundet daglige risikostyrede kontroller på denne lokation endnu. Tjek skjulte og periodiske rutiner, hvis noget mangler fra dagslisten.";
                 } else if (!cleaningTasks.length) {
                     riskComplianceNoteEl.textContent = "Fast rengøringsplan skal være tilgængelig i driften. Der er ikke fundet rengøringspunkter i dagens rutiner.";
                 } else if (openDeviationCount > 0) {
@@ -4214,6 +4218,13 @@ function setLocationLabel() {
             if (!cards.length) return;
 
             const handleNavigation = (action) => {
+                if (action === "hidden-periodic") {
+                    activeFilters = { category: 'all', status: 'all', frequency: 'all' };
+                    renderTasks();
+                    taskListEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    return;
+                }
+
                 if (action === "tasks") {
                     taskListEl?.scrollIntoView({ behavior: "smooth", block: "start" });
                     return;
@@ -4731,7 +4742,7 @@ function formatDeadlineLabel(task) {
         }
 
         function isPendingTask(task) {
-            return ["pending", "open", "active", "overdue"].includes(getTaskStatus(task));
+            return ["pending", "open", "active", "overdue", "completed", "documented", "not_relevant_today", "not_in_use"].includes(getTaskStatus(task));
         }
 
         function isCompletedTask(task) {
@@ -4743,13 +4754,12 @@ function formatDeadlineLabel(task) {
         }
 
         function getOpenTasks() {
-            return allTasks.filter((task) => isVisibleDailyRoutineTask(task) && isPendingTask(task) && matchesFilter(task));
+            return getVisibleDailyTasks().filter((task) => matchesFilter(task));
         }
 
         function getDueTodayTasks() {
             const todayKey = getTodayKey();
-            return allTasks.filter((task) => {
-                if (!isVisibleDailyRoutineTask(task)) return false;
+            return getVisibleDailyTasks().filter((task) => {
                 return normalizeDateKey(task?.dateKey) === todayKey;
             });
         }
@@ -4824,6 +4834,16 @@ function formatDeadlineLabel(task) {
                 title.includes("fryser_temperatur") ||
                 (title.includes("fryser") && title.includes("temperatur")) ||
                 (equipment.includes("freezer") && title.includes("temperatur"));
+        }
+
+        function isRecallRoutineTask(task = {}) {
+            const key = getRoutineIdentityKey(task);
+            const title = normalizePermanentRoutineKey(task.title || task.name || "");
+            return key === "tilbagetraekning" ||
+                key === "recall" ||
+                key === "withdrawal" ||
+                title.includes("tilbagetraekning") ||
+                title.includes("tilbagetrakning");
         }
 
         function getRoutineFrequencyDays(task = {}) {
@@ -4912,6 +4932,54 @@ function formatDeadlineLabel(task) {
                 dueStatus,
                 dueLabel: getDueLabelFromStatus(dueStatus, nextDue)
             };
+        }
+
+        function isRoutineDueForDailyView(task = {}) {
+            const todayKey = getTodayKey();
+            const nextDueDateKey = normalizeDateKey(task.nextDueDateKey);
+            const taskDateKey = normalizeDateKey(task.dateKey);
+            const dueStatus = String(task.dueStatus || "").toLowerCase();
+            const status = getTaskStatus(task);
+
+            if (nextDueDateKey && nextDueDateKey <= todayKey) return true;
+            if (dueStatus === "overdue" || dueStatus === "due_soon") return true;
+            if (taskDateKey === todayKey && ["pending", "open", "active", "overdue"].includes(status)) return true;
+            return false;
+        }
+
+        function isHiddenFromDailyView(task = {}) {
+            return task.hiddenFromDailyView === true && !isRoutineDueForDailyView(task);
+        }
+
+        function getHiddenPeriodicTasks() {
+            return allTasks.filter((task) => isVisibleDailyRoutineTask(task) && isHiddenFromDailyView(task));
+        }
+
+        function getVisibleDailyTasks() {
+            return allTasks.filter((task) => isVisibleDailyRoutineTask(task) && !isHiddenFromDailyView(task));
+        }
+
+        function renderHiddenPeriodicPanel(tasks = []) {
+            if (!hiddenPeriodicPanelEl) return;
+
+            if (!tasks.length) {
+                hiddenPeriodicPanelEl.style.display = "none";
+                hiddenPeriodicPanelEl.innerHTML = "";
+                return;
+            }
+
+            hiddenPeriodicPanelEl.style.display = "block";
+            hiddenPeriodicPanelEl.innerHTML = `
+                <strong>Skjulte / periodiske rutiner</strong>
+                <div style="display:grid;gap:8px;margin-top:10px;">
+                    ${tasks.map((task) => `
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                            <span>${escapeHtml(getVisibleTitle(task))} · ${escapeHtml(getFrequencyLabel(getTaskEffectiveFrequency(task)))}${task.nextDueDateKey ? ` · næste: ${escapeHtml(task.nextDueDateKey)}` : ""}</span>
+                            <button type="button" class="btn btn-secondary" data-toggle-hidden-daily="true" data-hidden-action="show_daily_view" data-instance-id="${escapeHtml(task.id)}">Vis i daglig liste igen</button>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
         }
 
         function buildTaskDueUpdateAfterEntry(task = {}, savedAt = new Date()) {
@@ -5152,6 +5220,49 @@ function formatDeadlineLabel(task) {
                     ${escapeHtml(formatActivityDateTime(entry.createdAt || entry.completedAt || entry.updatedAt || entry.createdAtClient || entry.dateKey))}
                     &mdash;
                     ${escapeHtml(getEntryActionText(entry))}
+                </div>
+            `).join("");
+        }
+
+        function formatRecallDate(value = "") {
+            if (!value) return "";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return String(value || "").slice(0, 16);
+            return date.toLocaleDateString("da-DK", { day: "2-digit", month: "2-digit", year: "numeric" });
+        }
+
+        function renderRecallFeedPanel(task) {
+            if (!isRecallRoutineTask(task)) return "";
+            return `
+                <div class="task-docs-panel recall-feed-panel" data-recall-feed-panel="${escapeHtml(task.id)}">
+                    <div class="task-docs-head">
+                        <div class="task-docs-copy">
+                            <div class="task-docs-title">Tilbagekaldelser fra Fødevarestyrelsen</div>
+                            <div class="task-docs-text">Seneste officielle tilbagekaldte produkter. Kortet kan stadig dokumenteres manuelt.</div>
+                        </div>
+                    </div>
+                    <div class="task-docs-body" data-recall-feed-list="${escapeHtml(task.id)}">
+                        <div class="routine-card-activity-row">Henter officielle tilbagekaldelser...</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderRecallFeedItems(task, items = []) {
+            if (!items.length) {
+                return `<div class="routine-card-activity-row">Ingen tilbagekaldelser kunne vises lige nu. Dokumentér rutinen manuelt hvis relevant.</div>`;
+            }
+
+            return items.slice(0, 5).map((item, index) => `
+                <div class="routine-card-history-row recall-feed-item" data-recall-item-index="${index}">
+                    <strong>${escapeHtml(formatRecallDate(item.publishedAt))} - ${escapeHtml(item.title)}</strong>
+                    ${item.summary ? `<div>${escapeHtml(item.summary)}</div>` : ""}
+                    ${item.link ? `<div><a href="${escapeHtml(item.link)}" target="_blank" rel="noopener">Læs hos Fødevarestyrelsen</a></div>` : ""}
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+                        <button type="button" class="btn btn-secondary" data-recall-action="reviewed" data-instance-id="${escapeHtml(task.id)}" data-recall-index="${index}">Gennemgået</button>
+                        <button type="button" class="btn btn-secondary" data-recall-action="not_relevant" data-instance-id="${escapeHtml(task.id)}" data-recall-index="${index}">Ikke relevant for os</button>
+                        <button type="button" class="btn btn-primary" data-recall-action="relevant" data-instance-id="${escapeHtml(task.id)}" data-recall-index="${index}">Relevant / opret handling</button>
+                    </div>
                 </div>
             `).join("");
         }
@@ -5538,6 +5649,9 @@ const hasMin = task.minValue !== null && task.minValue !== undefined && task.min
                             const controlPointGuideHtml = renderControlPointGuideHtml(task);
                             const dueStatus = task.dueStatus || "ok";
                             const dueClass = dueStatus === "overdue" ? "routine-due-overdue" : dueStatus === "due_soon" ? "routine-due-soon" : "routine-due-ok";
+                            const canHideFromDailyView = !isHiddenFromDailyView(task) && !isRoutineDueForDailyView(task);
+                            const hideToggleLabel = isHiddenFromDailyView(task) ? "Vis i daglig liste igen" : "Skjul fra daglig visning";
+                            const hideToggleAction = isHiddenFromDailyView(task) ? "show_daily_view" : "hide_daily_view";
                             const activityHtml = `<div class="routine-card-activity">
                                 <div class="routine-card-activity-title">Seneste aktivitet</div>
                                 <div class="routine-card-activity-list" data-recent-activity="${escapeHtml(task.id)}">
@@ -5615,10 +5729,13 @@ ${
                                         : ""
                                 }
                                 <span class="task-pill ${getStatusPillClass(task.status)}">Status: ${escapeHtml(visibleStatus)}</span>
+                                ${task.hiddenFromDailyView === true ? `<span class="task-pill">Skjult fra daglig visning</span>` : ""}
                                 ${task.permanentRoutineModel ? `<span class="task-pill ${dueClass}" data-due-pill="${escapeHtml(task.id)}">Due: ${escapeHtml(task.dueLabel || dueStatus)}</span>` : ""}
                             </div>
 
 ${activityHtml}
+
+${renderRecallFeedPanel(task)}
 
 ${(() => {
                 const assets = task.cloudinaryAssets || [];
@@ -6190,9 +6307,20 @@ ${(() => {
                             <div class="task-action-secondary" style="grid-template-columns: 1fr;">
                                 <button
                                     type="button"
+                                    class="btn btn-secondary task-hide-daily-btn"
+                                    data-instance-id="${escapeHtml(task.id)}"
+                                    data-toggle-hidden-daily="true"
+                                    data-hidden-action="${escapeHtml(hideToggleAction)}"
+                                    ${canHideFromDailyView || isHiddenFromDailyView(task) ? "" : "disabled"}
+                                    style="width: 100%;"
+                                >
+                                    ${escapeHtml(hideToggleLabel)}
+                                </button>
+                                <button
+                                    type="button"
                                     class="btn btn-secondary task-notused-btn"
                                     data-instance-id="${escapeHtml(task.id)}"
-                                    data-action="not_in_use"
+                                    data-action="not_relevant_today"
                                     style="width: 100%;"
                                 >
                                     Ikke relevant i dag
@@ -6209,6 +6337,7 @@ ${(() => {
             bindCoolingNoActivityToggles();
             bindAnswerTextFields();
             hydrateRecentActivityForCards(openTasks);
+            hydrateRecallFeedForCards(openTasks);
             
             setTimeout(() => {
                 allTasks.forEach(task => {
@@ -6818,14 +6947,14 @@ ${(() => {
         function getActionConfirmConfig(task, actionType) {
             const title = getVisibleTitle(task);
 
-            if (actionType === "not_in_use") {
-                if (isReceivingTask(task)) {
-                    return {
-                        shouldConfirm: true,
-                        message: `Er du sikker på at "${title}" ikke er relevant i dag?\n\nDer oprettes en registrering, men rutinekortet forbliver aktivt i perioden.`
-                    };
-                }
+            if (actionType === "not_relevant_today") {
+                return {
+                    shouldConfirm: true,
+                    message: `Er du sikker på at "${title}" ikke er relevant i dag?\n\nDer oprettes en dagsregistrering, men rutinekortet forbliver aktivt.`
+                };
+            }
 
+            if (actionType === "not_in_use") {
                 return {
                     shouldConfirm: true,
                     message: `Er du sikker på at "${title}" skal markeres som ikke i brug?\n\nDer oprettes en registrering, og rutinekortet forbliver aktivt i perioden.`
@@ -6911,10 +7040,23 @@ ${(() => {
             const context = getTaskContextDetails(task);
             const areaText = context.specificLabel ? ` på ${context.specificLabel}` : "";
 
-            if (actionType === "not_in_use") {
-                const receivingTask = isReceivingTask(task);
+            if (actionType === "not_relevant_today") {
                 return {
-                    entryStatus: receivingTask ? "not_relevant_today" : "not_in_use",
+                    entryStatus: "not_relevant_today",
+                    instanceStatus: "active",
+                    shouldCreateAlert: false,
+                    alertTitle: "",
+                    alertDescription: "",
+                    contextMachineName: context.machineName,
+                    contextAreaName: context.areaName,
+                    contextAreaType: context.areaType,
+                    contextSpecificLabel: context.specificLabel
+                };
+            }
+
+            if (actionType === "not_in_use") {
+                return {
+                    entryStatus: "not_in_use",
                     instanceStatus: "active",
                     shouldCreateAlert: false,
                     alertTitle: "",
@@ -7770,15 +7912,31 @@ const buildFryerRoutineCompletionEntry = () => {
                     : aiSuggestion?.beskrivelse || autoDocumentationNote;
             }
 
-            if (actionType === "not_in_use") {
-                const receivingTask = isReceivingTask(task);
-                if (!comment) comment = receivingTask ? "Markeret som ikke relevant i dag" : "Markeret som ikke i brug";
+            if (actionType === "not_relevant_today") {
+                if (!comment) comment = "Markeret som ikke relevant i dag";
                 return {
                     entryType: taskType === "measurement" ? "measurement" : "check",
                     measurementValue: null,
                     measurementUnit: getUnit(task) || "",
-                    valueLabel: receivingTask ? "Ikke relevant i dag" : "Ikke i brug",
-                    status: receivingTask ? "not_relevant_today" : "not_in_use",
+                    valueLabel: "Ikke relevant i dag",
+                    status: "not_relevant_today",
+                    note: comment,
+                    handling_udfort: aiSuggestion ? aiSuggestion.handlingUdfort : false,
+                    beskrivelse: aiSuggestion?.beskrivelse || comment,
+                    ai_source: aiSuggestion ? "vision_ai" : "manual",
+                    ai_confidence: aiSuggestion ? aiSuggestion.confidence : null,
+                    ai_category: aiSuggestion?.category || "egenkontrol"
+                };
+            }
+
+            if (actionType === "not_in_use") {
+                if (!comment) comment = "Markeret som ikke i brug";
+                return {
+                    entryType: taskType === "measurement" ? "measurement" : "check",
+                    measurementValue: null,
+                    measurementUnit: getUnit(task) || "",
+                    valueLabel: "Ikke i brug",
+                    status: "not_in_use",
                     note: comment,
                     handling_udfort: aiSuggestion ? aiSuggestion.handlingUdfort : false,
                     beskrivelse: aiSuggestion?.beskrivelse || comment,
@@ -8223,11 +8381,6 @@ const buildFryerRoutineCompletionEntry = () => {
                 ...auditFields // Add audit contract fields
             };
 
-            if (entryStatus === "not_relevant_today" || actionType === "not_relevant_today") {
-                instanceUpdate.notRelevantAt = serverTimestamp();
-                instanceUpdate.skippedAt = serverTimestamp();
-            }
-
             await setDoc(taskInstanceRef, instanceUpdate, { merge: true });
 
             // Create audit fields for entry (always use complete fields since entries are created when action is taken)
@@ -8437,6 +8590,184 @@ const buildFryerRoutineCompletionEntry = () => {
             }));
         }
 
+        const recallFeedState = {
+            loaded: false,
+            loading: false,
+            items: [],
+            feedUrl: "",
+            sourcePageUrl: "",
+            error: ""
+        };
+
+        async function loadOfficialRecallFeedOnce() {
+            if (recallFeedState.loaded) return recallFeedState;
+            if (recallFeedState.loading) {
+                while (recallFeedState.loading) {
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                }
+                return recallFeedState;
+            }
+
+            recallFeedState.loading = true;
+            try {
+                const result = await getOfficialRecallFeedCallable({});
+                const data = result?.data || {};
+                recallFeedState.items = Array.isArray(data.items) ? data.items : [];
+                recallFeedState.feedUrl = data.feedUrl || "";
+                recallFeedState.sourcePageUrl = data.sourcePageUrl || "";
+                recallFeedState.error = data.ok === false ? (data.error || "Feed kunne ikke hentes.") : "";
+                recallFeedState.loaded = true;
+            } catch (error) {
+                console.warn("[recall feed] load failed", error);
+                recallFeedState.items = [];
+                recallFeedState.error = error?.message || "Feed kunne ikke hentes.";
+                recallFeedState.loaded = true;
+            } finally {
+                recallFeedState.loading = false;
+            }
+            return recallFeedState;
+        }
+
+        async function hydrateRecallFeedForCards(tasks = []) {
+            const recallTasks = tasks.filter((task) => isRecallRoutineTask(task));
+            if (!recallTasks.length) return;
+
+            const feed = await loadOfficialRecallFeedOnce();
+            recallTasks.forEach((task) => {
+                const target = document.querySelector(`[data-recall-feed-list="${CSS.escape(task.id)}"]`);
+                if (!target) return;
+                if (feed.error && !feed.items.length) {
+                    target.innerHTML = `<div class="routine-card-activity-row">Tilbagekaldelsesfeed kunne ikke hentes lige nu. Rutinen kan stadig dokumenteres manuelt.</div>`;
+                    return;
+                }
+                target.innerHTML = renderRecallFeedItems(task, feed.items);
+            });
+        }
+
+        async function setHiddenFromDailyView(instanceId, shouldHide) {
+            const task = allTasks.find((item) => item.id === instanceId);
+            if (!task) return;
+
+            if (shouldHide && isRoutineDueForDailyView(task)) {
+                alert("Rutinen er forfalden eller kræver handling og kan derfor ikke skjules fra dagslisten.");
+                return;
+            }
+
+            await setDoc(doc(db, "task_instances", instanceId), {
+                hiddenFromDailyView: shouldHide === true,
+                hiddenFromDailyViewUpdatedAt: serverTimestamp(),
+                hiddenFromDailyViewUpdatedBy: SETTINGS.createdBy || "",
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+
+            task.hiddenFromDailyView = shouldHide === true;
+            renderTasks();
+            updateKpis();
+        }
+
+        if (hiddenPeriodicPanelEl) {
+            hiddenPeriodicPanelEl.addEventListener("click", async (event) => {
+                const button = event.target.closest("button[data-toggle-hidden-daily][data-instance-id]");
+                if (!button) return;
+
+                event.preventDefault();
+                const instanceId = button.dataset.instanceId;
+                const originalText = button.textContent;
+                button.disabled = true;
+                button.textContent = "Gemmer...";
+                try {
+                    await setHiddenFromDailyView(instanceId, false);
+                } catch (error) {
+                    console.error("[hidden daily view] restore failed", error);
+                    alert(error?.message || "Kunne ikke vise rutinen igen.");
+                    button.disabled = false;
+                    button.textContent = originalText;
+                }
+            });
+        }
+
+        function getRecallActionText(actionType) {
+            if (actionType === "reviewed") return "Gennemgået";
+            if (actionType === "not_relevant") return "Ikke relevant for os";
+            if (actionType === "relevant") return "Relevant - handling oprettet";
+            return "Tilbagekaldelse behandlet";
+        }
+
+        async function logRecallFeedAction({ task, item, actionType }) {
+            const savedAt = new Date();
+            const status = actionType === "relevant" ? "requires_action" : actionType === "not_relevant" ? "not_relevant" : "completed";
+            const actionLabel = getRecallActionText(actionType);
+            const note = `${actionLabel}: ${item.title || "Tilbagekaldelse"}`;
+            const taskInstanceRef = doc(db, "task_instances", task.id);
+
+            const entryRef = await addDoc(collection(db, "task_entries"), {
+                taskId: task.taskId || task.id,
+                taskInstanceId: task.id,
+                companyId: SETTINGS.companyId,
+                organizationId: SETTINGS.companyId,
+                locationId: SETTINGS.locationId,
+                unitId: SETTINGS.unitId,
+                dateKey: getTodayKey(),
+                routineType: task.routineType || "tilbagetraekning",
+                templateKey: task.templateKey || task.templateId || task.taskId || task.id || "",
+                title: task.title || "Tilbagetrækning",
+                taskTitle: task.title || "Tilbagetrækning",
+                status,
+                actionType: `recall_feed_${actionType}`,
+                valueLabel: actionLabel,
+                note,
+                comment: note,
+                recallItemId: item.id || "",
+                recallTitle: item.title || "",
+                recallSummary: item.summary || "",
+                recallLink: item.link || "",
+                recallPublishedAt: item.publishedAt || "",
+                recallFeedUrl: recallFeedState.feedUrl || "",
+                completedBy: SETTINGS.createdBy,
+                completedByName: SETTINGS.employeeName,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                completedAt: savedAt.toISOString(),
+                completedByNameResolved: SETTINGS.employeeName
+            });
+
+            if (actionType === "relevant") {
+                await maybeCreateAlert(task, {
+                    status: "failed",
+                    hasDeviation: true,
+                    note,
+                    alertData: { alertType: "recall_relevant" }
+                }, entryRef.id, {
+                    shouldCreateAlert: true,
+                    alertType: "recall_relevant",
+                    alertTitle: `Relevant tilbagekaldelse: ${item.title || "produkt"}`,
+                    alertDescription: item.summary || item.link || "Tilbagekaldelsen er markeret som relevant og kræver opfølgning.",
+                    contextMachineName: "",
+                    contextAreaName: "",
+                    contextAreaType: "",
+                    contextSpecificLabel: "Tilbagetrækning"
+                });
+            }
+
+            await setDoc(taskInstanceRef, {
+                status: "active",
+                lastEntryStatus: status,
+                lastEntryAt: serverTimestamp(),
+                lastEntrySummary: note,
+                entryCount: increment(1),
+                documented: true,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+
+            markTaskRegistrationSaved(task.id, {
+                status: "active",
+                entryStatus: status,
+                lastEntryAt: savedAt.toISOString(),
+                lastEntrySummary: note,
+                entryCount: Number(task.entryCount || 0) + 1
+            });
+        }
+
         async function toggleRoutineHistory(instanceId) {
             const panel = document.querySelector(`[data-history-panel="${CSS.escape(instanceId)}"]`);
             if (!panel) return;
@@ -8595,7 +8926,7 @@ const buildFryerRoutineCompletionEntry = () => {
                 const saveResult = await saveTask(task, actionType);
                 const newStatus = typeof saveResult === "string" ? saveResult : saveResult?.status || "active";
 
-                if (actionType === "save" || actionType === "not_in_use" || actionType === "cooling_finish" || actionType === "cooling_finish_all") {
+                if (actionType === "save" || actionType === "not_relevant_today" || actionType === "not_in_use" || actionType === "cooling_finish" || actionType === "cooling_finish_all") {
                     markTaskRegistrationSaved(instanceId, typeof saveResult === "object" ? saveResult : { status: newStatus });
                     setCardLoading(instanceId, false);
                     clearActiveAction(instanceId, originalLabels);
@@ -8616,6 +8947,52 @@ const buildFryerRoutineCompletionEntry = () => {
         }
 
         taskListEl.addEventListener("click", async (event) => {
+            const hiddenToggleButton = event.target.closest("button[data-toggle-hidden-daily][data-instance-id]");
+            if (hiddenToggleButton) {
+                event.preventDefault();
+                const instanceId = hiddenToggleButton.dataset.instanceId;
+                const shouldHide = hiddenToggleButton.dataset.hiddenAction !== "show_daily_view";
+                const originalText = hiddenToggleButton.textContent;
+                hiddenToggleButton.disabled = true;
+                hiddenToggleButton.textContent = "Gemmer...";
+                try {
+                    await setHiddenFromDailyView(instanceId, shouldHide);
+                } catch (error) {
+                    console.error("[hidden daily view] save failed", error);
+                    alert(error?.message || "Kunne ikke opdatere visning.");
+                    hiddenToggleButton.disabled = false;
+                    hiddenToggleButton.textContent = originalText;
+                }
+                return;
+            }
+
+            const recallButton = event.target.closest("button[data-recall-action][data-instance-id]");
+            if (recallButton) {
+                event.preventDefault();
+                const instanceId = recallButton.dataset.instanceId;
+                const task = allTasks.find((item) => item.id === instanceId);
+                const item = recallFeedState.items[Number(recallButton.dataset.recallIndex)];
+                if (!task || !item) return;
+
+                const originalText = recallButton.textContent;
+                recallButton.disabled = true;
+                recallButton.textContent = "Gemmer...";
+                try {
+                    await logRecallFeedAction({
+                        task,
+                        item,
+                        actionType: recallButton.dataset.recallAction || "reviewed"
+                    });
+                    recallButton.textContent = "Gemt";
+                } catch (error) {
+                    console.error("[recall feed] action failed", error);
+                    alert(error?.message || "Kunne ikke gemme tilbagekaldelseshandling.");
+                    recallButton.disabled = false;
+                    recallButton.textContent = originalText;
+                }
+                return;
+            }
+
             const historyButton = event.target.closest("button[data-show-history][data-instance-id]");
             if (historyButton) {
                 event.preventDefault();
@@ -10135,34 +10512,26 @@ const buildFryerRoutineCompletionEntry = () => {
             
             for (const task of rawTasks) {
                 const taskDateKey = normalizeDateKey(task?.dateKey);
-                const activeUntilDateKey = normalizeDateKey(task?.activeUntilDateKey);
                 const taskStatus = task.status || "pending";
                 
                 // Blocked tasks are always excluded
                 const blocked = task.archived === true || task.disabled === true || task.skippedDuplicate === true;
                 
-                // Completed/closed statuses should be excluded from active cards
-                const isClosed = ["completed", "not_relevant", "not_in_use", "documented", "resolved"].includes(taskStatus);
-                
                 // PERSISTENT CARD LOGIC:
-                // Routine cards are persistent and stay visible for up to 7 days.
-                // task.dateKey < today does NOT mean the card should be hidden.
-                // Only hide if explicitly closed or if activeUntilDateKey has passed.
+                // task_instances are routine cards and should stay visible.
+                // task_entries document whether today's/period's action is handled.
                 const isDueToday = taskDateKey === todayKey;
-                const isWithinPersistentWindow = taskDateKey && taskDateKey >= addDateKeyDays(todayKey, -7);
                 const isExplicitlyOverdue = taskStatus === "overdue"; // Only if backend marked it
                 
-                // Include if: not closed AND (today's task OR within 7-day window OR explicitly overdue)
-                const shouldInclude = !blocked && !isClosed && (isDueToday || isWithinPersistentWindow || isExplicitlyOverdue);
+                // Include if the card itself is not blocked. Status/date fields belong to handling state, not card visibility.
+                const shouldInclude = !blocked;
 
                 console.log(`[loadTasks] filter check [${task.id}]:`, {
                     taskDateKey,
                     todayKey,
                     taskStatus,
                     isDueToday,
-                    isWithinPersistentWindow,
                     isExplicitlyOverdue,
-                    isClosed,
                     blocked,
                     shouldInclude
                 });

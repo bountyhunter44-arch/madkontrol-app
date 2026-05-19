@@ -80,8 +80,6 @@ export async function syncAndGenerateEgenkontrolForDate({
     createdByName,
   });
 
-  console.log("[syncAndGenerate] generateVerificationInstances returned", verificationResult);
-
   // ── Returnér samlet resultat ─────────────────────────────────────────────────
   return {
     success: true,

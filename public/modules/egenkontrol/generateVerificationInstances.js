@@ -36,17 +36,6 @@ import { isActiveForDate, getNextDueDate } from "./controlLibraryHelpers.js";
 const BATCH_LIMIT = 499;
 
 /**
- * Timeout wrapper for promises
- */
-const withTimeout = (promise, label, ms = 8000) =>
-  Promise.race([
-    promise,
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
-    )
-  ]);
-
-/**
  * @param {{
  *   companyId:     string,
  *   locationId:    string,
@@ -76,68 +65,24 @@ export async function generateVerificationInstances({
   createdBy,
   createdByName = "",
 }) {
-  try {
-    if (!companyId)   throw new Error("generateVerificationInstances: companyId mangler.");
-    if (!locationId)  throw new Error("generateVerificationInstances: locationId mangler.");
-    if (!nowDateKey)  throw new Error("generateVerificationInstances: nowDateKey mangler.");
-    if (!createdBy)   throw new Error("generateVerificationInstances: createdBy mangler.");
+  if (!companyId)   throw new Error("generateVerificationInstances: companyId mangler.");
+  if (!locationId)  throw new Error("generateVerificationInstances: locationId mangler.");
+  if (!nowDateKey)  throw new Error("generateVerificationInstances: nowDateKey mangler.");
+  if (!createdBy)   throw new Error("generateVerificationInstances: createdBy mangler.");
 
-    console.log("[generateVerificationInstances] step 1: querying verification_templates...");
-    console.log("[generateVerificationInstances] params:", {
-      companyId,
-      locationId,
-      nowDateKey: nowDateKey,
-      createdBy,
-      createdByName
-    });
+  console.log("[generateVerificationInstances] step 1: querying verification_templates...");
 
-    // ── 1. Hent aktive verification_templates ────────────────────────────────────
-    console.log("[generateVerificationInstances] BEFORE getDocs - collection:", "verification_templates");
-    console.log("[generateVerificationInstances] BEFORE getDocs - constraints:", [
-      { field: "companyId", op: "==", value: companyId },
-      { field: "locationId", op: "==", value: locationId },
-      { field: "isActive", op: "==", value: true }
-    ]);
-
-    const q = query(
+  // ── 1. Hent aktive verification_templates ────────────────────────────────────
+  const templatesSnap = await getDocs(
+    query(
       collection(db, "verification_templates"),
       where("companyId",  "==", companyId),
       where("locationId", "==", locationId),
       where("isActive",   "==", true)
-    );
+    )
+  );
 
-    console.log("[generateVerificationInstances] executing getDocs with 8s timeout...");
-    const templatesSnap = await withTimeout(
-      getDocs(q),
-      "verification_templates query"
-    );
-
-    console.log("[generateVerificationInstances] step 2: verification_templates result", {
-      size: templatesSnap.size,
-      empty: templatesSnap.empty
-    });
-
-    // Log each doc
-    templatesSnap.docs.forEach((docSnap) => {
-      const data = docSnap.data() || {};
-      console.log("[generateVerificationInstances] template doc", {
-        id: docSnap.id,
-        companyId: data.companyId,
-        organizationId: data.organizationId,
-        locationId: data.locationId,
-        active: data.active,
-        enabled: data.enabled,
-        isActive: data.isActive,
-        routineType: data.routineType,
-        templateKey: data.templateKey,
-        canonicalTaskKey: data.canonicalTaskKey,
-        controlType: data.controlType,
-        title: data.title
-      });
-    });
-
-    const templates = templatesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    console.log("[generateVerificationInstances] templates array length:", templates.length);
+  const templates = templatesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
   // ── 2. Hent eksisterende pending instanser (dublet-check per templateId) ──────
   const pendingSnap = await getDocs(
@@ -249,30 +194,19 @@ export async function generateVerificationInstances({
     await batch.commit();
   }
 
-    // ── 6. Returnér resultat ─────────────────────────────────────────────────────
-    return {
-      success: true,
-      nowDateKey,
-      counts: {
-        scanned:         templates.length,
-        eligible:        toCreate.length,
-        created:         createdIds.length,
-        skippedExisting: skippedExistingIds.length,
-        skippedInactive: skippedInactiveIds.length,
-      },
-      createdIds,
-      skippedExistingIds,
-      skippedInactiveIds,
-    };
-  } catch (error) {
-    console.error("[generateVerificationInstances] FAILED", {
-      code: error?.code,
-      message: error?.message,
-      stack: error?.stack,
-      companyId,
-      locationId,
-      nowDateKey
-    });
-    throw error;
-  }
+  // ── 6. Returnér resultat ─────────────────────────────────────────────────────
+  return {
+    success: true,
+    nowDateKey,
+    counts: {
+      scanned:         templates.length,
+      eligible:        toCreate.length,
+      created:         createdIds.length,
+      skippedExisting: skippedExistingIds.length,
+      skippedInactive: skippedInactiveIds.length,
+    },
+    createdIds,
+    skippedExistingIds,
+    skippedInactiveIds,
+  };
 }

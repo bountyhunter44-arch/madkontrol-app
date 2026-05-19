@@ -28,22 +28,17 @@
 
 ## Production Deployment
 
-**VIGTIGT:** Cloudinary credentials er allerede sat i Firebase Functions Config og virker i production!
+For production skal credentials gemmes som Firebase Secrets (IKKE i kode):
 
-Credentials er gemt via den gamle `firebase functions:config:set` metode:
 ```bash
-# Allerede sat (behøver ikke køres igen):
-firebase functions:config:set cloudinary.cloud_name="dngwouyuq"
-firebase functions:config:set cloudinary.api_key="518839552489852"
-firebase functions:config:set cloudinary.api_secret="CHPD2QGzWtpa002acENy2zacmpc"
+# Sæt secrets i Firebase
+firebase functions:secrets:set CLOUDINARY_CLOUD_NAME
+firebase functions:secrets:set CLOUDINARY_API_KEY
+firebase functions:secrets:set CLOUDINARY_API_SECRET
+
+# Deploy functions med secrets
+firebase deploy --only functions
 ```
-
-**Deployment kræver billing:**
-- Firebase Functions deployment kræver en aktiv billing-konto
-- Hvis du får "403 billing" fejl, skal billing aktiveres på: https://console.firebase.google.com/project/madkontrollen/settings/billing
-
-**Alternativ (hvis billing ikke er aktiveret):**
-Production bruger allerede `functions.config()` som fallback, så Cloudinary virker selvom billing ikke er aktiveret.
 
 ## Sikkerhed
 

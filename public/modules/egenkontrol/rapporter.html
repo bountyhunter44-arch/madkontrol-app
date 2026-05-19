@@ -1,30 +1,5 @@
 ﻿<!DOCTYPE html>
 <html lang="da">
-<!--
-@madkontrollen-registry-stamp
-fileRole: "egenkontrol-report-ui"
-projectArea: "egenkontrol"
-canonicalSystem: true
-usesHelpers:
-  - resolveEntryActor
-  - resolveTaskTitle
-  - resolveTaskTitleWithContext
-  - resolvePrettyCompanyInfo
-owns:
-  - authority report rendering
-  - report entry actor display
-  - report task title display
-  - report filters and export view
-mustNotCreate:
-  - duplicate actor fallbacks
-  - duplicate task title resolvers
-  - company-name-as-person fallbacks
-  - parallel authority report renderers
-requiredBeforeEdit:
-  - read docs/AI_TOOLBOX.md
-  - inspect existing helpers
-  - verify audit actor normalization
--->
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -579,9 +554,6 @@ requiredBeforeEdit:
                         <select id="categoryFilter">
                             <option value="all">Alle kategorier</option>
                         </select>
-                        <select id="employeeFilter">
-                            <option value="all">Alle medarbejdere</option>
-                        </select>
                         <select id="sortFilter">
                             <option value="newest">Nyeste først</option>
                             <option value="oldest">Ældste først</option>
@@ -623,7 +595,7 @@ requiredBeforeEdit:
                                 <article class="authority-card"><h4>5. Rengøringsplan og daglig kontrol</h4><p>Overordnet rengøringsplan for områderne og dagens dokumenterede udførelse.</p><div class="authority-meta" id="authorityCleaningMeta"></div><ul class="authority-list" id="authorityCleaningList"></ul></article>
                                 <article class="authority-card"><h4>6. Modtagekontrol</h4><p>Log over varemodtagelse med temperatur, emballage og leveringskontrol.</p><div class="authority-meta" id="authorityReceivingMeta"></div><ul class="authority-list" id="authorityReceivingList"></ul></article>
                             </div>
-                            <div class="authority-actions"><a class="btn btn-secondary" href="/modules/egenkontrol/risikoanalyse.html">Åbn risikoanalyse</a><a class="btn btn-secondary" href="/modules/egenkontrol/logbooks.html">Åbn logbøger</a><a class="btn btn-secondary" href="/modules/egenkontrol/afvigelser.html?filter=all">Åbn afvigelser</a></div>
+                            <div class="authority-actions"><a class="btn btn-secondary" href="/modules/egenkontrol/risikoanalyse.html">Åbn risikoanalyse</a><a class="btn btn-secondary" href="/modules/egenkontrol/afvigelser.html?filter=all">Åbn afvigelser</a></div>
                         </section>
 
                         <div class="report-section"><h3>Samtlige handlinger</h3><div class="entries-list" id="entriesTableBody"></div></div>
@@ -648,7 +620,6 @@ requiredBeforeEdit:
         resolveTaskTitle,
         resolveTaskTitleWithContext
     } from "/core/taskTitleResolver.js";
-    import { resolveEntryActor } from "/core/reportEntryResolver.js";
     import { resolvePrettyCompanyInfo } from "/core/prettyName.js";
     import {
         collection,
@@ -661,7 +632,7 @@ requiredBeforeEdit:
         limit
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const SETTINGS = { companyId: "", companyLegacyId: "", unitId: "", locationId: "", locationLegacyId: "", currentUserId: "", currentDisplayName: "", companyDisplayName: "", companyName: "", profileCompanyName: "", locationDisplayName: "", locationName: "", profileAddress: "" };
+    const SETTINGS = { companyId: "", companyLegacyId: "", unitId: "", locationId: "", locationLegacyId: "", currentUserId: "", companyDisplayName: "", companyName: "", locationDisplayName: "", locationName: "", profileAddress: "" };
     const PROFILE_KEY = "mkp_egenkontrol_company_profile_v1";
     const LOCATION_KEY = "mkp_selected_locationId";
     const params = new URLSearchParams(window.location.search);
@@ -670,33 +641,12 @@ requiredBeforeEdit:
     const AUTHORITY_MODE = reportMode === "authority";
     const reportId = String(params.get("reportId") || "").trim();
 
-    function getActorProfileContext() {
-        return {
-            companyName: SETTINGS.companyName,
-            profileCompanyName: SETTINGS.profileCompanyName,
-            companyDisplayName: SETTINGS.companyDisplayName,
-            displayName: SETTINGS.currentDisplayName,
-            locationName: SETTINGS.locationName,
-            locationDisplayName: SETTINGS.locationDisplayName,
-            profileAddress: SETTINGS.profileAddress
-        };
-    }
-
-    function resolveReportActor(entry) {
-        return resolveEntryActor(entry, getActorProfileContext());
-    }
-
-    function getReportActorName(entry) {
-        return resolveReportActor(entry).name;
-    }
-
     await loadLayout();
 
     const searchInput = document.getElementById("searchInput");
     const periodFilter = document.getElementById("periodFilter");
     const statusFilter = document.getElementById("statusFilter");
     const categoryFilter = document.getElementById("categoryFilter");
-    const employeeFilter = document.getElementById("employeeFilter");
     const sortFilter = document.getElementById("sortFilter");
     const summaryEntriesEl = document.getElementById("summaryEntries");
     const summaryCompletedEl = document.getElementById("summaryCompleted");
@@ -798,16 +748,8 @@ requiredBeforeEdit:
         ).trim();
 
         SETTINGS.currentUserId = String(user?.uid || SETTINGS.currentUserId || "").trim();
-        SETTINGS.currentDisplayName = String(user?.displayName || resolvedProfile.displayName || "").trim();
         SETTINGS.companyId = companyId;
         SETTINGS.companyLegacyId = SETTINGS.companyId.replace(/_/g, "-");
-        SETTINGS.profileCompanyName = String(
-            resolvedProfile.profileCompanyName ||
-            resolvedProfile.companyName ||
-            resolvedProfile.profile?.profileCompanyName ||
-            resolvedProfile.profile?.companyName ||
-            ""
-        ).trim();
         SETTINGS.unitId = String(resolvedProfile.unitId || SETTINGS.unitId || "").trim();
         SETTINGS.locationId = locationId;
         SETTINGS.locationLegacyId = SETTINGS.locationId.replace(/_/g, "-");
@@ -1283,7 +1225,7 @@ requiredBeforeEdit:
         const endTemp = evaluation.endTemp ?? coolingData.endTemp ?? null;
         const durationMinutes = evaluation.durationMinutes ?? coolingData.coolingDuration ?? coolingData.durationMinutes ?? null;
         const productName = String(coolingData.productName || e?.productName || "").trim();
-        const responsibleName = getReportActorName(e);
+        const responsibleName = String(e?.completedByName || e?.responsibleName || "").trim();
         const startedAt = coolingData.startedAt || e?.startedAt || null;
         const finishedAt = coolingData.finishedAt || e?.finishedAt || null;
 
@@ -2458,9 +2400,7 @@ requiredBeforeEdit:
         const period = periodFilter.value;
         const status = statusFilter.value;
         const category = categoryFilter.value;
-        const employee = employeeFilter.value;
         const sort = sortFilter.value;
-        const profileContext = getActorProfileContext();
 
         const filtered = allEntries.filter(e => {
             const hay = [
@@ -2471,7 +2411,7 @@ requiredBeforeEdit:
                 e.areaName,
                 e.specificLabel,
                 e.note,
-                getReportActorName(e),
+                e.completedByName,
                 e.valueLabel,
                 e.status,
                 e.riskId,
@@ -2484,15 +2424,8 @@ requiredBeforeEdit:
             const reportStatus = getReportEntryStatus(e);
             const matchStatus = status === "all" || (status === "overdue" ? isEntryDocumentedAsOverdue(e) : reportStatus === status);
             const matchCategory = category === "all" || normalizeEntryCategory(e) === category;
-            
-            // Employee filter using resolveEntryActor
-            let matchEmployee = employee === "all";
-            if (!matchEmployee) {
-                const actor = resolveEntryActor(e, profileContext);
-                matchEmployee = actor.name === employee;
-            }
 
-            return matchSearch && matchPeriod && matchStatus && matchCategory && matchEmployee;
+            return matchSearch && matchPeriod && matchStatus && matchCategory;
         });
 
         filtered.sort((a, b) => {
@@ -2569,35 +2502,6 @@ requiredBeforeEdit:
         }
     }
 
-    function populateEmployeeFilter() {
-        const employees = new Set();
-        const profileContext = getActorProfileContext();
-
-        allEntries.forEach(e => {
-            const actor = resolveEntryActor(e, profileContext);
-            
-            // Skip if blocked company name or "Ukendt medarbejder"
-            if (actor.blockedCompanyName) return;
-            if (actor.name === "Ukendt medarbejder") return;
-            if (!actor.name || !actor.name.trim()) return;
-            
-            employees.add(actor.name);
-        });
-
-        const sorted = Array.from(employees).sort((a, b) => a.localeCompare(b, "da"));
-        const cur = employeeFilter.value;
-
-        employeeFilter.innerHTML =
-            `<option value="all">Alle medarbejdere</option>` +
-            sorted.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
-
-        if (sorted.includes(cur)) {
-            employeeFilter.value = cur;
-        } else {
-            employeeFilter.value = "all";
-        }
-    }
-
     function updateSummary(entries, alerts) {
         summaryEntriesEl.textContent = String(entries.length);
         summaryCompletedEl.textContent = String(entries.filter(isCompletedReportEntry).length);
@@ -2628,7 +2532,7 @@ requiredBeforeEdit:
             const deviationDetails = buildDeviationDetails(e);
             const area = getEntryAreaLabel(e);
             const cat = resolveCategory(e);
-            const doneBy = getReportActorName(e);
+            const doneBy = e.completedByName || "—";
             const created = formatDateTime(getEntryCreatedAt(e));
             const handled = formatDateTime(getEntryHandledAt(e));
             const risk = getEntryRiskReference(e);
@@ -2730,13 +2634,12 @@ requiredBeforeEdit:
         periodFilter.value = resolveInitialPeriodValue();
         statusFilter.value = "all";
         categoryFilter.value = "all";
-        employeeFilter.value = "all";
         sortFilter.value = "newest";
         renderReport();
     }
 
     function bindEvents() {
-        [searchInput, periodFilter, statusFilter, categoryFilter, employeeFilter, sortFilter].forEach(el => {
+        [searchInput, periodFilter, statusFilter, categoryFilter, sortFilter].forEach(el => {
             el.addEventListener("input", renderReport);
             el.addEventListener("change", renderReport);
         });
@@ -2836,7 +2739,6 @@ requiredBeforeEdit:
         }
 
         populateCategoryFilter();
-        populateEmployeeFilter();
         renderReport();
     }
 

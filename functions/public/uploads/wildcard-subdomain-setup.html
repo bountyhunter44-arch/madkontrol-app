@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wildcard Subdomæne Setup - *.madkontrollen.dk</title>
+    <style>
+        :root{
+            --bg:#0b1220;
+            --panel:#121b2d;
+            --panel-2:#18233a;
+            --text:#e8eefc;
+            --muted:#9fb0d1;
+            --line:#2a3a5f;
+            --accent:#7dd3fc;
+            --accent-2:#86efac;
+            --warn:#fcd34d;
+        }
+        *{box-sizing:border-box}
+        body{
+            margin:0;
+            font-family:Inter,Segoe UI,Arial,sans-serif;
+            background:linear-gradient(180deg,#08101d 0%,#0f172a 100%);
+            color:var(--text);
+        }
+        .wrap{
+            max-width:1100px;
+            margin:0 auto;
+            padding:32px 20px 80px;
+        }
+        .hero{
+            background:linear-gradient(135deg,#111b30 0%,#1a2742 100%);
+            border:1px solid var(--line);
+            border-radius:24px;
+            padding:28px;
+            box-shadow:0 20px 50px rgba(0,0,0,.25);
+            margin-bottom:24px;
+        }
+        .eyebrow{
+            display:inline-block;
+            padding:6px 10px;
+            border-radius:999px;
+            background:rgba(125,211,252,.12);
+            color:var(--accent);
+            font-size:12px;
+            font-weight:700;
+            letter-spacing:.08em;
+            text-transform:uppercase;
+        }
+        h1,h2,h3{margin:0 0 12px}
+        h1{font-size:36px;line-height:1.1}
+        h2{font-size:24px;margin-top:6px}
+        p{color:var(--muted);line-height:1.6}
+        .grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+            gap:18px;
+            margin-top:20px;
+        }
+        .card{
+            background:var(--panel);
+            border:1px solid var(--line);
+            border-radius:20px;
+            padding:20px;
+            margin-bottom:18px;
+        }
+        .meta{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+            gap:14px;
+            margin-top:18px;
+        }
+        .meta-box{
+            background:rgba(255,255,255,.03);
+            border:1px solid var(--line);
+            border-radius:16px;
+            padding:14px;
+        }
+        .label{
+            color:var(--muted);
+            font-size:12px;
+            text-transform:uppercase;
+            letter-spacing:.08em;
+            margin-bottom:6px;
+        }
+        .value{
+            font-size:16px;
+            font-weight:700;
+            word-break:break-word;
+        }
+        .section-title{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            margin-bottom:12px;
+        }
+        pre{
+            margin:0;
+            background:#08101d;
+            border:1px solid #22304f;
+            color:#dbeafe;
+            padding:16px;
+            border-radius:16px;
+            overflow:auto;
+            white-space:pre-wrap;
+            word-break:break-word;
+            line-height:1.5;
+        }
+        .cmd{position:relative}
+        .copy-btn{
+            position:absolute;
+            top:12px;
+            right:12px;
+            border:1px solid #36517f;
+            background:#10203c;
+            color:#dbeafe;
+            border-radius:10px;
+            padding:8px 12px;
+            cursor:pointer;
+            font-weight:600;
+        }
+        .copy-btn:hover{background:#163055}
+        .step{
+            display:grid;
+            gap:12px;
+            margin-bottom:20px;
+        }
+        .step-number{
+            width:34px;height:34px;border-radius:50%;
+            display:grid;place-items:center;
+            background:rgba(134,239,172,.12);
+            color:var(--accent-2);
+            border:1px solid rgba(134,239,172,.25);
+            font-weight:800;
+        }
+        .step-head{display:flex;align-items:center;gap:12px}
+        .note{
+            border-left:4px solid var(--warn);
+            padding:12px 14px;
+            background:rgba(252,211,77,.08);
+            border-radius:12px;
+            color:#fde68a;
+            margin-top:12px;
+        }
+        .ok{color:var(--accent-2);font-weight:700}
+        .small{font-size:14px}
+        footer{margin-top:28px;color:var(--muted);font-size:14px}
+        a{color:var(--accent)}
+        .success{
+            background:rgba(134,239,172,.08);
+            border:1px solid rgba(134,239,172,.25);
+            border-radius:12px;
+            padding:12px 14px;
+            color:var(--accent-2);
+            margin-top:12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <section class="hero">
+            <span class="eyebrow">SEO Generator</span>
+            <h1>Wildcard Subdomæne Setup</h1>
+            <p>Opsætning af *.madkontrollen.dk til automatisk SEO-genererede kundesider. Hver kunde får deres eget subdomæne (f.eks. pizzeria-roma.madkontrollen.dk).</p>
+            <div class="meta">
+                <div class="meta-box">
+                    <div class="label">Server IP</div>
+                    <div class="value">46.62.246.141</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Wildcard Pattern</div>
+                    <div class="value">*.madkontrollen.dk</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Backend</div>
+                    <div class="value">Firebase Cloud Functions</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Function</div>
+                    <div class="value">seoSiteRenderer</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>1. Hent Hetzner API Token</h2></div>
+            <p>Du skal bruge et Hetzner API token til DNS-validering af wildcard SSL-certifikat.</p>
+            <ol style="color:var(--muted);line-height:1.8">
+                <li>Log ind på <a href="https://console.hetzner.cloud" target="_blank">Hetzner Cloud Console</a></li>
+                <li>Gå til dit projekt → Security → API Tokens</li>
+                <li>Klik "Generate API Token"</li>
+                <li>Navn: "Certbot DNS Validation"</li>
+                <li>Permissions: Read & Write</li>
+                <li>Kopiér tokenet (vises kun én gang!)</li>
+            </ol>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>2. Opsæt DNS Wildcard Record</h2></div>
+            <p>Log ind på Hetzner DNS Console og opret en wildcard A-record:</p>
+            <div class="meta" style="margin-top:12px;">
+                <div class="meta-box">
+                    <div class="label">Host</div>
+                    <div class="value">*</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Type</div>
+                    <div class="value">A</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Value</div>
+                    <div class="value">46.62.246.141</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">TTL</div>
+                    <div class="value">3600</div>
+                </div>
+            </div>
+            <div class="note">Dette gør at ALLE subdomæner under madkontrollen.dk peger på din VPS.</div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>3. SSH ind på serveren</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>ssh root@46.62.246.141</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>4. Installér Certbot DNS Plugin</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>apt update
+apt install -y certbot python3-certbot-nginx python3-certbot-dns-hetzner</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>5. Opret Hetzner API credentials fil</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>mkdir -p /root/.secrets/certbot
+nano /root/.secrets/certbot/hetzner.ini</pre></div>
+            <p class="small" style="margin-top:12px;">Indsæt i filen (erstat med dit rigtige token):</p>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>dns_hetzner_api_token = DIT_HETZNER_API_TOKEN_HER</pre></div>
+            <p class="small" style="margin-top:12px;">Sikr filen:</p>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>chmod 600 /root/.secrets/certbot/hetzner.ini</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>6. Anmod om Wildcard SSL Certifikat</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>certbot certonly \
+  --dns-hetzner \
+  --dns-hetzner-credentials /root/.secrets/certbot/hetzner.ini \
+  -d madkontrollen.dk \
+  -d *.madkontrollen.dk \
+  --email din@email.dk \
+  --agree-tos \
+  --non-interactive</pre></div>
+            <div class="success">Certifikatet gemmes i: /etc/letsencrypt/live/madkontrollen.dk/</div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>7. Opret Nginx Wildcard Konfiguration</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>nano /etc/nginx/sites-available/madkontrollen-wildcard</pre></div>
+            <p class="small" style="margin-top:12px;">Indsæt denne konfiguration:</p>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre># HTTP → HTTPS redirect
+server {
+    listen 80;
+    listen [::]:80;
+    server_name *.madkontrollen.dk;
+    
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS wildcard proxy til Firebase Cloud Functions
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name *.madkontrollen.dk;
+
+    # Wildcard SSL certifikat
+    ssl_certificate /etc/letsencrypt/live/madkontrollen.dk/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/madkontrollen.dk/privkey.pem;
+    
+    # SSL optimering
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    client_max_body_size 10m;
+
+    # Proxy til Firebase Cloud Function (seoSiteRenderer)
+    location / {
+        # Firebase Cloud Functions URL
+        proxy_pass https://us-central1-madkontrollen.cloudfunctions.net/seoSiteRenderer;
+        
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        
+        # Videresend original host header
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        
+        # Timeouts
+        proxy_read_timeout 300;
+        proxy_connect_timeout 60;
+        proxy_send_timeout 300;
+        
+        # Buffering
+        proxy_buffering on;
+        proxy_buffer_size 4k;
+        proxy_buffers 8 4k;
+    }
+
+    # Health check endpoint
+    location /health {
+        access_log off;
+        return 200 "OK\n";
+        add_header Content-Type text/plain;
+    }
+}</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>8. Aktivér Nginx Konfiguration</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>ln -s /etc/nginx/sites-available/madkontrollen-wildcard /etc/nginx/sites-enabled/
+nginx -t
+systemctl reload nginx</pre></div>
+            <div class="success">Hvis "nginx -t" siger "syntax is ok" og "test is successful", er du klar!</div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>9. Test Wildcard Subdomæne</h2></div>
+            <p>Test at et vilkårligt subdomæne virker:</p>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>curl -I https://test-restaurant.madkontrollen.dk</pre></div>
+            <p class="small" style="margin-top:12px;">Eller åbn i browser:</p>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>https://pizzeria-roma.madkontrollen.dk
+https://restaurant-noma.madkontrollen.dk
+https://cafe-europa.madkontrollen.dk</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>10. Auto-fornyelse af Wildcard Certifikat</h2></div>
+            <p>Certbot sætter automatisk cron job op til fornyelse. Test det virker:</p>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>certbot renew --dry-run</pre></div>
+            <div class="success">Certifikatet fornyes automatisk hver 60. dag.</div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>11. Firebase Cloud Function Deployment</h2></div>
+            <p>Sørg for at din seoSiteRenderer Cloud Function er deployed:</p>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>cd d:\madkontrol-app
+firebase deploy --only functions:seoSiteRenderer</pre></div>
+            <div class="note">Cloud Function URL: https://us-central1-madkontrollen.cloudfunctions.net/seoSiteRenderer</div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>12. Sådan virker flowet</h2></div>
+            <ol style="color:var(--muted);line-height:1.8">
+                <li>Kunde besøger <strong>pizzeria-roma.madkontrollen.dk</strong></li>
+                <li>DNS wildcard record sender til <strong>46.62.246.141</strong></li>
+                <li>Nginx modtager request med Host header <strong>pizzeria-roma.madkontrollen.dk</strong></li>
+                <li>Nginx proxy'er til Firebase Cloud Function <strong>seoSiteRenderer</strong></li>
+                <li>Cloud Function læser Host header, slår subdomæne op i Firestore</li>
+                <li>Cloud Function returnerer SEO-optimeret HTML til kunden</li>
+            </ol>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>13. Vigtige kommandoer</h2></div>
+            <div class="grid">
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre># Tjek Nginx status
+systemctl status nginx</pre></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre># Reload Nginx
+systemctl reload nginx</pre></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre># Tjek SSL certifikat
+certbot certificates</pre></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre># Forny certifikat manuelt
+certbot renew</pre></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre># Nginx error log
+tail -f /var/log/nginx/error.log</pre></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre># Nginx access log
+tail -f /var/log/nginx/access.log</pre></div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>14. Fejlsøgning</h2></div>
+            <div class="meta">
+                <div class="meta-box">
+                    <div class="label">Problem</div>
+                    <div class="value">Subdomæne virker ikke</div>
+                    <div class="small" style="margin-top:8px;color:var(--muted)">Tjek DNS er propageret: nslookup test.madkontrollen.dk</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Problem</div>
+                    <div class="value">SSL fejl</div>
+                    <div class="small" style="margin-top:8px;color:var(--muted)">Tjek certifikat: certbot certificates</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Problem</div>
+                    <div class="value">502 Bad Gateway</div>
+                    <div class="small" style="margin-top:8px;color:var(--muted)">Tjek Cloud Function er deployed og kører</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Problem</div>
+                    <div class="value">Timeout</div>
+                    <div class="small" style="margin-top:8px;color:var(--muted)">Øg proxy_read_timeout i Nginx config</div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            Wildcard subdomæne setup til Madkontrollen SEO Generator. Gem denne fil som reference.
+        </footer>
+    </div>
+
+    <script>
+        async function copyCode(button){
+            const code = button.parentElement.querySelector('pre').innerText;
+            try {
+                await navigator.clipboard.writeText(code);
+                const old = button.textContent;
+                button.textContent = 'Kopieret ✓';
+                setTimeout(() => button.textContent = old, 1400);
+            } catch(e){
+                alert('Kunne ikke kopiere automatisk. Markér teksten manuelt.');
+            }
+        }
+    </script>
+</body>
+</html>

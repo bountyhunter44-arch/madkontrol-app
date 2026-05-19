@@ -1,9 +1,13 @@
 # Environment variables
 .env
+.env.*
 .env.local
 .env.*.local
 functions/.env
 functions/.env.local
+!.env.example
+!*.env.example
+!server/*.env.example
 
 # Firebase
 .firebase/
@@ -38,27 +42,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # Secrets
+serviceAccountKey.json
 *.pem
 *.key
-*.p12
 .runtimeconfig.json
-serviceAccountKey.json
 
-# Python
-.venv/
-__pycache__/
-*.pyc
-
-# Service accounts
-serviceAccountKey.json
-
-# Coverage/temp
-coverage/
-tmp/
-temp/
-
-# Uploads
-uploads/
-
-# Local Firebase overrides
-.firebaserc.local
+functions_config_export.json

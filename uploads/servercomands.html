@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Madkontrollen Server Guide</title>
+    <style>
+        :root{
+            --bg:#0b1220;
+            --panel:#121b2d;
+            --panel-2:#18233a;
+            --text:#e8eefc;
+            --muted:#9fb0d1;
+            --line:#2a3a5f;
+            --accent:#7dd3fc;
+            --accent-2:#86efac;
+            --warn:#fcd34d;
+        }
+        *{box-sizing:border-box}
+        body{
+            margin:0;
+            font-family:Inter,Segoe UI,Arial,sans-serif;
+            background:linear-gradient(180deg,#08101d 0%,#0f172a 100%);
+            color:var(--text);
+        }
+        .wrap{
+            max-width:1100px;
+            margin:0 auto;
+            padding:32px 20px 80px;
+        }
+        .hero{
+            background:linear-gradient(135deg,#111b30 0%,#1a2742 100%);
+            border:1px solid var(--line);
+            border-radius:24px;
+            padding:28px;
+            box-shadow:0 20px 50px rgba(0,0,0,.25);
+            margin-bottom:24px;
+        }
+        .eyebrow{
+            display:inline-block;
+            padding:6px 10px;
+            border-radius:999px;
+            background:rgba(125,211,252,.12);
+            color:var(--accent);
+            font-size:12px;
+            font-weight:700;
+            letter-spacing:.08em;
+            text-transform:uppercase;
+        }
+        h1,h2,h3{margin:0 0 12px}
+        h1{font-size:36px;line-height:1.1}
+        h2{font-size:24px;margin-top:6px}
+        p{color:var(--muted);line-height:1.6}
+        .grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+            gap:18px;
+            margin-top:20px;
+        }
+        .card{
+            background:var(--panel);
+            border:1px solid var(--line);
+            border-radius:20px;
+            padding:20px;
+            margin-bottom:18px;
+        }
+        .meta{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+            gap:14px;
+            margin-top:18px;
+        }
+        .meta-box{
+            background:rgba(255,255,255,.03);
+            border:1px solid var(--line);
+            border-radius:16px;
+            padding:14px;
+        }
+        .label{
+            color:var(--muted);
+            font-size:12px;
+            text-transform:uppercase;
+            letter-spacing:.08em;
+            margin-bottom:6px;
+        }
+        .value{
+            font-size:16px;
+            font-weight:700;
+            word-break:break-word;
+        }
+        .section-title{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            margin-bottom:12px;
+        }
+        pre{
+            margin:0;
+            background:#08101d;
+            border:1px solid #22304f;
+            color:#dbeafe;
+            padding:16px;
+            border-radius:16px;
+            overflow:auto;
+            white-space:pre-wrap;
+            word-break:break-word;
+            line-height:1.5;
+        }
+        .cmd{position:relative}
+        .copy-btn{
+            position:absolute;
+            top:12px;
+            right:12px;
+            border:1px solid #36517f;
+            background:#10203c;
+            color:#dbeafe;
+            border-radius:10px;
+            padding:8px 12px;
+            cursor:pointer;
+            font-weight:600;
+        }
+        .copy-btn:hover{background:#163055}
+        .step{
+            display:grid;
+            gap:12px;
+            margin-bottom:20px;
+        }
+        .step-number{
+            width:34px;height:34px;border-radius:50%;
+            display:grid;place-items:center;
+            background:rgba(134,239,172,.12);
+            color:var(--accent-2);
+            border:1px solid rgba(134,239,172,.25);
+            font-weight:800;
+        }
+        .step-head{display:flex;align-items:center;gap:12px}
+        .note{
+            border-left:4px solid var(--warn);
+            padding:12px 14px;
+            background:rgba(252,211,77,.08);
+            border-radius:12px;
+            color:#fde68a;
+            margin-top:12px;
+        }
+        .ok{color:var(--accent-2);font-weight:700}
+        .small{font-size:14px}
+        footer{margin-top:28px;color:var(--muted);font-size:14px}
+        a{color:var(--accent)}
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <section class="hero">
+            <span class="eyebrow">Madkontrollen Pro</span>
+            <h1>Server Deploy & Commands</h1>
+            <p>Det her er din samlede guide til backend på Hetzner VPS med Docker, Nginx og HTTPS. Du kan indsætte din rigtige IP og dit domæne i felterne herunder og gemme filen som dit faste server-dokument.</p>
+            <div class="meta">
+                <div class="meta-box">
+                    <div class="label">Server IP</div>
+                    <div class="value">46.62.246.141</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">SSH login</div>
+                    <div class="value">ssh root@46.62.246.141</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Domæne</div>
+                    <div class="value">agent.sangmaskine.dk</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Projektmappe</div>
+                    <div class="value">/opt/madkontrollen-agent</div>
+                </div>
+            </div>
+            <div class="note">Tip: Erstat <strong>46.62.246.141</strong> og <strong>agent.sangmaskine.dk</strong> med dine rigtige værdier, og behold derefter denne fil som dit faste driftsdokument.</div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>1. Log ind på serveren</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>ssh root@DIN_SERVER_IP</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>2. Opdater serveren</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>apt update && apt upgrade -y</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>3. Installér Docker og Compose</h2></div>
+            <div class="step">
+                <div class="step-head"><div class="step-number">A</div><h3>Docker</h3></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>apt install -y docker.io
+systemctl enable docker
+systemctl start docker
+docker --version</pre></div>
+            </div>
+            <div class="step">
+                <div class="step-head"><div class="step-number">B</div><h3>Docker Compose plugin</h3></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>apt install -y docker-compose-plugin
+docker compose version</pre></div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>4. Opret projektmappe</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>mkdir -p /opt/madkontrollen-agent
+cd /opt/madkontrollen-agent</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>5. Backend struktur på serveren</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>/opt/madkontrollen-agent
+├─ main.py
+├─ requirements.txt
+├─ Dockerfile
+├─ docker-compose.yml
+├─ .env
+├─ app/
+└─ data/</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>6. Opret .env</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>nano .env</pre></div>
+            <div class="cmd" style="margin-top:12px;"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>APP_NAME=Madkontrollen Agent Backend
+APP_VERSION=0.2.0
+CONNECTOR_TOKEN=MEGET_LANGT_HEMMELIGT_TOKEN
+DATABASE_URL=sqlite:///./data/agent.db
+CORS_ORIGINS=https://agent.sangmaskine.dk</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>7. docker-compose.yml</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>version: "3.9"
+
+services:
+    backend:
+        build: .
+        container_name: madkontrollen-agent-backend
+        restart: unless-stopped
+        env_file:
+            - .env
+        volumes:
+            - ./data:/app/data
+        ports:
+            - "127.0.0.1:8000:8000"</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>8. Start backend</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>docker compose up -d --build
+docker compose logs -f</pre></div>
+            <p class="small">Test lokalt på serveren:</p>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>curl http://127.0.0.1:8000/health</pre></div>
+            <p class="ok">Forventet svar: {"ok":true,"status":"healthy"}</p>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>9. Installér Nginx</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>apt install -y nginx</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>10. Nginx config</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>nano /etc/nginx/sites-available/madkontrollen-agent</pre></div>
+            <div class="cmd" style="margin-top:12px;"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>server {
+        listen 80;
+        listen [::]:80;
+        server_name agent.sangmaskine.dk;
+
+        client_max_body_size 25m;
+
+        location / {
+                proxy_pass http://127.0.0.1:8000;
+                proxy_http_version 1.1;
+
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+
+                proxy_read_timeout 300;
+                proxy_connect_timeout 60;
+                proxy_send_timeout 300;
+        }
+}</pre></div>
+            <div class="cmd" style="margin-top:12px;"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>ln -s /etc/nginx/sites-available/madkontrollen-agent /etc/nginx/sites-enabled/madkontrollen-agent
+nginx -t
+systemctl reload nginx</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>11. HTTPS med Certbot</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>apt install -y certbot python3-certbot-nginx
+certbot --nginx -d agent.sangmaskine.dk</pre></div>
+            <p class="small">Test certifikat-fornyelse:</p>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>certbot renew --dry-run</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>12. DNS hos Hetzner</h2></div>
+            <p>Opret en A-record for dit subdomæne:</p>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>Host: agent
+Type: A
+Value: DIN_SERVER_IP</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>13. Connector config på din PC</h2></div>
+            <p>Filen ligger typisk i <strong>config/connector.json</strong>.</p>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>{
+    "connector_id": "madkontrollen-pc-1",
+    "device_name": "Michael-PC",
+    "base_url": "https://agent.sangmaskine.dk",
+    "token": "MEGET_LANGT_HEMMELIGT_TOKEN",
+    "poll_interval_seconds": 5,
+    "request_timeout_seconds": 30,
+    "workspace_root": "D:\\madkontrol-app",
+    "log_dir": "data\\logs",
+    "backup_dir": "data\\backups"
+}</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>14. Vigtige driftskommandoer</h2></div>
+            <div class="grid">
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>docker compose logs -f</pre></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>docker compose restart</pre></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>docker compose down</pre></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>docker compose up -d</pre></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>docker ps</pre></div>
+                <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>systemctl status nginx</pre></div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>15. Opdater kode og rebuild</h2></div>
+            <div class="cmd"><button class="copy-btn" onclick="copyCode(this)">Kopiér</button><pre>cd /opt/madkontrollen-agent
+git pull
+docker compose up -d --build</pre></div>
+        </section>
+
+        <section class="card">
+            <div class="section-title"><h2>16. Hurtig fejlsøgning</h2></div>
+            <div class="grid">
+                <div class="meta-box">
+                    <div class="label">1</div>
+                    <div class="value">Tjek DNS peger rigtigt</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">2</div>
+                    <div class="value">Tjek Nginx kører</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">3</div>
+                    <div class="value">Tjek Docker container kører</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">4</div>
+                    <div class="value">Tjek token matcher mellem backend og connector</div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            Lavet som genskabt server-dokument til Madkontrollen Pro. Gem gerne filen i din projektmappe, fx som <strong>server.html</strong> eller <strong>madkontrollen-server-guide.html</strong>.
+        </footer>
+    </div>
+
+    <script>
+        async function copyCode(button){
+            const code = button.parentElement.querySelector('pre').innerText;
+            try {
+                await navigator.clipboard.writeText(code);
+                const old = button.textContent;
+                button.textContent = 'Kopieret';
+                setTimeout(() => button.textContent = old, 1400);
+            } catch(e){
+                alert('Kunne ikke kopiere automatisk. Markér teksten manuelt.');
+            }
+        }
+    </script>
+</body>
+</html>

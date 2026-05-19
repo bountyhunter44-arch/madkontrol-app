@@ -1,26 +1,3 @@
-/**
- * @madkontrollen-registry-stamp
- * fileRole: "pretty-name-resolver"
- * projectArea: "core"
- * canonicalSystem: true
- * usesHelpers:
- *   - resolveOrgContext
- *   - resolveCompanyIdFromUserData
- *   - resolveLocationIdFromUserData
- * owns:
- *   - company display name resolution
- *   - location display name resolution
- *   - live_user_profiles display fallback priority
- *   - prettyName data contract
- * mustNotCreate:
- *   - duplicate company display resolvers
- *   - duplicate location display resolvers
- *   - inline live_user_profiles fallback chains
- * requiredBeforeEdit:
- *   - read docs/AI_TOOLBOX.md
- *   - inspect existing helpers
- *   - preserve prettyName priority order
- */
 import { db } from "./firebase-config.js";
 import {
   collection,
@@ -31,7 +8,6 @@ import {
   query,
   where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { resolveOrgContext } from "./auth.js";
 
 function clean(value) {
   return String(value || "").trim();
@@ -114,15 +90,28 @@ function cvrFrom(data = {}) {
 }
 
 function normalizeLocationIds(profile = {}) {
-  return resolveOrgContext(profile).locationIds;
+  const ids = [];
+  const push = (value) => {
+    const normalized = clean(value);
+    if (normalized) ids.push(normalized);
+  };
+
+  push(profile.locationId);
+  push(profile.primaryLocationId);
+
+  if (Array.isArray(profile.locationIds)) {
+    profile.locationIds.forEach(push);
+  }
+
+  return [...new Set(ids)];
 }
 
 export function resolveCompanyIdFromUserData(userData = {}) {
-  return resolveOrgContext(userData).companyId;
+  return firstText(userData.companyId, userData.organizationId);
 }
 
 export function resolveLocationIdFromUserData(userData = {}) {
-  return resolveOrgContext(userData).locationId;
+  return normalizeLocationIds(userData)[0] || "";
 }
 
 function mergeLiveProfile(liveData = {}) {

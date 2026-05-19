@@ -328,7 +328,7 @@ textarea{min-height:120px;resize:vertical;}
 
   <div class="img-search-panel" id="imgSearchPanel">
     <h3 class="section-title" style="margin-top:0;">Billeder til landingsside</h3>
-    <p class="help-text">Søg royalty-free billeder fra Pexels baseret på restaurantkategori. Vælg et billede og forbedr det med AI til brug i din landingsside.</p>
+    <p class="help-text">Generér hero-billede med AI først. Hvis AI fejler, bruges Pexels som fallback og til sidst Madkontrollens standardbillede.</p>
     <div class="img-search-controls">
       <div>
         <label>Kategori</label>
@@ -351,10 +351,10 @@ textarea{min-height:120px;resize:vertical;}
         <label>Søgeord (valgfrit)</label>
         <input id="imgCustomQuery" placeholder="Fx 'pad thai street food'" autocomplete="off">
       </div>
-      <button class="img-search-btn" id="imgSearchBtn">&#x1F50D; Søg billeder</button>
+      <button class="img-search-btn" id="imgSearchBtn">&#x2728; Generér hero-billede</button>
     </div>
     <div class="img-grid" id="imgGrid">
-      <div class="img-search-empty">Vælg en kategori og klik Søg billeder for at se resultater.</div>
+      <div class="img-search-empty">Vælg kategori og klik Generér hero-billede.</div>
     </div>
     <div class="img-selected-actions" id="imgSelectedActions">
       <strong id="imgSelectedLabel">Valgt billede</strong>
@@ -516,6 +516,7 @@ import app, { db, auth } from "/core/firebase-config.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { runGenerator } from "/modules/seo/generator/generator-runner.js";
+import { buildSeoOutputPath, slugifySeoPathPart } from "/modules/seo/generator/generator-core.js";
 
 let selectedTemplate = "classic";
 let uploadedLogoDataUrl = "";
@@ -536,6 +537,7 @@ const finalizeSeoCheckoutProvisioning = httpsCallable(functionsClient, "finalize
 const searchRestaurantImagesCallable = httpsCallable(functionsClient, "searchRestaurantImages");
 const saveRestaurantHeroImageCallable = httpsCallable(functionsClient, "saveRestaurantHeroImage");
 const enhanceAndUploadRestaurantImageCallable = httpsCallable(functionsClient, "enhanceAndUploadRestaurantImage");
+const generateRestaurantHeroImageCallable = httpsCallable(functionsClient, "generateRestaurantHeroImage");
 const generateSeoAiSuggestionsCallable = httpsCallable(functionsClient, "generateSeoAiSuggestions");
 
 const kitchenTypeModuleMap = {
@@ -714,6 +716,10 @@ function buildMetaDescription(name,city,offerings,subdomain,keyword,idx){
 function buildLandingPageObjects(name,type,city,keyword,count,subdomain,theme){
   const dishes=generateMenuByCategory(type);
   const titles=buildLandingPages(name,type,city,keyword,count,subdomain,dishes);
+  const citySlug=slugify(city,"by");
+  const businessSlug=slugify(subdomain || name,"restaurant");
+  const canonicalPath=`/${citySlug}/${businessSlug}/`;
+  const outputPath=buildSeoOutputPath({citySlug,businessSlug});
   const h2Pool=[
     `Hvorfor vælge ${name} i ${city}?`,
     `${name} – din foretrukne ${type.toLowerCase()} i ${city}`,
@@ -755,7 +761,8 @@ function buildLandingPageObjects(name,type,city,keyword,count,subdomain,theme){
       bodyText:bodyVariants[index%bodyVariants.length],
       menuItems:pageMenuItems,
       sections:sectionOrders[index%sectionOrders.length],
-      canonicalPath:`/${slug}`,
+      canonicalPath,
+      outputPath,
       themePrimary:theme?.primary||"#1f7a3d",
       themeSecondary:theme?.secondary||"#f8f4ea",
       themeAccent:theme?.accent||"#b91c1c",
@@ -801,7 +808,7 @@ function getGeneratorConfig(){
     selectedTemplate,
     logoDataUrl:uploadedLogoDataUrl || "",
     seoNarrative,
-    heroImageUrl:imgState.enhancedUrl || "",
+    heroImageUrl:imgState.enhancedUrl || getDefaultHeroImageUrl(),
     websiteUrl:document.getElementById("websiteUrl")?.value.trim() || "",
     ctaText:document.getElementById("ctaText")?.value.trim() || "",
     ctaUrl:document.getElementById("ctaUrl")?.value.trim() || "",
@@ -1184,7 +1191,7 @@ if(nameInputForAutoSubdomain){
 }
 
 function capitalize(text){return text ? text.charAt(0).toUpperCase()+text.slice(1) : "";}
-function slugify(text){return (text||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}
+function slugify(text,fallback=""){return slugifySeoPathPart(text,fallback);}
 function getTemplateThemeClass(template){
   const allowed=["classic","modern","dark","street","minimal","luxury","bistro","fastfood","takeaway","foodtruck"];
   const key=allowed.includes(template) ? template : "classic";
@@ -1413,7 +1420,7 @@ function openSeoModal(page){
 
   document.getElementById("seoModalTitle").textContent=page.canonicalPath||"SEO side";
 
-  const heroImg = imgState.enhancedUrl || "";
+  const heroImg = imgState.enhancedUrl || getDefaultHeroImageUrl();
   const heroStyle = document.getElementById("imgStyle")?.value || "warm";
   const heroStyleLabels = {
     warm:"Varm og moderne",
@@ -1703,12 +1710,13 @@ async function generateAndSave(){
     const config = getGeneratorConfig();
     
     const result = runGenerator(config);
+    const outputCount = result?.pages && typeof result.pages === "object" ? Object.keys(result.pages).length : 0;
     
     console.log("GENERATED RESULT:", result);
     
     if (typeof setGeneratorStatus === "function") {
       setGeneratorStatus(
-        `✓ Genereret ${result.pages.length} sider + sitemap + robots`,
+        `✓ Genereret ${outputCount} preview-filer i memory + sitemap + robots`,
         false
       );
     }
@@ -1753,10 +1761,13 @@ function buildLandingPageConfigFromGenerator() {
   const offerings = String(config.offerings || "").trim();
   const phone = String(config.phone || "").trim();
   const address = String(config.address || "").trim();
-  const subdomain = String(config.subdomain || slugify(businessName) || "restaurant").trim();
+  const subdomain = String(config.subdomain || slugify(businessName, "restaurant") || "restaurant").trim();
+  const citySlug = slugify(city, "by");
+  const businessSlug = slugify(subdomain || businessName, "restaurant");
+  const routePath = `/${citySlug}/${businessSlug}/`;
 
-  // Build slug from name and city
-  const slug = slugify(`${businessName}-${city}`) || "landing-page";
+  // Build folder-route slug from city and business
+  const slug = `${citySlug}/${businessSlug}`;
 
   // Build SEO texts
   const title = `${businessName} - ${cuisineTypeRaw} i ${city}`;
@@ -1815,6 +1826,10 @@ function buildLandingPageConfigFromGenerator() {
 
   return {
     slug,
+    citySlug,
+    businessSlug,
+    routePath,
+    outputPath: buildSeoOutputPath({ citySlug, businessSlug }),
     companyName: businessName,
     city,
     category: cuisineTypeRaw,
@@ -1825,11 +1840,11 @@ function buildLandingPageConfigFromGenerator() {
     sections,
     sectionsHtml,
     heroImage: config.heroImageUrl || "",
-    websiteUrl: `https://${subdomain}.madkontrollen.dk`,
+    websiteUrl: `https://madkontrollen.dk${routePath}`,
     externalWebsite: config.websiteUrl || "",
     facebookUrl: "",
     instagramUrl: "",
-    orderingUrl: `https://${subdomain}.madkontrollen.dk`,
+    orderingUrl: `https://madkontrollen.dk${routePath}`,
     phone,
     address,
     logoInitials,
@@ -1891,7 +1906,109 @@ const IMG_CATEGORIES = {
   steakhouse:["steak restaurant","grilled steak","steakhouse food","ribeye steak"]
 };
 
+const DEFAULT_RESTAURANT_HERO_IMAGE = "/images/presentation.jpg";
 const imgState = { photos: [], selected: null, enhancedUrl: "" };
+
+function getDefaultHeroImageUrl(){
+  return DEFAULT_RESTAURANT_HERO_IMAGE;
+}
+
+function getImageStyleLabel(style){
+  return ({
+    warm:"Warm cinematic lighting",
+    nordic:"Bright Nordic cafe atmosphere",
+    dark:"Dark premium restaurant mood",
+    street:"Energetic street food atmosphere",
+    clean:"Clean appetizing restaurant photography"
+  })[style] || "Warm cinematic lighting";
+}
+
+function buildRestaurantHeroImagePrompt(){
+  const name = document.getElementById("name").value.trim() || "Madkontrollen restaurant";
+  const cuisineType = document.getElementById("type").value || "restaurant";
+  const offerings = document.getElementById("offerings").value.trim();
+  const description = document.getElementById("description").value.trim();
+  const style = document.getElementById("imgStyle")?.value || "warm";
+  const theme = {
+    primary: document.getElementById("themePrimary")?.value || "",
+    secondary: document.getElementById("themeSecondary")?.value || "",
+    accent: document.getElementById("themeAccent")?.value || ""
+  };
+  const logoReference = uploadedLogoDataUrl
+    ? `Subtle use of uploaded logo and brand colors (${theme.primary}, ${theme.secondary}, ${theme.accent}) as style reference.`
+    : `Use brand colors (${theme.primary}, ${theme.secondary}, ${theme.accent}) if relevant.`;
+  return `Modern ${cuisineType} restaurant hero image for ${name}. ${offerings ? `Menu/concept: ${offerings}. ` : ""}${description ? `Description: ${description}. ` : ""}${getImageStyleLabel(style)}, premium realistic food photography, Nordic restaurant marketing banner, ${logoReference} Landscape 16:9, appetizing food foreground, tasteful restaurant ambience, no watermark, no readable text overlays.`;
+}
+
+function applyHeroImageResult({ url, source, beforeUrl, beforeLabel, afterLabel }){
+  const finalUrl = url || getDefaultHeroImageUrl();
+  imgState.enhancedUrl = finalUrl;
+  const ba = document.getElementById("imgBeforeAfter");
+  ba.style.display = "grid";
+  document.getElementById("imgBeforeImg").src = beforeUrl || finalUrl;
+  document.getElementById("imgAfterImg").src = finalUrl;
+  document.querySelector(".img-ba-label").textContent = beforeLabel || "Kilde";
+  document.getElementById("imgAfterLabel").textContent = afterLabel || (source === "openai" ? "AI-genereret hero" : "Valgt hero");
+  if(document.getElementById("preview").style.display==="block") generateSite();
+}
+
+function useDefaultHeroImage(reason){
+  imgState.photos = [];
+  imgState.selected = null;
+  applyHeroImageResult({
+    url: getDefaultHeroImageUrl(),
+    source: "default",
+    beforeUrl: getDefaultHeroImageUrl(),
+    beforeLabel: "Madkontrollen default",
+    afterLabel: "Madkontrollen default hero"
+  });
+  const grid = document.getElementById("imgGrid");
+  grid.innerHTML = `<div class="img-search-empty">${escapeHtml(reason || "Bruger Madkontrollens standardbillede.")}</div>`;
+  const status = document.getElementById("imgSaveStatus");
+  status.textContent = "AI og Pexels gav ikke et brugbart billede. Standardbillede er valgt.";
+  status.style.color = "#2f7d32";
+  status.style.display = "block";
+}
+
+async function fallbackToPexelsHeroImage({ query, style, category, companyId, locationId }){
+  const result = await searchRestaurantImagesCallable({ query, perPage: 15 });
+  const photos = result.data?.photos || [];
+  imgState.photos = photos;
+  renderImageGrid(photos);
+  const photo = photos[0];
+  if(!photo) throw new Error("Pexels fandt ingen billeder.");
+  imgState.selected = photo;
+  try {
+    const uploadResult = await enhanceAndUploadRestaurantImageCallable({
+      url: photo.url,
+      thumbUrl: photo.thumbUrl || "",
+      style, category, companyId, locationId,
+      source: photo.source || "pexels",
+      sourceUrl: photo.sourceUrl || "",
+      photographer: photo.photographer || "",
+      photographerUrl: photo.photographerUrl || "",
+      alt: photo.alt || query
+    });
+    const enhancedUrl = uploadResult.data?.enhancedUrl || uploadResult.data?.url || photo.url;
+    applyHeroImageResult({
+      url: enhancedUrl,
+      source: "pexels",
+      beforeUrl: photo.thumbUrl || photo.url,
+      beforeLabel: "Pexels fallback",
+      afterLabel: uploadResult.data?.enhanced ? "Pexels fallback, Cloudinary-optimeret" : "Pexels fallback"
+    });
+  } catch (uploadErr) {
+    console.warn("Pexels upload fejlede, bruger Pexels URL:", uploadErr);
+    applyHeroImageResult({
+      url: photo.url,
+      source: "pexels",
+      beforeUrl: photo.thumbUrl || photo.url,
+      beforeLabel: "Pexels fallback",
+      afterLabel: "Pexels fallback"
+    });
+  }
+  return photo;
+}
 
 function renderImageGrid(photos) {
   const grid = document.getElementById("imgGrid");
@@ -1913,7 +2030,7 @@ function selectStockImage(idx) {
   const photo = imgState.photos[idx];
   if (!photo) return;
   imgState.selected = photo;
-  imgState.enhancedUrl = "";
+  imgState.enhancedUrl = photo.source === "openai" ? photo.url : "";
   document.querySelectorAll(".img-grid-item").forEach((el, i) => el.classList.toggle("selected", i === idx));
   const actions = document.getElementById("imgSelectedActions");
   actions.classList.add("active");
@@ -1924,28 +2041,83 @@ function selectStockImage(idx) {
 }
 
 document.getElementById("imgSearchBtn").addEventListener("click", async () => {
-  if (!authReady) { alert("Log ind for at søge billeder."); return; }
+  if (!authReady) { alert("Log ind for at generere billeder."); return; }
+  const companyId = currentCompanyId || getSessionCompanyId();
+  const locationId = currentLocationId || getSessionLocationId();
+  if (!companyId || !locationId) { alert("Log ind som admin for at fortsætte."); return; }
   const btn = document.getElementById("imgSearchBtn");
   const category = document.getElementById("imgCategory").value;
   const customQuery = document.getElementById("imgCustomQuery").value.trim();
   const grid = document.getElementById("imgGrid");
   const query = customQuery || (IMG_CATEGORIES[category] || ["restaurant food"])[0];
+  const style = document.getElementById("imgStyle").value;
+  const prompt = buildRestaurantHeroImagePrompt();
+  const theme = {
+    primary: document.getElementById("themePrimary")?.value || "",
+    secondary: document.getElementById("themeSecondary")?.value || "",
+    accent: document.getElementById("themeAccent")?.value || ""
+  };
   btn.disabled = true;
-  btn.textContent = "Søger...";
-  grid.innerHTML = '<div class="img-grid-loader">Henter billeder fra Pexels...</div>';
+  btn.textContent = "Genererer...";
+  grid.innerHTML = '<div class="img-grid-loader">Genererer AI hero-billede...</div>';
   document.getElementById("imgSelectedActions").classList.remove("active");
+  document.getElementById("imgBeforeAfter").style.display = "none";
+  document.getElementById("imgSaveStatus").style.display = "none";
   try {
-    const result = await searchRestaurantImagesCallable({ query, perPage: 15 });
-    imgState.photos = result.data?.photos || [];
+    const result = await generateRestaurantHeroImageCallable({
+      companyId,
+      locationId,
+      businessName: document.getElementById("name").value.trim(),
+      cuisineType: document.getElementById("type").value,
+      offerings: document.getElementById("offerings").value.trim(),
+      description: document.getElementById("description").value.trim(),
+      mood: getImageStyleLabel(style),
+      style,
+      category,
+      theme,
+      hasLogo: Boolean(uploadedLogoDataUrl),
+      prompt,
+      alt: `${document.getElementById("name").value.trim() || "Restaurant"} hero image`
+    });
+    const aiUrl = result.data?.enhancedUrl || result.data?.url || "";
+    if(!aiUrl) throw new Error("AI returnerede ikke et billede.");
+    imgState.photos = [{
+      id: result.data?.docId || "ai-generated",
+      url: aiUrl,
+      thumbUrl: aiUrl,
+      photographer: "OpenAI",
+      source: "openai",
+      alt: "AI-genereret hero-billede"
+    }];
     imgState.selected = null;
-    imgState.enhancedUrl = "";
+    applyHeroImageResult({
+      url: aiUrl,
+      source: "openai",
+      beforeUrl: aiUrl,
+      beforeLabel: "AI-genereret",
+      afterLabel: "AI-genereret hero"
+    });
     renderImageGrid(imgState.photos);
+    const status = document.getElementById("imgSaveStatus");
+    status.textContent = "AI hero-billede genereret og gemt.";
+    status.style.color = "#2f7d32";
+    status.style.display = "block";
   } catch (err) {
-    console.error("Billedsøgning fejlede:", err);
-    grid.innerHTML = `<div class="img-search-empty">Fejl: ${escapeHtml(err.message || "Ukendt fejl")}. Kontrollér at PEXELS_API_KEY er sat som Firebase Secret.</div>`;
+    console.warn("AI hero generation fejlede, prøver Pexels fallback:", err);
+    grid.innerHTML = '<div class="img-grid-loader">AI fejlede. Henter Pexels fallback...</div>';
+    try {
+      await fallbackToPexelsHeroImage({ query, style, category, companyId, locationId });
+      const status = document.getElementById("imgSaveStatus");
+      status.textContent = "AI fejlede. Pexels fallback er valgt og gemt.";
+      status.style.color = "#2f7d32";
+      status.style.display = "block";
+    } catch (pexelsErr) {
+      console.error("Pexels fallback fejlede:", pexelsErr);
+      useDefaultHeroImage("AI og Pexels fejlede. Madkontrollens standardbillede bruges.");
+    }
   } finally {
     btn.disabled = false;
-    btn.textContent = "\uD83D\uDD0D Søg billeder";
+    btn.textContent = "\u2728 Generér hero-billede";
   }
 });
 

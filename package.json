@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "express": "^4.19.2",
     "firebase": "^10.14.1",
     "firebase-admin": "^13.7.0"
   },
@@ -9,6 +10,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "seo:gateway": "node server/seo-gateway.js",
     "setup-customer": "node scripts/setup-customer.js",
     "sync:def": "powershell -ExecutionPolicy Bypass -File scripts/sync-egenkontrol-definitions.ps1"
   },

@@ -1531,7 +1531,7 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                     city: "",
                     email: "",
                     phone: "",
-                    leader: profile.contactPersonName || profile.profilename || profile.profilname || "",
+                    leader: "",
                     registeredDate: new Date().toISOString().slice(0, 10),
                     businessType: profile.companyType || "",
                     accountPassword: ""
@@ -1642,23 +1642,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
         // Expose functions to window scope for onclick handlers
         window.fillDemoData = fillDemoData;
         window.clearTestData = clearTestData;
-
-        function validateContactPerson(companyName, contactPersonName) {
-            const person = String(contactPersonName || "").trim();
-            const company = String(companyName || "").trim();
-
-            if (!person) {
-                alert("Udfyld kontaktperson / ansvarlig person.");
-                return false;
-            }
-
-            if (person.toLowerCase() === company.toLowerCase()) {
-                alert("Kontaktperson skal være et personnavn, ikke firmanavn.");
-                return false;
-            }
-
-            return true;
-        }
 
         function syncDynamicAnswers() {
             PROGRAM_SECTIONS.forEach((section) => {
@@ -1802,8 +1785,8 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                     </div>
 
                     <div class="field">
-                        <label for="company_leader">Kontaktperson / ansvarlig person</label>
-                        <input id="company_leader" value="${escapeHtml(state.company.leader)}" placeholder="Fx Supawan Ponguttha" autocomplete="name">
+                        <label for="company_leader">Virksomhedsleder</label>
+                        <input id="company_leader" value="${escapeHtml(state.company.leader)}">
                     </div>
 
                     <div class="field">
@@ -1867,7 +1850,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
             return;
         }
 
-        console.log("[cvr lookup] input:", cleanedCvr);
         updateSaveIndicator("Henter CVR data...");
 
         const resp = await fetch(`https://cvrapi.dk/api?search=${cleanedCvr}&country=dk`, {
@@ -1876,88 +1858,32 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
 
         if (!resp.ok) throw new Error(`CVR API svarede med ${resp.status}`);
         const d = await resp.json();
-        
-        console.log("[cvr lookup] response:", d);
-        
         if (d.error) throw new Error(d.error);
 
-        // Extract company data from CVR API response
         const name    = d.name    || "";
         const address = d.address || "";
         const zip     = String(d.zipcode || "");
         const city    = d.city    || "";
-        const phone   = d.phone   || "";
-        const email   = d.email   || "";
-        
-        console.log("[cvr lookup] mapped company:", {
-            cvr: cleanedCvr,
-            name,
-            address,
-            zip,
-            city,
-            phone,
-            email
-        });
 
-        // Only update fields that are currently empty (don't overwrite user edits)
-        const nameField = document.getElementById("company_name");
-        const addressField = document.getElementById("company_address");
-        const zipField = document.getElementById("company_zip");
-        const cityField = document.getElementById("company_city");
-        const phoneField = document.getElementById("company_phone");
-        const emailField = document.getElementById("company_email");
+        document.getElementById("company_name").value    = name;
+        document.getElementById("company_address").value = address;
+        document.getElementById("company_zip").value     = zip;
+        document.getElementById("company_city").value    = city;
 
-        if (!nameField.value.trim() && name) {
-            nameField.value = name;
-            state.company.name = name;
-        }
-        
-        if (!addressField.value.trim() && address) {
-            addressField.value = address;
-            state.company.address = address;
-        }
-        
-        if (!zipField.value.trim() && zip) {
-            zipField.value = zip;
-            state.company.zip = zip;
-        }
-        
-        if (!cityField.value.trim() && city) {
-            cityField.value = city;
-            state.company.city = city;
-        }
-        
-        if (!phoneField.value.trim() && phone) {
-            phoneField.value = phone;
-            state.company.phone = phone;
-        }
-        
-        if (!emailField.value.trim() && email) {
-            emailField.value = email;
-            state.company.email = email;
-        }
-
-        // Always update CVR
-        state.company.cvr = cleanedCvr;
+        state.company.cvr     = cleanedCvr;
+        state.company.name    = name;
+        state.company.address = address;
+        state.company.zip     = zip;
+        state.company.city    = city;
 
         syncDynamicAnswers();
         saveDraftToLocalStorage();
 
         updateSaveIndicator("CVR hentet ✓");
     } catch (error) {
-        console.error("[cvr lookup] failed:", error);
-        
-        // Check if it's a CORS error
-        if (error.message.includes("CORS") || error.message.includes("NetworkError") || error.name === "TypeError") {
-            console.error("⚠️ CORS BLOKERING DETEKTERET");
-            console.error("Løsning: Implementer Firebase Function proxy for CVR lookup");
-            console.error("Alternativ: Brug en CVR API med CORS support eller backend proxy");
-            alert("CVR lookup blokeret af browser sikkerhed (CORS).\n\nDu kan indtaste virksomhedsoplysninger manuelt.\n\nSe console for tekniske detaljer.");
-        } else {
-            alert("Kunne ikke hente CVR data: " + error.message + "\n\nDu kan indtaste virksomhedsoplysninger manuelt.");
-        }
-        
-        updateSaveIndicator("CVR fejl - udfyld manuelt");
+        console.error("CVR lookup fejl:", error);
+        alert("Kunne ikke hente CVR data: " + error.message);
+        updateSaveIndicator("CVR fejl");
     }
 });
 
@@ -1965,7 +1891,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                 state.company.cvr = (document.getElementById("company_cvr").value || "").replace(/\D/g, "");
                 state.company.name = document.getElementById("company_name").value.trim();
                 state.company.leader = document.getElementById("company_leader").value.trim();
-                if (!validateContactPerson(state.company.name, state.company.leader)) return;
                 state.company.address = document.getElementById("company_address").value.trim();
                 state.company.registeredDate = document.getElementById("company_registered").value.trim();
                 state.company.zip = document.getElementById("company_zip").value.trim();
@@ -2367,7 +2292,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                         <h4>Virksomhed</h4>
                         <ul class="summary-list">
                             <li>${escapeHtml(state.company.name || "-")}</li>
-                            <li>Kontaktperson: ${escapeHtml(state.company.leader || "-")}</li>
                             <li>${escapeHtml([state.company.address, state.company.zip, state.company.city].filter(Boolean).join(", ") || "-")}</li>
                             <li>CVR: ${escapeHtml(state.company.cvr || "-")}</li>
                             <li>Email: ${escapeHtml(state.company.email || "-")}</li>
@@ -2673,8 +2597,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                 // Company info
                 companyName:    state.company.name     || "",
                 ownerName:      state.company.leader   || "",
-                contactPersonName: state.company.leader || "",
-                profilename:    state.company.leader   || "",
                 phone:          state.company.phone    || "",
                 cvr:            state.company.cvr      || "",
                 address:        state.company.address  || "",
@@ -2752,10 +2674,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
             const locationId = String(profile.locationId || "location_1").trim();
             const docId = `${companyId}__${locationId}`;
 
-            if (!validateContactPerson(state.company.name, state.company.leader)) {
-                throw new Error("Kontaktperson mangler eller matcher firmanavn.");
-            }
-
             const payload = {
                 companyId,
                 locationId,
@@ -2775,7 +2693,7 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                     inclVat: PRICE_EX_VAT * (1 + VAT_RATE)
                 },
                 updatedAt: serverTimestamp(),
-                createdByName: state.company.leader || user?.displayName || "Ukendt"
+                createdByName: user?.displayName || state.company.name || "Ukendt"
             };
 
             await setDoc(doc(db, "onboarding_answers", docId), payload, { merge: true });
@@ -2811,12 +2729,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                 // First-time payment flow
                 if (!state.company.email.trim() || !state.company.accountPassword) {
                     alert("Indtast login email og password under Virksomhed før betaling.");
-                    state.currentStep = 0;
-                    render();
-                    return;
-                }
-
-                if (!validateContactPerson(state.company.name, state.company.leader)) {
                     state.currentStep = 0;
                     render();
                     return;

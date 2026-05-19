@@ -35,35 +35,6 @@ export const CANONICAL_ROUTINES = [
     }
   },
   {
-    routineType: "roegning",
-    displayTitle: "Røgning / varmrøgning",
-    group: "CCP",
-    frequencyDays: 1,
-    category: "Røgning",
-    subtitle: "Kontrol af røgning og varmrøgning",
-    longDescription: "Ved røgning og varmrøgning kontrolleres tid og temperatur, så produktet opnår dokumenteret fødevaresikkerhed. Varmrøgede fiskeprodukter skal som udgangspunkt opnå minimum 70 °C i centrum.",
-    purpose: "At sikre at røgede og varmrøgede produkter opnår tilstrækkelig varmebehandling til at eliminere sygdomsfremkaldende bakterier.",
-    checkItems: [
-      "Kernetemperatur i produktet måles",
-      "Temperatur registreres",
-      "Tidspunkt registreres",
-      "Produkttype registreres",
-      "Batch/lot registreres",
-      "Røgproces dokumenteres"
-    ],
-    whatToCheck: "Temperatur, tid, produkt, batch og røgproces",
-    howToCheck: "Mål kernetemperatur i produktet med kalibreret termometer. Registrér temperatur, tidspunkt, produkttype og batch.",
-    acceptCriteria: "Minimum 70 °C i centrum for varmrøgede fiskeprodukter, medmindre anden dokumenteret proces anvendes.",
-    documentation: "Registrér temperatur, tidspunkt, produkt, batch og medarbejder.",
-    risk: {
-      hazard: "Overlevelse af sygdomsfremkaldende bakterier ved utilstrækkelig varmebehandling under røgning.",
-      criticalLimit: "Minimum 70 °C i centrum for varmrøgede fiskeprodukter, medmindre anden dokumenteret sikker tid/temperatur anvendes.",
-      deviationTrigger: "Målt kernetemperatur under 70 °C.",
-      defaultCorrectiveAction: "Fortsæt varmebehandling indtil minimum 70 °C er opnået, eller kassér produktet hvis sikker temperatur ikke kan dokumenteres.",
-      prefilledDeviationText: "Røgningen/varmrøgningen nåede ikke den krævede kernetemperatur. Jeg fortsætter varmebehandlingen indtil minimum 70 °C er opnået i centrum, eller kasserer produktet hvis fødevaresikkerheden ikke kan dokumenteres."
-    }
-  },
-  {
     routineType: "nedkoeling",
     displayTitle: "Nedkøling",
     group: "CCP",
@@ -524,15 +495,6 @@ export function normalizeRoutineType(input) {
     reheating: "opvarmning",
     reheating_control: "opvarmning",
     minimal_opvarmning: "opvarmning",
-    
-    roegning: "roegning",
-    rogning: "roegning",
-    varmroegning: "roegning",
-    varmrogning: "roegning",
-    smoking: "roegning",
-    hot_smoking: "roegning",
-    smoke_control: "roegning",
-    smoking_control: "roegning",
     
     varemodtagelse: "varemodtagelse",
     receiving: "varemodtagelse",

@@ -1,28 +1,5 @@
 ﻿// /core/layout.js
 
-/**
- * @madkontrollen-registry-stamp
- * fileRole: "app-layout-shell"
- * projectArea: "core"
- * canonicalSystem: false
- * usesHelpers:
- *   - resolvePrettyCompanyInfo
- *   - resolveOrgContext
- *   - setupAuthGate
- * owns:
- *   - shared app layout rendering
- *   - topbar company/location display
- *   - module navigation shell
- * mustNotCreate:
- *   - duplicate auth gates
- *   - duplicate prettyName resolvers
- *   - parallel navigation entitlement systems
- * requiredBeforeEdit:
- *   - read docs/AI_TOOLBOX.md
- *   - inspect existing helpers
- *   - preserve auth and entitlement flow
- */
-
 import { auth, db } from "./firebase-config.js";
 import { t } from "./i18n.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -36,7 +13,6 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { resolvePrettyCompanyInfo } from "./prettyName.js";
-import { resolveOrgContext } from "./auth.js";
 
 const CORE_MODULE_KEY = "core";
 
@@ -56,7 +32,20 @@ function buildDefaultEntitlements() {
 }
 
 function getOrganizationIdFromProfile(profile) {
-  return resolveOrgContext(profile).companyId;
+  if (!profile) return "";
+
+  const candidates = [
+    profile.organizationId,
+    profile.companyId,
+    profile.companyLegacyId
+  ];
+
+  for (const candidate of candidates) {
+    const value = String(candidate || "").trim();
+    if (value) return value;
+  }
+
+  return "";
 }
 
 async function waitForAuthUser(timeoutMs = 5000) {

@@ -6,11 +6,10 @@ module.exports = ({
   getUserAccessProfile,
   assertSeoGeneratorAccess,
   sanitizeOnboardingProfile,
-  sanitizeRiskModelInput,
-  FUNCTIONS_CONFIG
+  sanitizeRiskModelInput
 }) =>
   functions.https.onCall(
-    { secrets: [FUNCTIONS_CONFIG] },
+    { secrets: ["FUNCTIONS_CONFIG_EXPORT"] },
     async (request) => {
       const data = request.data || {};
 

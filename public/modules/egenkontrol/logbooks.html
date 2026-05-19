@@ -1339,7 +1339,6 @@
         import { setupAuthGate } from "/core/auth.js";
         import { loadLayout } from "/core/layout.js";
         import { db } from "/core/firebase-config.js";
-        import { createAuditCreateFields } from "/core/auditFields.js";
         import {
             collection,
             addDoc,
@@ -1782,13 +1781,6 @@
             const userCompanyId = sessionStorage.getItem("mkp_user_companyId") || COMPANY_ID;
             const userLocationId = sessionStorage.getItem("mkp_selected_locationId") || LOCATION_ID;
 
-            // Get current user and profile for audit fields
-            const currentUser = window.currentUser || null;
-            const currentProfile = window.currentUserProfile || null;
-            
-            // Create audit fields using central helper
-            const auditFields = createAuditCreateFields(currentUser, currentProfile);
-
             const common = {
                 companyId: userCompanyId,
                 organizationId: userCompanyId, // For security rules compatibility
@@ -1799,14 +1791,10 @@
                 responsibleName: values.responsibleName || "",
                 status: values.status || "ok",
                 fields: values,
-                roleLabel: "Medarbejder",
-                ...auditFields, // Add standard audit fields
-                // Mark as completed immediately since logbook entries are completed on creation
-                completedAt: serverTimestamp(),
-                completedAtClient: new Date().toISOString(),
-                completedByUid: auditFields.createdByUid,
-                completedByName: auditFields.createdByName,
-                completedByEmail: auditFields.createdByEmail
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                createdAtClient: new Date().toISOString(),
+                roleLabel: "Medarbejder"
             };
 
             switch (logType) {

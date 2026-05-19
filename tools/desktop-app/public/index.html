@@ -207,97 +207,42 @@
       color: #475569;
       margin-bottom: 8px;
     }
-
-    select {
-      width: 100%;
-      margin-bottom: 6px;
-      padding: 8px;
-      border: 1px solid #aaa;
-      border-radius: 5px;
-      background: white;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid #ddd;
-      margin: 12px 0;
-    }
-
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .data-table th,
-    .data-table td {
-      padding: 8px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-
-    .data-table th {
-      background: #f8fafc;
-      font-weight: bold;
-    }
-
-    .data-table textarea {
-      min-height: 60px;
-      height: auto;
-    }
-
-    .data-table select {
-      margin-bottom: 0;
-    }
   </style>
 </head>
 <body>
 
 <div class="desktop">
-  <div class="icon" onclick="openKnowledge()">
-    <div>�</div>
-    Knowledge
-  </div>
-
-  <div class="icon" onclick="openPrompts()">
-    <div>💬</div>
-    Prompts
-  </div>
-
-  <div class="icon" onclick="openOperations()">
-    <div>⚙️</div>
-    Operations
-  </div>
-
   <div class="icon" onclick="openExplorer()">
     <div>📁</div>
     Explorer
   </div>
 
-  <div class="icon" onclick="openAIPanel()">
-    <div>AI</div>
-    Helper
-  </div>
+<div class="icon" onclick="openAIPanel()">
+  <div>AI</div>
+  Helper
+</div>
 
   <div class="icon" onclick="openSplitter()">
     <div>✦</div>
     Splitter
   </div>
 
+  <div class="icon" onclick="openPrompt()">
+    <div>AI</div>
+    Prompt
+  </div>
+
   <div class="icon" onclick="openSmartMerge()">
     <div>SM</div>
     Smart Merge
   </div>
+</div>
 
-  <div class="icon" onclick="openCompanyImporter()">
-    <div>CVR</div>
-    Firma Import
-  </div>
+<div class="icon" onclick="openCompanyImporter()">
+  <div>CVR</div>
+  Firma Import
 </div>
 
 <script src="/desktop.js"></script>
-<script src="/modules/knowledge.module.js"></script>
-<script src="/modules/prompts.module.js"></script>
-<script src="/modules/operations.module.js"></script>
 </body>
 </html>

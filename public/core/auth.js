@@ -367,41 +367,6 @@ function isDemoLocationId(value) {
 	return String(value || "").trim().toLowerCase().includes("demo");
 }
 
-/**
- * Single source of truth for identity resolution.
- * Resolves companyId, organizationId, locationId, primaryLocationId, and locationIds from profile.
- * All other functions MUST use this function instead of inline fallback logic.
- */
-export function resolveOrgContext(profile = {}) {
-	const companyId = String(profile.companyId || profile.organizationId || "").trim();
-
-	const ids = [];
-	const push = (value) => {
-		const normalized = String(value || "").trim();
-		if (normalized && !ids.includes(normalized)) ids.push(normalized);
-	};
-
-	push(profile.primaryLocationId);
-
-	if (Array.isArray(profile.locationIds)) {
-		profile.locationIds.forEach(push);
-	}
-
-	push(profile.locationId);
-
-	const liveIds = ids.filter((item) => !isDemoLocationId(item));
-	const locationIds = liveIds.length ? liveIds : ids;
-	const locationId = locationIds[0] || "";
-
-	return {
-		companyId,
-		organizationId: companyId,
-		locationId,
-		primaryLocationId: locationId,
-		locationIds
-	};
-}
-
 // Paths where onboarding gate should not trigger redirects
 const ONBOARDING_GATE_BYPASS_PATHS = [
 	"/onboarding",
@@ -433,13 +398,14 @@ function resolveOnboardingRedirect(profile) {
 	const role = String(profile.role || "employee").trim().toLowerCase();
 	if (role === "superadmin" || role === "admin") return null;
 
-	const context = resolveOrgContext(profile);
+	const companyId = String(profile.companyId || profile.organizationId || "").trim();
+	const locationIds = normalizeProfileLocationIds(profile);
 
-	if (!context.companyId) {
+	if (!companyId) {
 		return "/modules/egenkontrol/onboarding.html";
 	}
 
-	if (context.locationIds.length === 0) {
+	if (locationIds.length === 0) {
 		return "/tak";
 	}
 
@@ -447,25 +413,50 @@ function resolveOnboardingRedirect(profile) {
 }
 
 function normalizeProfileLocationIds(profile = {}) {
-	return resolveOrgContext(profile).locationIds;
+	const ids = [];
+	const pushValue = (value) => {
+		const normalized = String(value || "").trim();
+		if (normalized) ids.push(normalized);
+	};
+
+	if (Array.isArray(profile.locationIds)) {
+		profile.locationIds.forEach(pushValue);
+	}
+
+	pushValue(profile.primaryLocationId);
+	pushValue(profile.locationId);
+
+	const uniqueIds = [...new Set(ids)];
+	const liveIds = uniqueIds.filter((item) => !isDemoLocationId(item));
+	return liveIds.length ? liveIds : uniqueIds;
 }
 
 function getPreferredLocationId(profile = {}, locationIds = []) {
-	const context = resolveOrgContext(profile);
-	return context.locationId;
+	const primaryLocationId = String(profile.primaryLocationId || profile.locationId || "").trim();
+	if (primaryLocationId && locationIds.includes(primaryLocationId)) {
+		return primaryLocationId;
+	}
+
+	const firstLiveLocationId = locationIds.find((item) => !isDemoLocationId(item));
+	if (firstLiveLocationId) {
+		return firstLiveLocationId;
+	}
+
+	return locationIds[0] || "";
 }
 
 function persistSessionScope(user, profile = {}) {
 	try {
-		const context = resolveOrgContext(profile);
+		const locationIds = normalizeProfileLocationIds(profile);
+		const preferredLocationId = getPreferredLocationId(profile, locationIds);
 
 		sessionStorage.setItem("mkp_user_uid", String(user?.uid || ""));
-		sessionStorage.setItem("mkp_user_companyId", context.companyId);
-		sessionStorage.setItem("mkp_user_organizationId", context.organizationId);
-		sessionStorage.setItem("mkp_user_locationId", context.locationId);
-		sessionStorage.setItem("mkp_selected_locationId", context.locationId);
-		sessionStorage.setItem("mkp_user_locationIds", JSON.stringify(context.locationIds));
+		sessionStorage.setItem("mkp_user_companyId", String(profile.companyId || "").trim());
+		sessionStorage.setItem("mkp_user_locationIds", JSON.stringify(locationIds));
 		sessionStorage.setItem("mkp_user_role", String(profile.role || "employee").trim().toLowerCase());
+		if (preferredLocationId) {
+			sessionStorage.setItem("mkp_selected_locationId", preferredLocationId);
+		}
 	} catch (error) {
 		console.warn("Kunne ikke gemme user scope i sessionStorage:", error);
 	}
@@ -475,8 +466,6 @@ function clearSessionScope() {
 	try {
 		sessionStorage.removeItem("mkp_user_uid");
 		sessionStorage.removeItem("mkp_user_companyId");
-		sessionStorage.removeItem("mkp_user_organizationId");
-		sessionStorage.removeItem("mkp_user_locationId");
 		sessionStorage.removeItem("mkp_user_locationIds");
 		sessionStorage.removeItem("mkp_user_role");
 		sessionStorage.removeItem("mkp_selected_locationId");
@@ -560,13 +549,14 @@ function getDemoCountdownLabel(expiresAt) {
 }
 
 function syncDemoBanner(profile = {}) {
-	const context = resolveOrgContext(profile);
+	const companyId = String(profile.companyId || profile.organizationId || "").trim();
+	const locationId = String(profile.primaryLocationId || profile.locationId || "").trim();
 	const demoExpiresAt = parseDemoDateValue(profile.demoExpiresAt);
 	const isDemoProfile = Boolean(
 		profile.isDemo === true ||
 		demoExpiresAt ||
-		isDemoLocationId(context.locationId) ||
-		String(context.companyId || "").toLowerCase().includes("demo")
+		isDemoLocationId(locationId) ||
+		String(companyId || "").toLowerCase().includes("demo")
 	);
 
 	if (!isDemoProfile) {
@@ -576,8 +566,8 @@ function syncDemoBanner(profile = {}) {
 
 	const banner = ensureDemoBanner();
 	const countdown = getDemoCountdownLabel(demoExpiresAt);
-	const upgradeHref = context.companyId && context.locationId
-		? `/modules/egenkontrol/onboarding.html?mode=convert-demo&companyId=${encodeURIComponent(context.companyId)}&locationId=${encodeURIComponent(context.locationId)}`
+	const upgradeHref = companyId && locationId
+		? `/modules/egenkontrol/onboarding.html?mode=convert-demo&companyId=${encodeURIComponent(companyId)}&locationId=${encodeURIComponent(locationId)}`
 		: "/modules/egenkontrol/onboarding.html?mode=convert-demo";
 
 	if (banner.titleEl) {
@@ -619,17 +609,15 @@ async function getUserRoleProfile(user) {
 		const userDoc = await getDoc(doc(db, "users", user.uid));
 		if (userDoc.exists()) {
 			const data = userDoc.data() || {};
-			const context = resolveOrgContext(data);
+			const locationIds = normalizeProfileLocationIds(data);
+			const preferredLocationId = getPreferredLocationId(data, locationIds);
 			return {
 				...fallback,
 				...data,
-				...context,
-				uid: user.uid,
-				userId: user.uid,
-				email: data.email || user.email || "",
 				role: String(data.role || fallback.role).trim().toLowerCase(),
-				active: data.active !== false,
-				status: data.status || "active"
+				locationIds,
+				primaryLocationId: preferredLocationId || data.primaryLocationId || data.locationId || "",
+				locationId: preferredLocationId || data.locationId || data.primaryLocationId || ""
 			};
 		}
 
@@ -642,17 +630,15 @@ async function getUserRoleProfile(user) {
 			const byEmailSnap = await getDocs(byEmailQuery);
 			if (!byEmailSnap.empty) {
 				const data = byEmailSnap.docs[0].data() || {};
-				const context = resolveOrgContext(data);
+				const locationIds = normalizeProfileLocationIds(data);
+				const preferredLocationId = getPreferredLocationId(data, locationIds);
 				return {
 					...fallback,
 					...data,
-					...context,
-					uid: user.uid,
-					userId: user.uid,
-					email: data.email || user.email || "",
 					role: String(data.role || fallback.role).trim().toLowerCase(),
-					active: data.active !== false,
-					status: data.status || "active"
+					locationIds,
+					primaryLocationId: preferredLocationId || data.primaryLocationId || data.locationId || "",
+					locationId: preferredLocationId || data.locationId || data.primaryLocationId || ""
 				};
 			}
 		}
@@ -717,12 +703,32 @@ export async function setupAuthGate(options = {}) {
 				submitBtn.textContent = "Indlæser profil...";
 				console.log("[login] loading profile");
 
-				const profile = await getUserRoleProfile(user);
-				console.log("[login] profile loaded", profile);
+				const userSnap = await getDoc(doc(db, "users", user.uid));
+				console.log("[login] user profile exists:", userSnap.exists());
 
-				if (!profile.role) {
-					errorEl.textContent = "Din brugerprofil mangler rolle. Kontakt support.";
-					console.log("[login] profile invalid", "missing role");
+				if (!userSnap.exists()) {
+					errorEl.textContent = "Din brugerprofil mangler. Kontakt support.";
+					console.log("[login] profile invalid", "missing user doc");
+					submitBtn.disabled = false;
+					submitBtn.textContent = "Log ind";
+					return;
+				}
+
+				const profile = userSnap.data();
+				console.log("[login] profile", profile);
+
+				const orgId = profile.organizationId || profile.companyId;
+				const locationId = profile.primaryLocationId || profile.locationId || 
+					(Array.isArray(profile.locationIds) && profile.locationIds.length > 0 ? profile.locationIds[0] : null);
+
+				if (!profile.role || !orgId || !locationId) {
+					errorEl.textContent = "Din brugerprofil mangler rolle eller virksomhed. Kontakt support.";
+					console.log("[login] profile invalid", {
+						reason: "missing required fields",
+						role: profile.role,
+						orgId: orgId,
+						locationId: locationId
+					});
 					submitBtn.disabled = false;
 					submitBtn.textContent = "Log ind";
 					return;
@@ -813,16 +819,24 @@ export async function setupAuthGate(options = {}) {
 		// CRITICAL: If Firebase Auth user exists AND users/{uid} exists, accept the user
 		// Do NOT require onboarding/owner fields - only log warnings
 		const role = String(profile?.role || "employee").trim().toLowerCase();
-		const hasCompanyId = Boolean(profile?.companyId);
-		const hasLocationId = Boolean(profile?.locationId);
-		const hasActiveStatus = profile?.status ? profile.status === "active" : true;
+		const hasCompanyId = Boolean(profile?.companyId || profile?.organizationId);
+		const hasLocationId = Boolean(
+			profile?.primaryLocationId || 
+			profile?.locationId || 
+			(Array.isArray(profile?.locationIds) && profile.locationIds.length > 0)
+		);
+		const hasActiveStatus = profile?.status ? profile.status === "active" : true; // Default to active if not set
+
+		// Check if user has minimal access (company + location)
+		const hasAccess = profile && hasCompanyId && hasLocationId;
 
 		console.log("[auth] Profile validation:", {
 			hasValidRole: Boolean(profile?.role),
 			hasCompanyId,
 			hasLocationId,
 			hasActiveStatus,
-			willProceed: true
+			hasAccess,
+			willProceed: true // Always proceed if Firebase Auth user exists
 		});
 
 		// Log warnings but DO NOT block login
