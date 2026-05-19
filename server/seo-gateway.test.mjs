@@ -53,7 +53,15 @@ function listen(app) {
   });
 }
 
-const parsed = parseSeoRequest({
+const businessRoot = parseSeoRequest({
+  host: "aroi-d.madkontrollen.dk",
+  path: "/"
+});
+const cityRoute = parseSeoRequest({
+  host: "aroi-d.madkontrollen.dk",
+  path: "/herning/"
+});
+const legacyRoute = parseSeoRequest({
   host: "herning.madkontrollen.dk",
   path: "/aroi-d/"
 });
@@ -62,18 +70,28 @@ assert.equal(slugifySeoPathPart("Ørnhøj"), "oernhoej");
 assert.equal(slugifySeoPathPart("Sønderborg"), "soenderborg");
 assert.equal(slugifySeoPathPart("Århus"), "aarhus");
 assert.equal(slugifySeoPathPart("Aarhus"), "aarhus");
-assert.equal(parsed.ok, true);
-assert.equal(parsed.citySlug, "herning");
-assert.equal(parsed.businessSlug, "aroi-d");
-assert.equal(parsed.virtualOutputPath, "herning/aroi-d/index.html");
-assert.equal(parsed.canonicalUrl, "https://herning.madkontrollen.dk/aroi-d/");
+assert.equal(businessRoot.ok, true);
+assert.equal(businessRoot.citySlug, "");
+assert.equal(businessRoot.businessSlug, "aroi-d");
+assert.equal(businessRoot.virtualOutputPath, "aroi-d/index.html");
+assert.equal(businessRoot.canonicalUrl, "https://aroi-d.madkontrollen.dk/");
+assert.equal(cityRoute.ok, true);
+assert.equal(cityRoute.citySlug, "herning");
+assert.equal(cityRoute.businessSlug, "aroi-d");
+assert.equal(cityRoute.virtualOutputPath, "herning/aroi-d/index.html");
+assert.equal(cityRoute.canonicalUrl, "https://aroi-d.madkontrollen.dk/herning/");
+assert.equal(legacyRoute.ok, true);
+assert.equal(legacyRoute.legacyCandidate.citySlug, "herning");
+assert.equal(legacyRoute.legacyCandidate.businessSlug, "aroi-d");
 
-const sitemap = buildSitemapResponse(parsed);
+const sitemap = buildSitemapResponse(cityRoute);
 assert.match(sitemap, /<urlset/);
-assert.match(sitemap, /https:\/\/herning\.madkontrollen\.dk\/aroi-d\//);
+assert.match(sitemap, /https:\/\/aroi-d\.madkontrollen\.dk\//);
+assert.match(sitemap, /https:\/\/aroi-d\.madkontrollen\.dk\/herning\//);
+assert.doesNotMatch(sitemap, /\.html/);
 
-const robots = buildRobotsResponse(parsed);
-assert.match(robots, /Sitemap: https:\/\/herning\.madkontrollen\.dk\/aroi-d\/sitemap\.xml/);
+const robots = buildRobotsResponse(businessRoot);
+assert.match(robots, /Sitemap: https:\/\/aroi-d\.madkontrollen\.dk\/sitemap\.xml/);
 
 const db = createDb({
   websites: [{
@@ -100,38 +118,62 @@ const db = createDb({
 
 const htmlResponse = await resolveSeoResponse({
   db,
-  host: "herning.madkontrollen.dk",
-  path: "/aroi-d/",
+  host: "aroi-d.madkontrollen.dk",
+  path: "/herning/",
   query: {},
   logger: { info() {}, error() {}, warn() {} }
 });
 assert.equal(htmlResponse.status, 200);
 assert.match(htmlResponse.body, /Thai restaurant i Ørnhøj/);
-assert.match(htmlResponse.body, /https:\/\/herning\.madkontrollen\.dk\/aroi-d\//);
+assert.match(htmlResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\/herning\//);
+
+const businessRootResponse = await resolveSeoResponse({
+  db,
+  host: "aroi-d.madkontrollen.dk",
+  path: "/",
+  query: {},
+  logger: { info() {}, error() {}, warn() {} }
+});
+assert.equal(businessRootResponse.status, 200);
+assert.match(businessRootResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\//);
+
+const legacyResponse = await resolveSeoResponse({
+  db,
+  host: "herning.madkontrollen.dk",
+  path: "/aroi-d/",
+  query: {},
+  logger: { info() {}, error() {}, warn() {} }
+});
+assert.equal(legacyResponse.status, 200);
+assert.equal(legacyResponse.parsed.legacyRoute, true);
+assert.match(legacyResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\/herning\//);
 
 const xmlResponse = await resolveSeoResponse({
   db,
-  host: "herning.madkontrollen.dk",
-  path: "/aroi-d/sitemap.xml",
+  host: "aroi-d.madkontrollen.dk",
+  path: "/sitemap.xml",
   query: {},
   logger: { info() {}, error() {}, warn() {} }
 });
 assert.equal(xmlResponse.contentType, "application/xml; charset=utf-8");
+assert.match(xmlResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\//);
+assert.match(xmlResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\/herning\//);
 
 const robotsResponse = await resolveSeoResponse({
   db,
-  host: "herning.madkontrollen.dk",
-  path: "/aroi-d/robots.txt",
+  host: "aroi-d.madkontrollen.dk",
+  path: "/robots.txt",
   query: { nocache: "1" },
   logger: { info() {}, error() {}, warn() {} }
 });
 assert.equal(robotsResponse.contentType, "text/plain; charset=utf-8");
+assert.match(robotsResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\/sitemap\.xml/);
 assert.equal(robotsResponse.cacheHit, undefined);
 
 const missingCustomer = await resolveSeoResponse({
   db,
-  host: "herning.madkontrollen.dk",
-  path: "/ukendt/",
+  host: "ukendt.madkontrollen.dk",
+  path: "/",
   query: {},
   logger: { info() {}, error() {}, warn() {} }
 });
@@ -149,8 +191,8 @@ assert.equal(unknownSubdomain.status, 404);
 invalidateSeoCache({ citySlug: "herning", businessSlug: "aroi-d" });
 const cachedFirstResponse = await resolveSeoResponse({
   db,
-  host: "herning.madkontrollen.dk",
-  path: "/aroi-d/",
+  host: "aroi-d.madkontrollen.dk",
+  path: "/herning/",
   query: {},
   logger: { info() {}, error() {}, warn() {} }
 });
@@ -181,8 +223,8 @@ const fixtures = {
 const cacheDb = createDb(fixtures);
 const firstCacheResponse = await resolveSeoResponse({
   db: cacheDb,
-  host: "herning.madkontrollen.dk",
-  path: "/aroi-d-cache/",
+  host: "aroi-d-cache.madkontrollen.dk",
+  path: "/herning/",
   query: {},
   logger: { info() {}, error() {}, warn() {} }
 });
@@ -192,8 +234,8 @@ fixtures.seo_pages[0].title = "Aroi-D Cache | Version 2";
 fixtures.seo_pages[0].h1 = "Aroi-D Cache Version 2";
 const cacheHitResponse = await resolveSeoResponse({
   db: cacheDb,
-  host: "herning.madkontrollen.dk",
-  path: "/aroi-d-cache/",
+  host: "aroi-d-cache.madkontrollen.dk",
+  path: "/herning/",
   query: {},
   logger: { info() {}, error() {}, warn() {} }
 });
@@ -204,8 +246,8 @@ const removed = invalidateSeoCache({ citySlug: "herning", businessSlug: "aroi-d-
 assert.equal(removed > 0, true);
 const invalidatedResponse = await resolveSeoResponse({
   db: cacheDb,
-  host: "herning.madkontrollen.dk",
-  path: "/aroi-d-cache/",
+  host: "aroi-d-cache.madkontrollen.dk",
+  path: "/herning/",
   query: {},
   logger: { info() {}, error() {}, warn() {} }
 });

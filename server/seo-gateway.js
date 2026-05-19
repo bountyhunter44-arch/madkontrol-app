@@ -28,10 +28,18 @@ export function slugifySeoPathPart(value, fallback = "") {
 }
 
 export function buildVirtualOutputPath({ citySlug, businessSlug, file = "index.html" }) {
-  const city = slugifySeoPathPart(citySlug, "by");
+  const city = slugifySeoPathPart(citySlug);
   const business = slugifySeoPathPart(businessSlug, "restaurant");
   const safeFile = String(file || "index.html").replace(/^\/+/, "");
-  return `${city}/${business}/${safeFile}`;
+  return city ? `${city}/${business}/${safeFile}` : `${business}/${safeFile}`;
+}
+
+function buildPrimaryCanonicalUrl({ businessSlug, citySlug = "", pathType = "page" }) {
+  const business = slugifySeoPathPart(businessSlug, "restaurant");
+  const city = slugifySeoPathPart(citySlug);
+  const file = pathType === "sitemap" ? "sitemap.xml" : pathType === "robots" ? "robots.txt" : "";
+  const path = city ? `/${city}/${file}` : `/${file}`;
+  return `https://${business}.${ALLOWED_ROOT_DOMAIN}${path}`;
 }
 
 export function parseSeoRequest({ host = "", path = "/" }) {
@@ -43,36 +51,41 @@ export function parseSeoRequest({ host = "", path = "/" }) {
     return { ok: false, reason: "unknown_domain", host: cleanHost };
   }
 
-  const citySlug = slugifySeoPathPart(match[1]);
+  const hostSlug = slugifySeoPathPart(match[1]);
   const cleanPath = `/${String(path || "/").split("?")[0].replace(/^\/+/, "").replace(/\/+$/, "")}`;
   const rawParts = cleanPath.split("/").filter(Boolean);
+  const rawFirstPart = String(rawParts[0] || "").toLowerCase();
   const parts = rawParts.map((part, index) => index === 0 ? slugifySeoPathPart(part) : String(part || "").toLowerCase());
 
-  if (!citySlug || citySlug === "www") {
-    return { ok: false, reason: "unknown_subdomain", host: cleanHost, citySlug };
+  if (!hostSlug || hostSlug === "www") {
+    return { ok: false, reason: "unknown_subdomain", host: cleanHost, citySlug: "", businessSlug: hostSlug };
   }
 
   if (parts.length === 0) {
     return {
       ok: true,
       host: cleanHost,
-      citySlug,
-      businessSlug: "",
-      pathType: "city-root",
-      virtualOutputPath: `${citySlug}/index.html`,
-      canonicalUrl: `https://${cleanHost}/`
+      routeModel: "business",
+      citySlug: "",
+      businessSlug: hostSlug,
+      pathType: "page",
+      virtualOutputPath: buildVirtualOutputPath({ businessSlug: hostSlug }),
+      canonicalUrl: buildPrimaryCanonicalUrl({ businessSlug: hostSlug })
     };
   }
 
-  const businessSlug = parts[0];
+  let citySlug = parts[0];
+  const businessSlug = hostSlug;
   const tail = parts.slice(1).join("/");
   let pathType = "page";
   let file = "index.html";
 
-  if (tail === "sitemap.xml") {
+  if (parts.length === 1 && rawFirstPart === "sitemap.xml") {
+    citySlug = "";
     pathType = "sitemap";
     file = "sitemap.xml";
-  } else if (tail === "robots.txt") {
+  } else if (parts.length === 1 && rawFirstPart === "robots.txt") {
+    citySlug = "";
     pathType = "robots";
     file = "robots.txt";
   } else if (tail) {
@@ -83,18 +96,37 @@ export function parseSeoRequest({ host = "", path = "/" }) {
       citySlug,
       businessSlug,
       pathType: "unsupported",
-      virtualOutputPath: buildVirtualOutputPath({ citySlug, businessSlug, file: tail })
+      virtualOutputPath: buildVirtualOutputPath({ citySlug, businessSlug, file: tail }),
+      legacyCandidate: {
+        citySlug: hostSlug,
+        businessSlug: parts[0] || "",
+        pathType,
+        virtualOutputPath: buildVirtualOutputPath({ citySlug: hostSlug, businessSlug: parts[0] || "" })
+      }
     };
   }
+
+  const legacyCandidate = parts.length === 1 && pathType === "page"
+    ? {
+      routeModel: "legacy-city-business",
+      citySlug: hostSlug,
+      businessSlug: parts[0],
+      pathType: "page",
+      virtualOutputPath: buildVirtualOutputPath({ citySlug: hostSlug, businessSlug: parts[0] }),
+      canonicalUrl: buildPrimaryCanonicalUrl({ businessSlug: parts[0], citySlug: hostSlug })
+    }
+    : null;
 
   return {
     ok: true,
     host: cleanHost,
+    routeModel: "business",
     citySlug,
     businessSlug,
     pathType,
     virtualOutputPath: buildVirtualOutputPath({ citySlug, businessSlug, file }),
-    canonicalUrl: `https://${cleanHost}/${businessSlug}/`
+    canonicalUrl: buildPrimaryCanonicalUrl({ businessSlug, citySlug, pathType }),
+    legacyCandidate
   };
 }
 
@@ -123,22 +155,25 @@ function getCacheVersion(websiteDoc = {}) {
 }
 
 function getCacheKey(parsed, version = "unversioned") {
-  return `${parsed.citySlug}/${parsed.businessSlug || "_city"}/${parsed.pathType}/${version}`;
+  return `${parsed.businessSlug}/${parsed.citySlug || "_root"}/${parsed.pathType}/${version}`;
 }
 
 function getCachePrefix({ citySlug, businessSlug }) {
-  const city = slugifySeoPathPart(citySlug);
   const business = slugifySeoPathPart(businessSlug);
-  return `${city}/${business}/`;
+  const city = slugifySeoPathPart(citySlug);
+  return `${business}/${city || "_root"}/`;
 }
 
 export function invalidateSeoCache({ citySlug, businessSlug }) {
-  const prefix = getCachePrefix({ citySlug, businessSlug });
-  if (!prefix || prefix === "//") return 0;
+  const business = slugifySeoPathPart(businessSlug);
+  const prefixes = [
+    getCachePrefix({ citySlug, businessSlug }),
+    getCachePrefix({ citySlug: "", businessSlug })
+  ].filter((prefix, index, list) => business && prefix && list.indexOf(prefix) === index);
 
   let removed = 0;
   for (const key of cache.keys()) {
-    if (key.startsWith(prefix)) {
+    if (prefixes.some((prefix) => key.startsWith(prefix))) {
       cache.delete(key);
       removed += 1;
     }
@@ -167,13 +202,14 @@ function setCached(key, value) {
 async function findWebsite(db, parsed) {
   if (!parsed.businessSlug) return null;
 
-  const snap = await db
+  const collection = db
     .collection("websites")
-    .where("citySlug", "==", parsed.citySlug)
     .where("businessSlug", "==", parsed.businessSlug)
-    .where("status", "==", "published")
-    .limit(1)
-    .get();
+    .where("status", "==", "published");
+
+  const snap = parsed.citySlug
+    ? await collection.where("citySlug", "==", parsed.citySlug).limit(1).get()
+    : await collection.limit(1).get();
 
   if (snap.empty) return null;
   return {
@@ -200,6 +236,7 @@ function findPrimaryPage(pages, parsed) {
   return pages.find((page) => page.outputPath === parsed.virtualOutputPath)
     || pages.find((page) => page.canonicalPath === `/${parsed.citySlug}/${parsed.businessSlug}/`)
     || pages.find((page) => page.slug === `${parsed.citySlug}/${parsed.businessSlug}`)
+    || pages.find((page) => !parsed.citySlug && page.businessSlug === parsed.businessSlug)
     || pages[0]
     || null;
 }
@@ -208,14 +245,22 @@ export function buildRobotsResponse(parsed) {
   return `User-agent: *
 Allow: /
 
-Sitemap: https://${parsed.host}/${parsed.businessSlug}/sitemap.xml
+Sitemap: ${buildPrimaryCanonicalUrl({ businessSlug: parsed.businessSlug, pathType: "sitemap" })}
 `;
 }
 
-export function buildSitemapResponse(parsed) {
+export function buildSitemapResponse(parsed, website = {}) {
+  const urls = new Set([
+    buildPrimaryCanonicalUrl({ businessSlug: parsed.businessSlug })
+  ]);
+  const websiteCitySlug = slugifySeoPathPart(website.citySlug || parsed.citySlug);
+  if (websiteCitySlug) {
+    urls.add(buildPrimaryCanonicalUrl({ businessSlug: parsed.businessSlug, citySlug: websiteCitySlug }));
+  }
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url><loc>${parsed.canonicalUrl}</loc></url>
+${[...urls].map((url) => `<url><loc>${url}</loc></url>`).join("\n")}
 </urlset>`;
 }
 
@@ -283,7 +328,7 @@ export function renderNotFound(parsed) {
 }
 
 export async function resolveSeoResponse({ db, host, path, query = {}, logger = console }) {
-  const parsed = parseSeoRequest({ host, path });
+  let parsed = parseSeoRequest({ host, path });
   const bypassCache = query.preview === "1" || query.nocache === "1";
 
   logger.info("[seo-gateway] request", {
@@ -291,6 +336,7 @@ export async function resolveSeoResponse({ db, host, path, query = {}, logger = 
     path,
     citySlug: parsed.citySlug || "",
     businessSlug: parsed.businessSlug || "",
+    routeModel: parsed.routeModel || "",
     virtualOutputPath: parsed.virtualOutputPath || "",
     reason: parsed.reason || "",
     bypassCache
@@ -314,12 +360,27 @@ export async function resolveSeoResponse({ db, host, path, query = {}, logger = 
     };
   }
 
-  const website = await findWebsite(db, parsed);
+  let website = await findWebsite(db, parsed);
+  if (!website && parsed.legacyCandidate) {
+    const legacyWebsite = await findWebsite(db, parsed.legacyCandidate);
+    if (legacyWebsite) {
+      parsed = {
+        ...parsed,
+        ...parsed.legacyCandidate,
+        host: parsed.host,
+        legacyRoute: true
+      };
+      website = legacyWebsite;
+    }
+  }
+
   logger.info("[seo-gateway] lookup", {
     host: parsed.host,
     path: path || "/",
     citySlug: parsed.citySlug,
     businessSlug: parsed.businessSlug,
+    routeModel: parsed.routeModel || "",
+    legacyRoute: Boolean(parsed.legacyRoute),
     lookupKey: `${parsed.citySlug}/${parsed.businessSlug}`,
     found: Boolean(website)
   });
@@ -356,7 +417,7 @@ export async function resolveSeoResponse({ db, host, path, query = {}, logger = 
     const response = {
       status: 200,
       contentType: "application/xml; charset=utf-8",
-      body: buildSitemapResponse(parsed)
+      body: buildSitemapResponse(parsed, website.data)
     };
     setCached(cacheKey, response);
     return { ...response, parsed };
