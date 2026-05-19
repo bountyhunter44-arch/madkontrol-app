@@ -116,6 +116,54 @@ const db = createDb({
   }]
 });
 
+const unicodeDb = createDb({
+  websites: [{
+    id: "site_unicode",
+    citySlug: "oernhoej",
+    businessSlug: "aroi-d-unicode",
+    cityName: "Ørnhøj",
+    displayCityName: "Ørnhøj",
+    businessName: "Aroi-D",
+    displayBusinessName: "Aroi-D",
+    status: "published",
+    heroTitle: "Aroi-D",
+    heroText: "Thai restaurant i Ørnhøj"
+  }],
+  seo_pages: [{
+    id: "page_unicode",
+    websiteId: "site_unicode",
+    status: "published",
+    ordering: 1,
+    outputPath: "oernhoej/aroi-d-unicode/index.html",
+    slug: "oernhoej/aroi-d-unicode",
+    canonicalPath: "/oernhoej/aroi-d-unicode/",
+    citySlug: "oernhoej",
+    businessSlug: "aroi-d-unicode",
+    cityName: "Ørnhøj",
+    displayCityName: "Ørnhøj",
+    businessName: "Aroi-D",
+    displayBusinessName: "Aroi-D",
+    title: "Aroi-D | Thai restaurant i Ørnhøj",
+    h1: "Thai restaurant i Ørnhøj",
+    h2: "Hvorfor vælge Aroi-D i Ørnhøj?",
+    metaDescription: "Autentisk Thai restaurant i Ørnhøj",
+    bodyText: "Hvorfor vælge Aroi-D i Ørnhøj? Friske råvarer og ægte smag."
+  }]
+});
+
+const unicodeResponse = await resolveSeoResponse({
+  db: unicodeDb,
+  host: "aroi-d-unicode.madkontrollen.dk",
+  path: "/oernhoej/",
+  query: {},
+  logger: { info() {}, error() {}, warn() {} }
+});
+assert.equal(unicodeResponse.status, 200);
+assert.match(unicodeResponse.body, /Ørnhøj/);
+assert.match(unicodeResponse.body, /vælge/);
+assert.doesNotMatch(unicodeResponse.body.replace(/https?:\/\/[^"'<\s]+/g, ""), /vaelge|Oernhoej/);
+assert.match(unicodeResponse.body, /https:\/\/aroi-d-unicode\.madkontrollen\.dk\/oernhoej\//);
+
 const htmlResponse = await resolveSeoResponse({
   db,
   host: "aroi-d.madkontrollen.dk",

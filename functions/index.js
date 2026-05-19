@@ -260,7 +260,7 @@ function toAsciiSlug(value, maxLen = 120) {
 }
 
 function buildSeoFolderRoute(config = {}) {
-  const citySlug = toAsciiSlug(config.city || "by", 80) || "by";
+  const citySlug = toAsciiSlug(config.citySlug || config.displayCityName || config.cityName || config.city || "by", 80) || "by";
   const businessSlug = toAsciiSlug(config.subdomain || config.businessSlug || config.businessName || "restaurant", 120) || "restaurant";
   const routePath = `/${citySlug}/${businessSlug}/`;
   return {
@@ -342,7 +342,7 @@ function parsePageCount(value, fallback = 50) {
 function buildSeoLandingPages(config, count) {
   const businessName = sanitizeString(config?.businessName || "Restaurant", 140) || "Restaurant";
   const cuisineType = sanitizeString(config?.cuisineType || "Restaurant", 80) || "Restaurant";
-  const city = sanitizeString(config?.city || "Kobenhavn", 80) || "Kobenhavn";
+  const city = sanitizeString(config?.displayCityName || config?.cityName || config?.city || "København", 80) || "København";
   const keyword = sanitizeString(config?.keyword || `bedste ${String(cuisineType).toLowerCase()} i ${city}`, 120);
   const route = buildSeoFolderRoute(config);
   const title = sanitizeString(`${businessName} | ${keyword}`, 220);
@@ -356,12 +356,16 @@ function buildSeoLandingPages(config, count) {
     slug: `${route.citySlug}/${route.businessSlug}`,
     citySlug: route.citySlug,
     businessSlug: route.businessSlug,
+    cityName: city,
+    displayCityName: city,
+    businessName,
+    displayBusinessName: businessName,
     outputPath: route.outputPath,
     keyword,
     title,
     metaDescription,
     h1: sanitizeString(`${businessName} - ${keyword}`, 220),
-    h2: sanitizeString(`Hvorfor vaelge ${businessName} i ${city}?`, 220),
+    h2: sanitizeString(`Hvorfor vælge ${businessName} i ${city}?`, 220),
     h3: sanitizeString(`Bestil ${String(cuisineType).toLowerCase()} online i ${city}`, 220),
     canonicalPath: route.routePath
   }];
@@ -467,6 +471,8 @@ async function invalidateSeoGatewayCache({ citySlug, businessSlug }) {
 async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activatedByUid }) {
   const subdomain = sanitizeString(config?.subdomain || "", 120);
   const businessName = sanitizeString(config?.businessName || "", 140);
+  const displayBusinessName = sanitizeString(config?.displayBusinessName || config?.businessName || "", 140);
+  const cityName = sanitizeString(config?.displayCityName || config?.cityName || config?.city || "", 80);
   const description = sanitizeString(config?.description || "", 800);
   const selectedTemplate = sanitizeString(config?.selectedTemplate || "classic", 60) || "classic";
   const pageCount = parsePageCount(config?.pageCount, 50);
@@ -487,12 +493,16 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
     subdomain,
     citySlug: route.citySlug,
     businessSlug: route.businessSlug,
+    cityName: cityName || route.citySlug,
+    displayCityName: cityName || route.citySlug,
+    businessName: displayBusinessName || businessName || subdomain,
+    displayBusinessName: displayBusinessName || businessName || subdomain,
     routePath: route.routePath,
     outputPath: route.outputPath,
     template: selectedTemplate,
     brandMode: "madkontrollen_default",
     logoUrl: logoDataUrl || null,
-    heroTitle: businessName || subdomain,
+    heroTitle: displayBusinessName || businessName || subdomain,
     heroText: description || "Autogenereret website fra SEO-generator.",
     heroImageUrl: sanitizeString(config?.heroImageUrl || "", 2000) || null,
     ctaText: sanitizeString(config?.ctaText || "", 120) || null,
@@ -525,6 +535,10 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
       subdomain,
       citySlug: page.citySlug || route.citySlug,
       businessSlug: page.businessSlug || route.businessSlug,
+      cityName: page.cityName || cityName || route.citySlug,
+      displayCityName: page.displayCityName || cityName || route.citySlug,
+      businessName: page.businessName || displayBusinessName || businessName || subdomain,
+      displayBusinessName: page.displayBusinessName || displayBusinessName || businessName || subdomain,
       outputPath: page.outputPath || route.outputPath,
       slug: page.slug,
       url: `https://madkontrollen.dk${page.canonicalPath}`,
@@ -6729,8 +6743,11 @@ exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) =>
       organizationId: companyId,
       locationId,
       businessName: sanitizeString(config?.businessName || "", 140),
+      displayBusinessName: sanitizeString(config?.displayBusinessName || config?.businessName || "", 140),
       subdomain,
       city: sanitizeString(config?.city || "", 80),
+      cityName: sanitizeString(config?.cityName || config?.city || "", 80),
+      displayCityName: sanitizeString(config?.displayCityName || config?.cityName || config?.city || "", 80),
       cuisineType: sanitizeString(config?.cuisineType || "", 80),
       offerings: sanitizeString(config?.offerings || "", 240),
       keyword: sanitizeString(config?.keyword || "", 140),

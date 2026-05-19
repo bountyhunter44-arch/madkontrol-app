@@ -6,9 +6,12 @@ export function slugifySeoPathPart(value, fallback = "restaurant") {
   const normalized = String(value || "")
     .trim()
     .toLowerCase()
-    .replace(/æ/g, "ae")
-    .replace(/ø/g, "oe")
-    .replace(/å/g, "aa")
+    .replace(/\u00e6/g, "ae")
+    .replace(/\u00f8/g, "oe")
+    .replace(/\u00e5/g, "aa")
+    .replace(/Ã¦/g, "ae")
+    .replace(/Ã¸/g, "oe")
+    .replace(/Ã¥/g, "aa")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
@@ -25,7 +28,9 @@ export function buildSeoOutputPath({ citySlug, businessSlug, file = "index.html"
 }
 
 function buildSeoRoute(config) {
-  const citySlug = slugifySeoPathPart(config?.city, "by");
+  const cityName = String(config?.displayCityName || config?.cityName || config?.city || "").trim();
+  const businessName = String(config?.displayBusinessName || config?.businessName || "").trim();
+  const citySlug = slugifySeoPathPart(config?.citySlug || cityName, "by");
   const businessSlug = slugifySeoPathPart(config?.subdomain || config?.businessSlug || config?.businessName, "restaurant");
   const routePath = `/${citySlug}/${businessSlug}/`;
   const canonicalUrl = `${SITE_ORIGIN}${routePath}`;
@@ -33,6 +38,10 @@ function buildSeoRoute(config) {
   return {
     citySlug,
     businessSlug,
+    cityName,
+    displayCityName: cityName,
+    businessName,
+    displayBusinessName: businessName,
     routePath,
     canonicalUrl,
     outputBasePath: `${citySlug}/${businessSlug}`
@@ -62,13 +71,9 @@ export function generateWebsiteFiles(config) {
   };
 }
 
-// ======================
-// PAGES
-// ======================
-
 function generateMainPage(config, route) {
-  const city = config.city || "";
-  const businessName = config.businessName || "";
+  const city = route.displayCityName || config.displayCityName || config.cityName || config.city || "";
+  const businessName = route.displayBusinessName || config.displayBusinessName || config.businessName || "";
   const cuisineType = config.cuisineType || "Restaurant";
   const description = config.description || "";
   const seoNarrative = config.seoNarrative || description;
@@ -93,20 +98,12 @@ function generateMainPage(config, route) {
 `;
 }
 
-// ======================
-// SITEMAP
-// ======================
-
 function generateSitemap(route) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${route.canonicalUrl}</loc></url>
 </urlset>`;
 }
-
-// ======================
-// ROBOTS
-// ======================
 
 function generateRobots(route) {
   return `User-agent: *

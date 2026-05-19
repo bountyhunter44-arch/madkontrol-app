@@ -19,6 +19,12 @@ export function slugifySeoPathPart(value, fallback = "") {
     .replace(/æ/g, "ae")
     .replace(/ø/g, "oe")
     .replace(/å/g, "aa")
+    .replace(/æ/g, "ae")
+    .replace(/ø/g, "oe")
+    .replace(/å/g, "aa")
+    .replace(/\u00e6/g, "ae")
+    .replace(/\u00f8/g, "oe")
+    .replace(/\u00e5/g, "aa")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
@@ -136,6 +142,12 @@ function escapeHtml(value) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function displayFallback(...values) {
+  return values
+    .map((value) => String(value || "").trim())
+    .find(Boolean) || "";
 }
 
 function getCacheVersion(websiteDoc = {}) {
@@ -267,9 +279,24 @@ ${[...urls].map((url) => `<url><loc>${url}</loc></url>`).join("\n")}
 export function renderSeoHtml({ website, page, parsed }) {
   const websiteDoc = website || {};
   const pageDoc = page || {};
-  const title = escapeHtml(pageDoc.title || websiteDoc.heroTitle || parsed.businessSlug);
+  const displayBusinessName = displayFallback(
+    pageDoc.displayBusinessName,
+    websiteDoc.displayBusinessName,
+    pageDoc.businessName,
+    websiteDoc.businessName,
+    websiteDoc.heroTitle,
+    parsed.businessSlug
+  );
+  const displayCityName = displayFallback(
+    pageDoc.displayCityName,
+    websiteDoc.displayCityName,
+    pageDoc.cityName,
+    websiteDoc.cityName,
+    parsed.citySlug
+  );
+  const title = escapeHtml(pageDoc.title || websiteDoc.heroTitle || displayBusinessName);
   const metaDescription = escapeHtml(pageDoc.metaDescription || websiteDoc.heroText || "");
-  const h1 = escapeHtml(pageDoc.h1 || websiteDoc.heroTitle || parsed.businessSlug);
+  const h1 = escapeHtml(pageDoc.h1 || websiteDoc.heroTitle || displayBusinessName);
   const intro = escapeHtml(pageDoc.bodyText || pageDoc.metaDescription || websiteDoc.heroText || "");
   const canonicalUrl = escapeHtml(parsed.canonicalUrl);
   const heroImage = escapeHtml(websiteDoc.heroImageUrl || "");
@@ -278,6 +305,8 @@ export function renderSeoHtml({ website, page, parsed }) {
   const themeAccent = escapeHtml(websiteDoc.themeAccent || "#b91c1c");
   const phone = escapeHtml(websiteDoc.phone || "");
   const address = escapeHtml(websiteDoc.address || "");
+  const cityLabel = escapeHtml(displayCityName);
+  const h2 = escapeHtml(pageDoc.h2 || (displayCityName ? `Velkommen til ${displayBusinessName} i ${displayCityName}` : "Velkommen"));
 
   return `<!DOCTYPE html>
 <html lang="da">
@@ -309,11 +338,12 @@ body{margin:0;font-family:Inter,Arial,sans-serif;color:#1f2937;background:#f7f7f
   </section>
   <section class="content">
     <div class="panel">
-      <h2>${escapeHtml(pageDoc.h2 || "Velkommen")}</h2>
+      <h2>${h2}</h2>
       <p>${intro}</p>
       <div class="meta">
         ${phone ? `<span class="pill">Telefon: ${phone}</span>` : ""}
         ${address ? `<span class="pill">Adresse: ${address}</span>` : ""}
+        ${cityLabel ? `<span class="pill">By: ${cityLabel}</span>` : ""}
       </div>
     </div>
   </section>
