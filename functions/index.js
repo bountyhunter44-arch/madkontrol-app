@@ -262,13 +262,13 @@ function toAsciiSlug(value, maxLen = 120) {
 function buildSeoFolderRoute(config = {}) {
   const citySlug = toAsciiSlug(config.citySlug || config.displayCityName || config.cityName || config.city || "by", 80) || "by";
   const businessSlug = toAsciiSlug(config.subdomain || config.businessSlug || config.businessName || "restaurant", 120) || "restaurant";
-  const routePath = `/${citySlug}/${businessSlug}/`;
+  const routePath = "/";
   return {
     citySlug,
     businessSlug,
     routePath,
-    outputPath: `${citySlug}/${businessSlug}/index.html`,
-    canonicalUrl: `https://madkontrollen.dk${routePath}`
+    outputPath: `${businessSlug}/index.html`,
+    canonicalUrl: `https://${businessSlug}.madkontrollen.dk/`
   };
 }
 
@@ -451,6 +451,156 @@ function buildSeoPublishedPages(config, count) {
   }
 
   return pages.concat([...cityPages.values()]);
+}
+
+function firstSeoValue(...values) {
+  for (const value of values) {
+    const text = sanitizeString(value || "", 500);
+    if (text) return text;
+  }
+  return "";
+}
+
+function buildSeoAddressFromDoc(data = {}) {
+  const address = firstSeoValue(data.address, data.companyAddress, data.streetAddress);
+  const postal = firstSeoValue(data.postalCode, data.zip);
+  const city = firstSeoValue(data.city, data.by);
+  return [address, [postal, city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+}
+
+function mapQuickIndustryToSeoCuisine(value) {
+  const raw = sanitizeString(value || "", 120);
+  const key = raw.toLowerCase();
+  const map = {
+    restaurant: "Klassisk dansk restaurant",
+    cafe: "Cafe",
+    "café": "Cafe",
+    takeaway: "Takeaway",
+    ice_shop: "Isbutik",
+    bakery: "Bageri og konditori",
+    kiosk: "Takeaway",
+    catering: "Catering",
+    other: "Restaurant"
+  };
+  return map[key] || raw || "Restaurant";
+}
+
+async function readSeoDoc(ref) {
+  try {
+    const snap = await ref.get();
+    return snap.exists ? (snap.data() || {}) : {};
+  } catch (error) {
+    logger.warn("SEO publish source read failed", { error: error?.message || String(error) });
+    return {};
+  }
+}
+
+async function buildSeoPublishConfigFromFirestore({ companyId, locationId, overrides = {}, baseConfig = {} }) {
+  const liveId = `${companyId}__${locationId}__live_profile`;
+  const [company, locationRoot, locationNested, live] = await Promise.all([
+    readSeoDoc(db.collection("companies").doc(companyId)),
+    readSeoDoc(db.collection("locations").doc(locationId)),
+    readSeoDoc(db.collection("companies").doc(companyId).collection("locations").doc(locationId)),
+    readSeoDoc(db.collection("live_user_profiles").doc(liveId))
+  ]);
+
+  const location = { ...locationRoot, ...locationNested };
+  const liveProfile = live.profile || {};
+  const merged = { ...(baseConfig || {}), ...(overrides || {}) };
+  const businessName = firstSeoValue(
+    merged.businessName,
+    liveProfile.companyName,
+    liveProfile.profileCompanyName,
+    liveProfile.name,
+    company.companyName,
+    company.name,
+    company.displayName,
+    location.companyName,
+    location.name,
+    "Restaurant"
+  );
+  const city = firstSeoValue(
+    merged.city,
+    merged.displayCityName,
+    liveProfile.city,
+    company.city,
+    location.city,
+    "Kobenhavn"
+  );
+  const cuisineType = mapQuickIndustryToSeoCuisine(firstSeoValue(
+    merged.cuisineType,
+    liveProfile.kitchenType,
+    liveProfile.businessType,
+    liveProfile.companyType,
+    company.kitchenType,
+    company.businessType,
+    company.industry,
+    location.kitchenType,
+    location.businessType,
+    "Restaurant"
+  ));
+  const offerings = firstSeoValue(
+    merged.offerings,
+    liveProfile.offerings,
+    liveProfile.description,
+    liveProfile.businessDescription,
+    company.offerings,
+    company.description,
+    company.industryText,
+    cuisineType
+  );
+  const keyword = firstSeoValue(
+    merged.keyword,
+    cuisineType && city ? `${cuisineType} ${city}` : "",
+    businessName && city ? `${businessName} ${city}` : ""
+  );
+  const description = firstSeoValue(
+    merged.description,
+    liveProfile.description,
+    liveProfile.businessDescription,
+    company.description,
+    company.industryText,
+    offerings ? `${businessName} tilbyder ${offerings}${city ? ` i ${city}` : ""}.` : ""
+  );
+  const address = firstSeoValue(
+    merged.address,
+    buildSeoAddressFromDoc(liveProfile),
+    buildSeoAddressFromDoc(company),
+    buildSeoAddressFromDoc(location)
+  );
+  const phone = firstSeoValue(
+    merged.phone,
+    liveProfile.phone,
+    liveProfile.phoneNumber,
+    liveProfile.companyPhone,
+    company.phone,
+    company.phoneNumber,
+    location.phone,
+    location.phoneNumber
+  );
+  const subdomain = toAsciiSlug(merged.subdomain || businessName, 120) || "restaurant";
+
+  return {
+    ...merged,
+    businessName,
+    displayBusinessName: firstSeoValue(merged.displayBusinessName, businessName),
+    subdomain,
+    city,
+    cityName: city,
+    displayCityName: firstSeoValue(merged.displayCityName, city),
+    cuisineType,
+    offerings,
+    keyword,
+    phone,
+    address,
+    description,
+    selectedTemplate: sanitizeString(merged.selectedTemplate || merged.design || "classic", 80) || "classic",
+    pageCount: parsePageCount(merged.pageCount, 50),
+    theme: merged.theme || {},
+    heroImageUrl: sanitizeString(merged.heroImageUrl || "", 2000),
+    ctaText: sanitizeString(merged.ctaText || "", 120),
+    ctaUrl: sanitizeString(merged.ctaUrl || "", 500)
+  };
 }
 
 function getSeoGatewayInvalidateConfig() {
@@ -6992,6 +7142,7 @@ exports.finalizeSeoCheckoutProvisioning = functions.https.onCall(async (data, co
     websiteId: result.websiteId,
     generatedPages: result.generatedPages,
     subdomain: result.subdomain,
+    liveUrl: `https://${result.businessSlug || result.subdomain}.madkontrollen.dk/`,
     cacheInvalidation: result.cacheInvalidation
   };
 });
@@ -7008,14 +7159,24 @@ exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
   await assertAdminAccess({ uid: context.auth.uid, email: context.auth.token?.email || "", companyId, locationId });
 
   // Use provided inline config or load saved config from Firestore
-  let config = data?.config || null;
-  if (!config) {
+  let baseConfig = {};
+  const overrides = data?.overrides && typeof data.overrides === "object"
+    ? data.overrides
+    : (data?.config && typeof data.config === "object" ? data.config : {});
+  if (data?.configId) {
     const configId = sanitizeString(data?.configId || "", 180);
     if (!configId) throw new functions.https.HttpsError("invalid-argument", "config eller configId er påkrævet.");
     const snap = await db.collection("seo_generator_configs").doc(configId).get();
     if (!snap.exists) throw new functions.https.HttpsError("not-found", "Generator-konfiguration ikke fundet.");
-    config = snap.data();
+    baseConfig = snap.data() || {};
   }
+
+  const config = await buildSeoPublishConfigFromFirestore({
+    companyId,
+    locationId,
+    baseConfig,
+    overrides
+  });
 
   const result = await upsertWebsiteAndSeoPages({ companyId, locationId, config, activatedByUid: context.auth.uid });
 

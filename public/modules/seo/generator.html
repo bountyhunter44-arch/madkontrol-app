@@ -515,7 +515,6 @@ import { setupAuthGate } from "/core/auth.js";
 import app, { db, auth } from "/core/firebase-config.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { runGenerator } from "/modules/seo/generator/generator-runner.js";
 import { buildSeoOutputPath, slugifySeoPathPart } from "/modules/seo/generator/generator-core.js";
 
 let selectedTemplate = "classic";
@@ -534,6 +533,7 @@ const createStripeCheckoutSession = httpsCallable(functionsClient, "createStripe
 const checkSubdomainAvailability = httpsCallable(functionsClient, "checkSubdomainAvailability");
 const saveSeoGeneratorConfig = httpsCallable(functionsClient, "saveSeoGeneratorConfig");
 const finalizeSeoCheckoutProvisioning = httpsCallable(functionsClient, "finalizeSeoCheckoutProvisioning");
+const adminActivateSeoSiteCallable = httpsCallable(functionsClient, "adminActivateSeoSite");
 const searchRestaurantImagesCallable = httpsCallable(functionsClient, "searchRestaurantImages");
 const saveRestaurantHeroImageCallable = httpsCallable(functionsClient, "saveRestaurantHeroImage");
 const enhanceAndUploadRestaurantImageCallable = httpsCallable(functionsClient, "enhanceAndUploadRestaurantImage");
@@ -1215,6 +1215,64 @@ async function persistConfig(silent){
   }
 }
 
+function buildSeoPublishOverrides(){
+  const config=getGeneratorConfig();
+  return {
+    pageCount: config.pageCount,
+    selectedTemplate,
+    design: selectedTemplate,
+    theme: config.theme,
+    businessName: config.businessName,
+    displayBusinessName: config.displayBusinessName,
+    subdomain: config.subdomain,
+    city: config.city,
+    cityName: config.cityName,
+    displayCityName: config.displayCityName,
+    cuisineType: config.cuisineType,
+    offerings: config.offerings,
+    keyword: config.keyword,
+    phone: config.phone,
+    address: config.address,
+    description: config.description,
+    websiteUrl: config.websiteUrl,
+    ctaText: config.ctaText,
+    ctaUrl: config.ctaUrl,
+    heroImageUrl: config.heroImageUrl,
+    logoPosition: config.logoPosition
+  };
+}
+
+async function publishSeoSiteFromGenerator(){
+  const companyId=currentCompanyId || getSessionCompanyId();
+  const locationId=currentLocationId || getSessionLocationId();
+  if(!companyId || !locationId){
+    throw new Error("companyId/locationId mangler for SEO publish.");
+  }
+  if(!await getAuthToken()){
+    throw new Error("Log ind for at publicere SEO-siden.");
+  }
+
+  const overrides=buildSeoPublishOverrides();
+  console.debug("[seo publish request]", {
+    companyId,
+    locationId,
+    pageCount: overrides.pageCount,
+    design: overrides.design,
+    restaurantName: overrides.businessName,
+    subdomain: overrides.subdomain
+  });
+
+  const response=await adminActivateSeoSiteCallable({
+    companyId,
+    locationId,
+    pageCount: overrides.pageCount,
+    design: overrides.design,
+    overrides
+  });
+
+  return response?.data || {};
+}
+
 async function checkSubdomainLive(rawValue){
   const cleaned=slugify(rawValue || "");
   const input=document.getElementById("subdomain");
@@ -1863,7 +1921,7 @@ function fillFromCore(){
   lastAutoSubdomain = slugify(coreSignupData.subdomain || "");
   generateSite();
 }
-async function generateSite(shouldPersist = false){
+async function generateSite(shouldPersist = false, options = {}){
   console.log("ENTER generateSite - shouldPersist:", shouldPersist);
   renderModules();
   const config=getGeneratorConfig();
@@ -1978,32 +2036,25 @@ async function generateSite(shouldPersist = false){
     
     console.log("generateSite: returning success");
   } else {
-    console.log("generateSite: preview only - skipping subdomain check and persist");
+    if(!options.silent) console.log("generateSite: preview only - skipping subdomain check and persist");
   }
 }
 
 async function generateAndSave(){
+  const btn=document.getElementById("generateBtn");
   try {
-    const config = getGeneratorConfig();
-    
-    const result = runGenerator(config);
-    const outputCount = result?.pages && typeof result.pages === "object" ? Object.keys(result.pages).length : 0;
-    
-    console.log("GENERATED RESULT:", result);
-    
-    if (typeof setGeneratorStatus === "function") {
-      setGeneratorStatus(
-        `✓ Genereret ${outputCount} preview-filer i memory + sitemap + robots`,
-        false
-      );
-    }
-    
+    if(btn) btn.disabled=true;
+    setGeneratorStatus("Publicerer SEO-site til Firestore...",false);
+    await generateSite(false,{silent:true});
+    const result=await publishSeoSiteFromGenerator();
+    console.log("[seo publish success]", result);
+    const liveUrl=result.liveUrl || `https://${result.businessSlug || result.subdomain}.madkontrollen.dk/`;
+    setGeneratorStatus(`✓ SEO-site publiceret: ${liveUrl}`,false);
   } catch (err) {
-    console.error("Generator fejl:", err);
-    
-    if (typeof setGeneratorStatus === "function") {
-      setGeneratorStatus("❌ Fejl i generator – se console", true);
-    }
+    console.error("[seo publish error]", err);
+    setGeneratorStatus(err?.message || "SEO publish fejlede. Se console.", true);
+  } finally {
+    if(btn) btn.disabled=false;
   }
 }
 window.generateAndSave=generateAndSave;
