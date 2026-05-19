@@ -103,16 +103,52 @@ const db = createDb({
     heroText: "Thai restaurant i Ørnhøj"
   }],
   seo_pages: [{
-    id: "page_1",
+    id: "page_root",
     websiteId: "site_1",
     status: "published",
     ordering: 1,
+    pageType: "business_root",
+    routePath: "/",
+    canonicalPath: "/",
+    outputPath: "aroi-d/index.html",
+    slug: "root",
+    businessSlug: "aroi-d",
+    title: "Aroi-D",
+    h1: "Aroi-D",
+    metaDescription: "Aroi-D business root",
+    bodyText: "Business root content"
+  }, {
+    id: "page_1",
+    websiteId: "site_1",
+    status: "published",
+    ordering: 2,
+    pageType: "city_landing",
+    routePath: "/herning/",
+    citySlug: "herning",
+    businessSlug: "aroi-d",
     outputPath: "herning/aroi-d/index.html",
     slug: "herning/aroi-d",
     canonicalPath: "/herning/aroi-d/",
+    bodyText: "Herning city landing content",
     title: "Aroi-D | Thai restaurant i Ørnhøj",
     h1: "Thai restaurant i Ørnhøj",
     metaDescription: "Autentisk Thai restaurant i Ørnhøj"
+  }, {
+    id: "page_oernhoej",
+    websiteId: "site_1",
+    status: "published",
+    ordering: 3,
+    pageType: "city_landing",
+    routePath: "/oernhoej/",
+    outputPath: "oernhoej/aroi-d/index.html",
+    slug: "oernhoej",
+    canonicalPath: "/oernhoej/",
+    citySlug: "oernhoej",
+    businessSlug: "aroi-d",
+    title: "Aroi-D i Oernhoej",
+    h1: "Aroi-D i Oernhoej",
+    metaDescription: "Aroi-D city landing for Oernhoej",
+    bodyText: "Oernhoej unique city landing content"
   }]
 });
 
@@ -172,6 +208,8 @@ const htmlResponse = await resolveSeoResponse({
   logger: { info() {}, error() {}, warn() {} }
 });
 assert.equal(htmlResponse.status, 200);
+assert.match(htmlResponse.body, /Herning city landing content/);
+assert.doesNotMatch(htmlResponse.body, /Business root content/);
 assert.match(htmlResponse.body, /Thai restaurant i Ørnhøj/);
 assert.match(htmlResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\/herning\//);
 
@@ -183,6 +221,8 @@ const businessRootResponse = await resolveSeoResponse({
   logger: { info() {}, error() {}, warn() {} }
 });
 assert.equal(businessRootResponse.status, 200);
+assert.match(businessRootResponse.body, /Business root content/);
+assert.doesNotMatch(businessRootResponse.body, /Herning city landing content/);
 assert.match(businessRootResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\//);
 
 const legacyResponse = await resolveSeoResponse({
@@ -206,6 +246,8 @@ const xmlResponse = await resolveSeoResponse({
 assert.equal(xmlResponse.contentType, "application/xml; charset=utf-8");
 assert.match(xmlResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\//);
 assert.match(xmlResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\/herning\//);
+assert.match(xmlResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\/oernhoej\//);
+assert.doesNotMatch(xmlResponse.body, /\.html/);
 
 const robotsResponse = await resolveSeoResponse({
   db,

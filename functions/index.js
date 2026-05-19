@@ -371,6 +371,88 @@ function buildSeoLandingPages(config, count) {
   }];
 }
 
+function buildSeoPublishedPages(config, count) {
+  const businessName = sanitizeString(config?.businessName || "Restaurant", 140) || "Restaurant";
+  const cuisineType = sanitizeString(config?.cuisineType || "Restaurant", 80) || "Restaurant";
+  const city = sanitizeString(config?.displayCityName || config?.cityName || config?.city || "Koebenhavn", 80) || "Koebenhavn";
+  const keyword = sanitizeString(config?.keyword || `bedste ${String(cuisineType).toLowerCase()} i ${city}`, 120);
+  const route = buildSeoFolderRoute(config);
+  const pages = [];
+  const rootDescription = sanitizeString(
+    config?.description || `${businessName}. ${keyword}. Book bord eller bestil online.`,
+    800
+  );
+
+  pages.push({
+    sourceTitle: businessName,
+    slug: "root",
+    routePath: "/",
+    canonicalPath: "/",
+    pageType: "business_root",
+    citySlug: "",
+    businessSlug: route.businessSlug,
+    cityName: "",
+    displayCityName: "",
+    businessName,
+    displayBusinessName: businessName,
+    outputPath: `${route.businessSlug}/index.html`,
+    keyword,
+    title: sanitizeString(businessName, 220),
+    metaDescription: sanitizeString(rootDescription, 320),
+    h1: sanitizeString(businessName, 220),
+    h2: sanitizeString(`Velkommen til ${businessName}`, 220),
+    h3: sanitizeString(`Bestil ${String(cuisineType).toLowerCase()} online`, 220),
+    bodyText: rootDescription,
+    content: rootDescription
+  });
+
+  const cityPages = new Map();
+  const addCityPage = (source = {}) => {
+    const displayCityName = sanitizeString(source.displayCityName || source.cityName || source.city || city, 80) || city;
+    const citySlug = toAsciiSlug(source.citySlug || displayCityName, 80) || route.citySlug;
+    if (!citySlug || cityPages.has(citySlug)) return;
+
+    const pageKeyword = sanitizeString(source.keyword || keyword || `${String(cuisineType).toLowerCase()} i ${displayCityName}`, 140);
+    const pageDescription = sanitizeString(
+      source.bodyText || source.content || source.metaDescription ||
+        `${businessName} i ${displayCityName}. ${pageKeyword}. Book bord eller bestil online.`,
+      800
+    );
+
+    cityPages.set(citySlug, {
+      sourceTitle: sanitizeString(source.sourceTitle || `${businessName} i ${displayCityName}`, 220),
+      slug: citySlug,
+      routePath: `/${citySlug}/`,
+      canonicalPath: `/${citySlug}/`,
+      pageType: "city_landing",
+      citySlug,
+      businessSlug: route.businessSlug,
+      cityName: displayCityName,
+      displayCityName,
+      businessName,
+      displayBusinessName: businessName,
+      outputPath: `${citySlug}/${route.businessSlug}/index.html`,
+      keyword: pageKeyword,
+      title: sanitizeString(source.title || `${businessName} i ${displayCityName}`, 220),
+      metaDescription: sanitizeString(source.metaDescription || pageDescription, 320),
+      h1: sanitizeString(source.h1 || `${businessName} i ${displayCityName}`, 220),
+      h2: sanitizeString(source.h2 || `Hvorfor vælge ${businessName} i ${displayCityName}?`, 220),
+      h3: sanitizeString(source.h3 || `Bestil ${String(cuisineType).toLowerCase()} online i ${displayCityName}`, 220),
+      bodyText: pageDescription,
+      content: pageDescription
+    });
+  };
+
+  addCityPage({ citySlug: route.citySlug, displayCityName: city });
+  if (Array.isArray(config?.landingPages)) {
+    config.landingPages.slice(0, count).forEach((page) => {
+      if (page?.citySlug || page?.displayCityName || page?.cityName || page?.city) addCityPage(page);
+    });
+  }
+
+  return pages.concat([...cityPages.values()]);
+}
+
 function getSeoGatewayInvalidateConfig() {
   let functionsConfig = {};
   try {
@@ -521,7 +603,7 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
     activatedBy: activatedByUid
   }, { merge: true });
 
-  const pages = buildSeoLandingPages(config, pageCount);
+  const pages = buildSeoPublishedPages(config, pageCount);
   const batch = db.batch();
 
   pages.forEach((page, index) => {
@@ -539,15 +621,19 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
       displayCityName: page.displayCityName || cityName || route.citySlug,
       businessName: page.businessName || displayBusinessName || businessName || subdomain,
       displayBusinessName: page.displayBusinessName || displayBusinessName || businessName || subdomain,
+      pageType: page.pageType || "city_landing",
+      routePath: page.routePath || page.canonicalPath || route.routePath,
       outputPath: page.outputPath || route.outputPath,
       slug: page.slug,
-      url: `https://madkontrollen.dk${page.canonicalPath}`,
+      url: `https://${route.businessSlug}.madkontrollen.dk${page.canonicalPath}`,
       keyword: page.keyword,
       title: page.title,
       metaDescription: page.metaDescription,
       h1: page.h1,
       h2: page.h2,
       h3: page.h3,
+      bodyText: page.bodyText || page.content || page.metaDescription || "",
+      content: page.content || page.bodyText || page.metaDescription || "",
       canonicalPath: page.canonicalPath,
       sourceTitle: page.sourceTitle,
       ordering: index + 1,
@@ -6763,13 +6849,25 @@ exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) =>
       ctaText: sanitizeString(config?.ctaText || "", 120),
       ctaUrl: sanitizeString(config?.ctaUrl || "", 500),
       landingPages: Array.isArray(config?.landingPages) ? config.landingPages.slice(0, 200).map(p => ({
+        pageType:      sanitizeString(p?.pageType || "", 80),
+        slug:          sanitizeString(p?.slug || "", 180),
+        routePath:     sanitizeString(p?.routePath || "", 220),
         canonicalPath: sanitizeString(p?.canonicalPath || "", 220),
+        outputPath:    sanitizeString(p?.outputPath || "", 260),
+        citySlug:      sanitizeString(p?.citySlug || "", 100),
+        businessSlug:  sanitizeString(p?.businessSlug || "", 120),
+        cityName:      sanitizeString(p?.cityName || "", 120),
+        displayCityName: sanitizeString(p?.displayCityName || "", 120),
+        businessName:  sanitizeString(p?.businessName || "", 160),
+        displayBusinessName: sanitizeString(p?.displayBusinessName || "", 160),
         keyword:       sanitizeString(p?.keyword || "", 140),
         title:         sanitizeString(p?.title || "", 220),
         h1:            sanitizeString(p?.h1 || "", 220),
         h2:            sanitizeString(p?.h2 || "", 220),
         h3:            sanitizeString(p?.h3 || "", 220),
-        metaDescription: sanitizeString(p?.metaDescription || "", 320)
+        metaDescription: sanitizeString(p?.metaDescription || "", 320),
+        bodyText:      sanitizeString(p?.bodyText || "", 1200),
+        content:       sanitizeString(p?.content || "", 1200)
       })) : [],
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: context.auth?.uid || null,

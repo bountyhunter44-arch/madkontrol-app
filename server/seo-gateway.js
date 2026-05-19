@@ -245,11 +245,19 @@ async function loadSeoPages(db, websiteId) {
 }
 
 function findPrimaryPage(pages, parsed) {
-  return pages.find((page) => page.outputPath === parsed.virtualOutputPath)
-    || pages.find((page) => page.canonicalPath === `/${parsed.citySlug}/${parsed.businessSlug}/`)
-    || pages.find((page) => page.slug === `${parsed.citySlug}/${parsed.businessSlug}`)
-    || pages.find((page) => !parsed.citySlug && page.businessSlug === parsed.businessSlug)
-    || pages[0]
+  if (!Array.isArray(pages) || !parsed?.businessSlug) return null;
+
+  if (!parsed.citySlug) {
+    return pages.find((page) => page.pageType === "business_root")
+      || pages.find((page) => page.routePath === "/" || page.canonicalPath === "/")
+      || pages.find((page) => page.outputPath === parsed.virtualOutputPath)
+      || null;
+  }
+
+  const cityPath = `/${parsed.citySlug}/`;
+  return pages.find((page) => page.pageType === "city_landing" && page.citySlug === parsed.citySlug)
+    || pages.find((page) => page.routePath === cityPath || page.canonicalPath === cityPath)
+    || pages.find((page) => page.outputPath === parsed.virtualOutputPath)
     || null;
 }
 
@@ -261,13 +269,23 @@ Sitemap: ${buildPrimaryCanonicalUrl({ businessSlug: parsed.businessSlug, pathTyp
 `;
 }
 
-export function buildSitemapResponse(parsed, website = {}) {
-  const urls = new Set([
-    buildPrimaryCanonicalUrl({ businessSlug: parsed.businessSlug })
-  ]);
-  const websiteCitySlug = slugifySeoPathPart(website.citySlug || parsed.citySlug);
-  if (websiteCitySlug) {
-    urls.add(buildPrimaryCanonicalUrl({ businessSlug: parsed.businessSlug, citySlug: websiteCitySlug }));
+export function buildSitemapResponse(parsed, website = {}, pages = []) {
+  const urls = new Set();
+  const publishedPages = Array.isArray(pages) ? pages : [];
+
+  publishedPages.forEach((page) => {
+    const routePath = String(page.routePath || page.canonicalPath || "").trim();
+    if (!routePath || routePath.includes(".html")) return;
+    if (!["business_root", "city_landing", "service_landing", "location_landing"].includes(String(page.pageType || ""))) return;
+    urls.add(`https://${parsed.businessSlug}.${ALLOWED_ROOT_DOMAIN}${routePath.startsWith("/") ? routePath : `/${routePath}`}`);
+  });
+
+  if (!urls.size) {
+    urls.add(buildPrimaryCanonicalUrl({ businessSlug: parsed.businessSlug }));
+    const websiteCitySlug = slugifySeoPathPart(website.citySlug || parsed.citySlug);
+    if (websiteCitySlug) {
+      urls.add(buildPrimaryCanonicalUrl({ businessSlug: parsed.businessSlug, citySlug: websiteCitySlug }));
+    }
   }
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -444,10 +462,11 @@ export async function resolveSeoResponse({ db, host, path, query = {}, logger = 
   }
 
   if (parsed.pathType === "sitemap") {
+    const pages = await loadSeoPages(db, website.id);
     const response = {
       status: 200,
       contentType: "application/xml; charset=utf-8",
-      body: buildSitemapResponse(parsed, website.data)
+      body: buildSitemapResponse(parsed, website.data, pages)
     };
     setCached(cacheKey, response);
     return { ...response, parsed };
@@ -455,6 +474,15 @@ export async function resolveSeoResponse({ db, host, path, query = {}, logger = 
 
   const pages = await loadSeoPages(db, website.id);
   const page = findPrimaryPage(pages, parsed);
+  if (!page) {
+    const response = {
+      status: 404,
+      contentType: "text/html; charset=utf-8",
+      body: renderNotFound(parsed)
+    };
+    setCached(cacheKey, response);
+    return { ...response, parsed };
+  }
   const response = {
     status: 200,
     contentType: "text/html; charset=utf-8",
