@@ -1365,6 +1365,10 @@ if (locationLabelEl) {
     }
 
     function getContextGuide(alertItem) {
+      if (isCoolingDeviation(alertItem)) {
+        return null;
+      }
+
       const searchable = [
         getAreaName(alertItem),
         getAreaType(alertItem),
@@ -1462,6 +1466,8 @@ if (locationLabelEl) {
 
     function renderContextGuide(alertItem) {
       const guide = getContextGuide(alertItem);
+      if (!guide) return "";
+
       return `
         <details class="context-guide">
           <summary class="context-guide-summary">Udførlig guide til område/maskine</summary>
@@ -1517,6 +1523,10 @@ if (locationLabelEl) {
     }
 
     function getCorrectiveActionLabel(actionType) {
+      if (actionType === "cooling_discarded") return "Fødevaren kasseret";
+      if (actionType === "cooling_reheated") return "Fødevaren genopvarmet og nedkølet igen";
+      if (actionType === "cooling_assessed_safe") return "Fødevaren vurderet sikker";
+      if (actionType === "cooling_process_adjusted") return "Nedkølingsmetode korrigeret";
       if (actionType === "out_of_service") return "Enhed taget ud af drift";
       if (actionType === "cleaned_unit") return "Enhed rengjort";
       if (actionType === "needs_service") return "Enhed skal efterses";
@@ -1527,6 +1537,18 @@ if (locationLabelEl) {
     }
 
     function getDefaultCorrectiveNote(actionType) {
+      if (actionType === "cooling_discarded") {
+        return "Fødevaren er kasseret, fordi sikkerheden ikke kunne garanteres.";
+      }
+
+      if (actionType === "cooling_reheated") {
+        return "Fødevaren er genopvarmet til sikker temperatur og nedkøles igen efter procedure.";
+      }
+
+      if (actionType === "cooling_process_adjusted") {
+        return "Nedkølingsmetoden er korrigeret, fx mindre portioner, bedre luftcirkulation eller brug af egnet nedkølingsudstyr.";
+      }
+
       if (actionType === "out_of_service") {
         return "Enheden er taget ud af drift og markeret som ikke i brug indtil problemet er løst.";
       }
@@ -1546,6 +1568,7 @@ if (locationLabelEl) {
       const alertType = String(alertItem?.alertType || "").trim().toLowerCase();
 
       if (actionNeedsNote(actionType)) return true;
+      if (isCoolingDeviation(alertItem) && (targetStatus === "resolved" || targetStatus === "closed")) return false;
 
       if (targetStatus === "resolved" || targetStatus === "closed") {
         return [
@@ -1603,7 +1626,28 @@ if (locationLabelEl) {
     }
 
     function actionNeedsNote(actionType) {
-      return actionType === "temporary_solution" || actionType === "other" || actionType === "needs_service";
+      return actionType === "temporary_solution" || actionType === "other" || actionType === "needs_service" || actionType === "cooling_assessed_safe";
+    }
+
+    function isCoolingDeviation(alertItem = {}) {
+      const searchable = [
+        alertItem.alertType,
+        alertItem.deviationType,
+        alertItem.templateKey,
+        alertItem.routineKey,
+        alertItem.routineTitle,
+        alertItem.taskTitle,
+        alertItem.title,
+        alertItem.description,
+        alertItem.sourceTaskTitle,
+        alertItem.coolingData?.productName
+      ].map((value) => String(value || "").toLowerCase()).join(" ");
+
+      return searchable.includes("cooling") ||
+        searchable.includes("nedkøl") ||
+        searchable.includes("nedkoel") ||
+        searchable.includes("nedkoeling") ||
+        searchable.includes("nedkøling");
     }
 
     function getCardStateClass(alertItem) {
@@ -1756,6 +1800,67 @@ if (locationLabelEl) {
       const currentStatus = alertItem.status || "open";
       const currentAction = alertItem.correctiveActionType || "";
       const currentNote = alertItem.correctiveActionNote || "";
+
+      if (isCoolingDeviation(alertItem)) {
+        return `
+          <div class="afvigelse-action-box" data-alert-id="${alertId}">
+            <div class="afvigelse-action-title">Handling ved nedkølingsafvigelse</div>
+
+            <div class="afvigelse-action-grid">
+              <label class="afvigelse-option">
+                <input type="radio" name="correctiveAction_${alertId}" value="cooling_discarded" ${currentAction === "cooling_discarded" ? "checked" : ""}>
+                <span>Fødevaren kasseret</span>
+              </label>
+
+              <label class="afvigelse-option">
+                <input type="radio" name="correctiveAction_${alertId}" value="cooling_reheated" ${currentAction === "cooling_reheated" ? "checked" : ""}>
+                <span>Fødevaren genopvarmet og nedkølet igen</span>
+              </label>
+
+              <label class="afvigelse-option">
+                <input type="radio" name="correctiveAction_${alertId}" value="cooling_process_adjusted" ${currentAction === "cooling_process_adjusted" ? "checked" : ""}>
+                <span>Nedkølingsmetode korrigeret</span>
+              </label>
+
+              <label class="afvigelse-option">
+                <input type="radio" name="correctiveAction_${alertId}" value="cooling_assessed_safe" ${currentAction === "cooling_assessed_safe" ? "checked" : ""}>
+                <span>Fødevaren vurderet sikker</span>
+              </label>
+            </div>
+
+            <div class="afvigelse-extra" data-extra-for="${alertId}" ${actionNeedsNote(currentAction) ? "" : "hidden"}>
+              <label class="form-label">Beskrivelse / dokumentation</label>
+              <textarea
+                class="task-input afvigelse-note"
+                data-note-for="${alertId}"
+                rows="4"
+                placeholder="Beskriv vurdering, kassation, genopvarmning eller ændret nedkølingsmetode"
+              >${escapeHtml(currentNote)}</textarea>
+            </div>
+
+            <div class="afvigelse-status-box">
+              <div class="afvigelse-action-title">Sagsstatus</div>
+
+              <div class="afvigelse-status-grid">
+                <label class="status-option">
+                  <input type="radio" name="caseStatus_${alertId}" value="in_progress" ${currentStatus === "in_progress" || currentStatus === "open" ? "checked" : ""}>
+                  <span>Under behandling</span>
+                </label>
+
+                <label class="status-option">
+                  <input type="radio" name="caseStatus_${alertId}" value="resolved" ${currentStatus === "resolved" ? "checked" : ""}>
+                  <span>Problemet er løst</span>
+                </label>
+
+                <label class="status-option">
+                  <input type="radio" name="caseStatus_${alertId}" value="cancelled" ${currentStatus === "cancelled" ? "checked" : ""}>
+                  <span>Fejlklik / annuller afvigelse</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        `;
+      }
 
       return `
         <div class="afvigelse-action-box" data-alert-id="${alertId}">

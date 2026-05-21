@@ -504,8 +504,53 @@ const CANONICAL_ROUTINES = [
     }
   },
   {
-    routineType: "softice_maskine_rengoering",
-    displayTitle: "Ismaskine / softicemaskine rengøring",
+    routineType: "ismaskine_temperatur",
+    displayTitle: "Ismaskine temperaturkontrol",
+    frequencyDays: 1,
+    group: "GAG",
+    controlType: "temperature",
+    longDescription: "Kontrollér at ismaskinen fungerer korrekt, og at isen opbevares under forhold der hindrer smeltning og forurening.",
+    risk: {
+      hazard: "Optøet eller forurenet is kan give øget risiko for bakterievækst og krydskontaminering.",
+      criticalLimit: "Isen må ikke vise tegn på optøning eller forurening.",
+      deviationTrigger: "Tegn på optøning, forurening eller fejl i ismaskinens drift.",
+      defaultCorrectiveAction: "Kasser berørt is ved tegn på optøning eller forurening. Undersøg årsagen og opret afvigelse.",
+      prefilledDeviationText: "Ismaskinen eller isens tilstand afveg fra kravene."
+    }
+  },
+  {
+    routineType: "ismaskine_rengoering",
+    displayTitle: "Ismaskine rengøring",
+    frequencyDays: 7,
+    group: "GAG",
+    controlType: "cleaning",
+    longDescription: "Rengør ismaskinen efter producentens anvisninger. Områder med kontakt til is og vand skal holdes rene.",
+    risk: {
+      hazard: "Is betragtes som en fødevare og kan forurene drikkevarer eller fødevarer, hvis maskinen ikke holdes ren.",
+      criticalLimit: "Ingen synlig forurening på kontaktflader, isbakke eller indvendige flader.",
+      deviationTrigger: "Synlig forurening eller utilstrækkelig rengøring af ismaskinen.",
+      defaultCorrectiveAction: "Stop brug af isen ved synlig forurening. Rengør og desinficér maskinen. Kasser berørt is og opret afvigelse.",
+      prefilledDeviationText: "Ismaskinen var ikke tilstrækkeligt rengjort."
+    }
+  },
+  {
+    routineType: "softicemaskine_temperatur",
+    displayTitle: "Softicemaskine temperaturkontrol",
+    frequencyDays: 1,
+    group: "GAG",
+    controlType: "temperature",
+    longDescription: "Kontrollér at softicemaskinens temperatur er inden for producentens anbefalede område.",
+    risk: {
+      hazard: "Forkert temperatur kan øge risikoen for bakterievækst i ismix og færdig softice.",
+      criticalLimit: "Temperaturen skal være inden for producentens anbefalede område.",
+      deviationTrigger: "Temperaturen er uden for grænserne.",
+      defaultCorrectiveAction: "Stop servering fra maskinen, hvis temperaturen er uden for grænserne. Vurder produktet, korrigér fejlen og opret afvigelse.",
+      prefilledDeviationText: "Softicemaskinens temperatur var uden for grænserne."
+    }
+  },
+  {
+    routineType: "softicemaskine_rengoering",
+    displayTitle: "Softicemaskine rengøring",
     frequencyDays: 7,
     group: "GAG",
     controlType: "cleaning",
@@ -560,22 +605,6 @@ const CANONICAL_ROUTINES = [
       prefilledDeviationText: "Is-/softicemaskinen var ikke rengjort efter plan, eller der blev fundet synlig snavs, belægning eller produktrester."
     }
   },
-  {
-    routineType: "softice_temperatur_kontrol",
-    displayTitle: "Softice temperaturkontrol",
-    frequencyDays: 1,
-    group: "CCP",
-    controlType: "temperature",
-    longDescription: "Softicemix er et letfordærveligt mælkeprodukt og skal holdes koldt for at begrænse vækst af bakterier, herunder Listeria. Temperaturen i maskinens mix-beholder skal derfor kontrolleres og dokumenteres dagligt.\n\nFormål: At sikre at softicemix opbevares ved korrekt temperatur, så produktet er sikkert for kunderne.\n\nKontrolpunkter:\n- Temperaturen i mix-beholderen er maks. 5 °C\n- Maskinens display virker og kan aflæses\n- Mixen opbevares tildækket/beskyttet i maskinen\n- Der er ingen tegn på urenheder, belægninger eller fejl i maskinen\n- Ved tvivl kontrolleres temperaturen med kalibreret termometer\n\nSådan udføres kontrollen: Aflæs temperaturen i softicemaskinens mix-beholder mindst én gang dagligt. Brug maskinens display, og kontrollér jævnligt med et kalibreret termometer for at sikre, at visningen er korrekt. Dokumentér den målte temperatur i °C.\n\nAcceptkriterier: Softicemix i mix-beholderen skal være maks. 5 °C.\n\nKonsekvens/risiko: Hvis softicemix opbevares over 5 °C, kan sygdomsfremkaldende bakterier vokse. Softicemix er særligt følsomt, fordi det typisk er baseret på mælk og håndteres i en maskine med mange kontaktflader.",
-    risk: {
-      hazard: "Bakterievækst (herunder Listeria) ved for høj temperatur i softicemix.",
-      criticalLimit: "Softicemix i mix-beholderen skal være maks. 5 °C.",
-      deviationTrigger: "Temperatur over 5 °C i mix-beholderen.",
-      defaultCorrectiveAction: "Køling kontrolleret/justeret. Mix vurderet og kasseret hvis nødvendigt. Maskinen rengøres eller serviceres ved mistanke om fejl.",
-      prefilledDeviationText: "Softice mix-beholderen var over 5 °C ved temperaturkontrol. Køling kontrolleret/justeret. Mix vurderet og kasseret hvis nødvendigt. Maskinen rengøres eller serviceres ved mistanke om fejl."
-    }
-  },
-
   // ─── GAG - MÅNEDLIGE ──────────────────────────────────────────────────────
   {
     routineType: "fryser_rengoering",
@@ -923,11 +952,17 @@ function normalizeRoutineType(input) {
     "slicer_cleaning": "paalaegsmaskine_rengoering",
     "slicing_machine_cleaning": "paalaegsmaskine_rengoering",
 
-    // Ismaskine / softicemaskine rengøring variants
-    "softice_maskine_rengoering": "softice_maskine_rengoering",
-    "softice_machine_cleaning": "softice_maskine_rengoering",
-    "ice_machine_cleaning": "softice_maskine_rengoering",
-    "ismaskine_rengoering": "softice_maskine_rengoering",
+    // Legacy machine routine variants
+    "softice_maskine_rengoering": "softicemaskine_rengoering",
+    "softice_machine_cleaning": "softicemaskine_rengoering",
+    "softice_temperatur_kontrol": "softicemaskine_temperatur",
+    "softice_temperature_control": "softicemaskine_temperatur",
+    "ice_machine_cleaning": "ismaskine_rengoering",
+    "ice_machine_temperature": "ismaskine_temperatur",
+    "ice_machine_temperature_control": "ismaskine_temperatur",
+    "ismaskine_rengoering": "ismaskine_rengoering",
+    "ismaskine_temperatur": "ismaskine_temperatur",
+    "ismaskine_temperatur_kontrol": "ismaskine_temperatur",
     
     // Køkken rengøring variants
     "koekken_rengoering": "koekken_rengoering",

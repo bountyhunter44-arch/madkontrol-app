@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
+import http from "node:http";
 import {
   buildRobotsResponse,
   buildSitemapResponse,
   createSeoGatewayApp,
   invalidateSeoCache,
   parseSeoRequest,
+  resolveStaticSeoFileResponse,
   resolveSeoResponse,
   slugifySeoPathPart
 } from "./seo-gateway.js";
@@ -53,6 +55,25 @@ function listen(app) {
   });
 }
 
+function requestWithHost({ port, host, path = "/" }) {
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      hostname: "127.0.0.1",
+      port,
+      path,
+      method: "GET",
+      headers: { Host: host }
+    }, (res) => {
+      let body = "";
+      res.setEncoding("utf8");
+      res.on("data", (chunk) => { body += chunk; });
+      res.on("end", () => resolve({ status: res.statusCode, headers: res.headers, body }));
+    });
+    req.on("error", reject);
+    req.end();
+  });
+}
+
 const businessRoot = parseSeoRequest({
   host: "aroi-d.madkontrollen.dk",
   path: "/"
@@ -84,6 +105,30 @@ assert.equal(legacyRoute.ok, true);
 assert.equal(legacyRoute.legacyCandidate.citySlug, "herning");
 assert.equal(legacyRoute.legacyCandidate.businessSlug, "aroi-d");
 
+const staticRootResponse = await resolveStaticSeoFileResponse({
+  host: "aroi-d.madkontrollen.dk",
+  path: "/"
+});
+assert.equal(staticRootResponse.status, 200);
+assert.equal(staticRootResponse.contentType, "text/html; charset=utf-8");
+assert.match(staticRootResponse.body, /Aroi D|Aroi-D/);
+
+const staticRobotsResponse = await resolveStaticSeoFileResponse({
+  host: "aroi-d.madkontrollen.dk",
+  path: "/robots.txt"
+});
+assert.equal(staticRobotsResponse.status, 200);
+assert.equal(staticRobotsResponse.contentType, "text/plain; charset=utf-8");
+assert.match(staticRobotsResponse.body, /Sitemap: https:\/\/aroi-d\.madkontrollen\.dk\/sitemap\.xml/);
+
+const staticSitemapResponse = await resolveStaticSeoFileResponse({
+  host: "aroi-d.madkontrollen.dk",
+  path: "/sitemap.xml"
+});
+assert.equal(staticSitemapResponse.status, 200);
+assert.equal(staticSitemapResponse.contentType, "application/xml; charset=utf-8");
+assert.match(staticSitemapResponse.body, /https:\/\/aroi-d\.madkontrollen\.dk\//);
+
 const sitemap = buildSitemapResponse(cityRoute);
 assert.match(sitemap, /<urlset/);
 assert.match(sitemap, /https:\/\/aroi-d\.madkontrollen\.dk\//);
@@ -96,6 +141,7 @@ assert.match(robots, /Sitemap: https:\/\/aroi-d\.madkontrollen\.dk\/sitemap\.xml
 const db = createDb({
   websites: [{
     id: "site_1",
+    domain: "aroi-d.madkontrollen.dk",
     citySlug: "herning",
     businessSlug: "aroi-d",
     status: "published",
@@ -346,7 +392,7 @@ assert.match(invalidatedResponse.body, /Version 2/);
 
 process.env.SEO_GATEWAY_INTERNAL_TOKEN = "test-token";
 const app = await createSeoGatewayApp({
-  db: cacheDb,
+  db,
   logger: { info() {}, error() {}, warn() {} }
 });
 const server = await listen(app);
@@ -373,8 +419,46 @@ try {
   assert.equal(goodTokenResponse.status, 200);
   const payload = await goodTokenResponse.json();
   assert.equal(payload.ok, true);
+
+  const rebuildResponse = await fetch(`http://127.0.0.1:${port}/internal/rebuild-site`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer test-token"
+    },
+    body: JSON.stringify({ domain: "aroi-d.madkontrollen.dk", reason: "test" })
+  });
+  assert.equal(rebuildResponse.status, 200);
+  const rebuildPayload = await rebuildResponse.json();
+  assert.equal(rebuildPayload.ok, true);
+  assert.equal(rebuildPayload.domain, "aroi-d.madkontrollen.dk");
 } finally {
   await new Promise((resolve) => server.close(resolve));
+}
+
+const staticLogs = [];
+const staticPriorityApp = await createSeoGatewayApp({
+  db,
+  logger: {
+    info(message, details) { staticLogs.push({ message, details }); },
+    error() {},
+    warn() {}
+  }
+});
+const staticPriorityServer = await listen(staticPriorityApp);
+try {
+  const port = staticPriorityServer.address().port;
+  const response = await requestWithHost({
+    port,
+    host: "aroi-d.madkontrollen.dk",
+    path: "/"
+  });
+  assert.equal(response.status, 200);
+  assert.match(response.headers["content-type"] || "", /text\/html/);
+  assert.equal(staticLogs.some((entry) => entry.message === "[seo-vps:static-index-hit]"), true);
+  assert.equal(staticLogs.some((entry) => entry.message === "[seo-gateway] lookup"), false);
+} finally {
+  await new Promise((resolve) => staticPriorityServer.close(resolve));
 }
 
 console.log("seo-gateway tests passed");

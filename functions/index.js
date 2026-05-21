@@ -7147,24 +7147,120 @@ exports.finalizeSeoCheckoutProvisioning = functions.https.onCall(async (data, co
   };
 });
 
-exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
-  if (!context.auth?.uid) {
-    throw new functions.https.HttpsError("unauthenticated", "Log ind for at aktivere SEO-site.");
+function normalizeSeoActivationData(data) {
+  if (data?.data && typeof data.data === "object") {
+    return data.data;
   }
-  const companyId  = sanitizeString(data?.companyId  || "", 120);
-  const locationId = sanitizeString(data?.locationId || "", 120);
+  return data && typeof data === "object" ? data : {};
+}
+
+async function resolveSeoActivationAuth(data, context) {
+  const payload = normalizeSeoActivationData(data);
+  console.log("SEO LOG auth-start");
+  console.log(`SEO LOG context-auth-present ${Boolean(context.auth?.uid)}`);
+  const bearer = String(context.rawRequest?.headers?.authorization || "").trim();
+  const bearerToken = bearer.toLowerCase().startsWith("bearer ") ? bearer.slice(7).trim() : "";
+  const payloadToken = String(payload?.authToken || payload?.idToken || "").trim();
+  const idToken = payloadToken || bearerToken;
+  console.log(`SEO LOG fallback-token-present ${Boolean(idToken)}`);
+
+  const contextUid = sanitizeString(context.auth?.uid || "", 160);
+  if (contextUid) {
+    return {
+      uid: contextUid,
+      email: sanitizeString(context.auth?.token?.email || "", 180),
+      source: "callable-context"
+    };
+  }
+
+  if (!idToken) {
+    return { uid: "", email: "", source: "", reason: "token_missing" };
+  }
+
+  try {
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const uid = sanitizeString(decoded.uid || "", 160);
+    console.log(`SEO LOG fallback-token-verified uid=${uid}`);
+    return {
+      uid,
+      email: sanitizeString(decoded.email || "", 180),
+      source: payloadToken ? "payload-token" : "authorization-header"
+    };
+  } catch (error) {
+    console.log("SEO LOG access-result ok=false reason=token_verify_failed");
+    return { uid: "", email: "", source: "invalid-token", reason: "token_verify_failed" };
+  }
+}
+
+async function assertSeoPublishAccessWithLogs({ uid, email, companyId, locationId }) {
+  try {
+    const userData = await getUserAccessProfile({ uid, email });
+    if (!userData) {
+      console.log("SEO LOG profile-loaded role=");
+      console.log("SEO LOG access-result ok=false reason=access_denied");
+      throw new functions.https.HttpsError("permission-denied", "access_denied");
+    }
+
+    const role = sanitizeString(userData.role || "", 80).toLowerCase();
+    console.log(`SEO LOG profile-loaded role=${role}`);
+
+    const allowedRoles = ["owner", "hq_admin", "location_manager", "admin", "super-admin"];
+    if (!allowedRoles.includes(role)) {
+      console.log("SEO LOG access-result ok=false reason=access_denied");
+      throw new functions.https.HttpsError("permission-denied", "access_denied");
+    }
+
+    if (role === "super-admin") {
+      console.log("SEO LOG access-result ok=true reason=super_admin");
+      return;
+    }
+
+    const userCompanyId = sanitizeString(userData.companyId || userData.organizationId, 120);
+    if (!userCompanyId || userCompanyId !== companyId) {
+      console.log("SEO LOG access-result ok=false reason=access_denied");
+      throw new functions.https.HttpsError("permission-denied", "access_denied");
+    }
+
+    const locationIds = getUserLocationIds(userData);
+    if (locationIds.length > 0 && !locationIds.includes(locationId)) {
+      console.log("SEO LOG access-result ok=false reason=access_denied");
+      throw new functions.https.HttpsError("permission-denied", "access_denied");
+    }
+
+    console.log("SEO LOG access-result ok=true reason=role_scope_ok");
+  } catch (error) {
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+    console.log("SEO LOG access-result ok=false reason=access_denied");
+    throw new functions.https.HttpsError("permission-denied", "access_denied");
+  }
+}
+
+exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
+  const payload = normalizeSeoActivationData(data);
+  const publishAuth = await resolveSeoActivationAuth(data, context);
+  if (!publishAuth.uid) {
+    const reason = publishAuth.reason === "token_verify_failed" ? "token_verify_failed" : "token_missing";
+    if (reason === "token_missing") {
+      console.log("SEO LOG access-result ok=false reason=token_missing");
+    }
+    throw new functions.https.HttpsError("unauthenticated", reason);
+  }
+  const companyId  = sanitizeString(payload?.companyId  || "", 120);
+  const locationId = sanitizeString(payload?.locationId || "", 120);
   if (!companyId || !locationId) {
     throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
   }
-  await assertAdminAccess({ uid: context.auth.uid, email: context.auth.token?.email || "", companyId, locationId });
+  await assertSeoPublishAccessWithLogs({ uid: publishAuth.uid, email: publishAuth.email, companyId, locationId });
 
   // Use provided inline config or load saved config from Firestore
   let baseConfig = {};
-  const overrides = data?.overrides && typeof data.overrides === "object"
-    ? data.overrides
-    : (data?.config && typeof data.config === "object" ? data.config : {});
-  if (data?.configId) {
-    const configId = sanitizeString(data?.configId || "", 180);
+  const overrides = payload?.overrides && typeof payload.overrides === "object"
+    ? payload.overrides
+    : (payload?.config && typeof payload.config === "object" ? payload.config : {});
+  if (payload?.configId) {
+    const configId = sanitizeString(payload?.configId || "", 180);
     if (!configId) throw new functions.https.HttpsError("invalid-argument", "config eller configId er påkrævet.");
     const snap = await db.collection("seo_generator_configs").doc(configId).get();
     if (!snap.exists) throw new functions.https.HttpsError("not-found", "Generator-konfiguration ikke fundet.");
@@ -7178,7 +7274,7 @@ exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
     overrides
   });
 
-  const result = await upsertWebsiteAndSeoPages({ companyId, locationId, config, activatedByUid: context.auth.uid });
+  const result = await upsertWebsiteAndSeoPages({ companyId, locationId, config, activatedByUid: publishAuth.uid });
 
   // Mark SEO addon as active on the company location
   await db.collection("company_locations").doc(`${companyId}__${locationId}`).set({

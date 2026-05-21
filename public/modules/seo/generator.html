@@ -513,6 +513,7 @@ textarea{min-height:120px;resize:vertical;}
 import { loadLayout } from "/core/layout.js";
 import { setupAuthGate } from "/core/auth.js";
 import app, { db, auth } from "/core/firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { buildSeoOutputPath, slugifySeoPathPart } from "/modules/seo/generator/generator-core.js";
@@ -533,7 +534,6 @@ const createStripeCheckoutSession = httpsCallable(functionsClient, "createStripe
 const checkSubdomainAvailability = httpsCallable(functionsClient, "checkSubdomainAvailability");
 const saveSeoGeneratorConfig = httpsCallable(functionsClient, "saveSeoGeneratorConfig");
 const finalizeSeoCheckoutProvisioning = httpsCallable(functionsClient, "finalizeSeoCheckoutProvisioning");
-const adminActivateSeoSiteCallable = httpsCallable(functionsClient, "adminActivateSeoSite");
 const searchRestaurantImagesCallable = httpsCallable(functionsClient, "searchRestaurantImages");
 const saveRestaurantHeroImageCallable = httpsCallable(functionsClient, "saveRestaurantHeroImage");
 const enhanceAndUploadRestaurantImageCallable = httpsCallable(functionsClient, "enhanceAndUploadRestaurantImage");
@@ -599,7 +599,8 @@ function getSessionLocationId(){
 
 function cleanSeoText(value){
   const text=String(value ?? "").trim();
-  return text && text !== "–" && text !== "..." && text !== "…" ? text : "";
+  const lower=text.toLowerCase();
+  return text && text !== "–" && text !== "..." && text !== "…" && lower !== "ikke angivet" ? text : "";
 }
 
 function firstSeoText(...values){
@@ -615,7 +616,7 @@ function topbarText(id){
   return cleanSeoText(el ? el.textContent : "");
 }
 
-function setSeoField(id,value,{overwrite=false}={}){
+function setSeoField(id,value,{overwrite=false,logHydration=false}={}){
   const el=document.getElementById(id);
   const text=cleanSeoText(value);
   if(!el || !text) return false;
@@ -627,14 +628,99 @@ function setSeoField(id,value,{overwrite=false}={}){
     el.appendChild(option);
   }
   el.value=text;
+  if(logHydration){
+    console.info("[seo hydration] field filled", { field:id, value:text });
+  }
   return true;
 }
 
-function buildSeoAddress(data={}){
-  const address=firstSeoText(data.address,data.companyAddress,data.streetAddress);
-  const postal=firstSeoText(data.postalCode,data.zip);
-  const city=firstSeoText(data.city,data.by);
-  return [address,[postal,city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+function getSeoContextWindow(){
+  return window.__mkpPrettyCompanyInfo || window.__mkpPrettyNames || window.__layoutPrettyCompanyInfo || null;
+}
+
+function getSeoSessionJson(key){
+  try{
+    return JSON.parse(sessionStorage.getItem(key) || "null");
+  }catch{
+    return null;
+  }
+}
+
+function topbarSeoContext(){
+  return {
+    companyName: topbarText("mkpTopbarCompany"),
+    address: topbarText("mkpTopbarAddress"),
+    phone: topbarText("mkpTopbarPhone"),
+    email: topbarText("mkpTopbarEmail")
+  };
+}
+
+function hasSeoTopbarContext(context){
+  return Boolean(cleanSeoText(context?.companyName) || cleanSeoText(context?.address) || cleanSeoText(context?.phone));
+}
+
+async function waitForSeoTopbarContext(timeoutMs=3500){
+  const start=Date.now();
+  let context=topbarSeoContext();
+  while(!hasSeoTopbarContext(context) && Date.now() - start < timeoutMs){
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    context=topbarSeoContext();
+  }
+  return context;
+}
+
+function seoStreetOnly(value){
+  const text=firstSeoText(value);
+  if(!text) return "";
+  return firstSeoText(text.split(",")[0]);
+}
+
+function seoCityFromAddress(value){
+  const text=firstSeoText(value);
+  if(!text || !text.includes(",")) return "";
+  const tail=firstSeoText(text.split(",").slice(1).join(","));
+  return tail.replace(/^\d{4}\s*/, "").trim();
+}
+
+function seoStreetFromData(data={}){
+  return seoStreetOnly(firstSeoText(
+    data.address,
+    data.companyAddress,
+    data.streetAddress,
+    data.displayLocation
+  ));
+}
+
+function seoCityFromData(data={}){
+  return firstSeoText(
+    data.city,
+    data.by,
+    data.companyCity,
+    seoCityFromAddress(data.address),
+    seoCityFromAddress(data.companyAddress),
+    seoCityFromAddress(data.displayLocation)
+  );
+}
+
+function seoPermissionReason(error){
+  return String(error?.code || error?.message || error || "").trim();
+}
+
+function logSkippedRestrictedSeoRead(label,error){
+  console.info("[seo hydration] skipped restricted read", {
+    source:label,
+    reason:seoPermissionReason(error) || "using onboarding context"
+  });
+}
+
+async function readAllowedSeoContextDoc(label,pathParts){
+  try{
+    const snap=await getDoc(doc(db,...pathParts));
+    if(snap?.exists?.()) return { id:snap.id, data:snap.data() || {} };
+  }catch(error){
+    logSkippedRestrictedSeoRead(label,error);
+  }
+  return { id:"", data:{} };
 }
 
 function mapQuickIndustryToCuisine(value){
@@ -663,29 +749,17 @@ function buildPrimaryKeyword({restaurantName,cuisineType,city}){
   return name || type || "";
 }
 
-async function readFirstSeoDoc(reads){
-  for(const read of reads){
-    try{
-      const snap=await read();
-      if(snap?.exists?.()) return { id:snap.id, data:snap.data() || {} };
-    }catch(error){
-      console.warn("[seo hydration] doc read failed:", error?.message || error);
-    }
-  }
-  return { id:"", data:{} };
-}
-
 function applySeoContextDefaults(defaults,{overwrite=false}={}){
-  setSeoField("name", defaults.restaurantName, { overwrite });
-  setSeoField("subdomain", defaults.subdomain, { overwrite });
-  setSeoField("city", defaults.city, { overwrite });
-  setSeoField("type", defaults.cuisineType, { overwrite });
-  setSeoField("offerings", defaults.offerings, { overwrite });
-  setSeoField("keyword", defaults.primaryKeyword, { overwrite });
-  setSeoField("phone", defaults.phone, { overwrite });
-  setSeoField("address", defaults.address, { overwrite });
-  setSeoField("description", defaults.businessDescription, { overwrite });
-  setSeoField("websiteUrl", defaults.existingWebsite, { overwrite });
+  setSeoField("name", defaults.restaurantName, { overwrite, logHydration:true });
+  setSeoField("subdomain", defaults.subdomain, { overwrite, logHydration:true });
+  setSeoField("city", defaults.city, { overwrite, logHydration:true });
+  setSeoField("type", defaults.cuisineType, { overwrite, logHydration:true });
+  setSeoField("offerings", defaults.offerings, { overwrite, logHydration:true });
+  setSeoField("keyword", defaults.primaryKeyword, { overwrite, logHydration:true });
+  setSeoField("phone", defaults.phone, { overwrite, logHydration:true });
+  setSeoField("address", defaults.address, { overwrite, logHydration:true });
+  setSeoField("description", defaults.businessDescription, { overwrite, logHydration:true });
+  setSeoField("websiteUrl", defaults.existingWebsite, { overwrite, logHydration:true });
   lastAutoSubdomain=slugify(defaults.restaurantName || defaults.subdomain || "");
   subdomainTouched=Boolean(cleanSeoText(document.getElementById("subdomain")?.value) && cleanSeoText(document.getElementById("subdomain")?.value) !== lastAutoSubdomain);
 }
@@ -705,131 +779,171 @@ async function hydrateSeoFormFromActiveOnboardingContext({ overwrite=false }={})
   const activeLocationId=String(currentLocationId || getSessionLocationId() || "").trim();
   if(!activeCompanyId || !activeLocationId) return false;
 
-  const liveId=`${activeCompanyId}__${activeLocationId}__live_profile`;
-  const [liveDoc, companyDoc, locationDoc, onboardingDoc]=await Promise.all([
-    readFirstSeoDoc([
-      () => getDoc(doc(db,"live_user_profiles",liveId)),
-      async () => {
-        const q=query(collection(db,"live_user_profiles"),where("companyId","==",activeCompanyId),where("locationId","==",activeLocationId),limit(1));
-        const snap=await getDocs(q);
-        return snap.docs[0] || null;
-      }
-    ]),
-    readFirstSeoDoc([() => getDoc(doc(db,"companies",activeCompanyId))]),
-    readFirstSeoDoc([
-      () => getDoc(doc(db,"companies",activeCompanyId,"locations",activeLocationId)),
-      () => getDoc(doc(db,"locations",activeLocationId))
-    ]),
-    readFirstSeoDoc([
-      () => getDoc(doc(db,"onboarding_answers",`${activeCompanyId}__${activeLocationId}`)),
-      () => getDoc(doc(db,"onboarding_answers",`${activeCompanyId}__${activeLocationId}__onboarding`))
-    ])
+  logSkippedRestrictedSeoRead("live_user_profiles");
+  logSkippedRestrictedSeoRead("onboarding_answers");
+
+  const [companyDoc, companyLocationDoc, rootLocationDoc, topbarContext]=await Promise.all([
+    readAllowedSeoContextDoc("companies", ["companies", activeCompanyId]),
+    readAllowedSeoContextDoc("company location", ["companies", activeCompanyId, "locations", activeLocationId]),
+    readAllowedSeoContextDoc("root location", ["locations", activeLocationId]),
+    waitForSeoTopbarContext()
   ]);
 
-  const live=liveDoc.data || {};
-  const liveProfile=live.profile || {};
+  const profile=currentUserProfile || {};
+  const profileProfile=profile.profile || {};
+  const profileCompany=profile.company || {};
+  const profileBusiness=profile.business || {};
+  const prettyWindow=getSeoContextWindow();
+  const pretty=prettyWindow || {};
+  const sessionContext={
+    companyId:activeCompanyId,
+    locationId:activeLocationId,
+    role:firstSeoText(sessionStorage.getItem("mkp_user_role"), profile.role),
+    locationIds:getSeoSessionJson("mkp_user_locationIds") || []
+  };
   const company=companyDoc.data || {};
-  const location=locationDoc.data || {};
-  const onboarding=onboardingDoc.data || {};
-  const onboardingProfile=onboarding.profile || {};
-  const onboardingCompany=onboarding.company || {};
-  const onboardingBusiness=onboarding.business || {};
+  const location={
+    ...(rootLocationDoc.data || {}),
+    ...(companyLocationDoc.data || {})
+  };
 
   const restaurantName=firstSeoText(
-    liveProfile.companyName,
-    liveProfile.profileCompanyName,
-    liveProfile.name,
-    live.companyName,
+    pretty.companyName,
+    pretty.displayCompany,
+    pretty.locationName,
+    profileProfile.companyName,
+    profile.profileCompanyName,
+    profile.companyName,
+    profile.businessName,
+    profile.restaurantName,
+    profileCompany.name,
+    profileCompany.companyName,
     company.companyName,
+    company.prettyName,
     company.name,
     company.displayName,
     location.companyName,
+    location.prettyName,
     location.name,
-    topbarText("mkpTopbarCompany")
+    location.displayName,
+    topbarContext.companyName
   );
   const city=firstSeoText(
-    liveProfile.city,
+    pretty.city,
+    profileProfile.city,
+    profile.city,
+    profileCompany.city,
+    seoCityFromData(profileProfile),
+    seoCityFromData(profile),
+    seoCityFromData(profileCompany),
     company.city,
     location.city,
-    onboardingProfile.city,
-    onboardingCompany.city
+    seoCityFromData(company),
+    seoCityFromData(location),
+    seoCityFromData(topbarContext)
   );
   const cuisineType=mapQuickIndustryToCuisine(firstSeoText(
-    liveProfile.kitchenType,
-    liveProfile.businessType,
-    liveProfile.companyType,
+    pretty.companyType,
+    profileProfile.kitchenType,
+    profileProfile.businessType,
+    profileProfile.companyType,
+    profile.kitchenType,
+    profile.businessType,
+    profile.companyType,
+    profile.restaurantType,
+    profileBusiness.type,
     company.kitchenType,
     company.businessType,
     company.industry,
+    company.companyType,
     location.kitchenType,
-    location.businessType,
-    onboardingBusiness.type,
-    onboardingProfile.companyType
+    location.businessType
   ));
   const offerings=firstSeoText(
-    liveProfile.offerings,
-    liveProfile.description,
-    liveProfile.businessDescription,
+    profileProfile.offerings,
+    profileProfile.description,
+    profileProfile.businessDescription,
+    profile.offerings,
+    profile.description,
+    profile.businessDescription,
     company.offerings,
     company.description,
     company.industryText,
     company.businessType,
-    onboardingBusiness.type,
     cuisineType
   );
   const address=firstSeoText(
-    buildSeoAddress(liveProfile),
-    buildSeoAddress(company),
-    buildSeoAddress(location),
-    buildSeoAddress(onboardingProfile),
-    buildSeoAddress(onboardingCompany),
-    topbarText("mkpTopbarAddress")
+    seoStreetFromData(pretty),
+    seoStreetFromData(profileProfile),
+    seoStreetFromData(profile),
+    seoStreetFromData(profileCompany),
+    seoStreetFromData(company),
+    seoStreetFromData(location),
+    seoStreetOnly(topbarContext.address)
   );
   const phone=firstSeoText(
-    liveProfile.phone,
-    liveProfile.phoneNumber,
-    liveProfile.companyPhone,
-    live.phone,
+    pretty.phone,
+    profileProfile.phone,
+    profileProfile.phoneNumber,
+    profileProfile.companyPhone,
+    profile.phone,
+    profile.phoneNumber,
+    profile.companyPhone,
+    profile.contactPhone,
     company.phone,
     company.phoneNumber,
+    company.contactPhone,
     location.phone,
     location.phoneNumber,
-    topbarText("mkpTopbarPhone")
+    location.contactPhone,
+    topbarContext.phone
   );
   const businessDescription=firstSeoText(
-    liveProfile.description,
-    liveProfile.businessDescription,
+    profileProfile.description,
+    profileProfile.businessDescription,
+    profile.description,
+    profile.businessDescription,
+    profileBusiness.description,
     company.description,
     company.industryText,
-    onboardingProfile.description,
-    onboardingBusiness.description,
-    offerings ? `${restaurantName} tilbyder ${offerings}${city ? ` i ${city}` : ""}.` : ""
+    location.description
   );
   const existingWebsite=firstSeoText(
-    liveProfile.website,
-    liveProfile.websiteUrl,
+    profileProfile.website,
+    profileProfile.websiteUrl,
+    profile.website,
+    profile.websiteUrl,
     company.website,
     company.websiteUrl,
     location.website,
     location.websiteUrl
   );
-  const subdomain=slugify(restaurantName || company.subdomain || liveProfile.subdomain || "") || "";
+  const subdomain=slugify(restaurantName || company.subdomain || profile.subdomain || profileProfile.subdomain || "") || "";
   const primaryKeyword=buildPrimaryKeyword({ restaurantName, cuisineType, city });
 
   const defaults={restaurantName,subdomain,city,cuisineType,offerings,primaryKeyword,phone,address,businessDescription,existingWebsite};
+  console.info("[seo hydration] using onboarding context", {
+    activeCompanyId,
+    activeLocationId,
+    role:sessionContext.role,
+    sources:[
+      "currentUserProfile",
+      "sessionStorage",
+      hasSeoTopbarContext(topbarContext) ? "layoutTopbar" : "",
+      prettyWindow ? "prettyNameWindow" : "",
+      companyDoc.id ? "companies" : "",
+      companyLocationDoc.id ? "companies.locations" : "",
+      rootLocationDoc.id ? "locations" : ""
+    ].filter(Boolean)
+  });
   applySeoContextDefaults(defaults,{overwrite});
 
   console.debug("[seo hydration]", {
     quickOnboardingCompanyId: companyDoc.id || activeCompanyId,
-    quickOnboardingLocationId: locationDoc.id || activeLocationId,
+    quickOnboardingLocationId: companyLocationDoc.id || rootLocationDoc.id || activeLocationId,
     activeCompanyId,
     activeLocationId,
-    hydrationSource: [
-      liveDoc.id ? "live_user_profiles" : "",
-      companyDoc.id ? "companies" : "",
-      locationDoc.id ? "locations" : "",
-      onboardingDoc.id ? "onboarding_answers" : ""
-    ].filter(Boolean).join("+") || "topbar/session",
+    hydrationSource: "onboarding-context",
     restaurantName,
     subdomain
   });
@@ -1080,12 +1194,30 @@ function getGeneratorConfig(){
 
 let _tokenCache = null;
 let _tokenCachedAt = 0;
+async function waitForSeoAuthUser(timeoutMs=5000){
+  if(auth?.currentUser) return auth.currentUser;
+  return new Promise((resolve)=>{
+    let settled=false;
+    let unsubscribe=null;
+    const done=(user)=>{
+      if(settled) return;
+      settled=true;
+      clearTimeout(timer);
+      if(unsubscribe) unsubscribe();
+      resolve(user || auth?.currentUser || null);
+    };
+    const timer=setTimeout(()=>done(auth?.currentUser || null),timeoutMs);
+    unsubscribe=onAuthStateChanged(auth,(user)=>done(user || null));
+  });
+}
+
 async function getAuthToken(){
-  if(!auth?.currentUser) return null;
+  const user=auth?.currentUser || await waitForSeoAuthUser();
+  if(!user) return null;
   const now = Date.now();
   if(_tokenCache && now - _tokenCachedAt < 60000) return _tokenCache;
   try{
-    _tokenCache = await auth.currentUser.getIdToken(true);
+    _tokenCache = await user.getIdToken(true);
     _tokenCachedAt = now;
     return _tokenCache;
   }catch{
@@ -1098,6 +1230,92 @@ async function getAuthToken(){
 function isOnboardingUser(){
   const id = (currentCompanyId || getSessionCompanyId() || "").toLowerCase();
   return id.startsWith("onboarding_");
+}
+
+function getCurrentSeoRole(){
+  return String(currentUserProfile?.role || sessionStorage.getItem("mkp_user_role") || "").trim().toLowerCase();
+}
+
+function canCurrentRolePublishSeo(){
+  const role=getCurrentSeoRole();
+  return ["owner","hq_admin","admin","location_manager","super-admin"].includes(role);
+}
+
+function resolveSeoPublishScope(){
+  const profile=currentUserProfile || {};
+  const profileLocationIds=Array.isArray(profile.locationIds) ? profile.locationIds : [];
+  const companyId=String(
+    currentCompanyId ||
+    profile.companyId ||
+    profile.organizationId ||
+    getSessionCompanyId() ||
+    ""
+  ).trim();
+  const locationId=String(
+    currentLocationId ||
+    profile.primaryLocationId ||
+    profile.locationId ||
+    profileLocationIds[0] ||
+    getSessionLocationId() ||
+    ""
+  ).trim();
+  return { companyId, locationId };
+}
+
+async function ensureSeoPublishAuthContext(){
+  const user=await waitForSeoAuthUser();
+  const token=await getAuthToken();
+  const { companyId, locationId }=resolveSeoPublishScope();
+  const role=getCurrentSeoRole();
+
+  console.info("[seo publish auth] authReady", authReady);
+  console.info("[seo publish auth] uid", user?.uid || "");
+  console.info("[seo publish auth] role", role);
+  console.info("[seo publish auth] companyId", companyId);
+  console.info("[seo publish auth] locationId", locationId);
+
+  if(!authReady || !currentUserProfile){
+    throw new Error("Vent på login før SEO publish.");
+  }
+  if(!user || !token){
+    throw new Error("Log ind for at publicere SEO-siden.");
+  }
+  if(!companyId || !locationId){
+    throw new Error("companyId/locationId mangler for SEO publish.");
+  }
+  if(!canCurrentRolePublishSeo()){
+    throw new Error("Brugerrollen må ikke publicere SEO-site.");
+  }
+
+  currentCompanyId=companyId;
+  currentLocationId=locationId;
+  return { user, token, role, companyId, locationId };
+}
+
+async function callAdminActivateSeoSiteWithAuth(payload, token){
+  const response=await fetch("https://us-central1-madkontrollen.cloudfunctions.net/adminActivateSeoSite", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":`Bearer ${token}`
+    },
+    body:JSON.stringify({ data:payload })
+  });
+
+  let body=null;
+  try{
+    body=await response.json();
+  }catch{}
+
+  if(!response.ok || body?.error){
+    const message=body?.error?.message || body?.message || `adminActivateSeoSite fejlede (${response.status})`;
+    const error=new Error(message);
+    error.code=body?.error?.status || body?.error?.code || response.status;
+    error.details=body?.error?.details || null;
+    throw error;
+  }
+
+  return body?.result || body?.data || {};
 }
 
 function getScopedSeoDraftKey(companyId=currentCompanyId, locationId=currentLocationId){
@@ -1242,35 +1460,31 @@ function buildSeoPublishOverrides(){
   };
 }
 
-async function publishSeoSiteFromGenerator(){
-  const companyId=currentCompanyId || getSessionCompanyId();
-  const locationId=currentLocationId || getSessionLocationId();
-  if(!companyId || !locationId){
-    throw new Error("companyId/locationId mangler for SEO publish.");
-  }
-  if(!await getAuthToken()){
-    throw new Error("Log ind for at publicere SEO-siden.");
-  }
+async function publishSeoSiteFromGenerator(authContext=null){
+  const { companyId, locationId, user, token, role }=authContext || await ensureSeoPublishAuthContext();
 
   const overrides=buildSeoPublishOverrides();
   console.debug("[seo publish request]", {
     companyId,
     locationId,
+    uid:user?.uid || "",
+    role,
     pageCount: overrides.pageCount,
     design: overrides.design,
     restaurantName: overrides.businessName,
     subdomain: overrides.subdomain
   });
 
-  const response=await adminActivateSeoSiteCallable({
+  const response=await callAdminActivateSeoSiteWithAuth({
     companyId,
     locationId,
+    idToken: token,
     pageCount: overrides.pageCount,
     design: overrides.design,
     overrides
-  });
+  }, token);
 
-  return response?.data || {};
+  return response || {};
 }
 
 async function checkSubdomainLive(rawValue){
@@ -2044,9 +2258,10 @@ async function generateAndSave(){
   const btn=document.getElementById("generateBtn");
   try {
     if(btn) btn.disabled=true;
+    const publishAuthContext=await ensureSeoPublishAuthContext();
     setGeneratorStatus("Publicerer SEO-site til Firestore...",false);
     await generateSite(false,{silent:true});
-    const result=await publishSeoSiteFromGenerator();
+    const result=await publishSeoSiteFromGenerator(publishAuthContext);
     console.log("[seo publish success]", result);
     const liveUrl=result.liveUrl || `https://${result.businessSlug || result.subdomain}.madkontrollen.dk/`;
     setGeneratorStatus(`✓ SEO-site publiceret: ${liveUrl}`,false);
@@ -2635,9 +2850,9 @@ await setupAuthGate({
     setGeneratorStatus("✓ Logget ind som " + (currentUserProfile?.displayName || currentCompanyId),false);
     
     clearSeoBusinessFields();
-    await hydrateSeoFormFromActiveOnboardingContext({ overwrite:true });
+    const hydratedFromContext = await hydrateSeoFormFromActiveOnboardingContext({ overwrite:true });
     const restored = await loadSavedConfig();
-    if(!restored) restoreLocalDraft();
+    if(!restored && !hydratedFromContext) restoreLocalDraft();
     syncSubdomainFromName(false);
     generateSite();
     setTimeout(() => setGeneratorStatus("",false), 3000);

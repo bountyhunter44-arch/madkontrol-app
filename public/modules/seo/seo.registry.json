@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "sourceOfTruth": "tools/seo/seo.registry.json",
+  "runtimeCopy": "/modules/seo/seo.registry.json",
+  "publishMode": "physical-files",
+  "collections": {
+    "config": "seo_generator_configs",
+    "websites": "websites",
+    "pages": "seo_pages"
+  },
+  "callables": {
+    "publish": "adminActivateSeoSite",
+    "saveConfig": "saveSeoGeneratorConfig",
+    "checkSubdomain": "checkSubdomainAvailability",
+    "finalizeCheckout": "finalizeSeoCheckoutProvisioning"
+  },
+  "output": {
+    "outputDir": "public/sites/{domain}",
+    "rootPattern": "sites/{domain}/index.html",
+    "robotsPattern": "sites/{domain}/robots.txt",
+    "sitemapPattern": "sites/{domain}/sitemap.xml",
+    "renderer": "physicalSeoFiles"
+  },
+  "requiredPublicModules": [
+    "/modules/seo/generator/generator-core.js"
+  ]
+}

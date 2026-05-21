@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://det-gyldne-krus.madkontrollen.dk/sitemap.xml

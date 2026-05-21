@@ -374,6 +374,7 @@ async function populateTopbarFromProfile() {
     });
 
     console.log("[layout pretty names]", pretty);
+    window.__mkpPrettyCompanyInfo = pretty;
 
     const set = (id, val) => {
       const el = document.getElementById(id);

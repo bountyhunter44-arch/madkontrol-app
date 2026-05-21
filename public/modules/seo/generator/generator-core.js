@@ -1,6 +1,6 @@
 // generator-core.js
 
-const SITE_ORIGIN = "https://madkontrollen.dk";
+const ROOT_DOMAIN = "madkontrollen.dk";
 
 export function slugifySeoPathPart(value, fallback = "restaurant") {
   const normalized = String(value || "")
@@ -20,11 +20,26 @@ export function slugifySeoPathPart(value, fallback = "restaurant") {
   return normalized || fallback;
 }
 
-export function buildSeoOutputPath({ citySlug, businessSlug, file = "index.html" }) {
-  const safeCitySlug = slugifySeoPathPart(citySlug, "by");
-  const safeBusinessSlug = slugifySeoPathPart(businessSlug, "restaurant");
+export function buildSeoSiteDomain({ domain, customDomain, subdomain, businessSlug, businessName } = {}) {
+  const rawDomain = String(domain || customDomain || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "");
+
+  if (rawDomain && /^[a-z0-9.-]+$/.test(rawDomain) && !rawDomain.includes("..")) {
+    return rawDomain;
+  }
+
+  const safeSubdomain = slugifySeoPathPart(subdomain || businessSlug || businessName, "restaurant")
+    .replace(/-madkontrollen-dk$/, "");
+  return `${safeSubdomain}.${ROOT_DOMAIN}`;
+}
+
+export function buildSeoOutputPath({ domain, customDomain, subdomain, businessSlug, businessName, file = "index.html" }) {
+  const safeDomain = buildSeoSiteDomain({ domain, customDomain, subdomain, businessSlug, businessName });
   const safeFile = String(file || "index.html").replace(/^\/+/, "");
-  return `${safeCitySlug}/${safeBusinessSlug}/${safeFile}`;
+  return `sites/${safeDomain}/${safeFile}`;
 }
 
 function buildSeoRoute(config) {
@@ -32,19 +47,21 @@ function buildSeoRoute(config) {
   const businessName = String(config?.displayBusinessName || config?.businessName || "").trim();
   const citySlug = slugifySeoPathPart(config?.citySlug || cityName, "by");
   const businessSlug = slugifySeoPathPart(config?.subdomain || config?.businessSlug || config?.businessName, "restaurant");
-  const routePath = `/${citySlug}/${businessSlug}/`;
-  const canonicalUrl = `${SITE_ORIGIN}${routePath}`;
+  const domain = buildSeoSiteDomain({ ...config, businessSlug, businessName });
+  const routePath = "/";
+  const canonicalUrl = `https://${domain}/`;
 
   return {
     citySlug,
     businessSlug,
+    domain,
     cityName,
     displayCityName: cityName,
     businessName,
     displayBusinessName: businessName,
     routePath,
     canonicalUrl,
-    outputBasePath: `${citySlug}/${businessSlug}`
+    outputBasePath: `sites/${domain}`
   };
 }
 
@@ -56,18 +73,20 @@ export function generateWebsiteFiles(config) {
 
   return {
     pages: {
-      [buildSeoOutputPath({ ...route, file: "index.html" })]: indexHtml,
-      [buildSeoOutputPath({ ...route, file: "robots.txt" })]: robots,
-      [buildSeoOutputPath({ ...route, file: "sitemap.xml" })]: sitemap
+      [`${route.outputBasePath}/index.html`]: indexHtml,
+      [`${route.outputBasePath}/robots.txt`]: robots,
+      [`${route.outputBasePath}/sitemap.xml`]: sitemap
     },
     sitemap,
     robots,
     citySlug: route.citySlug,
     businessSlug: route.businessSlug,
+    domain: route.domain,
+    outputPath: `${route.outputBasePath}/index.html`,
     routePath: route.routePath,
     canonicalUrl: route.canonicalUrl,
     published: false,
-    publishMode: "preview-in-memory"
+    publishMode: "physical-files-preview"
   };
 }
 
@@ -109,5 +128,5 @@ function generateRobots(route) {
   return `User-agent: *
 Allow: /
 
-Sitemap: ${SITE_ORIGIN}${route.routePath}sitemap.xml`;
+Sitemap: ${route.canonicalUrl}sitemap.xml`;
 }

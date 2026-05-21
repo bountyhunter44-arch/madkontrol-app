@@ -3,6 +3,9 @@
     "rules": "firestore.rules"
   },
   "hosting": {
+    "predeploy": [
+      "node scripts/sync-tools-to-functions.cjs"
+    ],
     "public": "public",
     "ignore": [
       "firebase.json",
@@ -124,6 +127,9 @@
     ]
   },
   "functions": {
+    "predeploy": [
+      "node scripts/sync-tools-to-functions.cjs"
+    ],
     "source": "functions",
     "runtime": "nodejs22"
   }

@@ -100,12 +100,36 @@ export const CANONICAL_EGENKONTROL_TASKS = [
     guideKey: "paalaegsmaskine_rengoering"
   },
   {
-    key: "softice_maskine_rengoering",
+    key: "ismaskine_temperatur",
     group: "GAG",
-    title: "Ismaskine / softicemaskine rengøring",
+    title: "Ismaskine temperaturkontrol",
+    frequencyDays: 1,
+    description: "Kontrol af ismaskinens drift og isens tilstand",
+    guideKey: "ismaskine_temperatur"
+  },
+  {
+    key: "ismaskine_rengoering",
+    group: "GAG",
+    title: "Ismaskine rengøring",
     frequencyDays: 7,
-    description: "Rengøring og desinfektion af ismaskine eller softicemaskine",
-    guideKey: "softice_maskine_rengoering"
+    description: "Rengøring og desinfektion af ismaskine",
+    guideKey: "ismaskine_rengoering"
+  },
+  {
+    key: "softicemaskine_temperatur",
+    group: "GAG",
+    title: "Softicemaskine temperaturkontrol",
+    frequencyDays: 1,
+    description: "Kontrol af softicemaskinens temperatur",
+    guideKey: "softicemaskine_temperatur"
+  },
+  {
+    key: "softicemaskine_rengoering",
+    group: "GAG",
+    title: "Softicemaskine rengøring",
+    frequencyDays: 7,
+    description: "Rengøring og desinfektion af softicemaskine",
+    guideKey: "softicemaskine_rengoering"
   },
   { 
     key: "personlig_hygiejne", 
@@ -174,9 +198,14 @@ export const KEY_ALIASES = {
   "paalaegsmaskine_cleaning": "paalaegsmaskine_rengoering",
   "slicer_cleaning": "paalaegsmaskine_rengoering",
   "slicing_machine_cleaning": "paalaegsmaskine_rengoering",
-  "softice_machine_cleaning": "softice_maskine_rengoering",
-  "ice_machine_cleaning": "softice_maskine_rengoering",
-  "ismaskine_rengoering": "softice_maskine_rengoering",
+  "softice_maskine_rengoering": "softicemaskine_rengoering",
+  "softice_machine_cleaning": "softicemaskine_rengoering",
+  "softice_temperatur_kontrol": "softicemaskine_temperatur",
+  "softice_temperature_control": "softicemaskine_temperatur",
+  "ice_machine_cleaning": "ismaskine_rengoering",
+  "ice_machine_temperature": "ismaskine_temperatur",
+  "ice_machine_temperature_control": "ismaskine_temperatur",
+  "ismaskine_temperatur_kontrol": "ismaskine_temperatur",
   "revision": "aarlig_revision",
   "annual_review": "aarlig_revision",
   

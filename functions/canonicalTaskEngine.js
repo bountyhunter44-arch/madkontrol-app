@@ -514,14 +514,18 @@ async function startDayForLocationCanonical({
         u.type === "friture" ||
         u.category === "fryer"
       );
-    } else if (routineType === "softice_maskine_rengoering" || routineType === "softice_temperatur_kontrol") {
+    } else if (routineType === "softicemaskine_rengoering" || routineType === "softicemaskine_temperatur" || routineType === "softice_maskine_rengoering" || routineType === "softice_temperatur_kontrol") {
       // Softice machine routines
       targetUnits = units.filter(u => 
         u.type === "softice_machine" || 
+        u.type === "softice_maskine" ||
+        u.category === "softice_machine"
+      );
+    } else if (routineType === "ismaskine_rengoering" || routineType === "ismaskine_temperatur") {
+      // Ice machine routines
+      targetUnits = units.filter(u =>
         u.type === "ice_machine" ||
         u.type === "ismaskine" ||
-        u.type === "softice_maskine" ||
-        u.category === "softice_machine" ||
         u.category === "ice_machine" ||
         u.category === "ismaskine"
       );

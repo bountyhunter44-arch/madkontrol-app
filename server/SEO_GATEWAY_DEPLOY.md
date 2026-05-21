@@ -4,21 +4,25 @@ This is a preparation note only. Do not run these commands until the VPS, DNS, c
 
 ## What It Runs
 
-The SEO gateway serves wildcard SEO pages dynamically from Firestore.
+The SEO gateway serves wildcard SEO pages from physical files on the VPS.
 
 Example:
 
 ```bash
-https://herning.madkontrollen.dk/aroi-d/
+https://aroi-d.madkontrollen.dk/
+https://aroi-d.madkontrollen.dk/robots.txt
+https://aroi-d.madkontrollen.dk/sitemap.xml
 ```
 
-Routes to virtual output:
+Routes to physical output:
 
 ```bash
-herning/aroi-d/index.html
+public/sites/aroi-d.madkontrollen.dk/index.html
+public/sites/aroi-d.madkontrollen.dk/robots.txt
+public/sites/aroi-d.madkontrollen.dk/sitemap.xml
 ```
 
-No HTML files are written. Firestore remains the source of truth.
+The Express app uses the host header via `req.hostname.toLowerCase()` and reads files from `public/sites/${host}/`.
 
 ## Environment
 
@@ -35,6 +39,7 @@ PORT=3100
 GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/serviceAccountKey.json
 SEO_GATEWAY_CACHE_TTL_SECONDS=300
 SEO_ALLOWED_ROOT_DOMAIN=madkontrollen.dk
+SEO_SITES_ROOT=/absolute/path/madkontrol-app/public/sites
 SEO_GATEWAY_INTERNAL_TOKEN=replace-with-long-random-token
 ```
 
@@ -117,16 +122,16 @@ systemctl reload nginx
 Run against the local gateway before enabling public traffic and again after Nginx is reloaded:
 
 ```bash
-curl -H "Host: herning.madkontrollen.dk" http://127.0.0.1:3100/aroi-d/
-curl -H "Host: herning.madkontrollen.dk" http://127.0.0.1:3100/aroi-d/sitemap.xml
-curl -H "Host: herning.madkontrollen.dk" http://127.0.0.1:3100/aroi-d/robots.txt
+curl -H "Host: aroi-d.madkontrollen.dk" http://127.0.0.1:3100/
+curl -H "Host: aroi-d.madkontrollen.dk" http://127.0.0.1:3100/sitemap.xml
+curl -H "Host: aroi-d.madkontrollen.dk" http://127.0.0.1:3100/robots.txt
 ```
 
 Expected:
 
-- `/aroi-d/` returns `text/html`
-- `/aroi-d/sitemap.xml` returns `application/xml`
-- `/aroi-d/robots.txt` returns `text/plain`
+- `/` returns `text/html`
+- `/sitemap.xml` returns `application/xml`
+- `/robots.txt` returns `text/plain`
 
 ## Cache Invalidation
 
@@ -149,12 +154,45 @@ The token must be a long random value in `.env.seo-gateway` or the PM2 environme
 
 Keep this endpoint internal. Prefer firewall or Nginx rules so it is only reachable from localhost or trusted backend hosts.
 
+## Rebuild Endpoint
+
+Published SEO sites are rebuilt on the VPS after the Firebase Function has saved the complete SEO payload in Firestore.
+
+```bash
+curl -X POST http://127.0.0.1:3100/internal/rebuild-site \
+  -H "Authorization: Bearer $SEO_GATEWAY_INTERNAL_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"domain":"aroi-d.madkontrollen.dk","reason":"publish"}'
+```
+
+Expected physical output:
+
+```bash
+public/sites/aroi-d.madkontrollen.dk/index.html
+public/sites/aroi-d.madkontrollen.dk/robots.txt
+public/sites/aroi-d.madkontrollen.dk/sitemap.xml
+```
+
+The token must match the server-side Firebase Functions config. The browser must never receive this token.
+
+Configure Functions with either a full rebuild URL:
+
+```bash
+firebase functions:config:set seo_gateway.rebuild_url="https://YOUR-GATEWAY/internal/rebuild-site" seo_gateway.internal_token="YOUR-LONG-RANDOM-TOKEN"
+```
+
+or a base URL:
+
+```bash
+firebase functions:config:set seo_gateway.base_url="https://YOUR-GATEWAY" seo_gateway.internal_token="YOUR-LONG-RANDOM-TOKEN"
+```
+
 ## DNS Wildcard
 
 Create or verify:
 
 ```text
-*.madkontrollen.dk A <VPS_IP>
+*.madkontrollen.dk A 46.62.246.141
 ```
 
 DNS must point to the VPS before public wildcard subdomains can resolve.
@@ -170,10 +208,12 @@ Do not rely on HTTP-only traffic for production.
 
 ## Notes
 
-- The gateway uses Firestore collections `websites` and `seo_pages`.
+- The gateway serves physical files first from `public/sites/{host}/`.
+- The internal rebuild endpoint writes `index.html`, `robots.txt`, and `sitemap.xml` under `public/sites/{domain}/` on the VPS.
+- The older Firestore renderer remains as fallback for non-file legacy routes.
 - Cache keys include route type plus `publishVersion`, `version`, or a Firestore timestamp from the website document when available.
 - Cache TTL defaults to 300 seconds.
 - Add `?preview=1` or `?nocache=1` to bypass in-memory cache.
-- The gateway does not write files and does not deploy Firebase Hosting.
+- The gateway writes physical SEO files on rebuild. It does not deploy Firebase Hosting.
 - `server/seed-seo-test-site.js` is dev-only and requires `SEO_GATEWAY_ALLOW_DEV_SEED=1`.
 - Do not run the seed script against production unless you intentionally want the test documents.

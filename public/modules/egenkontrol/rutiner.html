@@ -1981,178 +1981,9 @@ requiredBeforeEdit:
         let selectedDateKey = null;
         let rutinerLoaderProgress = 0;
 
-        // ── GENERISK RUTINE SVAR CONFIG ────────────────────────────────────
-        const ROUTINE_ANSWER_CONFIG = {
-            cooling_control: {
-                groups: [
-                    {
-                        key: "delay_reason",
-                        label: "KRÆVES: Hvorfor er registreringen ikke udført rettidigt?*",
-                        field: "reasonCode",
-                        textField: "reasonOtherText",
-                        options: [
-                            { code: "closed", label: "Der har været lukket, siden sidste dokumentation", status: "neutral" },
-                            { code: "not_entered", label: "Registrering udført men ikke indtastet i Madkontrollen", status: "warning" },
-                            { code: "not_done", label: "Registrering IKKE udført", status: "critical" },
-                            { code: "other", label: "Andet, indtast bemærkning", status: "neutral", requiresText: true }
-                        ]
-                    },
-                    {
-                        key: "cooling_result",
-                        label: "KRÆVES: Målt afkøling indenfor 4 timer*",
-                        field: "coolingResult",
-                        showIf: { field: "reasonCode", value: "not_entered" },
-                        options: [
-                            { code: "above_10", label: "Temperatur efter 4 timer er mere end 10 grader. Proceduren for opvarmning af fødevarer påbegyndes.", status: "critical" },
-                            { code: "no_cooling", label: "Ingen nedkøling af fødevarer i denne uge", status: "neutral" },
-                            { code: "ok_sitti", label: "Nedkøling overholder temperaturvejledning på SITTI", status: "ok" },
-                            { code: "ok_56_to_10", label: "Temperaturen er faldet fra minimum 56 grader til max 10 grader på max 4 timer.", status: "ok" }
-                        ]
-                    },
-                    {
-                        key: "corrective_action",
-                        label: "KRÆVES: Korrigerende handling*",
-                        field: "correctiveAction",
-                        showIf: { field: "reasonCode", value: "not_done" },
-                        textField: "correctiveActionOtherText",
-                        options: [
-                            { code: "discarded", label: "Retten er kasseret", status: "critical" },
-                            { code: "reheated", label: "Retten er genopvarmet til over 75 c og korrekt nedkølingsforløb er gennemført", status: "ok" },
-                            { code: "other", label: "Andet (uddyb i bemærkning)", status: "neutral", requiresText: true }
-                        ]
-                    }
-                ]
-            },
-            reheating_control: {
-                groups: [
-                    {
-                        key: "delay_reason",
-                        label: "KRÆVES: Hvorfor er registreringen ikke udført rettidigt?*",
-                        field: "reasonCode",
-                        textField: "reasonOtherText",
-                        options: [
-                            { code: "closed", label: "Der har været lukket, siden sidste dokumentation", status: "neutral" },
-                            { code: "not_entered", label: "Registrering udført men ikke indtastet i Madkontrollen", status: "warning" },
-                            { code: "not_done", label: "Registrering IKKE udført", status: "critical" },
-                            { code: "other", label: "Andet, indtast bemærkning", status: "neutral", requiresText: true }
-                        ]
-                    },
-                    {
-                        key: "temperature_result",
-                        label: "KRÆVES: Temperaturregistrering*",
-                        field: "temperatureResult",
-                        textField: "resultOtherText",
-                        showIf: { field: "reasonCode", value: "not_entered" },
-                        options: [
-                            { code: "above_75", label: "Målt temperatur er over 75 grader", status: "ok" },
-                            { code: "below_75", label: "Målt temperatur er under 75 grader", status: "critical" },
-                            { code: "no_reheating", label: "Ingen varer er opvarmet siden sidste kontrol", status: "neutral" },
-                            { code: "fish_60", label: "Fisk opvarmet til minimum 60 grader i et minut", status: "ok" },
-                            { code: "ready_below_75", label: "Færdigvarer med lavere temperatur end 75 grader", status: "warning" },
-                            { code: "ok_sitti", label: "Opvarmning overholder temperaturvejledning på SiTTi", status: "ok", info: "Ved opvarmning af specielle fødevarer kan temperatur og tid være anderledes end nedenstående. Tjek gyldige temperaturer i SiTTi på Fødevarestyrelsens hjemmeside: sitti.foedevarestyrelsen.dk" }
-                        ]
-                    },
-                    {
-                        key: "corrective_action",
-                        label: "KRÆVES: Korrigerende handling*",
-                        field: "correctiveAction",
-                        textField: "correctiveActionOtherText",
-                        showIf: { field: "reasonCode", value: "not_done" },
-                        options: [
-                            { code: "continue_heating", label: "Opvarmning fortsættes til temperaturen er over 75 grader", status: "ok" },
-                            { code: "other", label: "Andet, indtast bemærkning", status: "neutral", requiresText: true }
-                        ]
-                    }
-                ]
-            },
-            hot_holding_control: {
-                groups: [
-                    {
-                        key: "delay_reason",
-                        label: "KRÆVES: Hvorfor er registreringen ikke udført rettidigt?*",
-                        field: "reasonCode",
-                        textField: "reasonOtherText",
-                        options: [
-                            { code: "closed", label: "Der har været lukket, siden sidste dokumentation", status: "neutral" },
-                            { code: "not_entered", label: "Registrering udført men ikke indtastet i eDokumentation", status: "warning" },
-                            { code: "not_done", label: "Registrering IKKE udført", status: "critical" },
-                            { code: "other", label: "Andet, indtast bemærkning", status: "neutral", requiresText: true }
-                        ]
-                    },
-                    {
-                        key: "dish_name",
-                        label: "Hvilken ret er temperaturen målt i",
-                        field: "dishName",
-                        isTextField: true
-                    },
-                    {
-                        key: "temperature_result",
-                        label: "KRÆVES: Temperaturregistrering*",
-                        field: "temperatureResult",
-                        fieldValue: "temperatureValue",
-                        textField: "resultOtherText",
-                        options: [
-                            { code: "out_of_order", label: "Enheden er ude af drift", status: "critical", value: null },
-                            { code: "no_holding", label: "Ingen varmholdelse af fødevarer i denne uge", status: "neutral", value: null }
-                        ],
-                        dynamicOptions: () => {
-                            const temps = [];
-                            for (let t = 75.0; t >= 62.0; t -= 0.5) {
-                                temps.push({
-                                    code: `temp_${t.toFixed(1).replace(".", "_")}`,
-                                    label: `${t.toFixed(1)} °C`,
-                                    status: t >= 65.0 ? "ok" : "critical",
-                                    value: t
-                                });
-                            }
-                            return temps;
-                        }
-                    },
-                    {
-                        key: "corrective_action",
-                        label: "KRÆVES: Korrigerende handling*",
-                        field: "correctiveAction",
-                        textField: "correctiveActionOtherText",
-                        options: [
-                            { code: "discarded", label: "Varerne destrueres", status: "critical" },
-                            { code: "reheated", label: "Varerne genopvarmes til over 75 grader", status: "ok" },
-                            { code: "ok_sitti", label: "Temperatur og tid er overholdt jf. SiTTi", status: "ok" },
-                            { code: "other", label: "Andet, indtast bemærkning", status: "neutral", requiresText: true }
-                        ]
-                    }
-                ]
-            },
-            ice_machine_control: {
-                groups: [
-                    {
-                        key: "delay_reason",
-                        label: "KRÆVES: Hvorfor er registreringen ikke udført rettidigt?*",
-                        field: "reasonCode",
-                        textField: "reasonOtherText",
-                        options: [
-                            { code: "closed", label: "Der har været lukket, siden sidste dokumentation", status: "neutral" },
-                            { code: "not_entered", label: "Registrering udført men ikke indtastet i eDokumentation", status: "warning" },
-                            { code: "not_done", label: "Registrering IKKE udført", status: "critical" },
-                            { code: "other", label: "Andet, indtast bemærkning", status: "neutral", requiresText: true }
-                        ]
-                    },
-                    {
-                        key: "cleaning_result",
-                        label: "KRÆVES: Registrering*",
-                        field: "cleaningResult",
-                        options: [
-                            { code: "cleaned", label: "Der er gjort rent", status: "ok" },
-                            { code: "partially_cleaned", label: "Der er delvist rengjort", status: "warning" },
-                            { code: "not_cleaned", label: "Der er ikke gjort rent", status: "critical" },
-                            { code: "out_of_order", label: "Enheden er ude af drift", status: "critical" }
-                        ]
-                    }
-                ]
-            },
-            cleaning_dishwasher_control: {
-                groups: []
-            }
-        };
+        // Legacy answer buttons were intentionally removed from routine cards.
+        // Keep this object empty so old save/restore hooks do not require the removed choices.
+        const ROUTINE_ANSWER_CONFIG = {};
 
         function isReceivingTask(task) {
             const controlType = String(task?.controlType || task?.guideKey || "").toLowerCase();
@@ -2347,52 +2178,129 @@ requiredBeforeEdit:
             `;
         }
 
+        const ROUTINE_PROFESSIONAL_TEXTS = {
+            nedkoeling: {
+                guide: "Nedkøl varmebehandlede fødevarer hurtigt og kontrolleret efter virksomhedens procedure.",
+                control: "Registrér rettens navn, starttidspunkt, sluttidspunkt, temperatur ved start og temperatur ved slut.",
+                deviationAction: "Hvis nedkølingen ikke er gennemført korrekt, vurderes fødevaren. Kasser fødevaren hvis sikkerheden ikke kan garanteres, og opret afvigelse.",
+                why: "Langsom nedkøling kan give vækst af bakterier og øge risikoen for fødevarebåren sygdom."
+            },
+            softicemaskine_rengoering: {
+                guide: "Rengør softicemaskinen efter producentens anvisninger. Alle dele, der kommer i kontakt med ismix eller færdig softice, skal være rene og fri for rester.",
+                control: "Kontrollér at maskinen er rengjort korrekt, og at der ikke er synlige rester af ismix, fedt eller snavs.",
+                deviationAction: "Stop brug af maskinen. Rengør og desinficér maskinen igen. Kasser produktet, hvis fødevaresikkerheden ikke kan garanteres. Opret afvigelse ved manglende eller utilstrækkelig rengøring.",
+                why: "Mangelfuld rengøring kan medføre bakterievækst og forurening af produktet."
+            },
+            softicemaskine_temperatur: {
+                guide: "Kontrollér at softicemaskinens temperatur er inden for producentens anbefalede område.",
+                control: "Kontrollér temperaturdisplay eller måling efter virksomhedens procedure.",
+                deviationAction: "Stop servering fra maskinen, hvis temperaturen er uden for grænserne. Vurder produktet, korrigér fejlen og opret afvigelse.",
+                why: "Forkert temperatur kan øge risikoen for bakterievækst i ismix og færdig softice."
+            },
+            ismaskine_rengoering: {
+                guide: "Rengør ismaskinen efter producentens anvisninger. Områder med kontakt til is og vand skal holdes rene.",
+                control: "Kontrollér at isbakke, indvendige flader og relevante kontaktflader er rene.",
+                deviationAction: "Stop brug af isen ved synlig forurening. Rengør og desinficér maskinen. Kasser berørt is og opret afvigelse.",
+                why: "Is betragtes som en fødevare og kan forurene drikkevarer eller fødevarer, hvis maskinen ikke holdes ren."
+            },
+            ismaskine_temperatur: {
+                guide: "Kontrollér at ismaskinen fungerer korrekt, og at isen opbevares under forhold der hindrer smeltning og forurening.",
+                control: "Kontrollér at isen fremstår fast, ren og uden tegn på optøning eller forurening.",
+                deviationAction: "Kasser berørt is ved tegn på optøning eller forurening. Undersøg årsagen og opret afvigelse.",
+                why: "Optøet eller forurenet is kan give øget risiko for bakterievækst og krydskontaminering."
+            }
+        };
+
+        const ROUTINE_PROFESSIONAL_TEXT_ALIASES = {
+            softice_maskine_rengoering: "softicemaskine_rengoering",
+            softice_machine_cleaning: "softicemaskine_rengoering",
+            softice_temperatur_kontrol: "softicemaskine_temperatur",
+            softice_temperature_control: "softicemaskine_temperatur",
+            ice_machine_cleaning: "ismaskine_rengoering",
+            ice_machine_temperature: "ismaskine_temperatur",
+            ice_machine_temperature_control: "ismaskine_temperatur",
+            ismaskine_temperatur_kontrol: "ismaskine_temperatur",
+            cooling: "nedkoeling",
+            cooling_control: "nedkoeling",
+            nedkoling: "nedkoeling",
+            nedkoeling_af_foedevarer: "nedkoeling",
+            nedkoeling_af_fodevarer: "nedkoeling"
+        };
+
+        function normalizeRoutineTextKey(value) {
+            const normalized = String(value || "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/æ/g, "ae")
+                .replace(/ø/g, "oe")
+                .replace(/å/g, "aa")
+                .replace(/[^a-z0-9]+/g, "_")
+                .replace(/^_+|_+$/g, "");
+            return ROUTINE_PROFESSIONAL_TEXT_ALIASES[normalized] || normalized;
+        }
+
+        function getRoutineProfessionalText(task = {}) {
+            const keys = [
+                task.routineKey,
+                task.routineType,
+                task.canonicalRoutineType,
+                task.templateKey,
+                task.templateId,
+                task.taskTemplateKey,
+                task.guideKey,
+                task.controlType,
+                task.taskId,
+                task.key
+            ].map(normalizeRoutineTextKey).filter(Boolean);
+
+            const titleKey = normalizeRoutineTextKey(task.title || task.name || "");
+            if (titleKey.includes("softice") && titleKey.includes("temperatur")) keys.push("softicemaskine_temperatur");
+            if (titleKey.includes("softice") && (titleKey.includes("rengoering") || titleKey.includes("rengoring"))) keys.push("softicemaskine_rengoering");
+            if ((titleKey.includes("ismaskine") || titleKey.includes("isterning")) && titleKey.includes("temperatur")) keys.push("ismaskine_temperatur");
+            if ((titleKey.includes("ismaskine") || titleKey.includes("isterning")) && (titleKey.includes("rengoering") || titleKey.includes("rengoring"))) keys.push("ismaskine_rengoering");
+
+            for (const key of keys) {
+                if (ROUTINE_PROFESSIONAL_TEXTS[key]) {
+                    return ROUTINE_PROFESSIONAL_TEXTS[key];
+                }
+            }
+
+            const guide = getTaskGuide(task) || {};
+            return {
+                guide: guide.description || task.description || "Udfør rutinen efter virksomhedens procedure og den fastsatte frekvens.",
+                control: guide.controlRequirement || guide.control || guide.howToCheck || "Kontrollér at forholdet er i orden, og dokumentér observationen kort.",
+                deviationAction: guide.correctiveAction || guide.risk?.defaultCorrectiveAction || "Ved fejl eller usikkerhed stoppes relevant brug, forholdet korrigeres, og der oprettes afvigelse.",
+                why: guide.risk?.hazard || guide.purpose || task.purpose || "Rutinen hjælper med at dokumentere egenkontrol og forebygge fødevaresikkerhedsrisici."
+            };
+        }
+
+        function renderRoutineProfessionalTextHtml(task) {
+            const text = getRoutineProfessionalText(task);
+            const rows = [
+                ["Guide", text.guide],
+                ["Kontrol", text.control],
+                ["Handling ved afvigelse", text.deviationAction],
+                ["Hvorfor er dette vigtigt?", text.why]
+            ].filter(([, value]) => String(value || "").trim());
+
+            if (!rows.length) return "";
+
+            return `
+                <div class="task-action-note task-guide-panel routine-professional-text">
+                    ${rows.map(([label, value]) => `
+                        <div class="task-guide-row">
+                            <span class="task-guide-label">${escapeHtml(label)}</span>
+                            <span class="task-guide-text">${escapeHtml(value)}</span>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
+        }
+
         const RECEIVING_DEFAULT_WHAT_WAS_CHECKED = "Temperatur, emballage, holdbarhed og sporbarhed er kontrolleret ved varemodtagelsen.";
 
         function getRoutineAnswerConfig(task) {
-            const controlType = task.controlType || task.guideKey || "";
-            const category = String(task.category || "").toLowerCase();
-            const title = String(task.title || "").toLowerCase();
-
-            if (isReceivingTask(task)) {
-                return null;
-            }
-            
-            // Direct match
-            if (ROUTINE_ANSWER_CONFIG[controlType]) {
-                return ROUTINE_ANSWER_CONFIG[controlType];
-            }
-            
-            // Cooling variants
-            if (isCoolingTask(task) || category.includes("nedkøl") || category.includes("nedkoel") || 
-                title.includes("nedkøl") || title.includes("nedkoel")) {
-                return ROUTINE_ANSWER_CONFIG.cooling_control;
-            }
-            
-            // Hot holding variants
-            if (controlType === "hot_holding_control" || category.includes("varmhold") || title.includes("varmhold")) {
-                return ROUTINE_ANSWER_CONFIG.hot_holding_control;
-            }
-            
-            // Reheating variants
-            if (controlType === "reheating_control" || category.includes("opvarmning") || 
-                title.includes("opvarmning") || title.includes("genopvarm")) {
-                return ROUTINE_ANSWER_CONFIG.reheating_control;
-            }
-            
-            // Ice machine variants
-            if (controlType === "ice_machine_control" || category.includes("isterning") || 
-                title.includes("isterning") || title.includes("ismaskine")) {
-                return ROUTINE_ANSWER_CONFIG.ice_machine_control;
-            }
-            
-            // Dishwasher cleaning variants
-            if (controlType === "cleaning_dishwasher_control" || 
-                (category.includes("rengøring") && (title.includes("opvask") || title.includes("dishwasher"))) ||
-                (task.equipmentType === "dishwasher" && category.includes("rengøring"))) {
-                return ROUTINE_ANSWER_CONFIG.cleaning_dishwasher_control;
-            }
-            
             return null;
         }
 
@@ -4948,7 +4856,7 @@ function formatDeadlineLabel(task) {
         }
 
         function isHiddenFromDailyView(task = {}) {
-            return task.hiddenFromDailyView === true && !isRoutineDueForDailyView(task);
+            return task.hiddenFromDailyView === true;
         }
 
         function getHiddenPeriodicTasks() {
@@ -5061,6 +4969,7 @@ function formatDeadlineLabel(task) {
                 text.includes("walk_in_koeler") ||
                 text.includes("walkin_koeler") ||
                 text.includes("softice_temperatur_kontrol") ||
+                text.includes("softicemaskine_temperatur") ||
                 text.includes("softice_temperature_control") ||
                 (text.includes("koel") && text.includes("temperatur")) ||
                 (text.includes("fridge") && text.includes("temperature")) ||
@@ -5646,10 +5555,10 @@ const hasMin = task.minValue !== null && task.minValue !== undefined && task.min
                             const handledAtLabel = formatDateTimeDa(getTaskHandledAt(task));
                             const normalizedFrequency = normalizeFrequencyValue(task.frequency || "daily");
                             const showCleaningAction = shouldShowCleaningRequiredAction(task);
-                            const controlPointGuideHtml = renderControlPointGuideHtml(task);
+                            const controlPointGuideHtml = renderRoutineProfessionalTextHtml(task) || renderControlPointGuideHtml(task);
                             const dueStatus = task.dueStatus || "ok";
                             const dueClass = dueStatus === "overdue" ? "routine-due-overdue" : dueStatus === "due_soon" ? "routine-due-soon" : "routine-due-ok";
-                            const canHideFromDailyView = !isHiddenFromDailyView(task) && !isRoutineDueForDailyView(task);
+                            const canHideFromDailyView = !isHiddenFromDailyView(task);
                             const hideToggleLabel = isHiddenFromDailyView(task) ? "Vis i daglig liste igen" : "Skjul fra daglig visning";
                             const hideToggleAction = isHiddenFromDailyView(task) ? "show_daily_view" : "hide_daily_view";
                             const activityHtml = `<div class="routine-card-activity">
@@ -5933,51 +5842,9 @@ ${(() => {
                                                     ${renderRoutineAnswerGroups(task)}
                                                 </div>
 
-                                                <div style="grid-column:1 / -1;display:none;" class="cooling-fields-container" data-instance-id="${escapeHtml(task.id)}">
-                                                    <div class="routine-form-grid">
-                                                        <div style="grid-column:1 / -1;">
-                                                            <label class="form-label">Rettens navn*</label>
-                                                            <input type="text" class="task-input" data-field="cooling_dishName" data-instance-id="${escapeHtml(task.id)}" placeholder="Indtast en tekst her." value="${escapeHtml(task.cooling_dishName || "")}">
-                                                        </div>
-                                                        <div>
-                                                            <label class="form-label">Starttidspunkt*</label>
-                                                            <input type="time" class="task-input" data-field="cooling_startTime" data-instance-id="${escapeHtml(task.id)}" placeholder="--:--" value="${escapeHtml(task.cooling_startTime || "")}">
-                                                        </div>
-                                                        <div>
-                                                            <label class="form-label">Sluttidspunkt*</label>
-                                                            <input type="time" class="task-input" data-field="cooling_endTime" data-instance-id="${escapeHtml(task.id)}" placeholder="--:--" value="${escapeHtml(task.cooling_endTime || "")}">
-                                                        </div>
-                                                        <div>
-                                                            <label class="form-label">Temperatur ved start*</label>
-                                                            <input type="number" step="0.5" class="task-input" data-field="cooling_startTemp" data-instance-id="${escapeHtml(task.id)}" placeholder="Indtast her." value="${task.cooling_startTemp || ""}">
-                                                        </div>
-                                                        <div>
-                                                            <label class="form-label">Temperatur ved slut*</label>
-                                                            <input type="number" step="0.5" class="task-input" data-field="cooling_endTemp" data-instance-id="${escapeHtml(task.id)}" placeholder="Indtast her." value="${task.cooling_endTemp || ""}">
-                                                        </div>
-                                                    </div>
+                                                <div style="grid-column:1 / -1;" class="task-action-note">
+                                                    Brug <strong>+ Tilføj nedkøling</strong> for at starte den specialiserede nedkølingsmodal med timer og afslutningsmåling.
                                                 </div>
-
-                                                <div style="grid-column:1 / -1;display:none;" class="cooling-corrective-container" data-instance-id="${escapeHtml(task.id)}">
-                                                    <div class="answer-group">
-                                                        <div class="answer-group-label">KRÆVES: Korrigerende handling*</div>
-                                                        <div class="answer-options">
-                                                            <button type="button" class="answer-option answer-option-critical" data-field="cooling_correctiveAction" data-code="discarded" data-label="Retten er kasseret" data-instance-id="${escapeHtml(task.id)}" onclick="handleCoolingCorrectiveAction('${escapeHtml(task.id)}', 'discarded', 'Retten er kasseret', false)">Retten er kasseret</button>
-                                                            <button type="button" class="answer-option answer-option-ok" data-field="cooling_correctiveAction" data-code="reheated" data-label="Retten er genopvarmet til over 75 c og korrekt nedkølingsforløb er gennemført" data-instance-id="${escapeHtml(task.id)}" onclick="handleCoolingCorrectiveAction('${escapeHtml(task.id)}', 'reheated', 'Retten er genopvarmet til over 75 c og korrekt nedkølingsforløb er gennemført', false)">Retten er genopvarmet til over 75 c og korrekt nedkølingsforløb er gennemført</button>
-                                                            <button type="button" class="answer-option answer-option-neutral" data-field="cooling_correctiveAction" data-code="other" data-label="Andet (uddyb i bemærkning)" data-instance-id="${escapeHtml(task.id)}" onclick="handleCoolingCorrectiveAction('${escapeHtml(task.id)}', 'other', 'Andet (uddyb i bemærkning)', true)">Andet (uddyb i bemærkning)</button>
-                                                        </div>
-                                                        <div class="cooling-corrective-text-container" style="display:none;margin-top:8px;">
-                                                            <label class="form-label">Indtast bemærkning til ovenstående*</label>
-                                                            <input type="text" class="task-input" data-field="cooling_correctiveActionText" data-instance-id="${escapeHtml(task.id)}" placeholder="Indtast en tekst her." value="${escapeHtml(task.cooling_correctiveActionText || "")}">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div
-                                                    style="grid-column:1 / -1;margin-top:12px;"
-                                                    class="cooling-runs-list"
-                                                    data-instance-id="${escapeHtml(task.id)}"
-                                                ></div>
                                             </div>
                                         `
                                         : (String(task.title || "").toLowerCase().includes("adskillelse") || String(task.category || "").toLowerCase().includes("separation"))
@@ -6325,6 +6192,15 @@ ${(() => {
                                 >
                                     Ikke relevant i dag
                                 </button>
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary task-deviation-btn"
+                                    data-instance-id="${escapeHtml(task.id)}"
+                                    data-action="manual_deviation"
+                                    style="width: 100%;"
+                                >
+                                    Opret afvigelse
+                                </button>
                                 <p style="font-size: 13px; color: #6b7280; margin: 8px 0 0 0; line-height: 1.5;">
                                     Marker som ikke relevant, hvis rutinen ikke er relevant for i dag.
                                 </p>
@@ -6372,6 +6248,86 @@ ${(() => {
         }
 
         // bindGuideToggles removed - guide system eliminated
+
+        function closeCoolingRunModal() {
+            document.querySelector(".cooling-run-modal-backdrop")?.remove();
+        }
+
+        function openCoolingRunModal(instanceId, runId) {
+            const task = allTasks.find(t => t.id === instanceId);
+            if (!task) return;
+
+            closeCoolingRunModal();
+
+            const now = new Date();
+            const startTime = now.toTimeString().slice(0, 5);
+            const modal = document.createElement("div");
+            modal.className = "cooling-run-modal-backdrop";
+            modal.style.cssText = "position:fixed;inset:0;z-index:100000;background:rgba(15,23,42,0.58);display:flex;align-items:center;justify-content:center;padding:16px;";
+            modal.innerHTML = `
+                <div class="cooling-run-modal" role="dialog" aria-modal="true" aria-labelledby="coolingRunModalTitle" style="width:min(560px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:14px;box-shadow:0 24px 80px rgba(15,23,42,.35);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #e5e7eb;">
+                        <div>
+                            <h3 id="coolingRunModalTitle" style="margin:0;font-size:18px;color:#102313;">Tilføj nedkøling</h3>
+                            <p style="margin:4px 0 0 0;font-size:13px;color:#64748b;">Start nedkølingsuret og afslut målingen fra timer-panelet.</p>
+                        </div>
+                        <button type="button" class="btn btn-secondary" data-cooling-modal-close="true" style="min-height:34px;padding:6px 10px;">Luk</button>
+                    </div>
+                    <div style="padding:20px;">
+                        <div class="routine-form-grid">
+                            <div style="grid-column:1 / -1;">
+                                <label class="form-label">Rettens navn*</label>
+                                <input type="text" class="task-input" data-cooling-modal-field="productName" placeholder="fx Lasagne">
+                            </div>
+                            <div>
+                                <label class="form-label">Starttidspunkt*</label>
+                                <input type="time" class="task-input" data-cooling-modal-field="startTime" value="${escapeHtml(startTime)}">
+                            </div>
+                            <div>
+                                <label class="form-label">Temperatur ved start*</label>
+                                <input type="number" step="0.5" class="task-input" data-cooling-modal-field="startTemp" placeholder="fx 72">
+                            </div>
+                            <div>
+                                <label class="form-label">Mængde*</label>
+                                <select class="task-input" data-cooling-modal-field="quantityBucket">
+                                    <option value="">Vælg mængde</option>
+                                    <option value="lt_5kg">Under 5 kg</option>
+                                    <option value="kg_5_10">5-10 kg</option>
+                                    <option value="gt_10kg">Over 10 kg</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Nedkølingsmetode*</label>
+                                <select class="task-input" data-cooling-modal-field="coolingMethod">
+                                    <option value="">Vælg metode</option>
+                                    <option value="small_containers">Små beholdere</option>
+                                    <option value="fridge">Køleskab</option>
+                                    <option value="ice_bath">Isbad</option>
+                                    <option value="cold_running_water">Rindende koldt vand</option>
+                                    <option value="blast_chiller">Blast chiller</option>
+                                    <option value="stirring">Omrøring under nedkøling</option>
+                                    <option value="other">Andet</option>
+                                </select>
+                            </div>
+                            <div style="grid-column:1 / -1;padding:12px;border:1px solid #d4e3d4;border-radius:10px;background:#f7fbf7;font-size:13px;line-height:1.5;color:#25472c;">
+                                Timer-panelet håndterer nedtælling, sluttidspunkt, temperatur ved slut og gem af nedkølingsregistreringen.
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;padding:16px 20px;border-top:1px solid #e5e7eb;">
+                        <button type="button" class="btn btn-secondary" data-cooling-modal-close="true">Annuller</button>
+                        <button type="button" class="btn btn-primary" data-cooling-modal-start="true" data-instance-id="${escapeHtml(instanceId)}" data-run-id="${escapeHtml(runId)}">Start nedkølingsur</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.querySelector('[data-cooling-modal-field="productName"]')?.focus();
+        }
+
+        function readCoolingModalField(modal, field) {
+            return modal?.querySelector(`[data-cooling-modal-field="${field}"]`)?.value ?? "";
+        }
 
         // ── appendCoolingRunCard ───────────────────────────────────────────
         function appendCoolingRunCard(instanceId, runId) {
@@ -8325,6 +8281,81 @@ const buildFryerRoutineCompletionEntry = () => {
             window.location.href = url.toString();
         }
 
+        console.log("[deviation:create:init]", { collection: "deviations" });
+
+        async function createDeviationForTask(task, note = "") {
+            if (!task?.id) {
+                throw new Error("Rutinen mangler taskInstanceId.");
+            }
+
+            const context = getTaskContextDetails(task);
+            const routineKey = task.routineKey || task.routineType || task.canonicalRoutineType || task.templateKey || task.templateId || task.taskId || "";
+            const routineTitle = task.title || getVisibleTitle(task) || "Rutine";
+            const createdBy = SETTINGS.createdBy || window.currentUser?.uid || "";
+            const payload = {
+                companyId: SETTINGS.companyId,
+                organizationId: SETTINGS.companyId,
+                locationId: SETTINGS.locationId,
+                unitId: SETTINGS.unitId || "",
+                taskId: task.taskId || task.templateId || task.templateKey || task.id,
+                taskInstanceId: task.id,
+                sourceTaskId: task.taskId || task.templateId || task.templateKey || task.id,
+                sourceTaskInstanceId: task.id,
+                routineKey,
+                routineTitle,
+                taskTitle: routineTitle,
+                title: routineTitle,
+                status: "open",
+                alertType: "manual_deviation",
+                severity: "medium",
+                source: "routine_card",
+                sourcePage: "rutiner.html",
+                dateKey: normalizeDateKey(task.dateKey) || normalizeDateKey(selectedDateKey) || getTodayKey(),
+                areaName: context.areaName || task.areaName || task.controlPoint || "",
+                areaType: context.areaType || task.areaType || task.equipmentType || "",
+                equipmentName: task.equipmentName || context.machineName || "",
+                equipmentType: task.equipmentType || "",
+                machineName: context.machineName || task.machineName || task.equipmentName || "",
+                specificLabel: context.specificLabel || "",
+                manualNote: note,
+                description: note || `Manuel afvigelse oprettet fra rutinen: ${routineTitle}`,
+                createdBy,
+                createdByName: SETTINGS.employeeName || window.currentUserProfile?.displayName || "",
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+
+            console.log("[deviation:create:payload]", {
+                companyId: payload.companyId,
+                locationId: payload.locationId,
+                taskId: payload.taskId,
+                taskInstanceId: payload.taskInstanceId,
+                routineKey: payload.routineKey,
+                routineTitle: payload.routineTitle,
+                status: payload.status
+            });
+
+            const ref = await addDoc(collection(db, "deviations"), payload);
+            console.log("[deviation:create:success]", { deviationId: ref.id, taskInstanceId: task.id });
+
+            const url = new URL("/modules/egenkontrol/afvigelser.html", window.location.origin);
+            url.searchParams.set("taskInstanceId", task.id);
+            url.searchParams.set("taskId", task.taskId || "");
+            url.searchParams.set("actionType", "manual_deviation");
+            url.searchParams.set("locationId", SETTINGS.locationId);
+            url.searchParams.set("title", routineTitle);
+            url.searchParams.set("equipmentName", task.equipmentName || "");
+            url.searchParams.set("machineName", context.machineName || "");
+            url.searchParams.set("specificLabel", context.specificLabel || "");
+            url.searchParams.set("category", task.category || "");
+            url.searchParams.set("areaName", context.areaName || task.areaName || task.controlPoint || "");
+            url.searchParams.set("areaType", context.areaType || task.areaType || task.equipmentType || "");
+            url.searchParams.set("deviationId", ref.id);
+            window.location.href = url.toString();
+
+            return ref.id;
+        }
+
         async function saveTask(task, actionType = "save", runContext = null) {
             if ((operatingState.isClosed || operatingState.isVacation) && !userIsResponsible()) {
                 throw new Error("Kan ikke gemme normale rutiner når lukket eller ferie er aktiv.");
@@ -8644,23 +8675,53 @@ const buildFryerRoutineCompletionEntry = () => {
             });
         }
 
+        console.log("[routine-hide-daily:init]", { hasTaskList: !!taskListEl });
+
         async function setHiddenFromDailyView(instanceId, shouldHide) {
             const task = allTasks.find((item) => item.id === instanceId);
             if (!task) return;
 
-            if (shouldHide && isRoutineDueForDailyView(task)) {
-                alert("Rutinen er forfalden eller kræver handling og kan derfor ikke skjules fra dagslisten.");
-                return;
-            }
+            const dateKey = normalizeDateKey(task.dateKey) || normalizeDateKey(selectedDateKey) || getTodayKey();
+            const hiddenState = {
+                hidden: shouldHide === true,
+                scope: "daily_view",
+                dateKey,
+                reversible: true,
+                reason: shouldHide ? "user_hidden_daily_view" : "user_restored_daily_view",
+                updatedBy: SETTINGS.createdBy || "",
+                updatedByName: SETTINGS.employeeName || ""
+            };
+
+            console.log("[routine-hide-daily:save]", {
+                instanceId,
+                shouldHide: shouldHide === true,
+                dateKey,
+                routineKey: task.routineKey || task.routineType || task.templateKey || task.taskId || "",
+                title: task.title || ""
+            });
 
             await setDoc(doc(db, "task_instances", instanceId), {
                 hiddenFromDailyView: shouldHide === true,
+                hiddenFromDailyViewState: hiddenState,
+                hiddenFromDailyViewDateKey: shouldHide === true ? dateKey : "",
+                hiddenFromDailyViewScope: "daily_view",
+                hiddenFromDailyViewReason: hiddenState.reason,
+                hiddenFromDailyViewHistory: arrayUnion({
+                    ...hiddenState,
+                    updatedAt: new Date().toISOString()
+                }),
                 hiddenFromDailyViewUpdatedAt: serverTimestamp(),
                 hiddenFromDailyViewUpdatedBy: SETTINGS.createdBy || "",
+                hiddenFromDailyViewUpdatedByName: SETTINGS.employeeName || "",
                 updatedAt: serverTimestamp()
             }, { merge: true });
 
             task.hiddenFromDailyView = shouldHide === true;
+            task.hiddenFromDailyViewState = hiddenState;
+            task.hiddenFromDailyViewDateKey = shouldHide === true ? dateKey : "";
+            task.hiddenFromDailyViewScope = "daily_view";
+            task.hiddenFromDailyViewReason = hiddenState.reason;
+            console.log("[routine-hide-daily:success]", { instanceId, hidden: task.hiddenFromDailyView });
             renderTasks();
             updateKpis();
         }
@@ -8675,10 +8736,11 @@ const buildFryerRoutineCompletionEntry = () => {
                 const originalText = button.textContent;
                 button.disabled = true;
                 button.textContent = "Gemmer...";
+                console.log("[routine-hide-daily:click]", { instanceId, shouldHide: false, source: "hidden-panel" });
                 try {
                     await setHiddenFromDailyView(instanceId, false);
                 } catch (error) {
-                    console.error("[hidden daily view] restore failed", error);
+                    console.error("[routine-hide-daily:error]", error);
                     alert(error?.message || "Kunne ikke vise rutinen igen.");
                     button.disabled = false;
                     button.textContent = originalText;
@@ -8892,12 +8954,36 @@ const buildFryerRoutineCompletionEntry = () => {
                 }
                 const runId = `run_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
                 coolingSessionMap.get(instanceId).runs.push({ runId, startedAt: null, status: "ready" });
-                appendCoolingRunCard(instanceId, runId);
+                openCoolingRunModal(instanceId, runId);
                 return;
             }
 
             // COOLING: no action — keep old cooling_start here as dead-safe guard (no-op)
             if (actionType === "cooling_start") {
+                return;
+            }
+
+            if (actionType === "manual_deviation") {
+                console.log("[deviation:create:click]", {
+                    instanceId,
+                    routineKey: task.routineKey || task.routineType || task.templateKey || task.taskId || "",
+                    title: task.title || ""
+                });
+                if (!confirmTaskAction(task, actionType)) {
+                    return;
+                }
+                const originalText = button.textContent;
+                button.disabled = true;
+                button.textContent = "Opretter...";
+                try {
+                    const followUpNote = (getInputValue(task.id, "comment") || "").trim();
+                    await createDeviationForTask(task, followUpNote);
+                } catch (error) {
+                    console.error("[deviation:create:error]", error);
+                    alert(error?.message || "Kunne ikke oprette afvigelse.");
+                    button.disabled = false;
+                    button.textContent = originalText;
+                }
                 return;
             }
 
@@ -8946,6 +9032,75 @@ const buildFryerRoutineCompletionEntry = () => {
             }
         }
 
+        document.addEventListener("click", (event) => {
+            const closeButton = event.target.closest("[data-cooling-modal-close]");
+            if (closeButton || event.target.classList?.contains("cooling-run-modal-backdrop")) {
+                event.preventDefault();
+                closeCoolingRunModal();
+                return;
+            }
+
+            const startButton = event.target.closest("button[data-cooling-modal-start][data-instance-id][data-run-id]");
+            if (!startButton) return;
+
+            event.preventDefault();
+            const modal = startButton.closest(".cooling-run-modal-backdrop");
+            const instanceId = startButton.dataset.instanceId;
+            const runId = startButton.dataset.runId;
+            const task = allTasks.find(t => t.id === instanceId);
+            const session = coolingSessionMap.get(instanceId);
+            const run = session?.runs?.find(r => r.runId === runId);
+            if (!task || !run || !modal) return;
+
+            const productName = readCoolingModalField(modal, "productName").trim();
+            const startTime = readCoolingModalField(modal, "startTime").trim();
+            const startTemp = parseFloat(readCoolingModalField(modal, "startTemp"));
+            const quantityBucket = readCoolingModalField(modal, "quantityBucket");
+            const coolingMethod = readCoolingModalField(modal, "coolingMethod");
+
+            if (!productName) { alert("Rettens navn er påkrævet."); return; }
+            if (!startTime) { alert("Starttidspunkt er påkrævet."); return; }
+            if (isNaN(startTemp)) { alert("Temperatur ved start er påkrævet."); return; }
+            if (!quantityBucket) { alert("Mængde er påkrævet."); return; }
+            if (!coolingMethod) { alert("Nedkølingsmetode er påkrævet."); return; }
+
+            const [hours, minutes] = startTime.split(":").map(Number);
+            const startedAt = new Date();
+            if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+                startedAt.setHours(hours, minutes, 0, 0);
+            }
+
+            run.startedAt = startedAt;
+            run.status = "running";
+            startCoolingRun({
+                instanceId,
+                runId,
+                taskId: task?.taskId || "",
+                dateKey: task?.dateKey || getTodayKey(),
+                productName,
+                quantityBucket,
+                coolingMethod,
+                startTemp,
+                startedAt: startedAt.toISOString(),
+                companyId: SETTINGS.companyId,
+                locationId: SETTINGS.locationId,
+                unitId: SETTINGS.unitId,
+                completedBy: SETTINGS.createdBy,
+                completedByName: SETTINGS.employeeName,
+                deadlineAt: task?.deadlineAt || ""
+            });
+
+            const taskCardEl = document.querySelector(`.task-item[data-instance-id="${CSS.escape(instanceId)}"]`);
+            const finishAllBtn = taskCardEl?.querySelector('[data-action="cooling_finish_all"]');
+            if (finishAllBtn) finishAllBtn.style.display = "";
+            const pillEl = taskCardEl?.querySelector('.task-pill');
+            if (pillEl) {
+                pillEl.className = "task-pill is-active-run";
+                pillEl.textContent = "I gang";
+            }
+            closeCoolingRunModal();
+        });
+
         taskListEl.addEventListener("click", async (event) => {
             const hiddenToggleButton = event.target.closest("button[data-toggle-hidden-daily][data-instance-id]");
             if (hiddenToggleButton) {
@@ -8955,10 +9110,11 @@ const buildFryerRoutineCompletionEntry = () => {
                 const originalText = hiddenToggleButton.textContent;
                 hiddenToggleButton.disabled = true;
                 hiddenToggleButton.textContent = "Gemmer...";
+                console.log("[routine-hide-daily:click]", { instanceId, shouldHide, source: "task-card" });
                 try {
                     await setHiddenFromDailyView(instanceId, shouldHide);
                 } catch (error) {
-                    console.error("[hidden daily view] save failed", error);
+                    console.error("[routine-hide-daily:error]", error);
                     alert(error?.message || "Kunne ikke opdatere visning.");
                     hiddenToggleButton.disabled = false;
                     hiddenToggleButton.textContent = originalText;
@@ -10992,7 +11148,7 @@ function bindOperatingButtons() {
                 updateKpis();
                 updateRutinerLoaderProgress(92, "Færdiggør visning", "Vi afslutter det første overblik og gør siden klar.");
 
-                // Restore any active cooling runs from localStorage (supports multiple)
+                // Restore session state for active cooling runs from the shared timer overlay.
                 const activeRuns = getActiveCoolingRuns();
                 if (activeRuns.length > 0) {
                     setTimeout(() => {
@@ -11016,48 +11172,12 @@ function bindOperatingButtons() {
                                 run.startedAt = activeRun.startedAt ? new Date(activeRun.startedAt) : run.startedAt;
                                 run.status = "running";
                             }
-
-                            let runCard = document.querySelector(`.cooling-run-card[data-run-id="${CSS.escape(activeRun.runId)}"]`);
-                            if (!runCard) {
-                                appendCoolingRunCard(activeRun.instanceId, activeRun.runId);
-                                runCard = document.querySelector(`.cooling-run-card[data-run-id="${CSS.escape(activeRun.runId)}"]`);
-                            }
-                            if (!runCard) return;
-
-                            const setRunField = (field, value) => {
-                                const fieldEl = runCard.querySelector(`[data-run-field="${field}"]`);
-                                if (fieldEl && value !== undefined && value !== null) {
-                                    fieldEl.value = value;
-                                }
-                            };
-
-                            setRunField("productName", activeRun.productName || "");
-                            setRunField("quantityBucket", activeRun.quantityBucket || "");
-                            setRunField("coolingMethod", activeRun.coolingMethod || "");
-                            setRunField("startTemp", activeRun.startTemp ?? "");
-                            setRunField("note", activeRun.note || "");
-
-                            const startBtn     = runCard.querySelector(".cooling-run-start-btn");
-                            const finBtnR      = runCard.querySelector(".cooling-run-finish-btn");
-                            const endTempInput = runCard.querySelector('[data-run-field="endTemp"]');
-                            const statusEl     = runCard.querySelector(".run-status");
-                            if (startBtn) startBtn.style.display = "none";
-                            if (finBtnR)  finBtnR.style.display  = "";
-                            if (endTempInput) endTempInput.disabled = false;
-                            runCard.dataset.startedAt = activeRun.startedAt || "";
-                            renderCoolingForecast(runCard);
-                            if (statusEl) {
-                                const t = new Date(activeRun.startedAt).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
-                                statusEl.style.display = "";
-                                statusEl.innerHTML = `<div style="font-size:12px;color:#2e5830;padding:4px 0;">⏱ Gendannet – startet kl. ${t} – Se timer i hjørnet</div>`;
-                            }
                             const taskCardEl = document.querySelector(`.task-item[data-instance-id="${CSS.escape(activeRun.instanceId)}"]`);
                             const finAllBtn  = taskCardEl?.querySelector('[data-action="cooling_finish_all"]');
                             if (finAllBtn) finAllBtn.style.display = "";
                             const pillEl = taskCardEl?.querySelector('.task-pill');
-                            if (pillEl) { pillEl.className = "task-pill is-active-run"; pillEl.textContent = "I gang 🧊"; }
+                            if (pillEl) { pillEl.className = "task-pill is-active-run"; pillEl.textContent = "I gang"; }
                         });
-                        ensureCoolingForecastTicker();
                     }, 100);
                 }
 

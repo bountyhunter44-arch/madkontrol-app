@@ -381,13 +381,61 @@ const CANONICAL_ROUTINE_TYPES = {
     }
   },
 
-  softice_maskine_rengoering: {
-    routineType: "softice_maskine_rengoering",
-    title: "Ismaskine / softicemaskine rengøring",
+  ismaskine_temperatur: {
+    routineType: "ismaskine_temperatur",
+    title: "Ismaskine temperaturkontrol",
+    group: "GAG",
+    frequencyDays: 1,
+    defaultUnitId: "default",
+    longDescription: "Kontrollér at ismaskinen fungerer korrekt, og at isen opbevares under forhold der hindrer smeltning og forurening.",
+    risk: {
+      hazard: "Optøet eller forurenet is kan give øget risiko for bakterievækst og krydskontaminering.",
+      criticalLimit: "Isen må ikke vise tegn på optøning eller forurening.",
+      deviationTrigger: "Tegn på optøning, forurening eller fejl i ismaskinens drift.",
+      defaultCorrectiveAction: "Kasser berørt is ved tegn på optøning eller forurening. Undersøg årsagen og opret afvigelse.",
+      prefilledDeviationText: "Ismaskinen eller isens tilstand afveg fra kravene."
+    }
+  },
+
+  ismaskine_rengoering: {
+    routineType: "ismaskine_rengoering",
+    title: "Ismaskine rengøring",
     group: "GAG",
     frequencyDays: 7,
     defaultUnitId: "default",
-    longDescription: "Is- og softicemaskiner kan opbygge belægninger, mælkesten, biofilm og rester fra blandinger. Rutinen sikrer, at maskinen rengøres og desinficeres efter virksomhedens plan og producentens anvisning, så der ikke sker vækst eller forurening af fødevarer.",
+    longDescription: "Rengør ismaskinen efter producentens anvisninger. Områder med kontakt til is og vand skal holdes rene.",
+    risk: {
+      hazard: "Is betragtes som en fødevare og kan forurene drikkevarer eller fødevarer, hvis maskinen ikke holdes ren.",
+      criticalLimit: "Ingen synlig forurening på kontaktflader, isbakke eller indvendige flader.",
+      deviationTrigger: "Synlig forurening eller utilstrækkelig rengøring af ismaskinen.",
+      defaultCorrectiveAction: "Stop brug af isen ved synlig forurening. Rengør og desinficér maskinen. Kasser berørt is og opret afvigelse.",
+      prefilledDeviationText: "Ismaskinen var ikke tilstrækkeligt rengjort."
+    }
+  },
+
+  softicemaskine_temperatur: {
+    routineType: "softicemaskine_temperatur",
+    title: "Softicemaskine temperaturkontrol",
+    group: "GAG",
+    frequencyDays: 1,
+    defaultUnitId: "default",
+    longDescription: "Kontrollér at softicemaskinens temperatur er inden for producentens anbefalede område.",
+    risk: {
+      hazard: "Forkert temperatur kan øge risikoen for bakterievækst i ismix og færdig softice.",
+      criticalLimit: "Temperaturen skal være inden for producentens anbefalede område.",
+      deviationTrigger: "Temperaturen er uden for grænserne.",
+      defaultCorrectiveAction: "Stop servering fra maskinen, hvis temperaturen er uden for grænserne. Vurder produktet, korrigér fejlen og opret afvigelse.",
+      prefilledDeviationText: "Softicemaskinens temperatur var uden for grænserne."
+    }
+  },
+
+  softicemaskine_rengoering: {
+    routineType: "softicemaskine_rengoering",
+    title: "Softicemaskine rengøring",
+    group: "GAG",
+    frequencyDays: 7,
+    defaultUnitId: "default",
+    longDescription: "Rengør softicemaskinen efter producentens anvisninger. Alle dele, der kommer i kontakt med ismix eller færdig softice, skal være rene og fri for rester.",
     risk: {
       hazard: "Belægninger, mælkesten, biofilm og produktrester kan give vækst og forurening af is, softice eller blanding.",
       criticalLimit: "Ingen synlig snavs, belægning, slim, mug eller produktrester. Alle fødevarekontaktflader skal være rengjorte og desinficerede, og maskinen skal være samlet korrekt.",
@@ -514,10 +562,16 @@ function normalizeRoutineType(input) {
     slicer_cleaning: "paalaegsmaskine_rengoering",
     slicing_machine_cleaning: "paalaegsmaskine_rengoering",
 
-    softice_maskine_rengoering: "softice_maskine_rengoering",
-    softice_machine_cleaning: "softice_maskine_rengoering",
-    ice_machine_cleaning: "softice_maskine_rengoering",
-    ismaskine_rengoering: "softice_maskine_rengoering"
+    softice_maskine_rengoering: "softicemaskine_rengoering",
+    softice_machine_cleaning: "softicemaskine_rengoering",
+    softice_temperatur_kontrol: "softicemaskine_temperatur",
+    softice_temperature_control: "softicemaskine_temperatur",
+    ice_machine_cleaning: "ismaskine_rengoering",
+    ice_machine_temperature: "ismaskine_temperatur",
+    ice_machine_temperature_control: "ismaskine_temperatur",
+    ismaskine_rengoering: "ismaskine_rengoering",
+    ismaskine_temperatur: "ismaskine_temperatur",
+    ismaskine_temperatur_kontrol: "ismaskine_temperatur"
   };
 
   const normalized = aliases[key] || null;

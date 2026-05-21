@@ -3,18 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Menu | Madkontrollen Pro</title>
+  <title>Menu / retter | Madkontrollen Pro</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    .placeholder-wrap{display:grid;gap:16px;}
-    .placeholder-card{background:#fff;border:1px solid #d9e4d9;border-radius:18px;padding:20px;box-shadow:0 8px 20px rgba(15,23,15,.06);}
-    .placeholder-card h1,.placeholder-card h2{margin:0 0 8px;}
-    .placeholder-card p{margin:0;color:#5c6d5c;line-height:1.6;}
-    .promo-box{display:grid;gap:10px;background:linear-gradient(145deg,#eff8ef 0%,#f7fbf7 100%);border:1px solid #cfe0cf;border-radius:16px;padding:16px;}
-    .promo-kicker{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#1f5a23;}
-    .promo-title{font-size:20px;font-weight:800;color:#142514;}
-    .promo-copy{color:#355035;line-height:1.55;}
-    .promo-actions{display:flex;gap:10px;flex-wrap:wrap;}
+    .menu-page{display:grid;gap:22px;}
+    .menu-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;}
+    .menu-kicker{margin:0 0 6px;color:#2e7d32;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+    .menu-header h1{margin:0;color:#142514;font-size:clamp(30px,4vw,46px);line-height:1.08;}
+    .menu-header p{margin:10px 0 0;max-width:780px;color:#5c6d5c;line-height:1.65;}
+    .menu-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .menu-panel{background:#fff;border:1px solid #d9e4d9;border-radius:18px;padding:20px;box-shadow:0 8px 20px rgba(15,23,15,.06);}
+    .menu-toolbar{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+    .menu-toolbar-left,.menu-toolbar-right{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .menu-field,.menu-select{min-height:44px;border:1px solid #d8e3d8;background:#f8fbf8;border-radius:12px;padding:10px 12px;font:inherit;color:#162416;outline:none;}
+    .menu-field{min-width:min(360px,100%);}
+    .menu-field:focus,.menu-select:focus{background:#fff;border-color:#2e7d32;box-shadow:0 0 0 3px rgba(46,125,50,.12);}
+    .menu-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+    .menu-stat{background:#fff;border:1px solid #d9e4d9;border-radius:16px;padding:16px;}
+    .menu-stat strong{display:block;color:#142514;font-size:28px;line-height:1;margin-bottom:8px;}
+    .menu-stat span{color:#5c6d5c;font-size:13px;line-height:1.35;}
+    .dish-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+    .dish-card{display:grid;gap:12px;background:#f8fbf8;border:1px solid #e1ebe1;border-radius:16px;padding:16px;}
+    .dish-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;}
+    .dish-title{margin:0;color:#142514;font-size:18px;line-height:1.25;}
+    .dish-menu{margin:4px 0 0;color:#6a776a;font-size:13px;}
+    .dish-description{margin:0;color:#344434;line-height:1.55;}
+    .dish-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+    .dish-meta-box{background:#fff;border:1px solid #e1ebe1;border-radius:12px;padding:10px;}
+    .dish-meta-box span{display:block;color:#6a776a;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px;}
+    .dish-meta-box strong{color:#142514;font-size:14px;line-height:1.25;}
+    .chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+    .chip{display:inline-flex;align-items:center;border:1px solid #cfe0cf;background:#fff;border-radius:999px;padding:6px 9px;color:#244024;font-size:12px;font-weight:700;}
+    .empty-state{display:grid;place-items:center;text-align:center;gap:12px;border:1px dashed #bed4be;background:#f8fbf8;border-radius:16px;padding:42px 20px;}
+    .empty-state h2{margin:0;color:#142514;font-size:24px;}
+    .empty-state p{margin:0;color:#5c6d5c;line-height:1.55;}
+    .menu-sidebar-card{background:#fff;border:1px solid #d9e4d9;border-radius:16px;padding:14px;box-shadow:0 8px 20px rgba(15,23,15,.06);}
+    .menu-sidebar-label{color:#667267;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin:4px 8px 10px;}
+    .menu-sidebar-link{display:flex;align-items:center;gap:10px;text-decoration:none;color:#253425;border-radius:12px;padding:11px 12px;font-weight:800;}
+    .menu-sidebar-link:hover,.menu-sidebar-link.active{background:#e8f5e9;color:#1f5a23;}
+    .menu-sidebar-badge{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:10px;background:#f0f5f0;color:#1f5a23;font-size:12px;}
+    .menu-sidebar-link.active .menu-sidebar-badge{background:#2e7d32;color:#fff;}
+    @media (max-width: 980px){
+      .menu-stats,.dish-grid{grid-template-columns:1fr 1fr;}
+    }
+    @media (max-width: 680px){
+      .menu-stats,.dish-grid,.dish-meta{grid-template-columns:1fr;}
+      .menu-header,.menu-toolbar{display:grid;}
+      .menu-actions,.menu-toolbar-left,.menu-toolbar-right{width:100%;}
+      .menu-actions .btn,.menu-toolbar-right .btn,.menu-field,.menu-select{width:100%;}
+    }
   </style>
 </head>
 <body>
@@ -23,54 +60,297 @@
     <div class="container app-layout">
       <div id="sidebarMount"></div>
       <section class="page-content">
-        <div class="placeholder-wrap">
-          <article class="placeholder-card">
-            <h1>Menu</h1>
-            <p>Denne side er oprettet, saa links fra front-flow ikke fejler. Brug knappen nedenfor for eksisterende drift-side.</p>
-            <div style="margin-top:12px;"><a class="btn btn-secondary" href="/modules/drift/menu.html">Gaa til drift/menu</a></div>
-          </article>
-
-          <article class="placeholder-card promo-box" aria-live="polite">
-            <div class="promo-kicker">Reklame</div>
-            <div id="promoTitle" class="promo-title">Optimer menukort</div>
-            <p id="promoCopy" class="promo-copy">Fa forslag til retter med bedre daekningsgrad og mindre madspild.</p>
-            <div class="promo-actions">
-              <a id="promoCta" class="btn btn-secondary" href="/modules/drift/menu.html">Laes mere</a>
+        <div class="menu-page">
+          <header class="menu-header">
+            <div>
+              <p class="menu-kicker">Menu-modul</p>
+              <h1>Menu / retter</h1>
+              <p>
+                Her arbejder du med de retter, som indgår i restaurantens menuer.
+                Retterne hentes fra det eksisterende menu-dataflow og kan bruges videre i opskrifter,
+                indkøb, selskabsplanlægning og kalkulation.
+              </p>
             </div>
-          </article>
+            <div class="menu-actions">
+              <button class="btn btn-primary" id="createDishBtn" type="button">Opret ret</button>
+              <a class="btn btn-secondary" href="/modules/menu/recipes.html">Opskrifter</a>
+            </div>
+          </header>
+
+          <section class="menu-stats" aria-label="Menu status">
+            <article class="menu-stat"><strong id="statDishes">0</strong><span>Retter</span></article>
+            <article class="menu-stat"><strong id="statMenus">0</strong><span>Menuer med retter</span></article>
+            <article class="menu-stat"><strong id="statAvgCost">0 kr.</strong><span>Gns. kostpris</span></article>
+            <article class="menu-stat"><strong id="statAvgSales">0 kr.</strong><span>Gns. salgspris</span></article>
+          </section>
+
+          <section class="menu-panel">
+            <div class="menu-toolbar">
+              <div class="menu-toolbar-left">
+                <input class="menu-field" id="dishSearch" type="search" placeholder="Søg efter ret, menu eller beskrivelse" autocomplete="off" />
+                <select class="menu-select" id="channelFilter">
+                  <option value="all">Alle kanaler</option>
+                  <option value="restaurant">Restaurant</option>
+                  <option value="selskab">Selskab</option>
+                  <option value="takeaway">Takeaway</option>
+                  <option value="seo">SEO</option>
+                </select>
+              </div>
+              <div class="menu-toolbar-right">
+                <button class="btn btn-secondary" id="resetFilterBtn" type="button">Nulstil filter</button>
+              </div>
+            </div>
+
+            <div class="dish-grid" id="dishGrid" aria-live="polite"></div>
+          </section>
         </div>
       </section>
     </div>
   </main>
 
+  <script src="/modules/drift/drift.js"></script>
   <script type="module">
     import { loadLayout } from "/core/layout.js";
+    import { inferMenuAllergens, toAllergenArray } from "/modules/menu/menu-allergens.js";
 
-    const promotions = [
-      { title: "Optimer menukort", copy: "Fa forslag til retter med bedre daekningsgrad og mindre madspild.", ctaHref: "/modules/drift/menu.html", ctaText: "Se menu" },
-      { title: "Saeson-kampagner", copy: "Planlaeg saesonmenuer og promos med faerdige templates.", ctaHref: "/modules/drift/events.html", ctaText: "Se events" },
-      { title: "Pakke-opgraderinger", copy: "Aktiver avanceret menustyring med versionshistorik.", ctaHref: "/modules/drift/menu.html", ctaText: "Opgrader" }
+    const menuNavigation = [
+      { label: "Menu / retter", short: "MR", href: "/modules/menu/menu.html" },
+      { label: "Opskrifter", short: "OP", href: "/modules/menu/recipes.html" },
+      { label: "Råvarer", short: "RV", href: "/modules/menu/ingredients.html" },
+      { label: "Leverandører", short: "LV", href: "/modules/menu/suppliers.html" },
+      { label: "Selskabsplanlægning", short: "SP", href: "/modules/menu/events.html" },
+      { label: "Indkøb", short: "IK", href: "/modules/menu/purchases.html" },
+      { label: "Kalkulation", short: "KA", href: "/modules/kalkulation/index.html" }
     ];
 
-    function initPromoRotator() {
-      const titleEl = document.getElementById("promoTitle");
-      const copyEl = document.getElementById("promoCopy");
-      const ctaEl = document.getElementById("promoCta");
-      if (!titleEl || !copyEl || !ctaEl) return;
-      let index = 0;
-      const render = () => {
-        const promo = promotions[index % promotions.length];
-        titleEl.textContent = promo.title;
-        copyEl.textContent = promo.copy;
-        ctaEl.textContent = promo.ctaText;
-        ctaEl.href = promo.ctaHref;
-      };
-      render();
-      setInterval(() => { index += 1; render(); }, 5000);
+    const state = {
+      search: "",
+      channel: "all"
+    };
+
+    const els = {
+      dishGrid: document.getElementById("dishGrid"),
+      dishSearch: document.getElementById("dishSearch"),
+      channelFilter: document.getElementById("channelFilter"),
+      resetFilterBtn: document.getElementById("resetFilterBtn"),
+      createDishBtn: document.getElementById("createDishBtn"),
+      statDishes: document.getElementById("statDishes"),
+      statMenus: document.getElementById("statMenus"),
+      statAvgCost: document.getElementById("statAvgCost"),
+      statAvgSales: document.getElementById("statAvgSales")
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function numberOrZero(value) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function formatPrice(value) {
+      return `${numberOrZero(value).toLocaleString("da-DK", {
+        minimumFractionDigits: Number.isInteger(Number(value)) ? 0 : 2,
+        maximumFractionDigits: 2
+      })} kr.`;
+    }
+
+    function renderMenuSidebar() {
+      const mount = document.getElementById("sidebarMount");
+      if (!mount) return;
+      const currentPath = window.location.pathname;
+      const links = menuNavigation.map((item) => {
+        const activeClass = currentPath === item.href ? " active" : "";
+        return `
+          <a class="menu-sidebar-link${activeClass}" href="${item.href}">
+            <span class="menu-sidebar-badge">${escapeHtml(item.short)}</span>
+            <span>${escapeHtml(item.label)}</span>
+          </a>
+        `;
+      }).join("");
+      mount.innerHTML = `
+        <aside class="menu-sidebar-card" aria-label="Menu navigation">
+          <div class="menu-sidebar-label">Menu</div>
+          ${links}
+        </aside>
+      `;
+    }
+
+    function getStore() {
+      if (!window.DriftStore) {
+        throw new Error("DriftStore blev ikke indlæst fra /modules/drift/drift.js");
+      }
+      return window.DriftStore;
+    }
+
+    function getDishRows() {
+      const menus = getStore().getMenus();
+      return menus.flatMap((menu) => {
+        const dishes = Array.isArray(menu.dishes) ? menu.dishes : [];
+        return dishes.map((dish) => ({
+          ...dish,
+          menuId: menu.id,
+          menuName: menu.name || "Menu uden navn",
+          menuType: menu.type || "",
+          channels: Array.isArray(menu.channels) ? menu.channels : [],
+          reusableIngredients: menu.reusableIngredients
+        }));
+      });
+    }
+
+    function getFilteredRows() {
+      const query = state.search.toLowerCase().trim();
+      return getDishRows().filter((dish) => {
+        const channelMatch = state.channel === "all" || dish.channels.includes(state.channel);
+        const text = [
+          dish.name,
+          dish.title,
+          dish.description,
+          dish.menuDescription,
+          dish.menuName,
+          dish.menuType
+        ].join(" ").toLowerCase();
+        return channelMatch && (!query || text.includes(query));
+      });
+    }
+
+    function getAllergensForDish(dish) {
+      const existing = toAllergenArray(dish.allergens || dish.verifiedAllergens || dish.suggestedAllergens);
+      if (existing.length) return existing;
+      return inferMenuAllergens(dish).suggestedAllergens;
+    }
+
+    function renderStats(rows) {
+      const menusWithDishes = new Set(rows.map((dish) => dish.menuId)).size;
+      const avgCost = rows.length
+        ? rows.reduce((sum, dish) => sum + numberOrZero(dish.cost), 0) / rows.length
+        : 0;
+      const avgSales = rows.length
+        ? rows.reduce((sum, dish) => sum + numberOrZero(dish.sales || dish.salePrice || dish.price), 0) / rows.length
+        : 0;
+
+      els.statDishes.textContent = String(rows.length);
+      els.statMenus.textContent = String(menusWithDishes);
+      els.statAvgCost.textContent = formatPrice(avgCost);
+      els.statAvgSales.textContent = formatPrice(avgSales);
+    }
+
+    function renderEmptyState(message = "Ingen retter oprettet endnu") {
+      els.dishGrid.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1;">
+          <h2>${escapeHtml(message)}</h2>
+          <p>Opret den første ret, så menuen kan bruges i opskrifter, indkøb og kalkulation.</p>
+          <button class="btn btn-primary" id="emptyCreateDishBtn" type="button">Opret ret</button>
+        </div>
+      `;
+      document.getElementById("emptyCreateDishBtn")?.addEventListener("click", handleCreateDish);
+    }
+
+    function renderDishes(rows) {
+      const allRows = getDishRows();
+      if (!allRows.length) {
+        renderEmptyState("Ingen retter oprettet endnu");
+        return;
+      }
+
+      if (!rows.length) {
+        renderEmptyState("Ingen retter matcher filteret");
+        return;
+      }
+
+      els.dishGrid.innerHTML = rows.map((dish) => {
+        const name = dish.name || dish.title || "Ret uden navn";
+        const description = dish.description || dish.menuDescription || "Ingen beskrivelse endnu.";
+        const sales = dish.sales || dish.salePrice || dish.price || 0;
+        const allergens = getAllergensForDish(dish);
+        const channelChips = dish.channels.length ? dish.channels : [dish.menuType || "menu"];
+
+        return `
+          <article class="dish-card">
+            <div class="dish-head">
+              <div>
+                <h2 class="dish-title">${escapeHtml(name)}</h2>
+                <p class="dish-menu">${escapeHtml(dish.menuName)}</p>
+              </div>
+              <div class="chip-row">
+                ${channelChips.map((channel) => `<span class="chip">${escapeHtml(channel)}</span>`).join("")}
+              </div>
+            </div>
+            <p class="dish-description">${escapeHtml(description)}</p>
+            <div class="dish-meta">
+              <div class="dish-meta-box"><span>Kostpris</span><strong>${escapeHtml(formatPrice(dish.cost))}</strong></div>
+              <div class="dish-meta-box"><span>Salgspris</span><strong>${escapeHtml(formatPrice(sales))}</strong></div>
+              <div class="dish-meta-box"><span>Allergener</span><strong>${escapeHtml(allergens.length ? allergens.join(", ") : "Ikke angivet")}</strong></div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderAll() {
+      const rows = getFilteredRows();
+      renderStats(rows);
+      renderDishes(rows);
+    }
+
+    function handleCreateDish() {
+      const name = window.prompt("Navn på ret");
+      if (!name || !name.trim()) return;
+      const description = window.prompt("Kort beskrivelse af retten") || "";
+      const salePrice = window.prompt("Salgspris i kr.") || "0";
+      const cost = window.prompt("Kostpris i kr.") || "0";
+
+      getStore().addMenu({
+        name: "Ny menu",
+        type: "restaurant",
+        priceFrom: numberOrZero(salePrice),
+        averageCost: numberOrZero(cost),
+        margin: Math.max(0, numberOrZero(salePrice) - numberOrZero(cost)),
+        reusableIngredients: 0,
+        description: "Menu oprettet fra Menu / retter.",
+        channels: ["restaurant"],
+        dishes: [{
+          id: `dish_${Date.now()}`,
+          name: name.trim(),
+          description,
+          cost: numberOrZero(cost),
+          sales: numberOrZero(salePrice)
+        }]
+      });
+
+      state.search = "";
+      state.channel = "all";
+      els.dishSearch.value = "";
+      els.channelFilter.value = "all";
+      renderAll();
     }
 
     await loadLayout();
-    initPromoRotator();
+    renderMenuSidebar();
+    renderAll();
+
+    els.dishSearch.addEventListener("input", (event) => {
+      state.search = event.target.value;
+      renderAll();
+    });
+    els.channelFilter.addEventListener("change", (event) => {
+      state.channel = event.target.value;
+      renderAll();
+    });
+    els.resetFilterBtn.addEventListener("click", () => {
+      state.search = "";
+      state.channel = "all";
+      els.dishSearch.value = "";
+      els.channelFilter.value = "all";
+      renderAll();
+    });
+    els.createDishBtn.addEventListener("click", handleCreateDish);
   </script>
 </body>
 </html>
