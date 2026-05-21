@@ -659,6 +659,128 @@ function getSeoGatewayInvalidateConfig() {
   return { ok: true, baseUrl, token };
 }
 
+function getSeoGatewayRuntimeConfig() {
+  let jsonSecretConfig = {};
+  try {
+    jsonSecretConfig = FUNCTIONS_CONFIG.value() || {};
+  } catch (_error) {
+    jsonSecretConfig = {};
+  }
+
+  let runtimeConfig = {};
+  try {
+    runtimeConfig = typeof functions.config === "function" ? functions.config() || {} : {};
+  } catch (_error) {
+    runtimeConfig = {};
+  }
+
+  return {
+    ...(runtimeConfig?.seo_gateway || {}),
+    ...(runtimeConfig?.seoGateway || {}),
+    ...(jsonSecretConfig?.seo_gateway || {}),
+    ...(jsonSecretConfig?.seoGateway || {})
+  };
+}
+
+function getSeoGatewayRebuildConfig() {
+  const seoGatewayConfig = getSeoGatewayRuntimeConfig();
+  const rebuildUrl = String(
+    process.env.SEO_GATEWAY_REBUILD_URL ||
+    seoGatewayConfig.rebuild_url ||
+    seoGatewayConfig.rebuildUrl ||
+    ""
+  ).trim();
+  const baseUrl = String(
+    process.env.SEO_GATEWAY_BASE_URL ||
+    seoGatewayConfig.base_url ||
+    seoGatewayConfig.baseUrl ||
+    ""
+  ).trim().replace(/\/+$/, "");
+  const token = String(
+    process.env.SEO_GATEWAY_INTERNAL_TOKEN ||
+    seoGatewayConfig.internal_token ||
+    seoGatewayConfig.internalToken ||
+    ""
+  ).trim();
+  const url = rebuildUrl || (baseUrl ? `${baseUrl}/internal/rebuild-site` : "");
+
+  if (!url || !token) {
+    return { ok: false, reason: "missing_config" };
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return { ok: false, reason: "missing_config" };
+    }
+  } catch (_error) {
+    return { ok: false, reason: "missing_config" };
+  }
+
+  return { ok: true, url, token };
+}
+
+async function triggerSeoGatewayRebuild({ domain, companyId, locationId, websiteId }) {
+  console.log("SEO STEP: vps rebuild start");
+  const config = getSeoGatewayRebuildConfig();
+  if (!config.ok) {
+    console.log("SEO STEP: vps rebuild skipped missing_config");
+    return {
+      attempted: false,
+      reason: "missing_config"
+    };
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+
+  try {
+    const response = await fetch(config.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.token}`
+      },
+      body: JSON.stringify({
+        domain,
+        companyId,
+        locationId,
+        websiteId,
+        reason: "seo_publish"
+      }),
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      console.log("SEO STEP: vps rebuild failed");
+      return {
+        attempted: true,
+        ok: false,
+        status: response.status,
+        error: `http_${response.status}`
+      };
+    }
+
+    console.log("SEO STEP: vps rebuild success");
+    return {
+      attempted: true,
+      ok: true,
+      domain,
+      status: response.status
+    };
+  } catch (error) {
+    console.log("SEO STEP: vps rebuild failed");
+    return {
+      attempted: true,
+      ok: false,
+      status: 0,
+      error: error?.name === "AbortError" ? "timeout" : String(error?.message || "request_failed").slice(0, 180)
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function invalidateSeoGatewayCache({ citySlug, businessSlug }) {
   const config = getSeoGatewayInvalidateConfig();
   if (!config.ok) return config.result;
@@ -7275,6 +7397,13 @@ exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
   });
 
   const result = await upsertWebsiteAndSeoPages({ companyId, locationId, config, activatedByUid: publishAuth.uid });
+  const domain = `${result.businessSlug || result.subdomain}.madkontrollen.dk`;
+  const vpsRebuild = await triggerSeoGatewayRebuild({
+    domain,
+    companyId,
+    locationId,
+    websiteId: result.websiteId
+  });
 
   // Mark SEO addon as active on the company location
   await db.collection("company_locations").doc(`${companyId}__${locationId}`).set({
@@ -7284,10 +7413,12 @@ exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
 
   return {
     ok: true,
+    partial: Boolean(vpsRebuild.attempted && !vpsRebuild.ok),
     websiteId: result.websiteId,
     generatedPages: result.generatedPages,
     subdomain: result.subdomain,
-    cacheInvalidation: result.cacheInvalidation
+    cacheInvalidation: result.cacheInvalidation,
+    vpsRebuild
   };
 });
 
