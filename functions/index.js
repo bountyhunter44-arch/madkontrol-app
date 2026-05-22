@@ -339,6 +339,119 @@ function parsePageCount(value, fallback = 50) {
   return rounded;
 }
 
+function normalizeSeoCtaUrl(value) {
+  const raw = sanitizeString(value || "", 500);
+  if (!raw) return "";
+  if (/^(https?:|tel:|mailto:|\/|#)/i.test(raw)) return raw;
+  if (/^[+\d\s().-]+$/.test(raw)) return `tel:${raw.replace(/\s+/g, "")}`;
+  return `https://${raw.replace(/^\/+/, "")}`;
+}
+
+function normalizeSeoCta(config = {}) {
+  const nested = config?.cta && typeof config.cta === "object" ? config.cta : {};
+  const phone = sanitizeString(config?.phone || "", 80);
+  const websiteUrl = normalizeSeoCtaUrl(config?.websiteUrl || "");
+  const subdomain = toAsciiSlug(config?.subdomain || config?.businessName || "restaurant", 120) || "restaurant";
+  const text = firstSeoValue(
+    nested.text,
+    config?.ctaText,
+    phone ? "Ring nu" : "",
+    websiteUrl ? "Besog hjemmeside" : "",
+    "Bestil nu"
+  );
+  const url = normalizeSeoCtaUrl(
+    nested.url ||
+    config?.ctaUrl ||
+    websiteUrl ||
+    (phone ? `tel:${phone.replace(/\s+/g, "")}` : "") ||
+    `https://${subdomain}.madkontrollen.dk/`
+  );
+  return {
+    enabled: nested.enabled === false ? false : Boolean(text && url),
+    text: sanitizeString(text, 120),
+    url: sanitizeString(url, 500)
+  };
+}
+
+function normalizeSeoTheme(value = {}) {
+  return {
+    primary: sanitizeString(value?.primary || "", 20) || "#1f7a3d",
+    secondary: sanitizeString(value?.secondary || "", 20) || "#f8f4ea",
+    accent: sanitizeString(value?.accent || "", 20) || "#b91c1c",
+    text: sanitizeString(value?.text || "", 20) || "#1f2937"
+  };
+}
+
+function sanitizeSeoLandingPages(value, limit = 200) {
+  return Array.isArray(value) ? value.slice(0, limit).map(p => ({
+    pageType: sanitizeString(p?.pageType || "", 80),
+    slug: sanitizeString(p?.slug || "", 180),
+    routePath: sanitizeString(p?.routePath || "", 220),
+    canonicalPath: sanitizeString(p?.canonicalPath || "", 220),
+    outputPath: sanitizeString(p?.outputPath || "", 260),
+    citySlug: sanitizeString(p?.citySlug || "", 100),
+    businessSlug: sanitizeString(p?.businessSlug || "", 120),
+    cityName: sanitizeString(p?.cityName || "", 120),
+    displayCityName: sanitizeString(p?.displayCityName || "", 120),
+    businessName: sanitizeString(p?.businessName || "", 160),
+    displayBusinessName: sanitizeString(p?.displayBusinessName || "", 160),
+    keyword: sanitizeString(p?.keyword || "", 140),
+    title: sanitizeString(p?.title || "", 220),
+    h1: sanitizeString(p?.h1 || "", 220),
+    h2: sanitizeString(p?.h2 || "", 220),
+    h3: sanitizeString(p?.h3 || "", 220),
+    metaDescription: sanitizeString(p?.metaDescription || "", 320),
+    bodyText: sanitizeString(p?.bodyText || "", 1200),
+    content: sanitizeString(p?.content || p?.bodyText || p?.metaDescription || "", 1200),
+    sections: Array.isArray(p?.sections) ? p.sections.map(s => sanitizeString(s, 40)).filter(Boolean).slice(0, 8) : []
+  })) : [];
+}
+
+function normalizeSeoGeneratorConfig(config = {}) {
+  const businessName = sanitizeString(config?.businessName || config?.displayBusinessName || config?.heroTitle || "Restaurant", 140) || "Restaurant";
+  const subdomain = toAsciiSlug(config?.subdomain || businessName, 120) || "restaurant";
+  const city = sanitizeString(config?.displayCityName || config?.cityName || config?.city || "Kobenhavn", 80) || "Kobenhavn";
+  const cuisineType = sanitizeString(config?.cuisineType || "Restaurant", 80) || "Restaurant";
+  const phone = sanitizeString(config?.phone || "", 80);
+  const description = sanitizeString(config?.description || config?.heroText || `${businessName} i ${city}.`, 1200);
+  const theme = normalizeSeoTheme(config?.theme || {
+    primary: config?.themePrimary,
+    secondary: config?.themeSecondary,
+    accent: config?.themeAccent,
+    text: config?.themeText
+  });
+  const canonical = {
+    businessName,
+    displayBusinessName: sanitizeString(config?.displayBusinessName || businessName, 140) || businessName,
+    subdomain,
+    city,
+    cityName: city,
+    displayCityName: sanitizeString(config?.displayCityName || city, 80) || city,
+    cuisineType,
+    offerings: sanitizeString(config?.offerings || cuisineType, 240),
+    keyword: sanitizeString(config?.keyword || `${cuisineType} ${city}`, 140),
+    phone,
+    address: sanitizeString(config?.address || "", 220),
+    description,
+    heroTitle: sanitizeString(config?.heroTitle || config?.displayBusinessName || businessName, 180) || businessName,
+    heroText: sanitizeString(config?.heroText || description, 1200) || description,
+    selectedTemplate: sanitizeString(config?.selectedTemplate || config?.design || "classic", 80) || "classic",
+    design: sanitizeString(config?.design || config?.selectedTemplate || "classic", 80) || "classic",
+    logoPosition: sanitizeString(config?.logoPosition || "card", 40) || "card",
+    pageCount: parsePageCount(config?.pageCount, 50),
+    logoDataUrl: sanitizeString(config?.logoDataUrl || config?.logoUrl || "", 500000),
+    seoNarrative: sanitizeString(config?.seoNarrative || config?.heroText || description, 2000),
+    heroImageUrl: sanitizeString(config?.heroImageUrl || "", 2000),
+    websiteUrl: normalizeSeoCtaUrl(config?.websiteUrl || ""),
+    theme,
+    landingPages: sanitizeSeoLandingPages(config?.landingPages),
+    cta: normalizeSeoCta({ ...config, businessName, subdomain, phone })
+  };
+  canonical.ctaText = canonical.cta.text;
+  canonical.ctaUrl = canonical.cta.url;
+  return canonical;
+}
+
 function buildSeoLandingPages(config, count) {
   const businessName = sanitizeString(config?.businessName || "Restaurant", 140) || "Restaurant";
   const cuisineType = sanitizeString(config?.cuisineType || "Restaurant", 80) || "Restaurant";
@@ -579,8 +692,7 @@ async function buildSeoPublishConfigFromFirestore({ companyId, locationId, overr
     location.phoneNumber
   );
   const subdomain = toAsciiSlug(merged.subdomain || businessName, 120) || "restaurant";
-
-  return {
+  const canonicalConfig = normalizeSeoGeneratorConfig({
     ...merged,
     businessName,
     displayBusinessName: firstSeoValue(merged.displayBusinessName, businessName),
@@ -593,13 +705,14 @@ async function buildSeoPublishConfigFromFirestore({ companyId, locationId, overr
     keyword,
     phone,
     address,
-    description,
-    selectedTemplate: sanitizeString(merged.selectedTemplate || merged.design || "classic", 80) || "classic",
-    pageCount: parsePageCount(merged.pageCount, 50),
-    theme: merged.theme || {},
-    heroImageUrl: sanitizeString(merged.heroImageUrl || "", 2000),
-    ctaText: sanitizeString(merged.ctaText || "", 120),
-    ctaUrl: sanitizeString(merged.ctaUrl || "", 500)
+    description
+  });
+  console.log(`SEO landing publish payload business=${canonicalConfig.businessName} title=${canonicalConfig.heroTitle} cta=${canonicalConfig.cta.enabled}:${canonicalConfig.cta.text}`);
+  console.log(`SEO CTA publish payload enabled=${canonicalConfig.cta.enabled} text=${canonicalConfig.cta.text} url=${canonicalConfig.cta.url}`);
+
+  return {
+    ...merged,
+    ...canonicalConfig
   };
 }
 
@@ -823,15 +936,19 @@ async function invalidateSeoGatewayCache({ citySlug, businessSlug }) {
 }
 
 async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activatedByUid }) {
-  const subdomain = sanitizeString(config?.subdomain || "", 120);
-  const businessName = sanitizeString(config?.businessName || "", 140);
-  const displayBusinessName = sanitizeString(config?.displayBusinessName || config?.businessName || "", 140);
-  const cityName = sanitizeString(config?.displayCityName || config?.cityName || config?.city || "", 80);
-  const description = sanitizeString(config?.description || "", 800);
-  const selectedTemplate = sanitizeString(config?.selectedTemplate || "classic", 60) || "classic";
-  const pageCount = parsePageCount(config?.pageCount, 50);
-  const logoDataUrl = sanitizeString(config?.logoDataUrl || "", 500000);
-  const route = buildSeoFolderRoute({ ...config, subdomain });
+  const canonicalConfig = normalizeSeoGeneratorConfig(config);
+  const subdomain = sanitizeString(canonicalConfig.subdomain || "", 120);
+  const businessName = sanitizeString(canonicalConfig.businessName || "", 140);
+  const displayBusinessName = sanitizeString(canonicalConfig.displayBusinessName || canonicalConfig.businessName || "", 140);
+  const cityName = sanitizeString(canonicalConfig.displayCityName || canonicalConfig.cityName || canonicalConfig.city || "", 80);
+  const description = sanitizeString(canonicalConfig.description || "", 800);
+  const selectedTemplate = sanitizeString(canonicalConfig.selectedTemplate || "classic", 60) || "classic";
+  const pageCount = parsePageCount(canonicalConfig.pageCount, 50);
+  const logoDataUrl = sanitizeString(canonicalConfig.logoDataUrl || "", 500000);
+  const route = buildSeoFolderRoute(canonicalConfig);
+  const cta = canonicalConfig.cta;
+  console.log(`SEO landing website doc business=${businessName} title=${canonicalConfig.heroTitle} heroText=${canonicalConfig.heroText ? "present" : "missing"}`);
+  console.log(`SEO CTA firestore website enabled=${cta.enabled} text=${cta.text} url=${cta.url}`);
 
   if (!subdomain) {
     throw new functions.https.HttpsError("invalid-argument", "Subdomaene mangler i generator-konfigurationen.");
@@ -856,17 +973,22 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
     template: selectedTemplate,
     brandMode: "madkontrollen_default",
     logoUrl: logoDataUrl || null,
-    heroTitle: displayBusinessName || businessName || subdomain,
-    heroText: description || "Autogenereret website fra SEO-generator.",
-    heroImageUrl: sanitizeString(config?.heroImageUrl || "", 2000) || null,
-    ctaText: sanitizeString(config?.ctaText || "", 120) || null,
-    ctaUrl: sanitizeString(config?.ctaUrl || "", 500) || null,
-    phone: sanitizeString(config?.phone || "", 80) || null,
-    address: sanitizeString(config?.address || "", 220) || null,
-    themePrimary: sanitizeString(config?.theme?.primary || "", 20) || "#1f7a3d",
-    themeSecondary: sanitizeString(config?.theme?.secondary || "", 20) || "#f8f4ea",
-    themeAccent: sanitizeString(config?.theme?.accent || "", 20) || "#b91c1c",
-    themeText: sanitizeString(config?.theme?.text || "", 20) || "#1f2937",
+    config: canonicalConfig,
+    canonicalConfig,
+    heroTitle: sanitizeString(canonicalConfig.heroTitle || displayBusinessName || businessName || subdomain, 180),
+    heroText: sanitizeString(canonicalConfig.heroText || description || "Autogenereret website fra SEO-generator.", 1200),
+    heroImageUrl: sanitizeString(canonicalConfig.heroImageUrl || "", 2000) || null,
+    websiteUrl: canonicalConfig.websiteUrl || null,
+    cta,
+    ctaEnabled: cta.enabled,
+    ctaText: cta.text || null,
+    ctaUrl: cta.url || null,
+    phone: sanitizeString(canonicalConfig.phone || "", 80) || null,
+    address: sanitizeString(canonicalConfig.address || "", 220) || null,
+    themePrimary: canonicalConfig.theme.primary,
+    themeSecondary: canonicalConfig.theme.secondary,
+    themeAccent: canonicalConfig.theme.accent,
+    themeText: canonicalConfig.theme.text,
     status: "published",
     seoPreviewEnabled: true,
     seoModuleActive: true,
@@ -875,7 +997,7 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
     activatedBy: activatedByUid
   }, { merge: true });
 
-  const pages = buildSeoPublishedPages(config, pageCount);
+  const pages = buildSeoPublishedPages(canonicalConfig, pageCount);
   const batch = db.batch();
 
   pages.forEach((page, index) => {
@@ -7095,52 +7217,22 @@ exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) =>
 
     const configDocId = sanitizeString(payload?.configId || "", 180) || toDocSafeId(`${companyId}__${locationId}__${Date.now()}`);
     const subdomain = toAsciiSlug(config?.subdomain || config?.businessName || "restaurant", 120) || "restaurant";
+    const canonicalConfig = normalizeSeoGeneratorConfig({ ...config, subdomain });
+    const cta = canonicalConfig.cta;
+    console.log(`SEO landing editor config business=${canonicalConfig.businessName} title=${canonicalConfig.heroTitle} heroText=${canonicalConfig.heroText ? "present" : "missing"}`);
+    console.log(`SEO landing save payload fields=${Object.keys(canonicalConfig).join(",")}`);
+    console.log(`SEO CTA persist enabled=${cta.enabled} text=${cta.text} url=${cta.url}`);
 
     const dbPayload = {
       companyId,
       organizationId: companyId,
       locationId,
-      businessName: sanitizeString(config?.businessName || "", 140),
-      displayBusinessName: sanitizeString(config?.displayBusinessName || config?.businessName || "", 140),
-      subdomain,
-      city: sanitizeString(config?.city || "", 80),
-      cityName: sanitizeString(config?.cityName || config?.city || "", 80),
-      displayCityName: sanitizeString(config?.displayCityName || config?.cityName || config?.city || "", 80),
-      cuisineType: sanitizeString(config?.cuisineType || "", 80),
-      offerings: sanitizeString(config?.offerings || "", 240),
-      keyword: sanitizeString(config?.keyword || "", 140),
-      phone: sanitizeString(config?.phone || "", 80),
-      address: sanitizeString(config?.address || "", 220),
-      description: sanitizeString(config?.description || "", 1200),
-      selectedTemplate: sanitizeString(config?.selectedTemplate || "classic", 80),
-      pageCount: parsePageCount(config?.pageCount, 50),
-      logoPosition: sanitizeString(config?.logoPosition || "card", 40),
-      logoDataUrl: sanitizeString(config?.logoDataUrl || "", 500000),
-      seoNarrative: sanitizeString(config?.seoNarrative || "", 2000),
-      heroImageUrl: sanitizeString(config?.heroImageUrl || "", 2000),
-      ctaText: sanitizeString(config?.ctaText || "", 120),
-      ctaUrl: sanitizeString(config?.ctaUrl || "", 500),
-      landingPages: Array.isArray(config?.landingPages) ? config.landingPages.slice(0, 200).map(p => ({
-        pageType:      sanitizeString(p?.pageType || "", 80),
-        slug:          sanitizeString(p?.slug || "", 180),
-        routePath:     sanitizeString(p?.routePath || "", 220),
-        canonicalPath: sanitizeString(p?.canonicalPath || "", 220),
-        outputPath:    sanitizeString(p?.outputPath || "", 260),
-        citySlug:      sanitizeString(p?.citySlug || "", 100),
-        businessSlug:  sanitizeString(p?.businessSlug || "", 120),
-        cityName:      sanitizeString(p?.cityName || "", 120),
-        displayCityName: sanitizeString(p?.displayCityName || "", 120),
-        businessName:  sanitizeString(p?.businessName || "", 160),
-        displayBusinessName: sanitizeString(p?.displayBusinessName || "", 160),
-        keyword:       sanitizeString(p?.keyword || "", 140),
-        title:         sanitizeString(p?.title || "", 220),
-        h1:            sanitizeString(p?.h1 || "", 220),
-        h2:            sanitizeString(p?.h2 || "", 220),
-        h3:            sanitizeString(p?.h3 || "", 220),
-        metaDescription: sanitizeString(p?.metaDescription || "", 320),
-        bodyText:      sanitizeString(p?.bodyText || "", 1200),
-        content:       sanitizeString(p?.content || "", 1200)
-      })) : [],
+      config: canonicalConfig,
+      canonicalConfig,
+      ...canonicalConfig,
+      cta,
+      ctaText: cta.text,
+      ctaUrl: cta.url,
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: context.auth?.uid || null,
       updatedByEmail: sanitizeString(context.auth?.token?.email || "", 160)
@@ -7492,24 +7584,35 @@ exports.seoSiteRenderer = functions.https.onRequest(async (req, res) => {
   const page = seoPages.find(p => p.slug === slugPath) || null;
 
   const esc = (v) => String(v || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const storedConfig = websiteDoc?.config && typeof websiteDoc.config === "object" ? websiteDoc.config : {};
+  const storedCanonicalConfig = websiteDoc?.canonicalConfig && typeof websiteDoc.canonicalConfig === "object" ? websiteDoc.canonicalConfig : {};
+  const pageConfig = normalizeSeoGeneratorConfig({ ...websiteDoc, ...storedConfig, ...storedCanonicalConfig });
   
-  const title = esc(page?.title || websiteDoc.heroTitle || subdomain);
-  const metaDesc = esc(page?.metaDescription || websiteDoc.heroText || "");
-  const h1 = esc(page?.h1 || websiteDoc.heroTitle || subdomain);
-  const intro = esc(page?.bodyText || page?.metaDescription || websiteDoc.heroText || "");
-  const heroImg = esc(websiteDoc.heroImageUrl || "");
-  const phone = esc(websiteDoc.phone || "");
-  const address = esc(websiteDoc.address || "");
-  const companyName = esc(websiteDoc.heroTitle || subdomain);
-  const externalWebsite = esc(websiteDoc.ctaUrl || "");
+  const title = esc(page?.title || pageConfig.heroTitle || pageConfig.businessName || subdomain);
+  const metaDesc = esc(page?.metaDescription || pageConfig.heroText || "");
+  const h1 = esc(page?.h1 || pageConfig.heroTitle || pageConfig.businessName || subdomain);
+  const intro = esc(page?.bodyText || page?.metaDescription || pageConfig.heroText || "");
+  const heroImg = esc(pageConfig.heroImageUrl || "");
+  const phoneRaw = pageConfig.phone || "";
+  const phone = esc(phoneRaw);
+  const address = esc(pageConfig.address || "");
+  const companyNameRaw = pageConfig.displayBusinessName || pageConfig.businessName || pageConfig.heroTitle || subdomain;
+  const companyName = esc(companyNameRaw);
+  const cta = pageConfig.cta;
+  console.log(`SEO CTA generated HTML enabled=${cta.enabled} text=${cta.text} url=${cta.url}`);
+  console.log(`SEO landing generated HTML CTA marker enabled=${cta.enabled} url=${cta.url ? "present" : "missing"}`);
+  const externalWebsite = esc(cta.enabled ? cta.url : "");
+  const ctaText = esc(cta.text || "Bestil nu");
   const slug = esc(page?.slug || "");
   
-  const logoInitials = companyName.split(" ").slice(0,2).map(w=>w.charAt(0).toUpperCase()).join("") || "MK";
+  const logoInitials = companyNameRaw.split(" ").slice(0,2).map(w=>w.charAt(0).toUpperCase()).join("") || "MK";
+  const logoUrl = esc(websiteDoc.logoUrl || pageConfig.logoDataUrl || "");
+  const logoMarkup = logoUrl ? `<img src="${logoUrl}" alt="${companyName} logo">` : logoInitials;
   
-  const themePrimary = esc(websiteDoc.themePrimary || "#1f7a3d");
-  const themeSecondary = esc(websiteDoc.themeSecondary || "#f8f4ea");
-  const themeAccent = esc(websiteDoc.themeAccent || "#b91c1c");
-  const themeText = esc(websiteDoc.themeText || "#1f2937");
+  const themePrimary = esc(pageConfig.theme.primary || "#1f7a3d");
+  const themeSecondary = esc(pageConfig.theme.secondary || "#f8f4ea");
+  const themeAccent = esc(pageConfig.theme.accent || "#b91c1c");
+  const themeText = esc(pageConfig.theme.text || "#1f2937");
   
   const sectionsHtml = page?.h2 ? `<div class="section"><h2>${esc(page.h2)}</h2><p>${intro}</p></div>` : "";
 
@@ -7533,6 +7636,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.22), var(--theme-hero-overlay)); }
 .hero-inner { position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; padding: 120px 24px 90px; text-align: center; color: #ffffff; }
 .hero-logo { width: 110px; height: 110px; margin: 0 auto 20px; border-radius: 999px; background: rgba(255, 255, 255, 0.94); border: 5px solid var(--theme-primary); display: grid; place-items: center; color: var(--theme-primary); font-weight: 800; font-size: 28px; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18); }
+.hero-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 999px; }
 .hero-title { margin: 0; font-size: clamp(42px, 7vw, 84px); line-height: 0.95; font-weight: 900; letter-spacing: -0.03em; text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
 .hero-subtitle { margin: 18px auto 0; max-width: 760px; font-size: clamp(20px, 2.2vw, 34px); line-height: 1.2; font-weight: 700; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
 .hero-actions { margin-top: 34px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
@@ -7556,14 +7660,14 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
   <div class="markise-bar"></div>
   <div class="hero">
     <div class="hero-inner">
-      <div class="hero-logo">${logoInitials}</div>
+      <div class="hero-logo">${logoMarkup}</div>
       <h1 class="hero-title">${h1}</h1>
       <p class="hero-subtitle">${intro}</p>
       <div class="hero-actions">
         <a href="/index.html" class="hero-btn hero-btn--primary">Gå til forsiden</a>
         <a href="/index.html#menu" class="hero-btn hero-btn--secondary">Se menu</a>
         ${phone ? `<a href="tel:${phone}" class="hero-btn hero-btn--ghost">Ring nu</a>` : ""}
-        ${externalWebsite ? `<a href="${externalWebsite}" class="hero-btn hero-btn--ghost" target="_blank" rel="noopener">Besøg vores hjemmeside</a>` : ""}
+        ${externalWebsite ? `<a href="${externalWebsite}" class="hero-btn hero-btn--ghost" target="_blank" rel="noopener">${ctaText}</a>` : ""}
       </div>
     </div>
   </div>
@@ -7574,7 +7678,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
       <p>${address}</p>
       <p>Telefon: ${phone}</p>
       <p style="margin-top:20px;"><a href="/index.html" style="color:#fff;text-decoration:underline;">← Tilbage til forsiden</a></p>
-      ${externalWebsite ? `<p><a href="${externalWebsite}" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline;">Besøg vores hjemmeside →</a></p>` : ""}
+      ${externalWebsite ? `<p><a href="${externalWebsite}" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline;">${ctaText} →</a></p>` : ""}
     </div>
   </footer>
 </div>
@@ -9619,6 +9723,94 @@ async function uploadRestaurantHeroToCloudinary({ file, companyId, locationId, c
   };
 }
 
+function buildSeoCloudinaryHeroUrl({ cloudName, publicId }) {
+  if (!cloudName || !publicId) return "";
+  const transforms = "ar_16:9,c_fill,w_1600,q_auto,f_auto";
+  return `https://res.cloudinary.com/${cloudName}/image/upload/${transforms}/${publicId}`;
+}
+
+function normalizeBusinessHeroCloudinaryImage({ uploaded, sourceData }) {
+  const secureUrl = sanitizeString(uploaded?.url || "", 2000);
+  const cloudName = sanitizeString(uploaded?.cloudName || "", 120);
+  const publicId = sanitizeString(uploaded?.publicId || "", 300);
+  const optimizedUrl = buildSeoCloudinaryHeroUrl({ cloudName, publicId }) || secureUrl;
+  return {
+    source: "cloudinary",
+    role: "business-hero",
+    url: secureUrl,
+    secureUrl,
+    originalUrl: secureUrl,
+    optimizedUrl,
+    publicId,
+    cloudinaryPublicId: publicId,
+    cloudName,
+    provider: sanitizeString(sourceData?.source || "business_image_search", 80),
+    sourceUrl: sanitizeString(sourceData?.sourceUrl || "", 400),
+    photographer: sanitizeString(sourceData?.photographer || "", 120),
+    photographerUrl: sanitizeString(sourceData?.photographerUrl || "", 400),
+    alt: sanitizeString(sourceData?.alt || sourceData?.query || "Restaurant hero image", 200),
+    query: sanitizeString(sourceData?.query || "", 200)
+  };
+}
+
+function getGooglePlacesApiKey(config) {
+  return (
+    config?.google?.places_api_key ||
+    config?.google?.placesApiKey ||
+    config?.google_places?.api_key ||
+    config?.googlePlaces?.apiKey ||
+    config?.google_maps?.api_key ||
+    process.env.GOOGLE_PLACES_API_KEY ||
+    process.env.GOOGLE_MAPS_API_KEY ||
+    ""
+  );
+}
+
+function normalizeGooglePhotoName(value) {
+  const raw = sanitizeString(value || "", 500);
+  return /^places\/[^/]+\/photos\/[^/]+$/i.test(raw) ? raw : "";
+}
+
+async function fetchGooglePlacePhotoBuffer({ photoName, apiKey, maxWidthPx = 1200 }) {
+  const normalizedName = normalizeGooglePhotoName(photoName);
+  if (!normalizedName || !apiKey) {
+    throw new Error("google_photo_config_missing");
+  }
+  const width = Math.min(Math.max(120, Number(maxWidthPx) || 1200), 4800);
+  const photoUrl = `https://places.googleapis.com/v1/${normalizedName}/media?maxWidthPx=${width}&key=${encodeURIComponent(apiKey)}`;
+  const photoResp = await fetch(photoUrl, { method: "GET", redirect: "follow" });
+  if (!photoResp.ok) {
+    const errText = await photoResp.text().catch(() => "");
+    throw new Error(`google_photo_fetch_failed_${photoResp.status}_${errText.slice(0, 80)}`);
+  }
+  const contentType = sanitizeString(photoResp.headers.get("content-type") || "image/jpeg", 80);
+  if (!/^image\//i.test(contentType)) {
+    throw new Error("google_photo_not_image");
+  }
+  const buffer = Buffer.from(await photoResp.arrayBuffer());
+  if (!buffer.length) {
+    throw new Error("google_photo_empty");
+  }
+  return { buffer, contentType };
+}
+
+function toImageDataUrl({ buffer, contentType }) {
+  return `data:${contentType || "image/jpeg"};base64,${buffer.toString("base64")}`;
+}
+
+function scoreGooglePlaceForBusiness(place, { businessName, city, address }) {
+  const haystack = [
+    place?.displayName?.text,
+    place?.formattedAddress
+  ].filter(Boolean).join(" ").toLowerCase();
+  let score = 0;
+  [businessName, city, address].filter(Boolean).forEach(value => {
+    const normalized = String(value).toLowerCase().trim();
+    if (normalized && haystack.includes(normalized)) score += normalized.length;
+  });
+  return score;
+}
+
 exports.generateRestaurantHeroImage = onCall(
   { secrets: [OPENAI_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 180 },
   async (request) => {
@@ -9724,6 +9916,233 @@ exports.generateRestaurantHeroImage = onCall(
     }
 
     return { ok: true, docId, url: uploaded.url, enhancedUrl: uploaded.url, source: "openai", prompt };
+  }
+);
+
+exports.uploadBusinessHeroImageToCloudinary = onCall(
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 90 },
+  async (request) => {
+    console.log("SEO IMG business upload start");
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Log ind for at gemme billede.");
+    }
+
+    const data = request.data || {};
+    const companyId = sanitizeString(data?.companyId || "", 120);
+    const locationId = sanitizeString(data?.locationId || "", 120);
+    const imageUrl = sanitizeString(data?.imageUrl || data?.url || data?.image?.url || "", 2000);
+    const googlePhotoName = normalizeGooglePhotoName(
+      data?.googlePhotoName || data?.photoReference || data?.image?.googlePhotoName || data?.image?.photoReference || ""
+    );
+    const placeId = sanitizeString(data?.placeId || data?.image?.placeId || "", 180);
+    const thumbUrl = sanitizeString(data?.thumbUrl || data?.image?.thumbUrl || "", 1000);
+    const sourceData = {
+      source: googlePhotoName ? "google_places" : (data?.source || data?.image?.source || "business_image_search"),
+      sourceUrl: data?.sourceUrl || data?.image?.sourceUrl || "",
+      photographer: data?.photographer || data?.image?.photographer || "",
+      photographerUrl: data?.photographerUrl || data?.image?.photographerUrl || "",
+      alt: data?.alt || data?.image?.alt || "",
+      query: data?.query || ""
+    };
+
+    if (!companyId || !locationId || (!imageUrl && !googlePhotoName)) {
+      throw new HttpsError("invalid-argument", "companyId, locationId og imageUrl/photoReference er paakraevet.");
+    }
+
+    if (!googlePhotoName && !/^https:\/\//i.test(imageUrl)) {
+      throw new HttpsError("invalid-argument", "Billedet skal hentes fra en sikker HTTPS URL.");
+    }
+
+    let config = {};
+    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
+    let uploadFile = imageUrl;
+
+    if (googlePhotoName) {
+      console.log("SEO IMG google photo fetch start");
+      const googleApiKey = getGooglePlacesApiKey(config);
+      console.log(`SEO IMG google key present ${Boolean(googleApiKey)}`);
+      if (!googleApiKey) {
+        throw new HttpsError("failed-precondition", "Google Places API key mangler.");
+      }
+      try {
+        const photoData = await fetchGooglePlacePhotoBuffer({
+          photoName: googlePhotoName,
+          apiKey: googleApiKey,
+          maxWidthPx: 1800
+        });
+        uploadFile = toImageDataUrl(photoData);
+        console.log("SEO IMG google photo fetch success");
+      } catch (err) {
+        console.log("SEO IMG google photo fetch failed");
+        throw new HttpsError("internal", "Google Place Photo kunne ikke hentes.");
+      }
+    }
+
+    const uploaded = await uploadRestaurantHeroToCloudinary({
+      file: uploadFile,
+      companyId,
+      locationId,
+      config
+    });
+    const normalized = normalizeBusinessHeroCloudinaryImage({ uploaded, sourceData });
+
+    if (!/^https:\/\/res\.cloudinary\.com\//i.test(normalized.secureUrl || "")) {
+      throw new HttpsError("internal", "Cloudinary returnerede ikke en gyldig billed-URL.");
+    }
+
+    const docId = `${companyId}__${locationId}__business_hero_${Date.now()}`;
+    await db.collection("seo_hero_images").doc(docId).set({
+      companyId,
+      locationId,
+      url: normalized.secureUrl,
+      thumbUrl: googlePhotoName ? "" : thumbUrl,
+      enhancedUrl: normalized.optimizedUrl,
+      category: "business_image_search",
+      style: "business",
+      source: sourceData.source,
+      sourceProvider: normalized.provider,
+      sourceUrl: normalized.sourceUrl,
+      googlePhotoName: googlePhotoName || null,
+      placeId: placeId || null,
+      photographer: normalized.photographer,
+      photographerUrl: normalized.photographerUrl,
+      alt: normalized.alt,
+      query: normalized.query,
+      publicId: normalized.publicId,
+      cloudName: normalized.cloudName,
+      cloudinaryImage: normalized,
+      enhanced: true,
+      createdBy: request.auth.uid,
+      createdAt: FieldValue.serverTimestamp(),
+      isActive: true
+    });
+
+    return {
+      ok: true,
+      docId,
+      image: normalized,
+      heroImageUrl: normalized.optimizedUrl || normalized.secureUrl
+    };
+  }
+);
+
+exports.searchGooglePlaceBusinessImages = onCall(
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 60 },
+  async (request) => {
+    console.log("SEO IMG google search start");
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Log ind for at søge billeder.");
+    }
+
+    const data = request.data || {};
+    const businessName = sanitizeString(data?.businessName || "", 180);
+    const city = sanitizeString(data?.city || "", 100);
+    const address = sanitizeString(data?.address || "", 220);
+    const explicitQuery = sanitizeString(data?.query || "", 240);
+    const queryText = explicitQuery || [businessName, address || city].filter(Boolean).join(" ").trim();
+    const perPage = Math.min(Math.max(1, Number(data?.perPage) || 8), 8);
+
+    if (!queryText) {
+      throw new HttpsError("invalid-argument", "Søgeord mangler.");
+    }
+
+    let config = {};
+    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
+    const googleApiKey = getGooglePlacesApiKey(config);
+    console.log(`SEO IMG google key present ${Boolean(googleApiKey)}`);
+    if (!googleApiKey) {
+      console.log("SEO IMG google place found false");
+      return { ok: false, source: "google_places", photos: [], fallbackReason: "missing_google_places_key" };
+    }
+
+    const searchResp = await fetch("https://places.googleapis.com/v1/places:searchText", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": googleApiKey,
+        "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.photos"
+      },
+      body: JSON.stringify({
+        textQuery: queryText,
+        languageCode: "da",
+        regionCode: "DK",
+        maxResultCount: 5
+      })
+    });
+
+    if (!searchResp.ok) {
+      console.log("SEO IMG google search failed");
+      const errText = await searchResp.text().catch(() => "");
+      throw new HttpsError("internal", `Google Places søgning fejlede: ${searchResp.status}. ${errText.slice(0, 120)}`);
+    }
+
+    const searchData = await searchResp.json();
+    const places = Array.isArray(searchData?.places) ? searchData.places : [];
+    const rankedPlaces = places
+      .slice()
+      .sort((a, b) => scoreGooglePlaceForBusiness(b, { businessName, city, address }) - scoreGooglePlaceForBusiness(a, { businessName, city, address }));
+    const place = rankedPlaces.find(p => Array.isArray(p?.photos) && p.photos.length) || rankedPlaces[0] || null;
+    const placeId = sanitizeString(place?.id || "", 180);
+    const placeName = sanitizeString(place?.displayName?.text || businessName || queryText, 180);
+    const placeAddress = sanitizeString(place?.formattedAddress || "", 240);
+    const rawPhotos = Array.isArray(place?.photos) ? place.photos.slice(0, perPage) : [];
+
+    console.log(`SEO IMG google place found ${Boolean(placeId)}`);
+    console.log(`SEO IMG google photos count ${rawPhotos.length}`);
+
+    if (!placeId || !rawPhotos.length) {
+      return {
+        ok: false,
+        source: "google_places",
+        photos: [],
+        fallbackReason: placeId ? "no_google_place_photos" : "no_google_place",
+        place: placeId ? { placeId, name: placeName, address: placeAddress } : null
+      };
+    }
+
+    const photos = [];
+    for (const photo of rawPhotos) {
+      const googlePhotoName = normalizeGooglePhotoName(photo?.name || "");
+      if (!googlePhotoName) continue;
+      try {
+        const thumbData = await fetchGooglePlacePhotoBuffer({
+          photoName: googlePhotoName,
+          apiKey: googleApiKey,
+          maxWidthPx: 420
+        });
+        const author = Array.isArray(photo?.authorAttributions) ? photo.authorAttributions[0] || {} : {};
+        const photographer = sanitizeString(author?.displayName || "Google Places", 120);
+        photos.push({
+          id: googlePhotoName,
+          source: "google_places",
+          googlePhotoName,
+          photoReference: googlePhotoName,
+          placeId,
+          placeName,
+          placeAddress,
+          url: toImageDataUrl(thumbData),
+          thumbUrl: toImageDataUrl(thumbData),
+          width: Number(photo?.widthPx) || 0,
+          height: Number(photo?.heightPx) || 0,
+          photographer,
+          photographerUrl: sanitizeString(author?.uri || "", 400),
+          sourceUrl: placeId ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}` : "",
+          alt: `${placeName} - Google Place foto`,
+          query: queryText
+        });
+      } catch (err) {
+        console.log("SEO IMG google thumbnail failed");
+      }
+    }
+
+    console.log(`SEO IMG google thumbnails count ${photos.length}`);
+    return {
+      ok: photos.length > 0,
+      source: "google_places",
+      photos,
+      place: { placeId, name: placeName, address: placeAddress },
+      fallbackReason: photos.length ? "" : "thumbnail_fetch_failed"
+    };
   }
 );
 

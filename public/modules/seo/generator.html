@@ -229,6 +229,12 @@ textarea{min-height:120px;resize:vertical;}
 .img-loading-bar{height:3px;border-radius:4px;background:linear-gradient(90deg,var(--green) 0%,var(--green-dark) 100%);transform-origin:left;animation:img-load 1.4s ease-in-out infinite alternate;}
 @keyframes img-load{from{opacity:.35;transform:scaleX(.5);}to{opacity:1;transform:scaleX(1);}}
 .img-loading p{margin:8px 0 0;font-size:13px;color:var(--green-dark);font-weight:600;}
+.business-image-preview{margin-top:14px;display:grid;grid-template-columns:minmax(180px,320px) 1fr;gap:16px;align-items:center;}
+.business-image-preview img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;border:1px solid var(--border);background:#f3f7f2;}
+.business-image-meta{display:grid;gap:8px;font-size:13px;color:var(--muted);}
+.business-image-meta strong{font-size:15px;color:#172117;}
+.business-image-status{margin:10px 0 0;font-size:13px;display:none;}
+@media(max-width:780px){.business-image-preview{grid-template-columns:1fr;}}
 /* === HERO IMAGE BACKGROUND === */
 .preview-hero.has-hero-image{position:relative;background-size:cover;background-position:center;background-repeat:no-repeat;}
 .preview-hero.has-hero-image::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:0;pointer-events:none;}
@@ -386,6 +392,33 @@ textarea{min-height:120px;resize:vertical;}
     </div>
   </div>
 
+  <div class="img-search-panel" id="businessImageSearchPanel">
+    <h3 class="section-title" style="margin-top:0;">Find billeder af virksomheden</h3>
+    <p class="help-text">Søg på virksomhedens navn og by, vælg et billede, og gem det først i Cloudinary før det bruges som hero-billede.</p>
+    <div class="img-search-controls">
+      <div>
+        <label>Søgeord</label>
+        <input id="businessImageQuery" placeholder="Cafe Victoria Ringkøbing" autocomplete="off">
+      </div>
+      <button class="img-search-btn" id="businessImageSearchBtn" type="button">Find billeder</button>
+    </div>
+    <div class="img-grid" id="businessImageResults">
+      <div class="img-search-empty">Søg efter billeder af virksomheden.</div>
+    </div>
+    <div class="img-selected-actions" id="businessImageSelectedPanel">
+      <strong id="businessImageSelectedLabel">Valgt billede</strong>
+      <div class="business-image-preview">
+        <img id="businessImagePreview" src="" alt="Valgt virksomheds-billede">
+        <div class="business-image-meta">
+          <strong id="businessImagePreviewTitle">Billede klar til import</strong>
+          <span id="businessImagePreviewCredit"></span>
+          <button class="img-enhance-btn" id="businessImageUseBtn" type="button">Brug som hero-billede</button>
+        </div>
+      </div>
+      <p class="business-image-status" id="businessImageStatus"></p>
+    </div>
+  </div>
+
   <div class="preview" id="preview">
     <section class="preview-hero">
       <div id="heroAwning" class="hero-awning" aria-hidden="true"></div>
@@ -538,6 +571,8 @@ const searchRestaurantImagesCallable = httpsCallable(functionsClient, "searchRes
 const saveRestaurantHeroImageCallable = httpsCallable(functionsClient, "saveRestaurantHeroImage");
 const enhanceAndUploadRestaurantImageCallable = httpsCallable(functionsClient, "enhanceAndUploadRestaurantImage");
 const generateRestaurantHeroImageCallable = httpsCallable(functionsClient, "generateRestaurantHeroImage");
+const searchGooglePlaceBusinessImagesCallable = httpsCallable(functionsClient, "searchGooglePlaceBusinessImages");
+const uploadBusinessHeroImageCallable = httpsCallable(functionsClient, "uploadBusinessHeroImageToCloudinary");
 const generateSeoAiSuggestionsCallable = httpsCallable(functionsClient, "generateSeoAiSuggestions");
 
 const kitchenTypeModuleMap = {
@@ -1155,6 +1190,14 @@ function getGeneratorConfig(){
     `${type} fra ${name} i ${city} er i en klasse for sig. ${_sf} – bestil nu og smag forskellen selv.`,
   ];
   const seoNarrative=_seoVars[(_sf.length+city.length)%3];
+  const websiteUrl=document.getElementById("websiteUrl")?.value.trim() || "";
+  const cta=normalizeSeoCtaInput({
+    ctaText:document.getElementById("ctaText")?.value.trim() || "",
+    ctaUrl:document.getElementById("ctaUrl")?.value.trim() || "",
+    websiteUrl,
+    phone,
+    subdomain
+  });
 
   return {
     businessName:name,
@@ -1169,19 +1212,24 @@ function getGeneratorConfig(){
     phone,
     address,
     description,
+    heroTitle:name,
+    heroText:description,
     logoPosition,
     pageCount,
     selectedTemplate,
+    design:selectedTemplate,
     logoDataUrl:uploadedLogoDataUrl || "",
     seoNarrative,
     heroImageUrl:imgState.enhancedUrl || getDefaultHeroImageUrl(),
-    websiteUrl:document.getElementById("websiteUrl")?.value.trim() || "",
-    ctaText:document.getElementById("ctaText")?.value.trim() || "",
-    ctaUrl:document.getElementById("ctaUrl")?.value.trim() || "",
+    websiteUrl,
+    cta,
+    ctaText:cta.text,
+    ctaUrl:cta.url,
     theme:{
       primary:document.getElementById("themePrimary")?.value || "#1f7a3d",
       secondary:document.getElementById("themeSecondary")?.value || "#f8f4ea",
-      accent:document.getElementById("themeAccent")?.value || "#b91c1c"
+      accent:document.getElementById("themeAccent")?.value || "#b91c1c",
+      text:"#1f2937"
     },
     landingPages:buildLandingPageObjects(name,type,city,keyword,pageCount,subdomain,{
       primary:document.getElementById("themePrimary")?.value || "#1f7a3d",
@@ -1345,6 +1393,7 @@ function saveLocalDraft(){
       pageCount:    c.pageCount,
       selectedTemplate: selectedTemplate,
       websiteUrl:   c.websiteUrl,
+      cta:          c.cta,
       ctaText:      c.ctaText,
       ctaUrl:       c.ctaUrl,
       logoDataUrl:  c.logoDataUrl || "",
@@ -1410,11 +1459,20 @@ async function persistConfig(silent){
 
   try{
     const config=getGeneratorConfig();
-    console.debug("[seo save payload]", {
+    console.info("[seo editor config]", {
+      businessName: config.businessName,
+      heroTitle: config.heroTitle,
+      heroText: config.heroText ? "present" : "missing",
+      cta: config.cta
+    });
+    console.info("[seo cta] save payload", config.cta);
+    console.info("[seo landing save payload]", {
       companyId,
       locationId,
       restaurantName: config.businessName,
-      subdomain: config.subdomain
+      subdomain: config.subdomain,
+      cta: config.cta,
+      fields: Object.keys(config)
     });
     const response=await saveSeoGeneratorConfig({
       companyId,
@@ -1436,27 +1494,9 @@ async function persistConfig(silent){
 function buildSeoPublishOverrides(){
   const config=getGeneratorConfig();
   return {
-    pageCount: config.pageCount,
-    selectedTemplate,
-    design: selectedTemplate,
-    theme: config.theme,
-    businessName: config.businessName,
-    displayBusinessName: config.displayBusinessName,
-    subdomain: config.subdomain,
-    city: config.city,
-    cityName: config.cityName,
-    displayCityName: config.displayCityName,
-    cuisineType: config.cuisineType,
-    offerings: config.offerings,
-    keyword: config.keyword,
-    phone: config.phone,
-    address: config.address,
-    description: config.description,
-    websiteUrl: config.websiteUrl,
-    ctaText: config.ctaText,
-    ctaUrl: config.ctaUrl,
-    heroImageUrl: config.heroImageUrl,
-    logoPosition: config.logoPosition
+    ...config,
+    selectedTemplate: config.selectedTemplate || selectedTemplate,
+    design: config.design || selectedTemplate
   };
 }
 
@@ -1464,7 +1504,8 @@ async function publishSeoSiteFromGenerator(authContext=null){
   const { companyId, locationId, user, token, role }=authContext || await ensureSeoPublishAuthContext();
 
   const overrides=buildSeoPublishOverrides();
-  console.debug("[seo publish request]", {
+  console.info("[seo cta] publish payload", overrides.cta);
+  console.info("[seo landing publish payload]", {
     companyId,
     locationId,
     uid:user?.uid || "",
@@ -1472,7 +1513,9 @@ async function publishSeoSiteFromGenerator(authContext=null){
     pageCount: overrides.pageCount,
     design: overrides.design,
     restaurantName: overrides.businessName,
-    subdomain: overrides.subdomain
+    subdomain: overrides.subdomain,
+    cta: overrides.cta,
+    fields: Object.keys(overrides)
   });
 
   const response=await callAdminActivateSeoSiteWithAuth({
@@ -1741,6 +1784,23 @@ if(nameInputForAutoSubdomain){
 
 function capitalize(text){return text ? text.charAt(0).toUpperCase()+text.slice(1) : "";}
 function slugify(text,fallback=""){return slugifySeoPathPart(text,fallback);}
+function normalizeSeoCtaInput({ ctaText, ctaUrl, websiteUrl, phone, subdomain } = {}){
+  const cleanText=String(ctaText || "").trim();
+  const cleanPhone=String(phone || "").trim();
+  const cleanWebsite=String(websiteUrl || "").trim();
+  let text=cleanText || (cleanPhone && cleanPhone !== "Ikke angivet" ? "Ring nu" : cleanWebsite ? "Besøg hjemmeside" : "Bestil nu");
+  let url=String(ctaUrl || "").trim() || cleanWebsite;
+  if(!url && cleanPhone && cleanPhone !== "Ikke angivet"){
+    url=`tel:${cleanPhone.replace(/\s+/g,"")}`;
+  }
+  if(!url){
+    url=`https://${slugify(subdomain || "restaurant") || "restaurant"}.madkontrollen.dk/`;
+  }
+  if(url && !/^(https?:|tel:|mailto:|\/|#)/i.test(url)){
+    url=/^[+\d\s().-]+$/.test(url) ? `tel:${url.replace(/\s+/g,"")}` : `https://${url.replace(/^\/+/,"")}`;
+  }
+  return { enabled:Boolean(text && url), text, url };
+}
 function getTemplateThemeClass(template){
   const allowed=["classic","modern","dark","street","minimal","luxury","bistro","fastfood","takeaway","foodtruck"];
   const key=allowed.includes(template) ? template : "classic";
@@ -1909,9 +1969,10 @@ function applyPreviewTheme(previewEl,config){
 }
 
 function renderHeroActions(config){
+  const cta=config.cta || normalizeSeoCtaInput(config);
   const websiteUrl=config.websiteUrl||`https://${config.subdomain}.madkontrollen.dk`;
   return{
-    primary:{text:"Book bord",href:websiteUrl},
+    primary:{text:cta.text || "Bestil nu",href:cta.url || websiteUrl},
     secondary:{text:"Se menu",href:websiteUrl},
     phone:{text:"Ring nu",href:config.phone?`tel:${config.phone}`:"#",show:!!config.phone}
   };
@@ -2139,6 +2200,13 @@ async function generateSite(shouldPersist = false, options = {}){
   console.log("ENTER generateSite - shouldPersist:", shouldPersist);
   renderModules();
   const config=getGeneratorConfig();
+  console.info("[seo editor config]", {
+    businessName: config.businessName,
+    heroTitle: config.heroTitle,
+    heroText: config.heroText ? "present" : "missing",
+    cta: config.cta
+  });
+  console.info("[seo cta] render preview", config.cta);
   const name=config.businessName;
   const subdomain=config.subdomain;
   const city=config.city;
@@ -2261,6 +2329,7 @@ async function generateAndSave(){
     const publishAuthContext=await ensureSeoPublishAuthContext();
     setGeneratorStatus("Publicerer SEO-site til Firestore...",false);
     await generateSite(false,{silent:true});
+    await persistConfig(true);
     const result=await publishSeoSiteFromGenerator(publishAuthContext);
     console.log("[seo publish success]", result);
     const liveUrl=result.liveUrl || `https://${result.businessSlug || result.subdomain}.madkontrollen.dk/`;
@@ -2457,6 +2526,8 @@ const IMG_CATEGORIES = {
 
 const DEFAULT_RESTAURANT_HERO_IMAGE = "/images/presentation.jpg";
 const imgState = { photos: [], selected: null, enhancedUrl: "" };
+let businessImageSearchResults = [];
+let selectedBusinessImage = null;
 
 function getDefaultHeroImageUrl(){
   return DEFAULT_RESTAURANT_HERO_IMAGE;
@@ -2588,6 +2659,181 @@ function selectStockImage(idx) {
   document.getElementById("imgLoading").style.display = "none";
   document.getElementById("imgSaveStatus").style.display = "none";
 }
+
+function getBusinessImageDefaultQuery(){
+  const businessName = document.getElementById("name")?.value.trim() || "";
+  const city = document.getElementById("city")?.value.trim() || "";
+  return [businessName, city].filter(Boolean).join(" ").trim();
+}
+
+function setBusinessImageStatus(message, isError=false){
+  const status = document.getElementById("businessImageStatus");
+  if(!status) return;
+  status.textContent = message || "";
+  status.style.color = isError ? "#b42318" : "#2f7d32";
+  status.style.display = message ? "block" : "none";
+}
+
+function getCloudinaryUrlFromBusinessImage(image){
+  const url = image?.optimizedUrl || image?.secureUrl || image?.url || "";
+  return /^https:\/\/res\.cloudinary\.com\//i.test(url) ? url : "";
+}
+
+function renderBusinessImageSearchResults(results){
+  const grid = document.getElementById("businessImageResults");
+  if(!grid) return;
+  if(!results || !results.length){
+    grid.innerHTML = '<div class="img-search-empty">Ingen billeder fundet. Prøv et andet søgeord.</div>';
+    return;
+  }
+  grid.innerHTML = "";
+  results.forEach((photo, i) => {
+    const item = document.createElement("div");
+    item.className = "img-grid-item";
+    const credit = photo.source === "google_places"
+      ? `${photo.placeName || "Google Place"}${photo.photographer ? ` - ${photo.photographer}` : ""}`
+      : (photo.photographer || photo.source || "Kilde");
+    item.innerHTML = `<img src="${escapeHtml(photo.thumbUrl || photo.url)}" alt="${escapeHtml(photo.alt || "")}" loading="lazy"><div class="img-credit">${escapeHtml(credit)}</div><div class="img-check">&#x2713;</div>`;
+    item.addEventListener("click", () => selectBusinessImage(i));
+    grid.appendChild(item);
+  });
+}
+
+function selectBusinessImage(idx){
+  const photo = businessImageSearchResults[idx];
+  if(!photo) return;
+  selectedBusinessImage = { ...photo, cloudinaryImage: null };
+  document.querySelectorAll("#businessImageResults .img-grid-item").forEach((el, i) => el.classList.toggle("selected", i === idx));
+  const panel = document.getElementById("businessImageSelectedPanel");
+  panel?.classList.add("active");
+  const sourceLabel = photo.source === "google_places" ? "Google Place" : "Billede";
+  document.getElementById("businessImageSelectedLabel").textContent = `Valgt: ${photo.alt || "Billede af virksomheden"}`;
+  document.getElementById("businessImagePreview").src = photo.url || photo.thumbUrl;
+  document.getElementById("businessImagePreviewTitle").textContent = photo.placeName || photo.alt || "Billede klar til import";
+  document.getElementById("businessImagePreviewCredit").textContent = photo.photographer ? `${sourceLabel}: ${photo.photographer}` : sourceLabel;
+  setBusinessImageStatus("");
+}
+
+function applyBusinessHeroImage(image){
+  const heroUrl = getCloudinaryUrlFromBusinessImage(image);
+  if(!heroUrl) throw new Error("Cloudinary URL mangler.");
+  selectedBusinessImage = {
+    ...(selectedBusinessImage || {}),
+    heroImage: image,
+    cloudinaryImage: image
+  };
+  imgState.enhancedUrl = heroUrl;
+  if(document.getElementById("preview").style.display === "block") generateSite();
+}
+
+document.getElementById("businessImageSearchBtn")?.addEventListener("click", async () => {
+  if(!authReady) { alert("Log ind for at søge billeder."); return; }
+  const queryInput = document.getElementById("businessImageQuery");
+  const defaultQuery = getBusinessImageDefaultQuery();
+  const query = (queryInput?.value.trim() || defaultQuery).trim();
+  if(queryInput && !queryInput.value.trim()) queryInput.value = query;
+  if(!query) { alert("Indtast virksomhedsnavn eller by først."); return; }
+
+  const btn = document.getElementById("businessImageSearchBtn");
+  const grid = document.getElementById("businessImageResults");
+  btn.disabled = true;
+  btn.textContent = "Søger...";
+  grid.innerHTML = '<div class="img-grid-loader">Finder billeder...</div>';
+  document.getElementById("businessImageSelectedPanel")?.classList.remove("active");
+  selectedBusinessImage = null;
+  setBusinessImageStatus("");
+
+  try {
+    const googleResult = await searchGooglePlaceBusinessImagesCallable({
+      businessName: document.getElementById("name")?.value.trim() || "",
+      city: document.getElementById("city")?.value.trim() || "",
+      address: document.getElementById("address")?.value.trim() || "",
+      query,
+      perPage: 8
+    });
+    businessImageSearchResults = googleResult.data?.photos || [];
+    if(!businessImageSearchResults.length){
+      setBusinessImageStatus("Google Places fandt ingen billeder. Bruger fallback-søgning.", true);
+      const fallbackResult = await searchRestaurantImagesCallable({ query, perPage: 12 });
+      businessImageSearchResults = fallbackResult.data?.photos || [];
+    } else {
+      const placeName = googleResult.data?.place?.name || "Google Place";
+      setBusinessImageStatus(`Viser billeder fra ${placeName}.`);
+    }
+    renderBusinessImageSearchResults(businessImageSearchResults);
+    if(!businessImageSearchResults.length){
+      setBusinessImageStatus("Ingen billeder fundet. Brug eksisterende upload/AI-billede flow.", true);
+    }
+  } catch (err) {
+    console.error("Google business image search failed, trying fallback:", err);
+    try {
+      const fallbackResult = await searchRestaurantImagesCallable({ query, perPage: 12 });
+      businessImageSearchResults = fallbackResult.data?.photos || [];
+      renderBusinessImageSearchResults(businessImageSearchResults);
+      setBusinessImageStatus(
+        businessImageSearchResults.length
+          ? "Google Places fejlede. Viser fallback-billeder."
+          : "Ingen billeder fundet. Brug eksisterende upload/AI-billede flow.",
+        !businessImageSearchResults.length
+      );
+    } catch (fallbackErr) {
+      console.error("Business image fallback search failed:", fallbackErr);
+      businessImageSearchResults = [];
+      grid.innerHTML = '<div class="img-search-empty">Billedsøgning fejlede. Brug eksisterende upload/AI-billede flow.</div>';
+      setBusinessImageStatus("Billedsøgning fejlede. Brug eksisterende upload/AI-billede flow.", true);
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Find billeder";
+  }
+});
+
+document.getElementById("businessImageUseBtn")?.addEventListener("click", async () => {
+  const photo = selectedBusinessImage;
+  if(!photo) { alert("Vælg et billede først."); return; }
+  if(!authReady) { alert("Log ind for at gemme billedet."); return; }
+  const companyId = currentCompanyId || getSessionCompanyId();
+  const locationId = currentLocationId || getSessionLocationId();
+  if(!companyId || !locationId) { alert("Company/location mangler."); return; }
+
+  const btn = document.getElementById("businessImageUseBtn");
+  btn.disabled = true;
+  btn.textContent = "Gemmer i Cloudinary...";
+  setBusinessImageStatus("Uploader billede til Cloudinary...");
+
+  try {
+    const payload = {
+      companyId,
+      locationId,
+      source: photo.source || "business_image_search",
+      sourceUrl: photo.sourceUrl || "",
+      photographer: photo.photographer || "",
+      photographerUrl: photo.photographerUrl || "",
+      alt: photo.alt || getBusinessImageDefaultQuery(),
+      query: document.getElementById("businessImageQuery")?.value.trim() || getBusinessImageDefaultQuery()
+    };
+    if(photo.source === "google_places" && (photo.googlePhotoName || photo.photoReference)){
+      payload.googlePhotoName = photo.googlePhotoName || photo.photoReference;
+      payload.photoReference = photo.photoReference || photo.googlePhotoName;
+      payload.placeId = photo.placeId || "";
+      payload.placeName = photo.placeName || "";
+      payload.thumbUrl = "";
+    } else {
+      payload.imageUrl = photo.url;
+      payload.thumbUrl = photo.thumbUrl || "";
+    }
+    const result = await uploadBusinessHeroImageCallable(payload);
+    const normalized = result.data?.image || {};
+    applyBusinessHeroImage(normalized);
+    setBusinessImageStatus("Billedet er gemt i Cloudinary og sat som hero-billede.");
+  } catch (err) {
+    console.error("Business image Cloudinary import failed:", err);
+    setBusinessImageStatus("Billedet kunne ikke gemmes i Cloudinary. Prøv et andet billede.", true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Brug som hero-billede";
+  }
+});
 
 document.getElementById("imgSearchBtn").addEventListener("click", async () => {
   if (!authReady) { alert("Log ind for at generere billeder."); return; }

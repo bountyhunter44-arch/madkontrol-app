@@ -338,6 +338,49 @@ function buildActionButtons({ data, site }) {
   ].filter(Boolean);
 }
 
+function buildCanonicalRenderData(site = {}) {
+  const seo = site.seoData || {};
+  const renderData = seo.renderData || {};
+  const config = isPlainObject(site.config) ? site.config : {};
+  const canonicalConfig = isPlainObject(site.canonicalConfig) ? site.canonicalConfig : {};
+  const data = {
+    ...site,
+    ...seo,
+    ...renderData,
+    ...config,
+    ...canonicalConfig
+  };
+  const selectedCta = isPlainObject(canonicalConfig.cta)
+    ? canonicalConfig.cta
+    : isPlainObject(config.cta)
+      ? config.cta
+      : isPlainObject(renderData.cta)
+        ? renderData.cta
+        : isPlainObject(seo.cta)
+          ? seo.cta
+          : isPlainObject(site.cta)
+            ? site.cta
+            : null;
+  data.cta = selectedCta;
+  data.ctaText = selectedCta?.text || canonicalConfig.ctaText || config.ctaText || renderData.ctaText || seo.ctaText || site.ctaText || "";
+  data.ctaUrl = selectedCta?.url || selectedCta?.href || canonicalConfig.ctaUrl || config.ctaUrl || renderData.ctaUrl || seo.ctaUrl || site.ctaUrl || site.websiteUrl || "";
+  data.websiteUrl = canonicalConfig.websiteUrl || config.websiteUrl || renderData.websiteUrl || seo.websiteUrl || site.websiteUrl || data.websiteUrl || "";
+  return { data, seo, renderData, config, canonicalConfig };
+}
+
+function buildCanonicalCtaButtons({ data, site }) {
+  const normalized = normalizeCta({
+    cta: {
+      text: data.ctaText || "Besøg vores hjemmeside",
+      url: data.ctaUrl || data.websiteUrl || ""
+    },
+    fallbackText: "Besøg vores hjemmeside",
+    phone: data.phone || site.phone || ""
+  });
+  if (data.cta?.enabled === false || !normalized.href) return [];
+  return [{ label: normalized.text || "Besøg vores hjemmeside", href: normalized.href, kind: "primary" }];
+}
+
 function displayFallback(...values) {
   return values
     .map((value) => String(value || "").trim())
@@ -491,34 +534,48 @@ ${[...urls].map((url) => `<url><loc>${url}</loc></url>`).join("\n")}
 export function renderSeoHtml({ website, page, parsed }) {
   const websiteDoc = website || {};
   const pageDoc = page || {};
+  const { data, config, canonicalConfig } = buildCanonicalRenderData(websiteDoc);
   const displayBusinessName = displayFallback(
     pageDoc.displayBusinessName,
+    data.displayBusinessName,
     websiteDoc.displayBusinessName,
     pageDoc.businessName,
-    websiteDoc.businessName,
-    websiteDoc.heroTitle,
+    data.businessName,
+    data.heroTitle,
     parsed.businessSlug
   );
   const displayCityName = displayFallback(
     pageDoc.displayCityName,
-    websiteDoc.displayCityName,
+    data.displayCityName,
+    data.cityName,
     pageDoc.cityName,
     websiteDoc.cityName,
     parsed.citySlug
   );
-  const title = escapeHtml(pageDoc.title || websiteDoc.heroTitle || displayBusinessName);
-  const metaDescription = escapeHtml(pageDoc.metaDescription || websiteDoc.heroText || "");
-  const h1 = escapeHtml(pageDoc.h1 || websiteDoc.heroTitle || displayBusinessName);
-  const intro = escapeHtml(pageDoc.bodyText || pageDoc.metaDescription || websiteDoc.heroText || "");
+  const title = escapeHtml(pageDoc.title || data.heroTitle || data.title || websiteDoc.heroTitle || displayBusinessName);
+  const metaDescription = escapeHtml(pageDoc.metaDescription || data.metaDescription || data.heroText || websiteDoc.heroText || "");
+  const h1 = escapeHtml(pageDoc.h1 || data.heroTitle || websiteDoc.heroTitle || displayBusinessName);
+  const intro = escapeHtml(pageDoc.bodyText || pageDoc.metaDescription || data.heroText || websiteDoc.heroText || "");
   const canonicalUrl = escapeHtml(parsed.canonicalUrl);
-  const heroImage = escapeHtml(websiteDoc.heroImageUrl || "");
-  const themePrimary = escapeHtml(websiteDoc.themePrimary || "#1f7a3d");
-  const themeSecondary = escapeHtml(websiteDoc.themeSecondary || "#f8f4ea");
-  const themeAccent = escapeHtml(websiteDoc.themeAccent || "#b91c1c");
-  const phone = escapeHtml(websiteDoc.phone || "");
-  const address = escapeHtml(websiteDoc.address || "");
+  const theme = data.colors || data.theme || {};
+  const heroImage = escapeHtml(data.heroImageUrl || websiteDoc.heroImageUrl || "");
+  const themePrimary = escapeHtml(theme.primary || websiteDoc.themePrimary || "#1f7a3d");
+  const themeSecondary = escapeHtml(theme.secondary || websiteDoc.themeSecondary || "#f8f4ea");
+  const themeAccent = escapeHtml(theme.accent || websiteDoc.themeAccent || "#b91c1c");
+  const phone = escapeHtml(data.phone || websiteDoc.phone || "");
+  const address = escapeHtml(data.address || websiteDoc.address || "");
   const cityLabel = escapeHtml(displayCityName);
   const h2 = escapeHtml(pageDoc.h2 || (displayCityName ? `Velkommen til ${displayBusinessName} i ${displayCityName}` : "Velkommen"));
+  const explicitCtaButtons = Array.isArray(data.ctaButtons) && data.ctaButtons.length
+    ? data.ctaButtons.map((button) => ({ label: button.label || button.text || "", href: normalizeCta({ cta: button.href || button.url || button.value, fallbackText: button.label || button.text || "" }).href, kind: button.kind || "secondary" })).filter((button) => button.label && button.href)
+    : [];
+  const ctaButtons = explicitCtaButtons.length ? explicitCtaButtons : buildCanonicalCtaButtons({ data, site: websiteDoc });
+  const actionsHtml = ctaButtons.map((button) => `<a class="action action-${escapeHtml(button.kind || "secondary")}" href="${escapeHtml(button.href)}">${escapeHtml(button.label)}</a>`).join("");
+  const domain = parsed.host || `${parsed.businessSlug}.${ALLOWED_ROOT_DOMAIN}`;
+  seoGatewayLog("[seo-render:canonical-config]", { domain, present: Boolean(Object.keys(canonicalConfig).length), keyCount: Object.keys(canonicalConfig).length });
+  seoGatewayLog("[seo-render:config]", { domain, present: Boolean(Object.keys(config).length), keyCount: Object.keys(config).length });
+  seoGatewayLog("[seo-render:cta-source]", { domain, enabled: data.cta?.enabled !== false, textPresent: Boolean(data.ctaText), urlPresent: Boolean(data.ctaUrl || data.websiteUrl) });
+  seoGatewayLog("[seo-render:cta-normalized]", { domain, buttonCount: ctaButtons.length });
 
   return `<!DOCTYPE html>
 <html lang="da">
@@ -534,6 +591,8 @@ body{margin:0;font-family:Inter,Arial,sans-serif;color:#1f2937;background:#f7f7f
 .hero{min-height:520px;display:grid;place-items:center;text-align:center;color:#fff;padding:64px 20px;background:${themePrimary};background-image:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.42)),url('${heroImage}');background-size:cover;background-position:center}
 .hero h1{font-size:clamp(38px,7vw,82px);line-height:.98;margin:0 0 18px;font-weight:900}
 .hero p{max-width:780px;margin:0 auto;font-size:clamp(18px,2vw,28px);font-weight:700}
+.actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:28px}
+.action{display:inline-flex;align-items:center;justify-content:center;padding:14px 24px;border-radius:12px;text-decoration:none;font-weight:800;color:#fff;background:${themeAccent};box-shadow:0 8px 18px rgba(0,0,0,.18)}
 .content{max-width:980px;margin:0 auto;padding:48px 20px}
 .panel{background:#fff;border-top:6px solid ${themeAccent};border-radius:10px;padding:28px;box-shadow:0 8px 28px rgba(0,0,0,.07)}
 .meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;color:${themePrimary};font-weight:800}
@@ -546,6 +605,7 @@ body{margin:0;font-family:Inter,Arial,sans-serif;color:#1f2937;background:#f7f7f
     <div>
       <h1>${h1}</h1>
       <p>${intro}</p>
+      ${actionsHtml ? `<div class="actions">${actionsHtml}</div>` : ""}
     </div>
   </section>
   <section class="content">
@@ -566,9 +626,7 @@ body{margin:0;font-family:Inter,Arial,sans-serif;color:#1f2937;background:#f7f7f
 
 function renderStaticSeoIndex({ website, pages = [], logger = console }) {
   const site = website || {};
-  const seo = site.seoData || {};
-  const renderData = seo.renderData || {};
-  const data = Object.keys(renderData).length ? { ...seo, ...renderData } : seo;
+  const { data, config, canonicalConfig } = buildCanonicalRenderData(site);
   const domain = site.domain || `${site.businessSlug || site.subdomain}.${ALLOWED_ROOT_DOMAIN}`;
   const title = escapeHtml(data.title || site.metaTitle || site.title || site.heroTitle || site.displayBusinessName || site.businessName || domain);
   const metaDescription = escapeHtml(data.metaDescription || site.metaDescription || site.heroText || "");
@@ -584,9 +642,10 @@ function renderStaticSeoIndex({ website, pages = [], logger = console }) {
   const heroImageUrl = escapeHtml(heroImage.optimizedUrl || heroImage.url || heroImage.originalUrl || site.heroImageUrl || "");
   const ogImageUrl = escapeHtml(heroImage.ogImageUrl || heroImageUrl);
   const heroAlt = escapeHtml(heroImage.alt || `${businessName} hero`);
+  const canonicalCtaButtons = buildCanonicalCtaButtons({ data, site });
   const ctaButtons = Array.isArray(data.ctaButtons) && data.ctaButtons.length
     ? data.ctaButtons.map((button) => ({ label: button.label || button.text || "", href: normalizeCta({ cta: button.href || button.url || button.value, fallbackText: button.label || button.text || "" }).href, kind: button.kind || "secondary" })).filter((button) => button.label && button.href)
-    : buildActionButtons({ data, site });
+    : (canonicalCtaButtons.length ? canonicalCtaButtons : buildActionButtons({ data, site }));
   const sections = Array.isArray(data.sections) ? data.sections : [];
   const services = Array.isArray(data.services) ? data.services : [];
   const menuItems = Array.isArray(data.menuItems) ? data.menuItems : [];
@@ -594,6 +653,9 @@ function renderStaticSeoIndex({ website, pages = [], logger = console }) {
   const menuSource = menuItems.length ? menuItems : dailyMenu;
   const faq = normalizeFaqItems(data.faq, data.faq?.items, site.faq);
   const schema = buildSchemaOrg({ data, site, domain, heroImage });
+  seoGatewayLog("[seo-render:canonical-config]", { domain, present: Boolean(Object.keys(canonicalConfig).length), keyCount: Object.keys(canonicalConfig).length });
+  seoGatewayLog("[seo-render:config]", { domain, present: Boolean(Object.keys(config).length), keyCount: Object.keys(config).length });
+  seoGatewayLog("[seo-render:cta-source]", { domain, enabled: data.cta?.enabled !== false, textPresent: Boolean(data.ctaText), urlPresent: Boolean(data.ctaUrl || data.websiteUrl) });
   seoGatewayLog("[seo-render:faq-count]", { domain, count: faq.length });
   seoGatewayLog("[seo-render:schema-present]", { domain, present: Boolean(schema && Object.keys(schema).length), type: schema?.["@type"] || "" });
   seoGatewayLog("[seo-render:cta-normalized]", { domain, buttonCount: ctaButtons.length });
