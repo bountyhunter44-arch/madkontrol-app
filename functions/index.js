@@ -725,12 +725,25 @@ function getSeoGatewayInvalidateConfig() {
   }
 
   const seoGatewayConfig = functionsConfig?.seo_gateway || functionsConfig?.seoGateway || {};
-  const baseUrl = String(
+  const configuredInvalidateUrl = String(
     process.env.SEO_GATEWAY_INVALIDATE_URL ||
     seoGatewayConfig.invalidate_url ||
     seoGatewayConfig.invalidateUrl ||
     ""
-  ).trim().replace(/\/+$/, "");
+  ).trim();
+  const configuredBaseUrl = String(
+    process.env.SEO_GATEWAY_BASE_URL ||
+    seoGatewayConfig.base_url ||
+    seoGatewayConfig.baseUrl ||
+    ""
+  ).trim();
+  const configuredRebuildUrl = String(
+    process.env.SEO_GATEWAY_REBUILD_URL ||
+    seoGatewayConfig.rebuild_url ||
+    seoGatewayConfig.rebuildUrl ||
+    ""
+  ).trim();
+  const baseUrl = (configuredInvalidateUrl || configuredBaseUrl || configuredRebuildUrl.replace(/\/internal\/rebuild-site\/?$/i, "")).replace(/\/+$/, "");
   const token = String(
     process.env.SEO_GATEWAY_INTERNAL_TOKEN ||
     seoGatewayConfig.internal_token ||
@@ -834,13 +847,20 @@ function getSeoGatewayRebuildConfig() {
 }
 
 async function triggerSeoGatewayRebuild({ domain, companyId, locationId, websiteId }) {
+  console.log("[seo function gateway rebuild requested]");
+  console.log("SEO gateway rebuild requested");
   console.log("SEO STEP: vps rebuild start");
   const config = getSeoGatewayRebuildConfig();
   if (!config.ok) {
+    console.log("[seo function gateway rebuild failed]");
+    console.log("SEO gateway rebuild failed");
     console.log("SEO STEP: vps rebuild skipped missing_config");
     return {
       attempted: false,
-      reason: "missing_config"
+      ok: false,
+      rebuildOk: false,
+      reason: "missing_config",
+      rebuildError: "missing_config"
     };
   }
 
@@ -859,35 +879,58 @@ async function triggerSeoGatewayRebuild({ domain, companyId, locationId, website
         companyId,
         locationId,
         websiteId,
-        reason: "seo_publish"
+        reason: "publish"
       }),
       signal: controller.signal
     });
 
+    let responseBody = {};
+    try {
+      responseBody = await response.json();
+    } catch (_error) {
+      responseBody = {};
+    }
+
     if (!response.ok) {
+      console.log("[seo function gateway rebuild failed]");
+      console.log("SEO gateway rebuild failed");
       console.log("SEO STEP: vps rebuild failed");
       return {
         attempted: true,
         ok: false,
+        rebuildOk: false,
         status: response.status,
-        error: `http_${response.status}`
+        error: responseBody?.error || `http_${response.status}`,
+        rebuildError: responseBody?.error || `http_${response.status}`,
+        domain
       };
     }
 
+    console.log("[seo function gateway rebuild success]");
+    console.log("SEO gateway rebuild success");
     console.log("SEO STEP: vps rebuild success");
     return {
       attempted: true,
       ok: true,
+      rebuildOk: true,
       domain,
-      status: response.status
+      status: response.status,
+      indexPath: sanitizeString(responseBody?.indexPath || "", 500),
+      outputDir: sanitizeString(responseBody?.outputDir || "", 500)
     };
   } catch (error) {
+    const rebuildError = error?.name === "AbortError" ? "timeout" : String(error?.message || "request_failed").slice(0, 180);
+    console.log("[seo function gateway rebuild failed]");
+    console.log("SEO gateway rebuild failed");
     console.log("SEO STEP: vps rebuild failed");
     return {
       attempted: true,
       ok: false,
+      rebuildOk: false,
       status: 0,
-      error: error?.name === "AbortError" ? "timeout" : String(error?.message || "request_failed").slice(0, 180)
+      error: rebuildError,
+      rebuildError,
+      domain
     };
   } finally {
     clearTimeout(timeout);
@@ -895,8 +938,12 @@ async function triggerSeoGatewayRebuild({ domain, companyId, locationId, website
 }
 
 async function invalidateSeoGatewayCache({ citySlug, businessSlug }) {
+  console.log("SEO gateway cache invalidation requested");
   const config = getSeoGatewayInvalidateConfig();
-  if (!config.ok) return config.result;
+  if (!config.ok) {
+    console.log("SEO gateway cache invalidation failed");
+    return config.result;
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 3000);
@@ -913,6 +960,7 @@ async function invalidateSeoGatewayCache({ citySlug, businessSlug }) {
     });
 
     if (!response.ok) {
+      console.log("SEO gateway cache invalidation failed");
       return {
         attempted: true,
         ok: false,
@@ -920,11 +968,13 @@ async function invalidateSeoGatewayCache({ citySlug, businessSlug }) {
       };
     }
 
+    console.log("SEO gateway cache invalidation success");
     return {
       attempted: true,
       ok: true
     };
   } catch (error) {
+    console.log("SEO gateway cache invalidation failed");
     return {
       attempted: true,
       ok: false,
@@ -1046,7 +1096,7 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
   });
 
   if (cacheInvalidation.attempted && !cacheInvalidation.ok) {
-    logger.warn("SEO gateway cache invalidation failed", {
+    console.warn("SEO gateway cache invalidation failed", {
       citySlug: route.citySlug,
       businessSlug: route.businessSlug,
       error: cacheInvalidation.error || "unknown"
@@ -7453,6 +7503,7 @@ async function assertSeoPublishAccessWithLogs({ uid, email, companyId, locationI
 
 exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
   const payload = normalizeSeoActivationData(data);
+  console.log("[seo function publish request]");
   const publishAuth = await resolveSeoActivationAuth(data, context);
   if (!publishAuth.uid) {
     const reason = publishAuth.reason === "token_verify_failed" ? "token_verify_failed" : "token_missing";
@@ -7496,6 +7547,9 @@ exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
     locationId,
     websiteId: result.websiteId
   });
+  const rebuildOk = Boolean(vpsRebuild?.ok || vpsRebuild?.rebuildOk);
+  const rebuildError = rebuildOk ? "" : sanitizeString(vpsRebuild?.rebuildError || vpsRebuild?.error || vpsRebuild?.reason || "unknown", 180);
+  console.log("[seo function publish success]");
 
   // Mark SEO addon as active on the company location
   await db.collection("company_locations").doc(`${companyId}__${locationId}`).set({
@@ -7505,10 +7559,17 @@ exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
 
   return {
     ok: true,
+    publishOk: true,
+    rebuildOk,
+    rebuildError,
+    domain,
+    indexPath: sanitizeString(vpsRebuild?.indexPath || "", 500),
     partial: Boolean(vpsRebuild.attempted && !vpsRebuild.ok),
     websiteId: result.websiteId,
     generatedPages: result.generatedPages,
     subdomain: result.subdomain,
+    businessSlug: result.businessSlug,
+    liveUrl: `https://${domain}/`,
     cacheInvalidation: result.cacheInvalidation,
     vpsRebuild
   };

@@ -1504,6 +1504,14 @@ async function publishSeoSiteFromGenerator(authContext=null){
   const { companyId, locationId, user, token, role }=authContext || await ensureSeoPublishAuthContext();
 
   const overrides=buildSeoPublishOverrides();
+  console.info("[seo generator publish request]", {
+    companyId,
+    locationId,
+    uid:user?.uid || "",
+    subdomain: overrides.subdomain,
+    domain: `${overrides.subdomain}.madkontrollen.dk`,
+    cta: overrides.cta
+  });
   console.info("[seo cta] publish payload", overrides.cta);
   console.info("[seo landing publish payload]", {
     companyId,
@@ -1527,6 +1535,13 @@ async function publishSeoSiteFromGenerator(authContext=null){
     overrides
   }, token);
 
+  console.info("[seo generator publish result]", {
+    publishOk: response?.publishOk ?? response?.ok ?? false,
+    rebuildOk: response?.rebuildOk ?? response?.vpsRebuild?.rebuildOk ?? response?.vpsRebuild?.ok ?? false,
+    rebuildError: response?.rebuildError || response?.vpsRebuild?.rebuildError || response?.vpsRebuild?.error || response?.vpsRebuild?.reason || "",
+    domain: response?.domain || "",
+    indexPath: response?.indexPath || response?.vpsRebuild?.indexPath || ""
+  });
   return response || {};
 }
 
@@ -2332,7 +2347,14 @@ async function generateAndSave(){
     await persistConfig(true);
     const result=await publishSeoSiteFromGenerator(publishAuthContext);
     console.log("[seo publish success]", result);
-    const liveUrl=result.liveUrl || `https://${result.businessSlug || result.subdomain}.madkontrollen.dk/`;
+    const rebuildOk = result?.rebuildOk ?? result?.vpsRebuild?.rebuildOk ?? result?.vpsRebuild?.ok ?? false;
+    const rebuildError = result?.rebuildError || result?.vpsRebuild?.rebuildError || result?.vpsRebuild?.error || result?.vpsRebuild?.reason || "";
+    const liveUrl=result.liveUrl || (result.domain ? `https://${result.domain}/` : `https://${result.businessSlug || result.subdomain}.madkontrollen.dk/`);
+    if(!rebuildOk){
+      console.warn("[seo publish warning]", { publishOk: result?.publishOk ?? result?.ok, rebuildOk, rebuildError, domain: result?.domain || "" });
+      setGeneratorStatus(`SEO-site gemt, men VPS rebuild fejlede: ${rebuildError || "ukendt fejl"}. Live siden kan stadig vise gammel version.`,true);
+      return;
+    }
     setGeneratorStatus(`✓ SEO-site publiceret: ${liveUrl}`,false);
   } catch (err) {
     console.error("[seo publish error]", err);
