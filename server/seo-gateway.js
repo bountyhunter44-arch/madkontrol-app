@@ -1,6 +1,7 @@
 import { createRequire } from "module";
 import fs from "fs/promises";
 import path from "path";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 
 const require = createRequire(import.meta.url);
@@ -46,12 +47,30 @@ function getStaticSeoFileForPath(requestPath = "/") {
   if (cleanPath === "/") return "index.html";
   if (cleanPath === "/robots.txt") return "robots.txt";
   if (cleanPath === "/sitemap.xml") return "sitemap.xml";
+  if (cleanPath.startsWith("/assets/")) {
+    const assetPath = cleanPath.slice(1);
+    if (assetPath.includes("..") || path.isAbsolute(assetPath)) return "";
+    return assetPath;
+  }
+  const pagePath = cleanPath.slice(1);
+  if (pagePath && !pagePath.includes("..") && !path.isAbsolute(pagePath)) {
+    return `${pagePath}/index.html`;
+  }
   return "";
 }
 
 function contentTypeForStaticSeoFile(file) {
   if (file === "robots.txt") return "text/plain; charset=utf-8";
   if (file === "sitemap.xml") return "application/xml; charset=utf-8";
+  if (file.endsWith(".css")) return "text/css; charset=utf-8";
+  if (file.endsWith(".js")) return "application/javascript; charset=utf-8";
+  if (file.endsWith(".json")) return "application/json; charset=utf-8";
+  if (file.endsWith(".svg")) return "image/svg+xml";
+  if (file.endsWith(".png")) return "image/png";
+  if (file.endsWith(".jpg") || file.endsWith(".jpeg")) return "image/jpeg";
+  if (file.endsWith(".webp")) return "image/webp";
+  if (file.endsWith(".woff")) return "font/woff";
+  if (file.endsWith(".woff2")) return "font/woff2";
   return "text/html; charset=utf-8";
 }
 
@@ -64,6 +83,9 @@ export async function resolveStaticSeoFileResponse({ host, path: requestPath }) 
   const file = getStaticSeoFileForPath(requestPath);
   if (!file) {
     return null;
+  }
+  if (file.startsWith("assets/")) {
+    seoGatewayLog("[seo gateway asset request]", { host: cleanHost, file });
   }
 
   const siteDir = path.join(SEO_SITES_ROOT, cleanHost);
@@ -273,6 +295,36 @@ function normalizeCta({ cta, fallbackText = "Kontakt os", phone = "" } = {}) {
   return { text: rawText, href, rawValue };
 }
 
+function normalizeCtaLabelKey(value) {
+  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function normalizeCtaHrefKey(value) {
+  const href = String(value || "").trim();
+  if (/^tel:/i.test(href)) return `tel:${href.replace(/^tel:/i, "").replace(/[^\d+]/g, "")}`;
+  return href.replace(/\/+$/, "").toLowerCase();
+}
+
+function dedupeCtaButtons(buttons = [], fields = {}) {
+  const before = Array.isArray(buttons) ? buttons.length : 0;
+  const labels = new Set();
+  const hrefs = new Set();
+  const deduped = [];
+  (Array.isArray(buttons) ? buttons : []).forEach((button) => {
+    const label = String(button?.label || button?.text || "").trim();
+    const href = String(button?.href || button?.url || "").trim();
+    const labelKey = normalizeCtaLabelKey(label);
+    const hrefKey = normalizeCtaHrefKey(href);
+    if (!labelKey || !hrefKey || labels.has(labelKey) || hrefs.has(hrefKey)) return;
+    labels.add(labelKey);
+    hrefs.add(hrefKey);
+    deduped.push({ ...button, label, href, kind: button?.kind || "secondary" });
+  });
+  const result = deduped.slice(0, 3);
+  seoGatewayLog("[seo cta deduped]", { ...fields, before, after: result.length });
+  return result;
+}
+
 function buildSchemaOrg({ data, site, domain, heroImage }) {
   const provided = data.schemaOrg || site.schemaOrg || {};
   if (isPlainObject(provided) && Object.keys(provided).length) {
@@ -328,14 +380,35 @@ function normalizeHeroImage(rawImage = {}, fallbackUrl = "") {
 
 function buildActionButtons({ data, site }) {
   const phone = data.phone || site.phone || "";
-  const bookingHref = normalizeCta({ cta: data.bookingUrl || site.bookingUrl || data.cta || site.cta, fallbackText: "Bestil bord", phone }).href;
-  const takeawayHref = normalizeCta({ cta: data.takeawayUrl || site.takeawayUrl || data.websiteUrl || site.websiteUrl, fallbackText: "Bestil takeaway" }).href;
-  const phoneHref = normalizeCta({ cta: phone, fallbackText: "Ring op", phone }).href;
-  return [
-    bookingHref ? { label: "Bestil bord", href: bookingHref, kind: "primary" } : null,
-    takeawayHref ? { label: "Bestil takeaway", href: takeawayHref, kind: "secondary" } : null,
-    phoneHref ? { label: "Ring op", href: phoneHref, kind: "ghost" } : null
-  ].filter(Boolean);
+  const domain = data.domain || site.domain || `${site.businessSlug || site.subdomain || data.subdomain || "restaurant"}.${ALLOWED_ROOT_DOMAIN}`;
+  const websiteHref = normalizeCta({ cta: data.websiteUrl || site.websiteUrl || "", fallbackText: "Gå til hjemmeside" }).href;
+  const phoneHref = normalizeCta({ cta: phone, fallbackText: "Ring nu", phone }).href;
+  const selectedCta = isPlainObject(data.cta)
+    ? data.cta
+    : isPlainObject(site.cta)
+      ? site.cta
+      : { text: data.ctaText || site.ctaText || "", url: data.ctaUrl || site.ctaUrl || websiteHref };
+  const primary = normalizeCta({
+    cta: selectedCta,
+    fallbackText: data.ctaText || site.ctaText || "Besøg vores hjemmeside",
+    phone
+  });
+  const primaryHref = primary.href || websiteHref;
+  const primaryLabel = primary.text || "Besøg vores hjemmeside";
+  const primaryIsPhone = normalizeCtaLabelKey(primaryLabel) === "ring nu" || /^tel:/i.test(primaryHref);
+  const primaryIsWebsite = websiteHref && normalizeCtaHrefKey(primaryHref) === normalizeCtaHrefKey(websiteHref);
+  const buttons = [];
+  if (selectedCta?.enabled !== false && primaryHref) {
+    buttons.push({ label: primaryLabel, href: primaryHref, kind: "primary" });
+  }
+  if (websiteHref && !primaryIsWebsite) {
+    buttons.push({ label: "Gå til hjemmeside", href: websiteHref, kind: "website" });
+  }
+  if (phoneHref && !primaryIsPhone && (!websiteHref || primaryIsWebsite)) {
+    buttons.push({ label: "Ring nu", href: phoneHref, kind: "phone" });
+  }
+  buttons.push({ label: "Se menu", href: `https://${domain}/#menu`, kind: "menu" });
+  return dedupeCtaButtons(buttons, { domain });
 }
 
 function buildCanonicalRenderData(site = {}) {
@@ -566,12 +639,12 @@ export function renderSeoHtml({ website, page, parsed }) {
   const address = escapeHtml(data.address || websiteDoc.address || "");
   const cityLabel = escapeHtml(displayCityName);
   const h2 = escapeHtml(pageDoc.h2 || (displayCityName ? `Velkommen til ${displayBusinessName} i ${displayCityName}` : "Velkommen"));
+  const domain = parsed.host || `${parsed.businessSlug}.${ALLOWED_ROOT_DOMAIN}`;
   const explicitCtaButtons = Array.isArray(data.ctaButtons) && data.ctaButtons.length
     ? data.ctaButtons.map((button) => ({ label: button.label || button.text || "", href: normalizeCta({ cta: button.href || button.url || button.value, fallbackText: button.label || button.text || "" }).href, kind: button.kind || "secondary" })).filter((button) => button.label && button.href)
     : [];
-  const ctaButtons = explicitCtaButtons.length ? explicitCtaButtons : buildCanonicalCtaButtons({ data, site: websiteDoc });
+  const ctaButtons = dedupeCtaButtons([...buildActionButtons({ data, site: websiteDoc }), ...explicitCtaButtons], { domain });
   const actionsHtml = ctaButtons.map((button) => `<a class="action action-${escapeHtml(button.kind || "secondary")}" href="${escapeHtml(button.href)}">${escapeHtml(button.label)}</a>`).join("");
-  const domain = parsed.host || `${parsed.businessSlug}.${ALLOWED_ROOT_DOMAIN}`;
   seoGatewayLog("[seo-render:canonical-config]", { domain, present: Boolean(Object.keys(canonicalConfig).length), keyCount: Object.keys(canonicalConfig).length });
   seoGatewayLog("[seo-render:config]", { domain, present: Boolean(Object.keys(config).length), keyCount: Object.keys(config).length });
   seoGatewayLog("[seo-render:cta-source]", { domain, enabled: data.cta?.enabled !== false, textPresent: Boolean(data.ctaText), urlPresent: Boolean(data.ctaUrl || data.websiteUrl) });
@@ -644,8 +717,8 @@ function renderStaticSeoIndex({ website, pages = [], logger = console }) {
   const heroAlt = escapeHtml(heroImage.alt || `${businessName} hero`);
   const canonicalCtaButtons = buildCanonicalCtaButtons({ data, site });
   const ctaButtons = Array.isArray(data.ctaButtons) && data.ctaButtons.length
-    ? data.ctaButtons.map((button) => ({ label: button.label || button.text || "", href: normalizeCta({ cta: button.href || button.url || button.value, fallbackText: button.label || button.text || "" }).href, kind: button.kind || "secondary" })).filter((button) => button.label && button.href)
-    : (canonicalCtaButtons.length ? canonicalCtaButtons : buildActionButtons({ data, site }));
+    ? dedupeCtaButtons([...buildActionButtons({ data, site }), ...data.ctaButtons.map((button) => ({ label: button.label || button.text || "", href: normalizeCta({ cta: button.href || button.url || button.value, fallbackText: button.label || button.text || "" }).href, kind: button.kind || "secondary" })).filter((button) => button.label && button.href)], { domain })
+    : dedupeCtaButtons([...(canonicalCtaButtons.length ? canonicalCtaButtons : []), ...buildActionButtons({ data, site })], { domain });
   const sections = Array.isArray(data.sections) ? data.sections : [];
   const services = Array.isArray(data.services) ? data.services : [];
   const menuItems = Array.isArray(data.menuItems) ? data.menuItems : [];
@@ -785,11 +858,27 @@ ${[...urls].map((url) => `  <url><loc>${escapeHtml(url)}</loc></url>`).join("\n"
 }
 
 async function findWebsiteByDomain(db, domain) {
-  const snap = await db.collection("websites")
+  let snap = await db.collection("websites")
     .where("domain", "==", domain)
     .where("status", "==", "published")
     .limit(1)
     .get();
+  if (snap.empty) {
+    const subdomain = String(domain || "").toLowerCase().replace(`.${ALLOWED_ROOT_DOMAIN}`, "");
+    snap = await db.collection("websites")
+      .where("subdomain", "==", subdomain)
+      .where("status", "==", "published")
+      .limit(1)
+      .get();
+  }
+  if (snap.empty) {
+    const businessSlug = String(domain || "").toLowerCase().replace(`.${ALLOWED_ROOT_DOMAIN}`, "");
+    snap = await db.collection("websites")
+      .where("businessSlug", "==", businessSlug)
+      .where("status", "==", "published")
+      .limit(1)
+      .get();
+  }
   if (snap.empty) return null;
   return { id: snap.docs[0].id, data: snap.docs[0].data() || {} };
 }
@@ -840,6 +929,120 @@ async function rebuildStaticSeoSite({ db, domain, logger = console }) {
   };
   seoGatewayLog("[seo-build:done]", { ok: result.ok, domain: result.domain, outputDir: result.outputDir, pages: result.pages });
   return result;
+}
+
+function safeZipEntryName(value) {
+  const name = String(value || "").replace(/\\/g, "/").replace(/^\/+/, "");
+  if (!name || name.includes("..") || /^[a-zA-Z]:/.test(name)) return "";
+  return name;
+}
+
+function listStoredZipEntries(zipBuffer) {
+  const entries = [];
+  let offset = 0;
+  while (offset + 30 <= zipBuffer.length) {
+    const signature = zipBuffer.readUInt32LE(offset);
+    if (signature === 0x02014b50 || signature === 0x06054b50) break;
+    if (signature !== 0x04034b50) {
+      throw new Error("invalid_zip_signature");
+    }
+    const method = zipBuffer.readUInt16LE(offset + 8);
+    const compressedSize = zipBuffer.readUInt32LE(offset + 18);
+    const uncompressedSize = zipBuffer.readUInt32LE(offset + 22);
+    const nameLength = zipBuffer.readUInt16LE(offset + 26);
+    const extraLength = zipBuffer.readUInt16LE(offset + 28);
+    const name = safeZipEntryName(zipBuffer.slice(offset + 30, offset + 30 + nameLength).toString("utf8"));
+    const dataStart = offset + 30 + nameLength + extraLength;
+    const dataEnd = dataStart + compressedSize;
+    if (!name || dataEnd > zipBuffer.length) {
+      throw new Error("invalid_zip_entry");
+    }
+    if (method !== 0 || compressedSize !== uncompressedSize) {
+      throw new Error("unsupported_zip_compression");
+    }
+    entries.push({ name, data: zipBuffer.slice(dataStart, dataEnd) });
+    offset = dataEnd;
+  }
+  return entries;
+}
+
+async function writeZipEntriesToDirectory({ zipBuffer, outputDir }) {
+  const entries = listStoredZipEntries(zipBuffer);
+  if (!entries.some((entry) => entry.name === "index.html")) {
+    throw new Error("missing_index_html");
+  }
+  for (const entry of entries) {
+    const target = path.resolve(path.join(outputDir, entry.name));
+    if (!target.startsWith(`${path.resolve(outputDir)}${path.sep}`) && target !== path.resolve(outputDir)) {
+      throw new Error("zip_path_escape");
+    }
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    await fs.writeFile(target, entry.data);
+  }
+  return entries.map((entry) => entry.name);
+}
+
+async function deploySeoSitePackage({ domain, packageUrl, checksum }) {
+  const cleanDomain = String(domain || "").toLowerCase().trim();
+  if (!isAllowedSeoHost(cleanDomain)) {
+    return { ok: false, error: "invalid_domain" };
+  }
+  if (!/^https:\/\//i.test(String(packageUrl || ""))) {
+    return { ok: false, error: "invalid_package_url" };
+  }
+
+  const response = await fetch(packageUrl);
+  if (!response.ok) {
+    return { ok: false, error: `package_download_${response.status}` };
+  }
+  const zipBuffer = Buffer.from(await response.arrayBuffer());
+  const actualChecksum = crypto.createHash("sha256").update(zipBuffer).digest("hex");
+  if (checksum && String(checksum).toLowerCase() !== actualChecksum) {
+    return { ok: false, error: "checksum_mismatch", checksum: actualChecksum };
+  }
+
+  const sitesRoot = path.resolve(SEO_SITES_ROOT);
+  const finalDir = path.resolve(path.join(sitesRoot, cleanDomain));
+  if (!finalDir.startsWith(`${sitesRoot}${path.sep}`)) {
+    return { ok: false, error: "invalid_output_dir" };
+  }
+
+  await fs.mkdir(sitesRoot, { recursive: true });
+  const tempDir = path.resolve(path.join(sitesRoot, `.${cleanDomain}.tmp-${Date.now()}`));
+  const backupDir = path.resolve(path.join(sitesRoot, `.${cleanDomain}.backup-${Date.now()}`));
+  await fs.rm(tempDir, { recursive: true, force: true });
+  await fs.mkdir(tempDir, { recursive: true });
+
+  let movedBackup = false;
+  try {
+    const files = await writeZipEntriesToDirectory({ zipBuffer, outputDir: tempDir });
+    try {
+      await fs.rename(finalDir, backupDir);
+      movedBackup = true;
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+    await fs.rename(tempDir, finalDir);
+    await fs.rm(backupDir, { recursive: true, force: true });
+    cache.clear();
+    const indexPath = path.join(finalDir, "index.html");
+    seoGatewayLog("[seo-package:deployed]", { domain: cleanDomain, outputDir: finalDir, indexPath, files: files.length, checksum: actualChecksum });
+    return {
+      ok: true,
+      domain: cleanDomain,
+      outputDir: finalDir,
+      indexPath,
+      checksum: actualChecksum,
+      files
+    };
+  } catch (error) {
+    await fs.rm(tempDir, { recursive: true, force: true });
+    if (movedBackup) {
+      await fs.rm(finalDir, { recursive: true, force: true }).catch(() => {});
+      await fs.rename(backupDir, finalDir).catch(() => {});
+    }
+    return { ok: false, error: String(error?.message || "package_deploy_failed").slice(0, 180) };
+  }
 }
 
 export function renderNotFound(parsed) {
@@ -1012,6 +1215,29 @@ export async function createSeoGatewayApp({ db, logger = console } = {}) {
     } catch (error) {
       seoGatewayLog("[seo-rebuild:error]", { message: String(error?.message || "rebuild_failed").slice(0, 200) });
       res.status(500).json({ ok: false, error: String(error?.message || "rebuild_failed").slice(0, 200) });
+    }
+  });
+
+  app.post("/internal/deploy-site-package", async (req, res) => {
+    const expectedToken = String(process.env.SEO_GATEWAY_INTERNAL_TOKEN || "");
+    const authorization = String(req.headers.authorization || "");
+    if (!expectedToken || authorization !== `Bearer ${expectedToken}`) {
+      res.status(401).json({ ok: false, error: "unauthorized" });
+      return;
+    }
+
+    const domain = String(req.body?.domain || "").toLowerCase().trim();
+    const packageUrl = String(req.body?.packageUrl || "").trim();
+    const checksum = String(req.body?.checksum || "").trim().toLowerCase();
+    const reason = String(req.body?.reason || "").trim() || "package_publish";
+    seoGatewayLog("[seo-package:request]", { domain, reason, checksumPresent: Boolean(checksum) });
+
+    try {
+      const result = await deploySeoSitePackage({ domain, packageUrl, checksum });
+      res.status(result.ok ? 200 : 400).json({ ...result, reason });
+    } catch (error) {
+      seoGatewayLog("[seo-package:error]", { message: String(error?.message || "package_deploy_failed").slice(0, 200) });
+      res.status(500).json({ ok: false, error: String(error?.message || "package_deploy_failed").slice(0, 200) });
     }
   });
 

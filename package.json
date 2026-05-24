@@ -13,7 +13,10 @@
     "sync:tools": "node scripts/sync-tools-to-functions.cjs",
     "seo:build": "node scripts/build-landing-pages.cjs",
     "seo:build-files": "node scripts/build-seo-site-files.cjs",
+    "seo:smoke": "node scripts/seo-smoke-test.cjs",
     "seo:gateway": "node server/seo-gateway.js",
+    "ops:api": "node server/ops-api.js",
+    "ops:watcher": "node server/ops-watcher.js",
     "setup-customer": "node scripts/setup-customer.js",
     "sync:def": "powershell -ExecutionPolicy Bypass -File scripts/sync-egenkontrol-definitions.ps1"
   },

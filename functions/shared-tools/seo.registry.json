@@ -12,7 +12,8 @@
     "publish": "adminActivateSeoSite",
     "saveConfig": "saveSeoGeneratorConfig",
     "checkSubdomain": "checkSubdomainAvailability",
-    "finalizeCheckout": "finalizeSeoCheckoutProvisioning"
+    "finalizeCheckout": "finalizeSeoCheckoutProvisioning",
+    "searchPlaces": "searchGooglePlacesForSeo"
   },
   "output": {
     "outputDir": "public/sites/{domain}",

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Madkontrollen Ops Center</title>
+  <link rel="stylesheet" href="/admin/ops.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Madkontrollen Ops Center</h1>
+      <p>VPS drift, SEO-sites og PM2 processer</p>
+    </div>
+    <div class="auth-box">
+      <input id="tokenInput" type="password" autocomplete="off" placeholder="Intern token">
+      <button id="saveTokenBtn" type="button">Gem token</button>
+      <button id="refreshBtn" type="button">Opdater</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Health</h2>
+        <button id="checkNowBtn" type="button">Kør check nu</button>
+      </div>
+      <div id="healthView" class="compact-grid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Seneste ændringer</h2>
+        <div class="inline-controls">
+          <button id="summarizeEventsBtn" class="secondary" type="button">AI vurdering</button>
+          <button id="clearEventsBtn" class="danger" type="button">Ryd gamle events</button>
+          <button id="refreshEventsBtn" type="button">Opdater events</button>
+        </div>
+      </div>
+      <div id="eventsView" class="events-list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>PM2 Apps</h2>
+        <button id="restartGatewayBtn" type="button">Restart gateway</button>
+      </div>
+      <div id="pm2Grid" class="card-grid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>SEO Sites</h2>
+      </div>
+      <div id="sitesGrid" class="card-grid"></div>
+    </section>
+
+    <section class="panel logs-panel">
+      <div class="panel-head">
+        <h2>Logs</h2>
+        <div class="inline-controls">
+          <select id="logAppSelect">
+            <option value="madkontrollen-seo-gateway">madkontrollen-seo-gateway</option>
+            <option value="madkontrollen-ops-api">madkontrollen-ops-api</option>
+          </select>
+          <button id="loadLogsBtn" type="button">View logs</button>
+        </div>
+      </div>
+      <pre id="logsView">Ingen logs hentet endnu.</pre>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="/admin/ops.js" type="module"></script>
+</body>
+</html>
