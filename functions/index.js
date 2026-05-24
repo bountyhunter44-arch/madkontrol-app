@@ -39,7 +39,9 @@ db.settings({ ignoreUndefinedProperties: true });
 const { FieldValue } = admin.firestore;
 const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
 const PEXELS_API_KEY = defineSecret("PEXELS_API_KEY");
+const GOOGLE_PLACES_API_KEY = defineSecret("GOOGLE_PLACES_API_KEY");
 const FUNCTIONS_CONFIG = defineJsonSecret("FUNCTIONS_CONFIG_EXPORT");
+const SEO_HARD_MAX_PAGES = 100;
 
 function getStripeConfig() {
   const config = FUNCTIONS_CONFIG.value();
@@ -335,7 +337,11 @@ function parsePageCount(value, fallback = 50) {
   if (!Number.isFinite(parsed)) return fallback;
   const rounded = Math.floor(parsed);
   if (rounded < 1) return 1;
-  if (rounded > 300) return 300;
+  if (rounded > SEO_HARD_MAX_PAGES) {
+    console.log(`[seo pagecount selected] selected=${rounded} effective=${SEO_HARD_MAX_PAGES} reason=hard_max`);
+    return SEO_HARD_MAX_PAGES;
+  }
+  console.log(`[seo pagecount selected] selected=${rounded} effective=${rounded}`);
   return rounded;
 }
 
@@ -345,6 +351,42 @@ function normalizeSeoCtaUrl(value) {
   if (/^(https?:|tel:|mailto:|\/|#)/i.test(raw)) return raw;
   if (/^[+\d\s().-]+$/.test(raw)) return `tel:${raw.replace(/\s+/g, "")}`;
   return `https://${raw.replace(/^\/+/, "")}`;
+}
+
+function normalizeSeoCtaLabelKey(value) {
+  return sanitizeString(value || "", 160).trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function normalizeSeoCtaHrefKey(value) {
+  const href = normalizeSeoCtaUrl(value || "").trim();
+  if (/^tel:/i.test(href)) return `tel:${href.replace(/^tel:/i, "").replace(/[^\d+]/g, "")}`;
+  return href.replace(/\/+$/, "").toLowerCase();
+}
+
+function dedupeSeoCtaButtons(buttons = [], maxCount = 3) {
+  const before = Array.isArray(buttons) ? buttons.length : 0;
+  const labels = new Set();
+  const hrefs = new Set();
+  const deduped = [];
+  (Array.isArray(buttons) ? buttons : []).forEach((button) => {
+    const text = sanitizeString(button?.text || button?.label || "", 120);
+    const href = normalizeSeoCtaUrl(button?.href || button?.url || "");
+    const labelKey = normalizeSeoCtaLabelKey(text);
+    const hrefKey = normalizeSeoCtaHrefKey(href);
+    if (!labelKey || !hrefKey || labels.has(labelKey) || hrefs.has(hrefKey)) return;
+    labels.add(labelKey);
+    hrefs.add(hrefKey);
+    deduped.push({
+      text,
+      label: text,
+      href,
+      url: href,
+      kind: sanitizeString(button?.kind || "", 40)
+    });
+  });
+  const result = deduped.slice(0, maxCount);
+  console.log("[seo cta deduped]", { before, after: result.length });
+  return result;
 }
 
 function normalizeSeoCta(config = {}) {
@@ -373,6 +415,145 @@ function normalizeSeoCta(config = {}) {
   };
 }
 
+function normalizeSeoCtaButtons(value = []) {
+  if (!Array.isArray(value)) return [];
+  const buttons = value.slice(0, 8).map((button) => {
+    const text = sanitizeString(button?.text || button?.label || "", 120);
+    const url = normalizeSeoCtaUrl(button?.href || button?.url || "");
+    const kind = sanitizeString(button?.kind || "", 40);
+    return {
+      text,
+      label: text,
+      href: url,
+      url,
+      kind
+    };
+  });
+  return dedupeSeoCtaButtons(buttons, 3);
+}
+
+function normalizeSeoGooglePlace(value = {}) {
+  const placeId = sanitizeString(value?.placeId || value?.id || "", 180);
+  return {
+    placeId,
+    name: sanitizeString(value?.name || "", 180),
+    formattedAddress: sanitizeString(value?.formattedAddress || value?.address || "", 260),
+    city: sanitizeString(value?.city || "", 120),
+    phone: sanitizeString(value?.phone || value?.formattedPhoneNumber || value?.internationalPhoneNumber || "", 80),
+    website: normalizeSeoCtaUrl(value?.website || value?.websiteUrl || ""),
+    googleMapsUrl: normalizeSeoCtaUrl(value?.googleMapsUrl || value?.url || (placeId ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}` : "")),
+    types: Array.isArray(value?.types) ? value.types.map((type) => sanitizeString(type, 80)).filter(Boolean).slice(0, 20) : [],
+    businessStatus: sanitizeString(value?.businessStatus || "", 80),
+    rating: Number.isFinite(Number(value?.rating)) ? Number(value.rating) : null,
+    userRatingsTotal: Number.isFinite(Number(value?.userRatingsTotal)) ? Number(value.userRatingsTotal) : 0,
+    photos: Array.isArray(value?.photos) ? value.photos.map((photo) => ({
+      name: normalizeGooglePhotoName(photo?.name || photo?.googlePhotoName || ""),
+      width: Number(photo?.width || photo?.widthPx) || 0,
+      height: Number(photo?.height || photo?.heightPx) || 0
+    })).filter((photo) => photo.name).slice(0, 12) : [],
+    location: value?.location && typeof value.location === "object" ? {
+      latitude: Number(value.location.latitude) || null,
+      longitude: Number(value.location.longitude) || null
+    } : null,
+    openingHours: Array.isArray(value?.openingHours) ? value.openingHours.map((line) => sanitizeString(line, 160)).filter(Boolean).slice(0, 14) : []
+  };
+}
+
+function estimateSeoJsonSizeBytes(value) {
+  try {
+    return Buffer.byteLength(JSON.stringify(value || {}), "utf8");
+  } catch (_error) {
+    return 0;
+  }
+}
+
+function sanitizeSeoFirestoreString(value, maxLen = 500) {
+  const raw = sanitizeString(value || "", maxLen);
+  if (/^data:/i.test(raw)) return "";
+  return raw;
+}
+
+function sanitizeGooglePlaceForFirestore(value = {}) {
+  const place = value && typeof value === "object" ? value : {};
+  const photos = Array.isArray(place.photos)
+    ? place.photos.slice(0, 3).map((photo) => ({
+      width: Number(photo?.width || photo?.widthPx || 0) || 0,
+      height: Number(photo?.height || photo?.heightPx || 0) || 0,
+      source: "google_place"
+    }))
+    : [];
+  return {
+    placeId: sanitizeSeoFirestoreString(place.placeId || place.id || "", 180),
+    name: sanitizeSeoFirestoreString(place.name || "", 180),
+    formattedAddress: sanitizeSeoFirestoreString(place.formattedAddress || place.address || "", 260),
+    city: sanitizeSeoFirestoreString(place.city || "", 120),
+    phone: sanitizeSeoFirestoreString(place.phone || place.formattedPhoneNumber || place.internationalPhoneNumber || "", 80),
+    website: normalizeSeoCtaUrl(place.website || place.websiteUrl || ""),
+    googleMapsUrl: normalizeSeoCtaUrl(place.googleMapsUrl || place.url || ""),
+    rating: Number.isFinite(Number(place.rating)) ? Number(place.rating) : null,
+    userRatingsTotal: Number.isFinite(Number(place.userRatingsTotal)) ? Number(place.userRatingsTotal) : 0,
+    types: Array.isArray(place.types) ? place.types.map((type) => sanitizeString(type, 80)).filter(Boolean).slice(0, 10) : [],
+    businessStatus: sanitizeSeoFirestoreString(place.businessStatus || "", 80),
+    photos
+  };
+}
+
+function sanitizeSeoConfigForFirestore(config = {}) {
+  const source = config && typeof config === "object" ? config : {};
+  const blockedKeys = new Set([
+    "raw",
+    "_raw",
+    "imageCandidates",
+    "businessImageSearchResults",
+    "selectedImages",
+    "selectedBusinessImage",
+    "placeRaw",
+    "placesRaw",
+    "placesResponse",
+    "googlePlacesRaw",
+    "googlePlaceRaw",
+    "photoReference",
+    "googlePhotoName"
+  ]);
+  const cleanValue = (value, key = "", depth = 0) => {
+    if (blockedKeys.has(key)) return undefined;
+    if (value === null || value === undefined) return value;
+    if (typeof value === "string") {
+      if (/^data:/i.test(value)) return "";
+      return value.length > 5000 ? value.slice(0, 5000) : value;
+    }
+    if (typeof value === "number" || typeof value === "boolean") return value;
+    if (Array.isArray(value)) {
+      const limit = key === "landingPages" ? SEO_HARD_MAX_PAGES : 10;
+      return value.slice(0, limit)
+        .map((item) => cleanValue(item, "", depth + 1))
+        .filter((item) => item !== undefined);
+    }
+    if (typeof value === "object") {
+      if (depth > 5) return undefined;
+      const out = {};
+      Object.entries(value).forEach(([childKey, childValue]) => {
+        const next = cleanValue(childValue, childKey, depth + 1);
+        if (next !== undefined) out[childKey] = next;
+      });
+      return out;
+    }
+    return undefined;
+  };
+  const sanitized = cleanValue(source) || {};
+  sanitized.googlePlace = sanitizeGooglePlaceForFirestore(source.googlePlace || {
+    placeId: source.googlePlaceId,
+    googleMapsUrl: source.googleMapsUrl
+  });
+  sanitized.googlePlaceId = sanitized.googlePlace.placeId || "";
+  sanitized.googleMapsUrl = sanitized.googlePlace.googleMapsUrl || "";
+  if (/^data:/i.test(String(sanitized.logoDataUrl || ""))) sanitized.logoDataUrl = "";
+  if (/^data:/i.test(String(sanitized.heroImageUrl || ""))) sanitized.heroImageUrl = "";
+  if (Array.isArray(sanitized.landingPages)) sanitized.landingPages = sanitized.landingPages.slice(0, SEO_HARD_MAX_PAGES);
+  if (Array.isArray(sanitized.ctaButtons)) sanitized.ctaButtons = sanitized.ctaButtons.slice(0, 10);
+  return sanitized;
+}
+
 function normalizeSeoTheme(value = {}) {
   return {
     primary: sanitizeString(value?.primary || "", 20) || "#1f7a3d",
@@ -382,7 +563,7 @@ function normalizeSeoTheme(value = {}) {
   };
 }
 
-function sanitizeSeoLandingPages(value, limit = 200) {
+function sanitizeSeoLandingPages(value, limit = SEO_HARD_MAX_PAGES) {
   return Array.isArray(value) ? value.slice(0, limit).map(p => ({
     pageType: sanitizeString(p?.pageType || "", 80),
     slug: sanitizeString(p?.slug || "", 180),
@@ -407,6 +588,26 @@ function sanitizeSeoLandingPages(value, limit = 200) {
   })) : [];
 }
 
+function sanitizeSeoLandingPageMetadata(value, limit = SEO_HARD_MAX_PAGES) {
+  return Array.isArray(value) ? value.slice(0, limit).map((p) => ({
+    pageType: sanitizeString(p?.pageType || "", 80),
+    slug: sanitizeString(p?.slug || "", 180),
+    routePath: sanitizeString(p?.routePath || "", 220),
+    canonicalPath: sanitizeString(p?.canonicalPath || "", 220),
+    outputPath: sanitizeString(p?.outputPath || "", 260),
+    citySlug: sanitizeString(p?.citySlug || "", 100),
+    businessSlug: sanitizeString(p?.businessSlug || "", 120),
+    cityName: sanitizeString(p?.cityName || "", 120),
+    displayCityName: sanitizeString(p?.displayCityName || "", 120),
+    businessName: sanitizeString(p?.businessName || "", 160),
+    displayBusinessName: sanitizeString(p?.displayBusinessName || "", 160),
+    keyword: sanitizeString(p?.keyword || "", 140),
+    title: sanitizeString(p?.title || "", 220),
+    h1: sanitizeString(p?.h1 || "", 220),
+    metaDescription: sanitizeString(p?.metaDescription || "", 320)
+  })) : [];
+}
+
 function normalizeSeoGeneratorConfig(config = {}) {
   const businessName = sanitizeString(config?.businessName || config?.displayBusinessName || config?.heroTitle || "Restaurant", 140) || "Restaurant";
   const subdomain = toAsciiSlug(config?.subdomain || businessName, 120) || "restaurant";
@@ -419,6 +620,10 @@ function normalizeSeoGeneratorConfig(config = {}) {
     secondary: config?.themeSecondary,
     accent: config?.themeAccent,
     text: config?.themeText
+  });
+  const googlePlace = normalizeSeoGooglePlace(config?.googlePlace || {
+    placeId: config?.googlePlaceId,
+    googleMapsUrl: config?.googleMapsUrl
   });
   const canonical = {
     businessName,
@@ -443,6 +648,10 @@ function normalizeSeoGeneratorConfig(config = {}) {
     seoNarrative: sanitizeString(config?.seoNarrative || config?.heroText || description, 2000),
     heroImageUrl: sanitizeString(config?.heroImageUrl || "", 2000),
     websiteUrl: normalizeSeoCtaUrl(config?.websiteUrl || ""),
+    googlePlace,
+    googlePlaceId: googlePlace.placeId || "",
+    googleMapsUrl: googlePlace.googleMapsUrl || "",
+    ctaButtons: normalizeSeoCtaButtons(config?.ctaButtons),
     theme,
     landingPages: sanitizeSeoLandingPages(config?.landingPages),
     cta: normalizeSeoCta({ ...config, businessName, subdomain, phone })
@@ -519,11 +728,17 @@ function buildSeoPublishedPages(config, count) {
     content: rootDescription
   });
 
-  const cityPages = new Map();
-  const addCityPage = (source = {}) => {
+  const landingPages = [];
+  const slugCounts = new Map();
+  const addLandingPage = (source = {}) => {
     const displayCityName = sanitizeString(source.displayCityName || source.cityName || source.city || city, 80) || city;
+    const sourceSlug = toAsciiSlug(source.slug || source.keyword || source.sourceTitle || source.title || displayCityName, 120);
     const citySlug = toAsciiSlug(source.citySlug || displayCityName, 80) || route.citySlug;
-    if (!citySlug || cityPages.has(citySlug)) return;
+    const baseSlug = sourceSlug || citySlug;
+    if (!baseSlug || baseSlug === "root") return;
+    const nextCount = (slugCounts.get(baseSlug) || 0) + 1;
+    slugCounts.set(baseSlug, nextCount);
+    const slug = nextCount > 1 ? `${baseSlug}-${nextCount}` : baseSlug;
 
     const pageKeyword = sanitizeString(source.keyword || keyword || `${String(cuisineType).toLowerCase()} i ${displayCityName}`, 140);
     const pageDescription = sanitizeString(
@@ -532,11 +747,11 @@ function buildSeoPublishedPages(config, count) {
       800
     );
 
-    cityPages.set(citySlug, {
+    landingPages.push({
       sourceTitle: sanitizeString(source.sourceTitle || `${businessName} i ${displayCityName}`, 220),
-      slug: citySlug,
-      routePath: `/${citySlug}/`,
-      canonicalPath: `/${citySlug}/`,
+      slug,
+      routePath: `/${slug}/`,
+      canonicalPath: `/${slug}/`,
       pageType: "city_landing",
       citySlug,
       businessSlug: route.businessSlug,
@@ -544,7 +759,7 @@ function buildSeoPublishedPages(config, count) {
       displayCityName,
       businessName,
       displayBusinessName: businessName,
-      outputPath: `${citySlug}/${route.businessSlug}/index.html`,
+      outputPath: `${slug}/index.html`,
       keyword: pageKeyword,
       title: sanitizeString(source.title || `${businessName} i ${displayCityName}`, 220),
       metaDescription: sanitizeString(source.metaDescription || pageDescription, 320),
@@ -556,14 +771,18 @@ function buildSeoPublishedPages(config, count) {
     });
   };
 
-  addCityPage({ citySlug: route.citySlug, displayCityName: city });
-  if (Array.isArray(config?.landingPages)) {
-    config.landingPages.slice(0, count).forEach((page) => {
-      if (page?.citySlug || page?.displayCityName || page?.cityName || page?.city) addCityPage(page);
+  const configuredLandingPages = Array.isArray(config?.landingPages) ? config.landingPages : [];
+  if (configuredLandingPages.length) {
+    configuredLandingPages.slice(0, count).forEach((page) => {
+      addLandingPage(page);
     });
+  } else {
+    addLandingPage({ slug: route.citySlug, citySlug: route.citySlug, displayCityName: city });
   }
 
-  return pages.concat([...cityPages.values()]);
+  const result = pages.concat(landingPages.slice(0, Math.max(0, count)));
+  console.log(`[seo published pages count] selected=${count} root=1 landing=${result.length - 1} total=${result.length}`);
+  return result;
 }
 
 function firstSeoValue(...values) {
@@ -723,8 +942,20 @@ function getSeoGatewayInvalidateConfig() {
   } catch (_error) {
     functionsConfig = {};
   }
+  if (!functionsConfig || !Object.keys(functionsConfig).length) {
+    try {
+      functionsConfig = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}") || {};
+    } catch (_error) {
+      functionsConfig = {};
+    }
+  }
 
-  const seoGatewayConfig = functionsConfig?.seo_gateway || functionsConfig?.seoGateway || {};
+  const runtimeGatewayConfig = getSeoGatewayRuntimeConfig();
+  const seoGatewayConfig = {
+    ...(functionsConfig?.seo_gateway || {}),
+    ...(functionsConfig?.seoGateway || {}),
+    ...runtimeGatewayConfig
+  };
   const configuredInvalidateUrl = String(
     process.env.SEO_GATEWAY_INVALIDATE_URL ||
     seoGatewayConfig.invalidate_url ||
@@ -752,11 +983,14 @@ function getSeoGatewayInvalidateConfig() {
   ).trim();
 
   if (!baseUrl || !token) {
+    const reason = !baseUrl && !token
+      ? "missing_internal_token"
+      : (!baseUrl ? "invalid_gateway_config" : "missing_internal_token");
     return {
       ok: false,
       result: {
         attempted: false,
-        reason: "missing_config"
+        reason
       }
     };
   }
@@ -786,11 +1020,35 @@ function getSeoGatewayInvalidateConfig() {
 }
 
 function getSeoGatewayRuntimeConfig() {
+  const HARD_FALLBACK_DEPLOY_URL = "https://seo-gateway.madkontrollen.dk/internal/deploy-site-package";
+  const HARD_FALLBACK_INTERNAL_TOKEN = "PaiE7VdZH01RFdjAf1ykYIJkwWY34icQ0";
+  const rewriteToPackageDeployUrl = (value) => {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    if (/\/internal\/rebuild-site\/?$/i.test(raw)) {
+      return raw.replace(/\/internal\/rebuild-site\/?$/i, "/internal/deploy-site-package");
+    }
+    return raw;
+  };
+  const readPath = (source, keys = []) => keys.reduce((current, key) => (
+    current && typeof current === "object" ? current[key] : undefined
+  ), source);
+  const firstString = (...values) => values
+    .map((value) => String(value || "").trim())
+    .find(Boolean) || "";
+
   let jsonSecretConfig = {};
   try {
     jsonSecretConfig = FUNCTIONS_CONFIG.value() || {};
   } catch (_error) {
     jsonSecretConfig = {};
+  }
+  if (!jsonSecretConfig || !Object.keys(jsonSecretConfig).length) {
+    try {
+      jsonSecretConfig = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}") || {};
+    } catch (_error) {
+      jsonSecretConfig = {};
+    }
   }
 
   let runtimeConfig = {};
@@ -800,21 +1058,89 @@ function getSeoGatewayRuntimeConfig() {
     runtimeConfig = {};
   }
 
+  const deployUrl = rewriteToPackageDeployUrl(firstString(
+    process.env.SEO_GATEWAY_DEPLOY_URL,
+    process.env.SEO_GATEWAY_REBUILD_URL,
+    readPath(jsonSecretConfig, ["seo_gateway", "deploy_url"]),
+    readPath(jsonSecretConfig, ["seo_gateway", "rebuild_url"]),
+    jsonSecretConfig?.["seo_gateway.deploy_url"],
+    jsonSecretConfig?.["seo_gateway.rebuild_url"],
+    readPath(runtimeConfig, ["seo_gateway", "deploy_url"]),
+    readPath(runtimeConfig, ["seo_gateway", "rebuild_url"]),
+    readPath(jsonSecretConfig, ["seoGateway", "deployUrl"]),
+    readPath(jsonSecretConfig, ["seoGateway", "rebuildUrl"]),
+    readPath(runtimeConfig, ["seoGateway", "deployUrl"]),
+    readPath(runtimeConfig, ["seoGateway", "rebuildUrl"]),
+    HARD_FALLBACK_DEPLOY_URL
+  ));
+  const internalToken = firstString(
+    process.env.SEO_GATEWAY_INTERNAL_TOKEN,
+    readPath(jsonSecretConfig, ["seo_gateway", "internal_token"]),
+    jsonSecretConfig?.["seo_gateway.internal_token"],
+    readPath(runtimeConfig, ["seo_gateway", "internal_token"]),
+    readPath(jsonSecretConfig, ["seoGateway", "internalToken"]),
+    readPath(runtimeConfig, ["seoGateway", "internalToken"]),
+    HARD_FALLBACK_INTERNAL_TOKEN
+  );
+  const baseUrl = deployUrl.replace(/\/internal\/deploy-site-package\/?$/i, "").replace(/\/+$/, "");
+
+  console.log(`[seo gateway final deployUrl] ${deployUrl}`);
+  console.log(`[seo gateway final token present] ${Boolean(internalToken)}`);
+
   return {
-    ...(runtimeConfig?.seo_gateway || {}),
-    ...(runtimeConfig?.seoGateway || {}),
-    ...(jsonSecretConfig?.seo_gateway || {}),
-    ...(jsonSecretConfig?.seoGateway || {})
+    base_url: baseUrl,
+    baseUrl,
+    rebuild_url: deployUrl,
+    rebuildUrl: deployUrl,
+    package_deploy_url: deployUrl,
+    packageDeployUrl: deployUrl,
+    deploy_site_package_url: deployUrl,
+    deploySitePackageUrl: deployUrl,
+    deploy_url: deployUrl,
+    deployUrl,
+    internal_token: internalToken,
+    internalToken
   };
 }
 
+function extractSeoGatewayRuntimeConfig(source) {
+  const config = {
+    ...(source?.seo_gateway || {}),
+    ...(source?.seoGateway || {})
+  };
+  const flatKeys = {
+    "seo_gateway.base_url": "base_url",
+    "seo_gateway.baseUrl": "baseUrl",
+    "seo_gateway.rebuild_url": "rebuild_url",
+    "seo_gateway.rebuildUrl": "rebuildUrl",
+    "seo_gateway.internal_token": "internal_token",
+    "seo_gateway.internalToken": "internalToken",
+    "seo_gateway.invalidate_url": "invalidate_url",
+    "seo_gateway.invalidateUrl": "invalidateUrl",
+    "seo_gateway.package_deploy_url": "package_deploy_url",
+    "seo_gateway.packageDeployUrl": "packageDeployUrl",
+    "seo_gateway.deploy_site_package_url": "deploy_site_package_url",
+    "seo_gateway.deploySitePackageUrl": "deploySitePackageUrl",
+    "seo_gateway.deploy_url": "deploy_url",
+    "seo_gateway.deployUrl": "deployUrl"
+  };
+  Object.entries(flatKeys).forEach(([sourceKey, targetKey]) => {
+    if (source && Object.prototype.hasOwnProperty.call(source, sourceKey) && !config[targetKey]) {
+      config[targetKey] = source[sourceKey];
+    }
+  });
+  return config;
+}
+
 function getSeoGatewayRebuildConfig() {
+  const HARD_FALLBACK_DEPLOY_URL = "https://seo-gateway.madkontrollen.dk/internal/deploy-site-package";
+  const HARD_FALLBACK_INTERNAL_TOKEN = "PaiE7VdZH01RFdjAf1ykYIJkwWY34icQ0";
   const seoGatewayConfig = getSeoGatewayRuntimeConfig();
   const rebuildUrl = String(
     process.env.SEO_GATEWAY_REBUILD_URL ||
     seoGatewayConfig.rebuild_url ||
     seoGatewayConfig.rebuildUrl ||
-    ""
+    HARD_FALLBACK_DEPLOY_URL
   ).trim();
   const baseUrl = String(
     process.env.SEO_GATEWAY_BASE_URL ||
@@ -826,21 +1152,28 @@ function getSeoGatewayRebuildConfig() {
     process.env.SEO_GATEWAY_INTERNAL_TOKEN ||
     seoGatewayConfig.internal_token ||
     seoGatewayConfig.internalToken ||
-    ""
+    HARD_FALLBACK_INTERNAL_TOKEN
   ).trim();
-  const url = rebuildUrl || (baseUrl ? `${baseUrl}/internal/rebuild-site` : "");
+  const url = rebuildUrl || (baseUrl ? `${baseUrl}/internal/rebuild-site` : HARD_FALLBACK_DEPLOY_URL);
 
-  if (!url || !token) {
-    return { ok: false, reason: "missing_config" };
+  console.log(`[seo gateway config] rebuild=${Boolean(url)} token=${Boolean(token)}`);
+  console.log(`[seo gateway rebuild url] ${Boolean(url)}`);
+  console.log(`[seo gateway internal token present] ${Boolean(token)}`);
+
+  if (!url) {
+    return { ok: false, reason: "invalid_gateway_config" };
+  }
+  if (!token) {
+    return { ok: false, reason: "missing_internal_token" };
   }
 
   try {
     const parsed = new URL(url);
     if (!["http:", "https:"].includes(parsed.protocol)) {
-      return { ok: false, reason: "missing_config" };
+      return { ok: false, reason: "invalid_gateway_config" };
     }
   } catch (_error) {
-    return { ok: false, reason: "missing_config" };
+    return { ok: false, reason: "invalid_gateway_config" };
   }
 
   return { ok: true, url, token };
@@ -854,13 +1187,13 @@ async function triggerSeoGatewayRebuild({ domain, companyId, locationId, website
   if (!config.ok) {
     console.log("[seo function gateway rebuild failed]");
     console.log("SEO gateway rebuild failed");
-    console.log("SEO STEP: vps rebuild skipped missing_config");
+    console.log(`SEO STEP: vps rebuild skipped ${config.reason}`);
     return {
       attempted: false,
       ok: false,
       rebuildOk: false,
-      reason: "missing_config",
-      rebuildError: "missing_config"
+      reason: config.reason,
+      rebuildError: config.reason
     };
   }
 
@@ -937,6 +1270,507 @@ async function triggerSeoGatewayRebuild({ domain, companyId, locationId, website
   }
 }
 
+function getSeoGatewayPackageDeployConfig() {
+  const HARD_FALLBACK_DEPLOY_URL = "https://seo-gateway.madkontrollen.dk/internal/deploy-site-package";
+  const HARD_FALLBACK_INTERNAL_TOKEN = "PaiE7VdZH01RFdjAf1ykYIJkwWY34icQ0";
+  const seoGatewayConfig = getSeoGatewayRuntimeConfig();
+  const deployUrl = String(
+    process.env.SEO_GATEWAY_DEPLOY_URL ||
+    process.env.SEO_GATEWAY_REBUILD_URL ||
+    process.env.SEO_GATEWAY_PACKAGE_DEPLOY_URL ||
+    seoGatewayConfig.deploy_url ||
+    seoGatewayConfig.deployUrl ||
+    seoGatewayConfig.rebuild_url ||
+    seoGatewayConfig.rebuildUrl ||
+    seoGatewayConfig.package_deploy_url ||
+    seoGatewayConfig.packageDeployUrl ||
+    seoGatewayConfig.deploy_site_package_url ||
+    seoGatewayConfig.deploySitePackageUrl ||
+    HARD_FALLBACK_DEPLOY_URL
+  ).trim();
+  const baseUrl = String(
+    process.env.SEO_GATEWAY_BASE_URL ||
+    seoGatewayConfig.base_url ||
+    seoGatewayConfig.baseUrl ||
+    ""
+  ).trim().replace(/\/+$/, "");
+  const token = String(
+    process.env.SEO_GATEWAY_INTERNAL_TOKEN ||
+    seoGatewayConfig.internal_token ||
+    seoGatewayConfig.internalToken ||
+    HARD_FALLBACK_INTERNAL_TOKEN
+  ).trim();
+  const rebuildConfig = getSeoGatewayRebuildConfig();
+  const url = (deployUrl ||
+    (baseUrl ? `${baseUrl}/internal/deploy-site-package` : "") ||
+    (rebuildConfig.ok ? rebuildConfig.url.replace(/\/internal\/rebuild-site\/?$/i, "/internal/deploy-site-package") : "") ||
+    HARD_FALLBACK_DEPLOY_URL).replace(/\/internal\/rebuild-site\/?$/i, "/internal/deploy-site-package");
+  const resolvedToken = token || rebuildConfig.token || HARD_FALLBACK_INTERNAL_TOKEN;
+
+  console.log(`[seo gateway config] packageDeploy=${Boolean(url)} rebuildFallback=${Boolean(rebuildConfig.ok)} token=${Boolean(resolvedToken)}`);
+  console.log(`[seo gateway rebuild url] ${Boolean(rebuildConfig.ok)}`);
+  console.log(`[seo gateway internal token present] ${Boolean(resolvedToken)}`);
+
+  if (!url) return { ok: false, reason: "invalid_gateway_config" };
+  if (!resolvedToken) return { ok: false, reason: "missing_internal_token" };
+  try {
+    const parsed = new URL(url);
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return { ok: false, reason: "invalid_gateway_config" };
+    }
+  } catch (_error) {
+    return { ok: false, reason: "invalid_gateway_config" };
+  }
+  return { ok: true, url, token: resolvedToken };
+}
+
+function crc32Buffer(buffer) {
+  const table = crc32Buffer.table || (crc32Buffer.table = Array.from({ length: 256 }, (_, n) => {
+    let c = n;
+    for (let k = 0; k < 8; k += 1) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    return c >>> 0;
+  }));
+  let crc = 0xffffffff;
+  for (const byte of buffer) crc = table[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function createStoredZip(files) {
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+  const now = new Date();
+  const dosTime = ((now.getHours() & 31) << 11) | ((now.getMinutes() & 63) << 5) | (Math.floor(now.getSeconds() / 2) & 31);
+  const dosDate = (((now.getFullYear() - 1980) & 127) << 9) | (((now.getMonth() + 1) & 15) << 5) | (now.getDate() & 31);
+
+  Object.entries(files).forEach(([name, value]) => {
+    const safeName = String(name || "").replace(/^\/+/, "");
+    if (!safeName || safeName.includes("..") || pathIsAbsoluteLike(safeName)) {
+      throw new Error("invalid_zip_path");
+    }
+    const nameBuffer = Buffer.from(safeName, "utf8");
+    const dataBuffer = Buffer.isBuffer(value) ? value : Buffer.from(String(value ?? ""), "utf8");
+    const crc = crc32Buffer(dataBuffer);
+
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt16LE(0x0800, 6);
+    local.writeUInt16LE(0, 8);
+    local.writeUInt16LE(dosTime, 10);
+    local.writeUInt16LE(dosDate, 12);
+    local.writeUInt32LE(crc, 14);
+    local.writeUInt32LE(dataBuffer.length, 18);
+    local.writeUInt32LE(dataBuffer.length, 22);
+    local.writeUInt16LE(nameBuffer.length, 26);
+    local.writeUInt16LE(0, 28);
+    localParts.push(local, nameBuffer, dataBuffer);
+
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(20, 4);
+    central.writeUInt16LE(20, 6);
+    central.writeUInt16LE(0x0800, 8);
+    central.writeUInt16LE(0, 10);
+    central.writeUInt16LE(dosTime, 12);
+    central.writeUInt16LE(dosDate, 14);
+    central.writeUInt32LE(crc, 16);
+    central.writeUInt32LE(dataBuffer.length, 20);
+    central.writeUInt32LE(dataBuffer.length, 24);
+    central.writeUInt16LE(nameBuffer.length, 28);
+    central.writeUInt16LE(0, 30);
+    central.writeUInt16LE(0, 32);
+    central.writeUInt16LE(0, 34);
+    central.writeUInt16LE(0, 36);
+    central.writeUInt32LE(0, 38);
+    central.writeUInt32LE(offset, 42);
+    centralParts.push(central, nameBuffer);
+    offset += local.length + nameBuffer.length + dataBuffer.length;
+  });
+
+  const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(0, 4);
+  eocd.writeUInt16LE(0, 6);
+  eocd.writeUInt16LE(Object.keys(files).length, 8);
+  eocd.writeUInt16LE(Object.keys(files).length, 10);
+  eocd.writeUInt32LE(centralSize, 12);
+  eocd.writeUInt32LE(offset, 16);
+  eocd.writeUInt16LE(0, 20);
+  return Buffer.concat([...localParts, ...centralParts, eocd]);
+}
+
+function pathIsAbsoluteLike(value) {
+  return /^[a-zA-Z]:/.test(value) || value.startsWith("/") || value.startsWith("\\");
+}
+
+function escapePackageHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function escapePackageXml(value) {
+  return escapePackageHtml(value).replace(/'/g, "&apos;");
+}
+
+function buildSeoPackageActionButtonList(config, domain) {
+  const phoneHref = config.phone ? normalizeSeoCtaUrl(`tel:${String(config.phone).replace(/[^\d+]/g, "")}`) : "";
+  const websiteHref = normalizeSeoCtaUrl(config.websiteUrl || "");
+  const primaryHref = normalizeSeoCtaUrl(config.cta?.url || "") || websiteHref;
+  const primaryText = sanitizeString(config.cta?.text || "Bestil nu", 120);
+  const primaryIsPhone = normalizeSeoCtaLabelKey(primaryText) === "ring nu" || /^tel:/i.test(primaryHref);
+  const primaryIsWebsite = websiteHref && normalizeSeoCtaHrefKey(primaryHref) === normalizeSeoCtaHrefKey(websiteHref);
+  const buttons = [];
+
+  if (config.cta?.enabled !== false && primaryHref) {
+    buttons.push({ text: primaryText, label: primaryText, href: primaryHref, url: primaryHref, kind: "primary" });
+  }
+  if (websiteHref && !primaryIsWebsite) {
+    buttons.push({ text: "Gå til hjemmeside", label: "Gå til hjemmeside", href: websiteHref, url: websiteHref, kind: "website" });
+  }
+  if (phoneHref && !primaryIsPhone && (!websiteHref || primaryIsWebsite)) {
+    buttons.push({ text: "Ring nu", label: "Ring nu", href: phoneHref, url: phoneHref, kind: "phone" });
+  }
+  buttons.push({ text: "Se menu", label: "Se menu", href: `https://${domain}/#menu`, url: `https://${domain}/#menu`, kind: "menu" });
+  return dedupeSeoCtaButtons([...buttons, ...(Array.isArray(config.ctaButtons) ? config.ctaButtons : [])], 3);
+}
+
+function buildSeoPackageActionButtons(config, domain) {
+  return buildSeoPackageActionButtonList(config, domain)
+    .map((button, index) => `<a class="action action-${index === 0 ? "primary" : "secondary"}" href="${escapePackageHtml(button.href)}">${escapePackageHtml(button.text || button.label)}</a>`)
+    .join("");
+}
+
+function renderSeoPackageIndex({ domain, canonicalConfig, pages }) {
+  const cfg = normalizeSeoGeneratorConfig(canonicalConfig);
+  const cssPath = "./assets/site.css";
+  const title = escapePackageHtml(cfg.heroTitle || cfg.businessName);
+  const description = escapePackageHtml(cfg.heroText || cfg.description || "");
+  const theme = cfg.theme || {};
+  const primary = escapePackageHtml(theme.primary || "#1f7a3d");
+  const accent = escapePackageHtml(theme.accent || "#b91c1c");
+  const heroImage = escapePackageHtml(cfg.heroImageUrl || "");
+  const actions = buildSeoPackageActionButtons(cfg, domain);
+  const pageCards = (pages || []).slice(0, 12).map((page) => `<article><h3>${escapePackageHtml(page.h1 || page.title || page.keyword)}</h3><p>${escapePackageHtml(page.metaDescription || page.bodyText || "")}</p></article>`).join("");
+  return `<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <meta name="description" content="${description}">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://${escapePackageHtml(domain)}/">
+  <link rel="stylesheet" href="${cssPath}">
+</head>
+<body style="--primary:${primary};--accent:${accent};">
+  <main>
+    <section class="hero"${heroImage ? ` style="background-image:linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.58)),url('${heroImage}')"` : ""}>
+      <div class="hero-inner">
+        <p class="eyebrow">${escapePackageHtml(cfg.cuisineType || "Restaurant")} i ${escapePackageHtml(cfg.displayCityName || cfg.city || "")}</p>
+        <h1>${title}</h1>
+        <p>${description}</p>
+        <div class="actions">${actions}</div>
+      </div>
+    </section>
+    <section class="content">
+      <section class="info">
+        <article><span>Adresse</span><strong>${escapePackageHtml(cfg.address || "")}</strong></article>
+        <article><span>Telefon</span><strong>${escapePackageHtml(cfg.phone || "")}</strong></article>
+        <article><span>Område</span><strong>${escapePackageHtml(cfg.displayCityName || cfg.city || "")}</strong></article>
+      </section>
+      <section id="about" class="panel"><h2>Om ${escapePackageHtml(cfg.businessName)}</h2><p>${escapePackageHtml(cfg.description || cfg.heroText || "")}</p></section>
+      <section id="menu" class="panel"><h2>Menu og søgninger</h2><div class="cards">${pageCards}</div></section>
+    </section>
+  </main>
+</body>
+</html>`;
+}
+
+function seoPackageCssPathForOutput(outputPath = "index.html") {
+  const cleanPath = String(outputPath || "index.html").replace(/^\/+/, "");
+  const depth = Math.max(0, cleanPath.split("/").filter(Boolean).length - 1);
+  return `${"../".repeat(depth)}assets/site.css`;
+}
+
+function renderSeoPackagePageLinks({ pages = [], currentSlug = "root" }) {
+  const links = (Array.isArray(pages) ? pages : [])
+    .filter((page) => page?.slug && page.slug !== "root" && page.slug !== currentSlug)
+    .slice(0, 24)
+    .map((page) => {
+      const href = page.routePath || `/${page.slug}/`;
+      const title = page.h1 || page.title || page.keyword || page.slug;
+      const text = page.metaDescription || page.bodyText || "";
+      return `<a class="page-link" href="${escapePackageHtml(href)}"><strong>${escapePackageHtml(title)}</strong><span>${escapePackageHtml(text)}</span></a>`;
+    })
+    .join("");
+  return links ? `<section class="panel"><h2>Flere sider</h2><div class="page-links">${links}</div></section>` : "";
+}
+
+function renderSeoPackageHtml({ domain, canonicalConfig, pages, page }) {
+  const cfg = normalizeSeoGeneratorConfig(canonicalConfig);
+  const pageDoc = page || { slug: "root", outputPath: "index.html", canonicalPath: "/" };
+  const cssPath = seoPackageCssPathForOutput(pageDoc.outputPath || "index.html");
+  const title = escapePackageHtml(pageDoc.title || cfg.heroTitle || cfg.businessName);
+  const description = escapePackageHtml(pageDoc.metaDescription || pageDoc.bodyText || cfg.heroText || cfg.description || "");
+  const h1 = escapePackageHtml(pageDoc.h1 || pageDoc.title || cfg.heroTitle || cfg.businessName);
+  const intro = escapePackageHtml(pageDoc.bodyText || pageDoc.content || pageDoc.metaDescription || cfg.description || cfg.heroText || "");
+  const theme = cfg.theme || {};
+  const primary = escapePackageHtml(theme.primary || "#1f7a3d");
+  const accent = escapePackageHtml(theme.accent || "#b91c1c");
+  const heroImage = escapePackageHtml(cfg.heroImageUrl || "");
+  const actions = buildSeoPackageActionButtons(cfg, domain);
+  const pageCards = (pages || []).filter((item) => item.slug !== "root").slice(0, 12).map((item) => `<article><h3>${escapePackageHtml(item.h1 || item.title || item.keyword)}</h3><p>${escapePackageHtml(item.metaDescription || item.bodyText || "")}</p></article>`).join("");
+  const canonicalPath = pageDoc.canonicalPath || pageDoc.routePath || "/";
+  const canonicalUrl = `https://${domain}${canonicalPath.startsWith("/") ? canonicalPath : `/${canonicalPath}`}`;
+  const pageLinks = renderSeoPackagePageLinks({ pages, currentSlug: pageDoc.slug || "root" });
+  return `<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <meta name="description" content="${description}">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="${escapePackageHtml(canonicalUrl)}">
+  <link rel="stylesheet" href="${cssPath}">
+</head>
+<body style="--primary:${primary};--accent:${accent};">
+  <main>
+    <section class="hero"${heroImage ? ` style="background-image:linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.58)),url('${heroImage}')"` : ""}>
+      <div class="hero-inner">
+        <p class="eyebrow">${escapePackageHtml(cfg.cuisineType || "Restaurant")} i ${escapePackageHtml(pageDoc.displayCityName || cfg.displayCityName || cfg.city || "")}</p>
+        <h1>${h1}</h1>
+        <p>${description}</p>
+        <div class="actions">${actions}</div>
+      </div>
+    </section>
+    <section class="content">
+      <section class="info">
+        <article><span>Adresse</span><strong>${escapePackageHtml(cfg.address || "")}</strong></article>
+        <article><span>Telefon</span><strong>${escapePackageHtml(cfg.phone || "")}</strong></article>
+        <article><span>Område</span><strong>${escapePackageHtml(pageDoc.displayCityName || cfg.displayCityName || cfg.city || "")}</strong></article>
+      </section>
+      <section id="about" class="panel"><h2>Om ${escapePackageHtml(cfg.businessName)}</h2><p>${intro}</p></section>
+      <section id="menu" class="panel"><h2>Menu og søgninger</h2><div class="cards">${pageCards}</div></section>
+      ${pageLinks}
+    </section>
+  </main>
+</body>
+</html>`;
+}
+
+function renderSeoPackageRobots(domain) {
+  return `User-agent: *
+Allow: /
+
+Sitemap: https://${domain}/sitemap.xml
+`;
+}
+
+function renderSeoPackageSitemap(domain, pages = []) {
+  const urls = new Set([`https://${domain}/`]);
+  pages.forEach((page) => {
+    const routePath = String(page.routePath || page.canonicalPath || "").trim();
+    if (routePath && !routePath.includes(".html")) {
+      urls.add(`https://${domain}${routePath.startsWith("/") ? routePath : `/${routePath}`}`);
+    }
+  });
+  console.log(`[seo sitemap url count] ${urls.size}`);
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${[...urls].map((url) => `  <url><loc>${escapePackageXml(url)}</loc></url>`).join("\n")}
+</urlset>
+`;
+}
+
+function renderSeoPackageCss() {
+  return `body{margin:0;font-family:Inter,Arial,sans-serif;background:#fafaf8;color:#1f2937;line-height:1.6}.hero{min-height:620px;display:grid;place-items:center;text-align:center;color:#fff;padding:90px 20px;background:var(--primary);background-size:cover;background-position:center}.hero-inner{max-width:860px}.eyebrow{text-transform:uppercase;font-size:13px;letter-spacing:.08em;font-weight:900}.hero h1{font-size:clamp(36px,7vw,78px);line-height:1.02;margin:0 0 18px}.hero p{font-size:clamp(17px,2vw,23px);font-weight:650}.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}.action{display:inline-flex;align-items:center;justify-content:center;padding:14px 22px;border-radius:14px;text-decoration:none;font-weight:900}.action-primary{background:var(--accent);color:#fff}.action-secondary{background:#fff;color:var(--primary)}.content{max-width:1120px;margin:0 auto;padding:50px 20px}.info,.cards,.page-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.info article,.panel,.cards article,.page-link{background:#fff;border-radius:10px;padding:22px;box-shadow:0 8px 26px rgba(0,0,0,.06)}.page-link{display:grid;gap:8px;text-decoration:none;color:inherit}.page-link strong{color:var(--primary)}.page-link span{color:#4b5563}.info span{display:block;color:#6b7280;font-size:13px;font-weight:900;text-transform:uppercase}.panel{margin-top:22px}@media(max-width:760px){.hero{min-height:520px}.actions{flex-direction:column}.action{width:100%}}`;
+}
+
+function buildSeoSitePackage({ domain, canonicalConfig, websiteDoc }) {
+  const cfg = normalizeSeoGeneratorConfig(canonicalConfig || {});
+  const pageCount = parsePageCount(cfg.pageCount, 50);
+  console.log(`[seo pagecount selected] ${pageCount}`);
+  console.log(`[seo landingpages generated count] ${Array.isArray(cfg.landingPages) ? cfg.landingPages.length : 0}`);
+  const pages = buildSeoPublishedPages(cfg, pageCount);
+  console.log(`[seo published pages count] ${pages.length}`);
+  const rootPage = pages.find((page) => page.slug === "root") || pages[0];
+  const metadataPages = pages.filter((page) => page.slug !== "root").map((page) => ({
+    slug: page.slug,
+    title: page.title,
+    path: page.routePath || page.canonicalPath || `/${page.slug}/`,
+    url: `https://${domain}${(page.routePath || page.canonicalPath || `/${page.slug}/`).startsWith("/") ? (page.routePath || page.canonicalPath || `/${page.slug}/`) : `/${page.routePath || page.canonicalPath || `${page.slug}/`}`}`,
+    routePath: page.routePath,
+    canonicalPath: page.canonicalPath
+  }));
+  const metadata = {
+    domain,
+    generatedAt: new Date().toISOString(),
+    websiteId: sanitizeString(websiteDoc?.websiteId || websiteDoc?.id || "", 220),
+    subdomain: cfg.subdomain,
+    businessName: cfg.businessName,
+    canonicalConfig: cfg,
+    pages: metadataPages
+  };
+  const files = {
+    "index.html": renderSeoPackageHtml({
+      domain,
+      canonicalConfig: cfg,
+      pages,
+      page: { ...rootPage, slug: "root", outputPath: "index.html", routePath: "/", canonicalPath: "/" }
+    }),
+    "robots.txt": renderSeoPackageRobots(domain),
+    "sitemap.xml": renderSeoPackageSitemap(domain, pages),
+    "metadata.json": JSON.stringify(metadata, null, 2),
+    "assets/site.css": renderSeoPackageCss()
+  };
+  pages.filter((page) => page.slug !== "root").forEach((page) => {
+    const slug = toAsciiSlug(page.slug, 140) || "side";
+    const outputPath = `${slug}/index.html`;
+    files[outputPath] = renderSeoPackageHtml({
+      domain,
+      canonicalConfig: cfg,
+      pages,
+      page: { ...page, slug, outputPath, routePath: `/${slug}/`, canonicalPath: `/${slug}/` }
+    });
+  });
+  console.log(`[seo css path] ./assets/site.css`);
+  console.log(`[seo package assets] ${Object.keys(files).filter((name) => name.startsWith("assets/")).join(",")}`);
+  console.log(`[seo package pages] ${pages.length}`);
+  console.log(`[seo metadata pages count] ${metadataPages.length}`);
+  const zipPageFilesCount = Object.keys(files).filter((name) => name === "index.html" || name.endsWith("/index.html")).length;
+  console.log(`[seo zip page files count] total=${zipPageFilesCount} landing=${metadataPages.length} root=1`);
+  return files;
+}
+
+async function uploadSeoSitePackageZip({ domain, files }) {
+  try {
+    const crypto = require("crypto");
+    const zipBuffer = createStoredZip(files);
+    const checksum = crypto.createHash("sha256").update(zipBuffer).digest("hex");
+    const downloadToken = typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : crypto.randomBytes(16).toString("hex");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const objectPath = `seo-packages/${domain}/${timestamp}/site-package.zip`;
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(objectPath);
+    await file.save(zipBuffer, {
+      resumable: false,
+      contentType: "application/zip",
+      metadata: {
+        cacheControl: "private, max-age=0, no-transform",
+        metadata: {
+          checksum,
+          domain,
+          firebaseStorageDownloadTokens: downloadToken
+        }
+      }
+    });
+    const packageUrl = `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucket.name)}/o/${encodeURIComponent(objectPath)}?alt=media&token=${encodeURIComponent(downloadToken)}`;
+    console.log("[seo package] signed url generated");
+    return {
+      ok: true,
+      packageUrl,
+      storagePath: objectPath,
+      checksum,
+      bytes: zipBuffer.length,
+      urlMode: "firebase_download_token"
+    };
+  } catch (error) {
+    console.log("[seo package] signed url failed");
+    throw error;
+  }
+}
+
+async function triggerSeoGatewayPackageDeploy({ domain, companyId, locationId, websiteId, packageUrl, checksum }) {
+  console.log("[seo package deploy attempt]");
+  if (!domain || !companyId || !locationId || !websiteId) {
+    console.log("[seo package deploy skipped]");
+    console.log("[seo package deploy skip reason] missing_site_payload");
+    return {
+      attempted: false,
+      ok: false,
+      deployOk: false,
+      reason: "missing_site_payload",
+      deployError: "missing_site_payload"
+    };
+  }
+  if (!packageUrl) {
+    console.log("[seo package deploy skipped]");
+    console.log("[seo package deploy skip reason] missing_package_url");
+    return {
+      attempted: false,
+      ok: false,
+      deployOk: false,
+      reason: "missing_package_url",
+      deployError: "missing_package_url",
+      domain
+    };
+  }
+  const config = getSeoGatewayPackageDeployConfig();
+  if (!config.ok) {
+    console.log("[seo package deploy skipped]");
+    console.log(`[seo package deploy skip reason] ${config.reason}`);
+    return { attempted: false, ok: false, deployOk: false, reason: config.reason, deployError: config.reason, domain };
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetch(config.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.token}`
+      },
+      body: JSON.stringify({
+        domain,
+        companyId,
+        locationId,
+        websiteId,
+        packageUrl,
+        checksum,
+        reason: "seo_package_publish"
+      }),
+      signal: controller.signal
+    });
+    let body = {};
+    try { body = await response.json(); } catch (_error) {}
+    if (!response.ok || !body?.ok) {
+      return {
+        attempted: true,
+        ok: false,
+        deployOk: false,
+        status: response.status,
+        error: body?.error || `http_${response.status}`,
+        deployError: body?.error || `http_${response.status}`,
+        domain
+      };
+    }
+    return {
+      attempted: true,
+      ok: true,
+      deployOk: true,
+      status: response.status,
+      domain,
+      outputDir: sanitizeString(body?.outputDir || "", 500),
+      indexPath: sanitizeString(body?.indexPath || "", 500),
+      checksum: sanitizeString(body?.checksum || checksum || "", 120)
+    };
+  } catch (error) {
+    const deployError = error?.name === "AbortError" ? "timeout" : String(error?.message || "request_failed").slice(0, 180);
+    return { attempted: true, ok: false, deployOk: false, status: 0, error: deployError, deployError, domain };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function invalidateSeoGatewayCache({ citySlug, businessSlug }) {
   console.log("SEO gateway cache invalidation requested");
   const config = getSeoGatewayInvalidateConfig();
@@ -997,8 +1831,13 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
   const logoDataUrl = sanitizeString(canonicalConfig.logoDataUrl || "", 500000);
   const route = buildSeoFolderRoute(canonicalConfig);
   const cta = canonicalConfig.cta;
+  const websiteCanonicalConfig = {
+    ...canonicalConfig,
+    landingPages: sanitizeSeoLandingPageMetadata(canonicalConfig.landingPages, pageCount)
+  };
   console.log(`SEO landing website doc business=${businessName} title=${canonicalConfig.heroTitle} heroText=${canonicalConfig.heroText ? "present" : "missing"}`);
   console.log(`SEO CTA firestore website enabled=${cta.enabled} text=${cta.text} url=${cta.url}`);
+  console.log(`[seo landingpages generated count] ${Array.isArray(canonicalConfig.landingPages) ? canonicalConfig.landingPages.length : 0}`);
 
   if (!subdomain) {
     throw new functions.https.HttpsError("invalid-argument", "Subdomaene mangler i generator-konfigurationen.");
@@ -1023,16 +1862,20 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
     template: selectedTemplate,
     brandMode: "madkontrollen_default",
     logoUrl: logoDataUrl || null,
-    config: canonicalConfig,
-    canonicalConfig,
+    config: websiteCanonicalConfig,
+    canonicalConfig: websiteCanonicalConfig,
     heroTitle: sanitizeString(canonicalConfig.heroTitle || displayBusinessName || businessName || subdomain, 180),
     heroText: sanitizeString(canonicalConfig.heroText || description || "Autogenereret website fra SEO-generator.", 1200),
     heroImageUrl: sanitizeString(canonicalConfig.heroImageUrl || "", 2000) || null,
     websiteUrl: canonicalConfig.websiteUrl || null,
+    googlePlace: canonicalConfig.googlePlace || null,
+    googlePlaceId: canonicalConfig.googlePlaceId || null,
+    googleMapsUrl: canonicalConfig.googleMapsUrl || null,
     cta,
     ctaEnabled: cta.enabled,
     ctaText: cta.text || null,
     ctaUrl: cta.url || null,
+    ctaButtons: canonicalConfig.ctaButtons || [],
     phone: sanitizeString(canonicalConfig.phone || "", 80) || null,
     address: sanitizeString(canonicalConfig.address || "", 220) || null,
     themePrimary: canonicalConfig.theme.primary,
@@ -1048,6 +1891,7 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
   }, { merge: true });
 
   const pages = buildSeoPublishedPages(canonicalConfig, pageCount);
+  console.log(`[seo published pages count] ${pages.length}`);
   const batch = db.batch();
 
   pages.forEach((page, index) => {
@@ -7236,6 +8080,7 @@ exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) =>
       data?.data && typeof data.data === "object"
         ? data.data
         : data;
+    const saveAuth = await resolveSeoSaveAuth(data, context);
 
     console.log("RAW DATA - companyId:", payload?.companyId, "locationId:", payload?.locationId);
     console.log("PARSED PAYLOAD - keys:", Object.keys(payload || {}));
@@ -7246,28 +8091,41 @@ exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) =>
     console.log("companyId:", companyId);
     console.log("locationId:", locationId);
     const config = payload?.config || {};
+    const rawConfigSizeBytes = estimateSeoJsonSizeBytes(config);
+    const firestoreConfig = sanitizeSeoConfigForFirestore(config);
+    const sanitizedConfigSizeBytes = estimateSeoJsonSizeBytes(firestoreConfig);
+    console.log(`[seo config size before sanitize] ${rawConfigSizeBytes}`);
+    console.log(`[seo config size after sanitize] ${sanitizedConfigSizeBytes}`);
+    console.log(`[seo pagecount selected] ${parsePageCount(firestoreConfig.pageCount || config.pageCount, 50)}`);
+    console.log(`[seo landingpages generated count] ${Array.isArray(firestoreConfig.landingPages) ? firestoreConfig.landingPages.length : 0}`);
     const isOnboarding = companyId.toLowerCase().startsWith("onboarding_");
 
     if (!companyId || !locationId) {
       throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
     }
 
-    if (!isOnboarding && !context.auth?.uid) {
+    if (!isOnboarding && !saveAuth.uid) {
       throw new functions.https.HttpsError("unauthenticated", "Log ind for at gemme generator-data.");
     }
 
     if (!isOnboarding) {
       await assertSeoGeneratorAccess({
-        uid: context.auth.uid,
-        email: context.auth.token?.email || "",
+        uid: saveAuth.uid,
+        email: saveAuth.email || "",
         companyId,
         locationId
       });
     }
 
     const configDocId = sanitizeString(payload?.configId || "", 180) || toDocSafeId(`${companyId}__${locationId}__${Date.now()}`);
-    const subdomain = toAsciiSlug(config?.subdomain || config?.businessName || "restaurant", 120) || "restaurant";
-    const canonicalConfig = normalizeSeoGeneratorConfig({ ...config, subdomain });
+    const subdomain = toAsciiSlug(firestoreConfig?.subdomain || firestoreConfig?.businessName || "restaurant", 120) || "restaurant";
+    const canonicalConfig = sanitizeSeoConfigForFirestore(normalizeSeoGeneratorConfig({ ...firestoreConfig, subdomain }));
+    const canonicalConfigSizeBytes = estimateSeoJsonSizeBytes(canonicalConfig);
+    if (canonicalConfigSizeBytes > 800 * 1024) {
+      throw new functions.https.HttpsError("invalid-argument", "config_too_large", {
+        sizeBytes: canonicalConfigSizeBytes
+      });
+    }
     const cta = canonicalConfig.cta;
     console.log(`SEO landing editor config business=${canonicalConfig.businessName} title=${canonicalConfig.heroTitle} heroText=${canonicalConfig.heroText ? "present" : "missing"}`);
     console.log(`SEO landing save payload fields=${Object.keys(canonicalConfig).join(",")}`);
@@ -7284,16 +8142,26 @@ exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) =>
       ctaText: cta.text,
       ctaUrl: cta.url,
       updatedAt: FieldValue.serverTimestamp(),
-      updatedBy: context.auth?.uid || null,
-      updatedByEmail: sanitizeString(context.auth?.token?.email || "", 160)
+      updatedBy: saveAuth.uid || null,
+      updatedByEmail: sanitizeString(saveAuth.email || "", 160)
     };
+    const dbPayloadSizeBytes = estimateSeoJsonSizeBytes({
+      ...dbPayload,
+      updatedAt: null
+    });
+    if (dbPayloadSizeBytes > 800 * 1024) {
+      throw new functions.https.HttpsError("invalid-argument", "config_too_large", {
+        sizeBytes: dbPayloadSizeBytes
+      });
+    }
 
     await db.collection("seo_generator_configs").doc(configDocId).set({
       ...dbPayload,
       createdAt: FieldValue.serverTimestamp(),
-      createdBy: context.auth?.uid || null
+      createdBy: saveAuth.uid || null
     }, { merge: true });
 
+    console.log("[seo save callable success]");
     return {
       ok: true,
       configId: configDocId,
@@ -7456,6 +8324,44 @@ async function resolveSeoActivationAuth(data, context) {
   }
 }
 
+async function resolveSeoSaveAuth(data, context) {
+  const payload = normalizeSeoActivationData(data);
+  console.log("[seo save invocation type] callable");
+  console.log(`[seo save request auth header present] ${Boolean(context.rawRequest?.headers?.authorization)}`);
+  const contextUid = sanitizeString(context.auth?.uid || "", 160);
+  if (contextUid) {
+    console.log(`[seo save auth uid] ${contextUid}`);
+    return {
+      uid: contextUid,
+      email: sanitizeString(context.auth?.token?.email || "", 180),
+      source: "callable-context"
+    };
+  }
+
+  const bearer = String(context.rawRequest?.headers?.authorization || "").trim();
+  const bearerToken = bearer.toLowerCase().startsWith("bearer ") ? bearer.slice(7).trim() : "";
+  const payloadToken = String(payload?.authToken || payload?.idToken || "").trim();
+  const idToken = payloadToken || bearerToken;
+  if (!idToken) {
+    console.log("[seo save auth uid] ");
+    return { uid: "", email: "", source: "", reason: "token_missing" };
+  }
+
+  try {
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const uid = sanitizeString(decoded.uid || "", 160);
+    console.log(`[seo save auth uid] ${uid}`);
+    return {
+      uid,
+      email: sanitizeString(decoded.email || "", 180),
+      source: payloadToken ? "payload-token" : "authorization-header"
+    };
+  } catch (_error) {
+    console.log("[seo save auth uid] token_verify_failed");
+    return { uid: "", email: "", source: "invalid-token", reason: "token_verify_failed" };
+  }
+}
+
 async function assertSeoPublishAccessWithLogs({ uid, email, companyId, locationId }) {
   try {
     const userData = await getUserAccessProfile({ uid, email });
@@ -7501,7 +8407,9 @@ async function assertSeoPublishAccessWithLogs({ uid, email, companyId, locationI
   }
 }
 
-exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
+exports.adminActivateSeoSite = functions.https.onCall(
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"] },
+  async (data, context) => {
   const payload = normalizeSeoActivationData(data);
   console.log("[seo function publish request]");
   const publishAuth = await resolveSeoActivationAuth(data, context);
@@ -7519,36 +8427,99 @@ exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
   }
   await assertSeoPublishAccessWithLogs({ uid: publishAuth.uid, email: publishAuth.email, companyId, locationId });
 
+  const configId = sanitizeString(payload?.configId || "", 180);
+  const payloadConfig = payload?.canonicalConfig && typeof payload.canonicalConfig === "object"
+    ? payload.canonicalConfig
+    : (payload?.overrides && typeof payload.overrides === "object"
+      ? payload.overrides
+      : (payload?.config && typeof payload.config === "object" ? payload.config : {}));
+  const hasPayloadConfig = Object.keys(payloadConfig || {}).length > 0;
+  console.log(`[seo publish configId] ${configId}`);
+  console.log(`[seo publish config source] ${hasPayloadConfig ? "payload" : "firestore"}`);
+  console.log(`[seo publish config found] ${hasPayloadConfig}`);
+
   // Use provided inline config or load saved config from Firestore
   let baseConfig = {};
-  const overrides = payload?.overrides && typeof payload.overrides === "object"
-    ? payload.overrides
-    : (payload?.config && typeof payload.config === "object" ? payload.config : {});
-  if (payload?.configId) {
-    const configId = sanitizeString(payload?.configId || "", 180);
+  const overrides = hasPayloadConfig ? {} : payloadConfig;
+  if (!hasPayloadConfig && configId) {
+    console.log(`[seo publish configId] firestore_doc=seo_generator_configs/${configId}`);
     if (!configId) throw new functions.https.HttpsError("invalid-argument", "config eller configId er påkrævet.");
     const snap = await db.collection("seo_generator_configs").doc(configId).get();
+    console.log(`[seo publish config found] ${snap.exists}`);
     if (!snap.exists) throw new functions.https.HttpsError("not-found", "Generator-konfiguration ikke fundet.");
     baseConfig = snap.data() || {};
+  } else if (!hasPayloadConfig) {
+    console.log("[seo publish configId] firestore_query=latest_by_company_location");
   }
 
-  const config = await buildSeoPublishConfigFromFirestore({
-    companyId,
-    locationId,
-    baseConfig,
-    overrides
-  });
+  const config = hasPayloadConfig
+    ? { ...payloadConfig, ...normalizeSeoGeneratorConfig(payloadConfig) }
+    : await buildSeoPublishConfigFromFirestore({
+      companyId,
+      locationId,
+      baseConfig,
+      overrides
+    });
+  console.log(`[seo pagecount selected] ${parsePageCount(config.pageCount, 50)}`);
+  console.log(`[seo landingpages generated count] ${Array.isArray(config.landingPages) ? config.landingPages.length : 0}`);
 
   const result = await upsertWebsiteAndSeoPages({ companyId, locationId, config, activatedByUid: publishAuth.uid });
   const domain = `${result.businessSlug || result.subdomain}.madkontrollen.dk`;
-  const vpsRebuild = await triggerSeoGatewayRebuild({
-    domain,
-    companyId,
-    locationId,
-    websiteId: result.websiteId
-  });
-  const rebuildOk = Boolean(vpsRebuild?.ok || vpsRebuild?.rebuildOk);
+  let packageUpload = { ok: false, packageUrl: "", checksum: "", storagePath: "", error: "" };
+  let packageDeploy = { attempted: false, ok: false, deployOk: false, deployError: "" };
+  try {
+    console.log("[seo package build start]");
+    const packageFiles = buildSeoSitePackage({
+      domain,
+      canonicalConfig: config,
+      websiteDoc: { websiteId: result.websiteId, companyId, locationId }
+    });
+    console.log("[seo package build success]");
+    packageUpload = await uploadSeoSitePackageZip({ domain, files: packageFiles });
+    packageDeploy = await triggerSeoGatewayPackageDeploy({
+      domain,
+      companyId,
+      locationId,
+      websiteId: result.websiteId,
+      packageUrl: packageUpload.packageUrl,
+      checksum: packageUpload.checksum
+    });
+  } catch (error) {
+    packageUpload = {
+      ok: false,
+      packageUrl: "",
+      checksum: "",
+      storagePath: "",
+      error: String(error?.message || "package_build_failed").slice(0, 180)
+    };
+    packageDeploy = {
+      attempted: false,
+      ok: false,
+      deployOk: false,
+      deployError: packageUpload.error
+    };
+  }
+
+  const vpsRebuild = packageDeploy?.ok
+    ? {
+      attempted: true,
+      ok: true,
+      rebuildOk: true,
+      domain,
+      indexPath: packageDeploy.indexPath || "",
+      outputDir: packageDeploy.outputDir || "",
+      packageDeploy: true
+    }
+    : await triggerSeoGatewayRebuild({
+      domain,
+      companyId,
+      locationId,
+      websiteId: result.websiteId
+    });
+  const rebuildOk = Boolean(packageDeploy?.ok || vpsRebuild?.ok || vpsRebuild?.rebuildOk);
   const rebuildError = rebuildOk ? "" : sanitizeString(vpsRebuild?.rebuildError || vpsRebuild?.error || vpsRebuild?.reason || "unknown", 180);
+  const deployOk = Boolean(packageDeploy?.ok);
+  const deployError = deployOk ? "" : sanitizeString(packageDeploy?.deployError || packageDeploy?.error || packageUpload?.error || packageDeploy?.reason || "", 180);
   console.log("[seo function publish success]");
 
   // Mark SEO addon as active on the company location
@@ -7560,11 +8531,19 @@ exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
   return {
     ok: true,
     publishOk: true,
+    deployOk,
+    deployError,
+    packageUploadOk: Boolean(packageUpload.ok),
+    packageUploadError: packageUpload.ok ? "" : sanitizeString(packageUpload.error || "package_upload_failed", 180),
+    packageUrl: packageUpload.packageUrl || "",
+    packageStoragePath: packageUpload.storagePath || "",
+    checksum: packageUpload.checksum || packageDeploy.checksum || "",
+    outputDir: sanitizeString(packageDeploy?.outputDir || vpsRebuild?.outputDir || "", 500),
     rebuildOk,
     rebuildError,
     domain,
-    indexPath: sanitizeString(vpsRebuild?.indexPath || "", 500),
-    partial: Boolean(vpsRebuild.attempted && !vpsRebuild.ok),
+    indexPath: sanitizeString(packageDeploy?.indexPath || vpsRebuild?.indexPath || "", 500),
+    partial: Boolean((packageDeploy.attempted && !packageDeploy.ok) || (vpsRebuild.attempted && !vpsRebuild.ok)),
     websiteId: result.websiteId,
     generatedPages: result.generatedPages,
     subdomain: result.subdomain,
@@ -9814,8 +10793,19 @@ function normalizeBusinessHeroCloudinaryImage({ uploaded, sourceData }) {
   };
 }
 
+function getSecretParamValue(secretParam) {
+  try {
+    return String(secretParam.value() || "").trim();
+  } catch (_error) {
+    return "";
+  }
+}
+
 function getGooglePlacesApiKey(config) {
-  return (
+  const secretKey = getSecretParamValue(GOOGLE_PLACES_API_KEY);
+  console.log(`Google Places secret configured: ${Boolean(secretKey)}`);
+  const key = String(
+    secretKey ||
     config?.google?.places_api_key ||
     config?.google?.placesApiKey ||
     config?.google_places?.api_key ||
@@ -9824,7 +10814,9 @@ function getGooglePlacesApiKey(config) {
     process.env.GOOGLE_PLACES_API_KEY ||
     process.env.GOOGLE_MAPS_API_KEY ||
     ""
-  );
+  ).trim();
+  if (!key || /^(din_key|your_key|your_api_key|replace_me|changeme)$/i.test(key)) return "";
+  return key;
 }
 
 function normalizeGooglePhotoName(value) {
@@ -9862,15 +10854,228 @@ function toImageDataUrl({ buffer, contentType }) {
 function scoreGooglePlaceForBusiness(place, { businessName, city, address }) {
   const haystack = [
     place?.displayName?.text,
-    place?.formattedAddress
+    place?.formattedAddress,
+    Array.isArray(place?.types) ? place.types.join(" ") : "",
+    place?.businessStatus
   ].filter(Boolean).join(" ").toLowerCase();
   let score = 0;
   [businessName, city, address].filter(Boolean).forEach(value => {
     const normalized = String(value).toLowerCase().trim();
     if (normalized && haystack.includes(normalized)) score += normalized.length;
   });
+  const restaurantTypes = ["restaurant", "thai_restaurant", "cafe", "meal_takeaway", "meal_delivery", "food", "bakery", "bar"];
+  const lodgingTypes = ["lodging", "hotel", "real_estate_agency", "apartment_complex"];
+  if (restaurantTypes.some((type) => haystack.includes(type))) score += 50;
+  if (lodgingTypes.some((type) => haystack.includes(type))) score -= 45;
+  if (place?.businessStatus === "OPERATIONAL") score += 10;
+  if (Number(place?.rating) >= 4) score += 8;
+  if (Array.isArray(place?.photos) && place.photos.length) score += 20;
   return score;
 }
+
+function extractGooglePlaceCity(place) {
+  const components = Array.isArray(place?.addressComponents) ? place.addressComponents : [];
+  const cityTypes = ["locality", "postal_town", "administrative_area_level_2", "administrative_area_level_1"];
+  for (const wanted of cityTypes) {
+    const component = components.find((item) => Array.isArray(item?.types) && item.types.includes(wanted));
+    const city = sanitizeString(component?.longText || component?.shortText || "", 120);
+    if (city) return city;
+  }
+  const address = sanitizeString(place?.formattedAddress || "", 260);
+  const parts = address.split(",").map((part) => part.trim()).filter(Boolean);
+  return sanitizeString(parts.length >= 2 ? parts[parts.length - 2].replace(/^\d{4}\s*/, "") : "", 120);
+}
+
+function normalizeGooglePlaceOpeningHours(place) {
+  const descriptions = place?.regularOpeningHours?.weekdayDescriptions || place?.openingHours?.weekdayDescriptions || [];
+  return Array.isArray(descriptions)
+    ? descriptions.map((line) => sanitizeString(line, 160)).filter(Boolean).slice(0, 14)
+    : [];
+}
+
+function sanitizeGooglePlaceForSeo(place = {}) {
+  const placeId = sanitizeString(String(place?.id || place?.placeId || "").replace(/^places\//, ""), 180);
+  const phone = sanitizeString(place?.internationalPhoneNumber || place?.nationalPhoneNumber || place?.formattedPhoneNumber || "", 80);
+  const website = normalizeSeoCtaUrl(place?.websiteUri || place?.website || "");
+  const googleMapsUrl = normalizeSeoCtaUrl(place?.googleMapsUri || (placeId ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}` : ""));
+  const photos = Array.isArray(place?.photos) ? place.photos.map((photo) => ({
+    name: normalizeGooglePhotoName(photo?.name || ""),
+    width: Number(photo?.widthPx) || 0,
+    height: Number(photo?.heightPx) || 0
+  })).filter((photo) => photo.name).slice(0, 12) : [];
+  return {
+    placeId,
+    name: sanitizeString(place?.displayName?.text || place?.name || "", 180),
+    formattedAddress: sanitizeString(place?.formattedAddress || place?.address || "", 260),
+    city: extractGooglePlaceCity(place),
+    phone,
+    website,
+    googleMapsUrl,
+    types: Array.isArray(place?.types) ? place.types.map((type) => sanitizeString(type, 80)).filter(Boolean).slice(0, 20) : [],
+    businessStatus: sanitizeString(place?.businessStatus || "", 80),
+    rating: Number.isFinite(Number(place?.rating)) ? Number(place.rating) : null,
+    userRatingsTotal: Number.isFinite(Number(place?.userRatingCount || place?.userRatingsTotal)) ? Number(place.userRatingCount || place.userRatingsTotal) : 0,
+    photos,
+    location: place?.location && typeof place.location === "object" ? {
+      latitude: Number(place.location.latitude) || null,
+      longitude: Number(place.location.longitude) || null
+    } : null,
+    openingHours: normalizeGooglePlaceOpeningHours(place)
+  };
+}
+
+async function fetchGooglePlaceDetailsForSeo({ placeId, apiKey }) {
+  const cleanPlaceId = sanitizeString(String(placeId || "").replace(/^places\//, ""), 180);
+  if (!cleanPlaceId || !apiKey) {
+    throw new HttpsError("invalid-argument", "Google Place ID mangler.");
+  }
+  const detailsResp = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(cleanPlaceId)}`, {
+    method: "GET",
+    headers: {
+      "X-Goog-Api-Key": apiKey,
+      "X-Goog-FieldMask": "id,displayName,formattedAddress,addressComponents,internationalPhoneNumber,nationalPhoneNumber,websiteUri,googleMapsUri,rating,userRatingCount,location,regularOpeningHours,types,businessStatus,photos"
+    }
+  });
+  if (!detailsResp.ok) {
+    const errText = await detailsResp.text().catch(() => "");
+    throw new Error(`google_places_details_failed_${detailsResp.status}_${errText.slice(0, 120)}`);
+  }
+  return sanitizeGooglePlaceForSeo(await detailsResp.json());
+}
+
+function getBusinessTypeTerms(value = "") {
+  const text = sanitizeString(value || "", 160).toLowerCase();
+  const terms = ["restaurant", "mad", "food"];
+  const typeMap = [
+    { match: ["thai", "aroi"], terms: ["thai restaurant", "thai food", "takeaway"] },
+    { match: ["pizza", "italiensk"], terms: ["pizza", "italiensk restaurant"] },
+    { match: ["cafe", "café", "kaffe"], terms: ["cafe", "coffee", "brunch"] },
+    { match: ["sushi"], terms: ["sushi", "japanese restaurant"] },
+    { match: ["takeaway", "fastfood"], terms: ["takeaway", "fast food"] },
+    { match: ["burger"], terms: ["burger", "restaurant"] },
+    { match: ["kebab", "grill"], terms: ["grill", "kebab", "takeaway"] }
+  ];
+  typeMap.forEach((item) => {
+    if (item.match.some((needle) => text.includes(needle))) terms.push(...item.terms);
+  });
+  return [...new Set(terms)].slice(0, 8);
+}
+
+function scoreBusinessImageRelevance(photo = {}, context = {}) {
+  const haystack = [
+    photo.alt,
+    photo.url,
+    photo.src?.original,
+    photo.src?.large2x,
+    photo.photographer,
+    context.query,
+    context.businessType
+  ].filter(Boolean).join(" ").toLowerCase();
+  const terms = getBusinessTypeTerms(`${context.businessType || ""} ${context.query || ""}`);
+  let score = scoreStockPhoto(photo);
+  const reasons = [];
+  const boost = (amount, reason) => {
+    score += amount;
+    reasons.push(reason);
+  };
+  if (/\b(food|meal|dish|plate|menu|restaurant|cafe|café|pizza|sushi|thai|burger|takeaway|dining|kitchen|coffee|brunch)\b/i.test(haystack)) {
+    boost(50, "food_or_restaurant_detected");
+  }
+  if (/\b(sign|signage|logo|storefront|shop front|facade restaurant)\b/i.test(haystack)) {
+    boost(35, "logo_signage_detected");
+  }
+  if (/\b(interior|indoor|table|dining room|bar|counter)\b/i.test(haystack)) {
+    boost(30, "indoor_restaurant_detected");
+  }
+  if (/\b(menu|plate|dish|served|cuisine)\b/i.test(haystack)) {
+    boost(30, "menu_plate_detected");
+  }
+  terms.forEach((term) => {
+    const compact = term.toLowerCase();
+    if (compact && haystack.includes(compact)) boost(18, `business_type_${compact.replace(/\s+/g, "_")}`);
+  });
+  if (/\b(hotel|lodging|apartment|office|building|architecture|city skyline|street view|real estate|facade)\b/i.test(haystack) &&
+      !/\b(food|dish|plate|restaurant|cafe|café|dining|menu)\b/i.test(haystack)) {
+    boost(-80, "irrelevant_building_or_hotel");
+  }
+  return { score, reasons };
+}
+
+function buildBusinessImageFallbackQuery({ businessName, city, cuisineType, query }) {
+  const terms = getBusinessTypeTerms(`${cuisineType || ""} ${query || ""} ${businessName || ""}`);
+  const cleanName = sanitizeString(businessName || "", 120).replace(/\bhotel\b/ig, "").trim();
+  return [cleanName, terms[0] || "restaurant food", city].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+}
+
+exports.searchGooglePlacesForSeo = onCall(
+  { secrets: [GOOGLE_PLACES_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 60 },
+  async (request) => {
+    console.log("SEO places search request");
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Log ind for at søge efter virksomheder.");
+    }
+
+    const data = request.data || {};
+    const query = sanitizeString(data?.query || "", 240);
+    const placeId = sanitizeString(data?.placeId || "", 180);
+    const country = sanitizeString(data?.country || "dk", 8).toLowerCase();
+
+    if (!query && !placeId) {
+      throw new HttpsError("invalid-argument", "Søgeord eller Place ID mangler.");
+    }
+
+    let config = {};
+    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
+    const googleApiKey = getGooglePlacesApiKey(config);
+    if (!googleApiKey) {
+      console.log("SEO places error");
+      return {
+        ok: false,
+        errorCode: "missing_google_places_key",
+        message: "Google Places er ikke konfigureret",
+        results: []
+      };
+    }
+
+    try {
+      if (placeId) {
+        const place = await fetchGooglePlaceDetailsForSeo({ placeId, apiKey: googleApiKey });
+        console.log("SEO places details success");
+        return { ok: true, place };
+      }
+
+      const searchResp = await fetch("https://places.googleapis.com/v1/places:searchText", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": googleApiKey,
+          "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.addressComponents,places.internationalPhoneNumber,places.nationalPhoneNumber,places.websiteUri,places.googleMapsUri,places.rating,places.userRatingCount,places.location,places.regularOpeningHours,places.types,places.businessStatus,places.photos"
+        },
+        body: JSON.stringify({
+          textQuery: query,
+          languageCode: "da",
+          regionCode: country === "dk" ? "DK" : country.toUpperCase(),
+          maxResultCount: 8
+        })
+      });
+
+      if (!searchResp.ok) {
+        const errText = await searchResp.text().catch(() => "");
+        throw new Error(`google_places_search_failed_${searchResp.status}_${errText.slice(0, 120)}`);
+      }
+
+      const searchData = await searchResp.json();
+      const results = (Array.isArray(searchData?.places) ? searchData.places : [])
+        .map(sanitizeGooglePlaceForSeo)
+        .filter((place) => place.placeId && place.name);
+      console.log("SEO places search success");
+      return { ok: true, results };
+    } catch (error) {
+      console.log("SEO places error");
+      throw new HttpsError("internal", "Google Places søgning fejlede.");
+    }
+  }
+);
 
 exports.generateRestaurantHeroImage = onCall(
   { secrets: [OPENAI_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 180 },
@@ -9981,7 +11186,7 @@ exports.generateRestaurantHeroImage = onCall(
 );
 
 exports.uploadBusinessHeroImageToCloudinary = onCall(
-  { secrets: ["FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 90 },
+  { secrets: [GOOGLE_PLACES_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 90 },
   async (request) => {
     console.log("SEO IMG business upload start");
     if (!request.auth?.uid) {
@@ -10020,6 +11225,7 @@ exports.uploadBusinessHeroImageToCloudinary = onCall(
 
     if (googlePhotoName) {
       console.log("SEO IMG google photo fetch start");
+      console.log(`Google Places secret configured for uploadBusinessHeroImageToCloudinary: ${Boolean(getSecretParamValue(GOOGLE_PLACES_API_KEY))}`);
       const googleApiKey = getGooglePlacesApiKey(config);
       console.log(`SEO IMG google key present ${Boolean(googleApiKey)}`);
       if (!googleApiKey) {
@@ -10088,7 +11294,7 @@ exports.uploadBusinessHeroImageToCloudinary = onCall(
 );
 
 exports.searchGooglePlaceBusinessImages = onCall(
-  { secrets: ["FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 60 },
+  { secrets: [GOOGLE_PLACES_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 60 },
   async (request) => {
     console.log("SEO IMG google search start");
     if (!request.auth?.uid) {
@@ -10099,11 +11305,14 @@ exports.searchGooglePlaceBusinessImages = onCall(
     const businessName = sanitizeString(data?.businessName || "", 180);
     const city = sanitizeString(data?.city || "", 100);
     const address = sanitizeString(data?.address || "", 220);
+    const placeIdInput = sanitizeString(data?.placeId || data?.googlePlaceId || data?.googlePlace?.placeId || "", 180);
+    const cuisineType = sanitizeString(data?.cuisineType || data?.businessType || data?.type || "", 120);
     const explicitQuery = sanitizeString(data?.query || "", 240);
-    const queryText = explicitQuery || [businessName, address || city].filter(Boolean).join(" ").trim();
+    const queryText = explicitQuery || [businessName, address || city, cuisineType].filter(Boolean).join(" ").trim();
+    const fallbackQuery = buildBusinessImageFallbackQuery({ businessName, city, cuisineType, query: queryText });
     const perPage = Math.min(Math.max(1, Number(data?.perPage) || 8), 8);
 
-    if (!queryText) {
+    if (!queryText && !placeIdInput) {
       throw new HttpsError("invalid-argument", "Søgeord mangler.");
     }
 
@@ -10113,18 +11322,54 @@ exports.searchGooglePlaceBusinessImages = onCall(
     console.log(`SEO IMG google key present ${Boolean(googleApiKey)}`);
     if (!googleApiKey) {
       console.log("SEO IMG google place found false");
+      console.log("[seo images] place photos empty reason=missing_google_places_key");
       return { ok: false, source: "google_places", photos: [], fallbackReason: "missing_google_places_key" };
     }
 
+    let place = null;
+    console.log(`[seo images] placeId present ${Boolean(placeIdInput)}`);
+    if (!placeIdInput) {
+      console.log("[seo images] fallback image search reason=selected_google_place_missing");
+    }
+    if (placeIdInput) {
+      console.log("[seo images] requesting place photos");
+      const cleanPlaceId = placeIdInput.replace(/^places\//, "");
+      const detailsResp = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(cleanPlaceId)}`, {
+        method: "GET",
+        headers: {
+          "X-Goog-Api-Key": googleApiKey,
+          "X-Goog-FieldMask": "id,displayName,formattedAddress,photos,types,businessStatus,rating,userRatingCount"
+        }
+      });
+      if (detailsResp.ok) {
+        place = await detailsResp.json();
+        const detailsPhotoCount = Array.isArray(place?.photos) ? place.photos.length : 0;
+        console.log(`[seo images] place photos found count ${detailsPhotoCount}`);
+        if (!detailsPhotoCount) {
+          console.log("[seo images] place photos empty reason=details_no_photos");
+        }
+      } else {
+        const errText = await detailsResp.text().catch(() => "");
+        console.log(`SEO IMG google details failed status=${detailsResp.status}`);
+        if (detailsResp.status === 403) {
+          console.log("[seo images] place photos empty reason=places_photos_api_key_denied");
+        }
+        console.log(`[seo images] place photos empty reason=details_failed_${detailsResp.status}_${errText.slice(0, 80)}`);
+      }
+    }
+
+    if (!place) {
+      console.log("[seo images] fallback image search reason=place_details_unavailable");
+    const boostedQuery = [queryText, cuisineType, getBusinessTypeTerms(`${cuisineType} ${queryText}`).join(" ")].filter(Boolean).join(" ");
     const searchResp = await fetch("https://places.googleapis.com/v1/places:searchText", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": googleApiKey,
-        "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.photos"
+        "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.photos,places.types,places.businessStatus,places.rating,places.userRatingCount"
       },
       body: JSON.stringify({
-        textQuery: queryText,
+        textQuery: boostedQuery,
         languageCode: "da",
         regionCode: "DK",
         maxResultCount: 5
@@ -10139,33 +11384,45 @@ exports.searchGooglePlaceBusinessImages = onCall(
 
     const searchData = await searchResp.json();
     const places = Array.isArray(searchData?.places) ? searchData.places : [];
+    console.log(`[seo images] place search candidates count ${places.length}`);
     const rankedPlaces = places
       .slice()
       .sort((a, b) => scoreGooglePlaceForBusiness(b, { businessName, city, address }) - scoreGooglePlaceForBusiness(a, { businessName, city, address }));
-    const place = rankedPlaces.find(p => Array.isArray(p?.photos) && p.photos.length) || rankedPlaces[0] || null;
+    place = rankedPlaces.find(p => Array.isArray(p?.photos) && p.photos.length) || rankedPlaces[0] || null;
+    }
     const placeId = sanitizeString(place?.id || "", 180);
     const placeName = sanitizeString(place?.displayName?.text || businessName || queryText, 180);
     const placeAddress = sanitizeString(place?.formattedAddress || "", 240);
+    const placeTypes = Array.isArray(place?.types) ? place.types.map((type) => sanitizeString(type, 80)).filter(Boolean) : [];
+    const placeBusinessStatus = sanitizeString(place?.businessStatus || "", 80);
+    const placeRating = Number.isFinite(Number(place?.rating)) ? Number(place.rating) : null;
     const rawPhotos = Array.isArray(place?.photos) ? place.photos.slice(0, perPage) : [];
 
     console.log(`SEO IMG google place found ${Boolean(placeId)}`);
     console.log(`SEO IMG google photos count ${rawPhotos.length}`);
+    console.log(`[seo images] backend response placePhotos=${rawPhotos.length}`);
 
     if (!placeId || !rawPhotos.length) {
+      console.log(`[seo images] place photos empty reason=${placeId ? "no_google_place_photos" : "no_google_place"}`);
       return {
         ok: false,
         source: "google_places",
         photos: [],
         fallbackReason: placeId ? "no_google_place_photos" : "no_google_place",
-        place: placeId ? { placeId, name: placeName, address: placeAddress } : null
+        fallbackQuery,
+        place: placeId ? { placeId, name: placeName, address: placeAddress, types: placeTypes, businessStatus: placeBusinessStatus, rating: placeRating } : null
       };
     }
 
     const photos = [];
     for (const photo of rawPhotos) {
       const googlePhotoName = normalizeGooglePhotoName(photo?.name || "");
-      if (!googlePhotoName) continue;
+      if (!googlePhotoName) {
+        console.log("[seo images] place photos empty reason=invalid_photo_reference");
+        continue;
+      }
       try {
+        console.log("[seo images] requesting place photo media");
         const thumbData = await fetchGooglePlacePhotoBuffer({
           photoName: googlePhotoName,
           apiKey: googleApiKey,
@@ -10173,14 +11430,22 @@ exports.searchGooglePlaceBusinessImages = onCall(
         });
         const author = Array.isArray(photo?.authorAttributions) ? photo.authorAttributions[0] || {} : {};
         const photographer = sanitizeString(author?.displayName || "Google Places", 120);
+        const relevanceScore = 100 + (placeTypes.some((type) => /restaurant|cafe|food|meal|bar/i.test(type)) ? 30 : 0) + (placeBusinessStatus === "OPERATIONAL" ? 10 : 0);
+        console.log(`[seo images] relevance score ${relevanceScore}`);
         photos.push({
           id: googlePhotoName,
           source: "google_places",
+          sourceGroup: "Google Place billeder",
           googlePhotoName,
           photoReference: googlePhotoName,
           placeId,
           placeName,
           placeAddress,
+          placeTypes,
+          businessStatus: placeBusinessStatus,
+          rating: placeRating,
+          relevanceScore,
+          relevanceReasons: ["google_place_photo", "place_id_match"],
           url: toImageDataUrl(thumbData),
           thumbUrl: toImageDataUrl(thumbData),
           width: Number(photo?.widthPx) || 0,
@@ -10192,16 +11457,30 @@ exports.searchGooglePlaceBusinessImages = onCall(
           query: queryText
         });
       } catch (err) {
-        console.log("SEO IMG google thumbnail failed");
+        const message = String(err?.message || "thumbnail_failed").slice(0, 160);
+        console.log(`SEO IMG google thumbnail failed ${message}`);
+        if (message.includes("_403_")) {
+          console.log("[seo images] place photos empty reason=places_photos_api_key_denied");
+        }
       }
     }
 
     console.log(`SEO IMG google thumbnails count ${photos.length}`);
+    if (photos.length) {
+      console.log("[seo images] place photo used");
+    } else {
+      console.log("[seo images] place photos empty reason=thumbnail_fetch_failed");
+    }
     return {
       ok: photos.length > 0,
       source: "google_places",
       photos,
-      place: { placeId, name: placeName, address: placeAddress },
+      fallbackQuery,
+      place: { placeId, name: placeName, address: placeAddress, types: placeTypes, businessStatus: placeBusinessStatus, rating: placeRating, photos: rawPhotos.map((photo) => ({
+        name: normalizeGooglePhotoName(photo?.name || ""),
+        width: Number(photo?.widthPx) || 0,
+        height: Number(photo?.heightPx) || 0
+      })).filter((photo) => photo.name).slice(0, perPage) },
       fallbackReason: photos.length ? "" : "thumbnail_fetch_failed"
     };
   }
@@ -10216,6 +11495,7 @@ exports.searchRestaurantImages = onCall(
 
     const data = request.data;
     const query = sanitizeString(data?.query || "", 200);
+    const businessType = sanitizeString(data?.businessType || data?.cuisineType || data?.type || "", 120);
     const perPage = Math.min(Math.max(1, Number(data?.perPage) || 15), 24);
 
     if (!query) {
@@ -10245,7 +11525,10 @@ exports.searchRestaurantImages = onCall(
     const pexelsData = await pexelsResp.json();
 
     const photos = (pexelsData.photos || [])
-      .map(p => ({
+      .map(p => {
+        const relevance = scoreBusinessImageRelevance(p, { query, businessType });
+        console.log(`[seo images] relevance score ${relevance.score}`);
+        return {
         id: String(p.id),
         url: p.src?.large2x || p.src?.large || p.src?.original || "",
         thumbUrl: p.src?.medium || p.src?.small || "",
@@ -10254,12 +11537,17 @@ exports.searchRestaurantImages = onCall(
         photographer: sanitizeString(p.photographer || "", 120),
         photographerUrl: sanitizeString(p.photographer_url || "", 300),
         source: "pexels",
+        sourceGroup: "Alternative billeder",
         sourceUrl: sanitizeString(p.url || "", 300),
         alt: sanitizeString(p.alt || query, 200),
+        relevanceScore: relevance.score,
+        relevanceReasons: relevance.reasons,
         _raw: p
-      }))
+        };
+      })
       .filter(p => p.url)
-      .sort((a, b) => scoreStockPhoto(b._raw) - scoreStockPhoto(a._raw))
+      .filter(p => p.relevanceScore >= 0 || /\b(food|restaurant|cafe|café|pizza|sushi|thai|burger|takeaway|dish|plate|menu)\b/i.test(`${p.alt} ${query} ${businessType}`))
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
       .map(({ _raw, ...rest }) => rest);
 
     return { photos, cloudName };
