@@ -1,0 +1,203 @@
+{
+  "_meta": {
+    "project": "Madkontrollen Pro",
+    "firebaseProject": "madkontrollen",
+    "repo": "D:\\madkontrol-app",
+    "cleanHostingDeployFolder": "D:\\mk-deploy-focused",
+    "note": "Read before changes; update after. See tools/*.registry.md for detail."
+  },
+  "modules": {
+    "egenkontrol": {
+      "activeFiles": [
+        "public/modules/egenkontrol/rutiner.html",
+        "public/modules/egenkontrol/rapporter.html",
+        "public/modules/egenkontrol/afvigelser.html",
+        "public/modules/egenkontrol/luk-dag.html",
+        "public/core/canonicalRoutines.js",
+        "public/modules/egenkontrol/routineCardsResolver.js"
+      ],
+      "backendFunctions": [
+        "functions/canonicalTaskEngine.js:generateCanonicalTaskTemplates",
+        "functions/canonicalTaskEngine.js:startDayForLocationCanonical",
+        "functions/canonicalTaskEngine.js:ensureSingleTaskInstance",
+        "functions/js/setupToCanonicalRoutines.js"
+      ],
+      "dataCollections": [
+        "task_templates",
+        "task_instances",
+        "task_entries",
+        "equipment",
+        "deviations",
+        "alerts",
+        "daily_runs",
+        "daily_reports",
+        "activeCoolingRuns",
+        "hot_holding_runs",
+        "companies/{companyId}/locations/{locationId}/risk_analysis",
+        "companies/{companyId}/locations/{locationId}/routine_overrides"
+      ],
+      "deprecatedFiles": [
+        "public/modules/egenkontrol/rutiner-v2.html (DELETED)",
+        "public/modules/egenkontrol/onboarding.html (legacy onboarding)"
+      ],
+      "noGoRules": [
+        "No fridge/freezer/temperature routine/template/instance without concrete equipment ref",
+        "No generic 'Fryser temperatur' / 'Køleskab temperatur'",
+        "Actor fields must not be '—' (use 'Ikke registreret')",
+        "Old bad rows: soft-archive only, never delete"
+      ],
+      "lastKnownStatus": "active; equipment-guard added in canonicalTaskEngine; report center + generic-cold filters live in working tree (not deployed)"
+    },
+    "quick_onboarding": {
+      "activeFiles": [
+        "public/quick-onboarding.html",
+        "public/core/onboarding-module-registry.js"
+      ],
+      "backendFunctions": [
+        "functions/index.js:createQuickOnboardingAccount",
+        "functions/index.js:completeQuickOnboarding",
+        "functions/index.js:finalizeOnboardingCheckoutProvisioning",
+        "functions/modules/onboarding/moduleProvisioners.js:runModuleProvisioners",
+        "functions/modules/onboarding/moduleProvisioners.js:provisionEgenkontrolModule"
+      ],
+      "dataCollections": [
+        "companies",
+        "locations",
+        "users",
+        "live_user_profiles",
+        "onboarding_answers",
+        "onboarding_checkout_drafts",
+        "checkout_sessions",
+        "equipment",
+        "task_templates",
+        "task_instances"
+      ],
+      "deprecatedFiles": [
+        "public/onboarding.html",
+        "public/modules/egenkontrol/onboarding.html"
+      ],
+      "noGoRules": [
+        "Create equipment FIRST, then per-unit templates",
+        "No duplicate seed/import; deterministic seedKey/docId",
+        "Do not couple all modules to egenkontrol; use MODULE_PROVISIONERS map"
+      ],
+      "lastKnownStatus": "active; createQuickOnboardingAccount wired to MODULE_PROVISIONERS; completeQuickOnboarding + finalize still have inline egenkontrol blocks (migration follow-up)"
+    },
+    "platform_admin": {
+      "activeFiles": [
+        "public/admin/owner-dashboard.html",
+        "public/core/platform-admin.js",
+        "public/platform/context-provider.js",
+        "public/core/auth.js",
+        "public/dashboard.html"
+      ],
+      "backendFunctions": [],
+      "dataCollections": [
+        "companies",
+        "users",
+        "platform_admin_audit"
+      ],
+      "deprecatedFiles": [],
+      "noGoRules": [
+        "mn@madkontrollen.dk must not get companyId/locationId",
+        "Recognition runtime-only via isPlatformAdmin()",
+        "Company pause/lock = soft (accessStatus/registrationWriteLocked), never delete"
+      ],
+      "lastKnownStatus": "active; platform-admin login + company pause/lock + deviation enrichment in working tree (not deployed); rules carry company-lock guards + isSuperAdmin allowlist += mn@madkontrollen.dk (not deployed)"
+    },
+    "support_app": {
+      "activeFiles": [
+        "public/admin/owner-dashboard.html (Se som kunde)",
+        "public/modules/egenkontrol/afvigelser.html (adminCompanyId/adminLocationId)"
+      ],
+      "backendFunctions": [],
+      "dataCollections": [
+        "platform_admin_audit",
+        "platform_support_sessions (TARGET — not yet implemented)"
+      ],
+      "deprecatedFiles": [
+        "sessionStorage mkp_impersonate_* (DEPRECATED impersonation)"
+      ],
+      "noGoRules": [
+        "No ordinary impersonation as support mode",
+        "readOnlySupport:true default",
+        "Only Madkontrollen's own modules; no PC/file/system access",
+        "No companyId/locationId on platform-admin"
+      ],
+      "lastKnownStatus": "interim: reuses mkp_impersonate_*; migrate to platform_support_sessions"
+    },
+    "lagerkontrol": {
+      "activeFiles": [
+        "public/modules/lagerkontrol/index.html",
+        "public/modules/lagerkontrol/lagerkontrol.js"
+      ],
+      "backendFunctions": [],
+      "dataCollections": [
+        "inventory_items",
+        "inventory_transactions",
+        "inventory_alerts",
+        "companies/{companyId}/inventory_items"
+      ],
+      "deprecatedFiles": [],
+      "noGoRules": [
+        "Company-lock applies (no runtime writes when company locked)"
+      ],
+      "lastKnownStatus": "active module; no real customers yet; provisioner is a registry-ready stub"
+    },
+    "pos": {
+      "activeFiles": [
+        "public/modules/pos/index.html",
+        "public/modules/pos/pos-store.js",
+        "public/modules/pos/context-provider.js"
+      ],
+      "backendFunctions": [],
+      "dataCollections": [
+        "companies/{companyId}/locations/{locationId}/pos_products",
+        "companies/{companyId}/locations/{locationId}/pos_sales",
+        "companies/{companyId}/locations/{locationId}/pos_cash_sessions",
+        "companies/{companyId}/locations/{locationId}/pos_payments",
+        "companies/{companyId}/locations/{locationId}/pos_settings",
+        "companies/{companyId}/locations/{locationId}/pos_audit_log"
+      ],
+      "deprecatedFiles": [],
+      "noGoRules": [
+        "Company-lock applies to all pos_* writes",
+        "pos_audit_log is create-only (immutable)"
+      ],
+      "lastKnownStatus": "active module; provisioner is a registry-ready stub"
+    },
+    "koerselskontrol": {
+      "activeFiles": [
+        "public/modules/koerselskontrol/index.html"
+      ],
+      "backendFunctions": [],
+      "dataCollections": [
+        "driving_logs (no firestore.rules block yet)",
+        "mileage_reports (no firestore.rules block yet)"
+      ],
+      "deprecatedFiles": [],
+      "noGoRules": [
+        "Add scoped rules before storing real data"
+      ],
+      "lastKnownStatus": "stub/placeholder module; provisioner is a registry-ready stub"
+    },
+    "seo": {
+      "activeFiles": [
+        "public/modules/seo/generator.html",
+        "public/modules/seo/seo-module.js"
+      ],
+      "backendFunctions": [],
+      "dataCollections": [
+        "seo_generator_configs",
+        "seo_clients",
+        "seo_sites",
+        "seo_pages"
+      ],
+      "deprecatedFiles": [],
+      "noGoRules": [
+        "Company-lock applies where relevant"
+      ],
+      "lastKnownStatus": "active module; provisioner is a registry-ready stub"
+    }
+  }
+}
