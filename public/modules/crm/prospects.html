@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
   <title>CRM Prospects - Madkontrollen Pro</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
@@ -741,7 +742,10 @@
 
   <div id="paymentLinkModal" style="display:none;"></div>
 
-  <main class="prospects-container">
+  <!-- Hidden by default; only revealed after auth + CRM access is confirmed (fail-closed). -->
+  <div id="crmGateMessage" class="prospects-container" hidden></div>
+
+  <main class="prospects-container" id="crmMain" hidden aria-hidden="true">
     <div class="prospects-header">
       <h1>CRM Prospects</h1>
       <p>Importerede potentielle kunder klar til onboarding</p>
@@ -818,6 +822,8 @@
     import { setupAuthGate } from "/core/auth.js";
     import { loadLayout } from "/core/layout.js";
     import { db } from "/core/firebase-config.js";
+    import { isPlatformAdmin } from "/core/platform-admin.js";
+    import { getEffectiveActiveModules } from "/core/module-access.js";
     import {
       collection,
       getDocs,
@@ -858,10 +864,79 @@
     const reloadBtn = document.getElementById("reloadBtn");
     const progressContainer = document.getElementById("progressContainer");
 
-    function hasAccess() {
-      if (!currentProfile) return false;
-      const role = (currentProfile.role || currentProfile.userRole || "").toLowerCase();
-      return ["owner", "admin", "hq_admin", "location_manager", "super-admin", "superadmin"].includes(role);
+    // ── CRM access model ──────────────────────────────────────────────────────
+    // Access is MODULE/ENTITLEMENT-based, not role/admin-based.
+    //
+    // INTERIM SCOPING GUARD: the `prospects` collection is currently GLOBAL and
+    // admin-imported (no per-company scoping). Until customer CRM data is moved to a
+    // company-scoped collection (companies/{companyId}/crm_prospects), the shared lead
+    // list must NOT be exposed to ordinary customers — even CRM-entitled ones — because
+    // they would read every company's leads. Firestore rules enforce this server-side
+    // (super-admin only); this mirrors the rule for correct UX/messaging. Once scoped
+    // data exists, drop the platform-admin short-circuit and load the scoped collection.
+    // Returns { allowed, reason: "platform_admin" | "no_company" | "no_module" | "scoping_pending" }.
+    async function resolveCrmAccess(user, profile) {
+      const p = profile || {};
+
+      // Platform/internal admins own the shared lead list (auditable: see platform-admin.js).
+      if (isPlatformAdmin(user, p)) {
+        return { allowed: true, reason: "platform_admin" };
+      }
+
+      const companyId = String(p.companyId || p.organizationId || "").trim();
+      const locationId = String(p.primaryLocationId || p.locationId || "").trim();
+      if (!companyId) {
+        return { allowed: false, reason: "no_company" };
+      }
+
+      // Module entitlement: paid subscription / activeModules / admin override.
+      let crmEntitled = false;
+      try {
+        const { activeModules } = await getEffectiveActiveModules(db, {
+          companyId,
+          locationId,
+          userId: String(user?.uid || "")
+        });
+        crmEntitled = activeModules.includes("crm");
+      } catch (error) {
+        console.warn("[CRM] Kunne ikke afgøre modul-adgang:", error);
+        crmEntitled = false; // deny by default
+      }
+
+      if (!crmEntitled) {
+        return { allowed: false, reason: "no_module" };
+      }
+
+      // CRM-entitled, but the shared lead list is not yet company-scoped → block to
+      // prevent cross-tenant leakage. Unblocks automatically once scoped data exists.
+      return { allowed: false, reason: "scoping_pending" };
+    }
+
+    function crmDeniedHtml(reason) {
+      if (reason === "scoping_pending") {
+        return `
+          <div class="error-state">
+            <h3>🔒 CRM er under klargøring</h3>
+            <p>Dit CRM-modul er aktivt, men din virksomheds CRM-data er endnu ikke adskilt fra det fælles datasæt.</p>
+            <p style="margin-top:8px;font-size:12px;">Du får adgang, så snart data er scoped til din virksomhed.</p>
+          </div>
+        `;
+      }
+      if (reason === "no_company") {
+        return `
+          <div class="error-state">
+            <h3>🔒 Ingen virksomhed</h3>
+            <p>Din profil mangler virksomhedstilknytning, så CRM kan ikke åbnes.</p>
+          </div>
+        `;
+      }
+      return `
+        <div class="error-state">
+          <h3>🔒 CRM kræver aktivt CRM-modul</h3>
+          <p>Du har ikke et aktivt CRM-modul på din virksomhed.</p>
+          <p style="margin-top:8px;font-size:12px;">Kontakt din administrator eller aktivér CRM-modulet for at få adgang.</p>
+        </div>
+      `;
     }
 
     function canEdit() {
@@ -1498,6 +1573,7 @@
         const payload = {
           billingPlan: billingPlan,
           source: "crm_prospect",
+          selectedModules: ["egenkontrol"],
           profile: {
             cvr: prospect.cvr || "",
             companyName: prospect.name || prospect.companyName || "",
@@ -1816,25 +1892,66 @@
 
     reloadBtn.addEventListener("click", loadProspects);
 
-    await loadLayout();
+    const crmMain = document.getElementById("crmMain");
+    const crmGateMessage = document.getElementById("crmGateMessage");
+
+    function hideCrmUi() {
+      if (crmMain) {
+        crmMain.hidden = true;
+        crmMain.setAttribute("aria-hidden", "true");
+      }
+    }
+
+    function showCrmUi() {
+      if (crmMain) {
+        crmMain.hidden = false;
+        crmMain.removeAttribute("aria-hidden");
+      }
+      if (crmGateMessage) {
+        crmGateMessage.hidden = true;
+        crmGateMessage.innerHTML = "";
+      }
+    }
+
+    function showGateMessage(html) {
+      hideCrmUi();
+      if (crmGateMessage) {
+        crmGateMessage.innerHTML = html;
+        crmGateMessage.hidden = false;
+      }
+    }
+
+    // Layout chrome is non-sensitive; never let a layout failure block the auth gate.
+    try {
+      await loadLayout();
+    } catch (error) {
+      console.error("Kunne ikke indlæse layout:", error);
+    }
 
     setupAuthGate({
       appName: "Madkontrollen Pro - CRM",
+      onSignedOut: async () => {
+        // Not logged in: keep all CRM UI hidden. The auth gate overlay shows the login form.
+        currentUser = null;
+        currentProfile = null;
+        hideCrmUi();
+        if (crmGateMessage) {
+          crmGateMessage.hidden = true;
+          crmGateMessage.innerHTML = "";
+        }
+      },
       onAuthenticated: async ({ user, profile }) => {
         currentUser = user;
         currentProfile = profile;
 
-        if (!hasAccess()) {
-          container.innerHTML = `
-            <div class="error-state">
-              <h3>🔒 Ingen adgang</h3>
-              <p>Du har ikke adgang til CRM Prospects.</p>
-              <p style="margin-top:8px;font-size:12px;">Kun owner, admin, hq_admin, location_manager og super-admin har adgang.</p>
-            </div>
-          `;
+        // Confirm auth + company context + CRM module entitlement BEFORE revealing UI or loading data.
+        const access = await resolveCrmAccess(user, profile);
+        if (!access.allowed) {
+          showGateMessage(crmDeniedHtml(access.reason));
           return;
         }
 
+        showCrmUi();
         await loadProspects();
       }
     });

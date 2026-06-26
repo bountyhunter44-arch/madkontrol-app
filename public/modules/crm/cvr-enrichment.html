@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
   <title>CVR Berigelse - Madkontrollen Pro</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <style>
@@ -377,7 +378,10 @@
 <body>
   <div id="mkpLayoutContainer"></div>
 
-  <main class="enrichment-container">
+  <!-- Hidden by default; only revealed after auth + CRM access is confirmed (fail-closed). -->
+  <div id="crmGateMessage" class="enrichment-container" hidden></div>
+
+  <main class="enrichment-container" id="crmMain" hidden aria-hidden="true">
     <div class="enrichment-header">
       <h1>🔎 CVR Berigelse</h1>
       <p>Importer CVR-numre, berig data via online API, og gem direkte i CRM prospects</p>
@@ -441,6 +445,8 @@
     import { setupAuthGate } from "/core/auth.js";
     import { loadLayout } from "/core/layout.js";
     import { db } from "/core/firebase-config.js";
+    import { isPlatformAdmin } from "/core/platform-admin.js";
+    import { getEffectiveActiveModules } from "/core/module-access.js";
     import {
       collection,
       getDocs,
@@ -478,10 +484,68 @@
     const jobDetailsCard = document.getElementById("jobDetailsCard");
     const jobDetailsContent = document.getElementById("jobDetailsContent");
 
-    function hasAccess() {
-      if (!currentProfile) return false;
-      const role = currentProfile.role;
-      return ["owner", "admin", "hq_admin", "super-admin"].includes(role);
+    // ── CRM access model ──────────────────────────────────────────────────────
+    // Module/entitlement-based, not role/admin-based. The `cvr_enrichment_jobs`
+    // collection is currently GLOBAL/admin-imported with no per-company scoping, so —
+    // exactly like prospects — ordinary customers (even CRM-entitled) must not read it
+    // until the data is company-scoped. Firestore rules enforce this server-side
+    // (super-admin only); this mirrors the rule for UX/messaging.
+    // Returns { allowed, reason: "platform_admin" | "no_company" | "no_module" | "scoping_pending" }.
+    async function resolveCrmAccess(user, profile) {
+      const p = profile || {};
+
+      if (isPlatformAdmin(user, p)) {
+        return { allowed: true, reason: "platform_admin" };
+      }
+
+      const companyId = String(p.companyId || p.organizationId || "").trim();
+      const locationId = String(p.primaryLocationId || p.locationId || "").trim();
+      if (!companyId) {
+        return { allowed: false, reason: "no_company" };
+      }
+
+      let crmEntitled = false;
+      try {
+        const { activeModules } = await getEffectiveActiveModules(db, {
+          companyId,
+          locationId,
+          userId: String(user?.uid || "")
+        });
+        crmEntitled = activeModules.includes("crm");
+      } catch (error) {
+        console.warn("[CRM] Kunne ikke afgøre modul-adgang:", error);
+        crmEntitled = false; // deny by default
+      }
+
+      if (!crmEntitled) {
+        return { allowed: false, reason: "no_module" };
+      }
+
+      return { allowed: false, reason: "scoping_pending" };
+    }
+
+    function crmDeniedHtml(reason) {
+      let title = "🔒 CRM kræver aktivt CRM-modul";
+      let body = "Du har ikke et aktivt CRM-modul på din virksomhed.";
+      let hint = "Kontakt din administrator eller aktivér CRM-modulet for at få adgang.";
+      if (reason === "scoping_pending") {
+        title = "🔒 CRM er under klargøring";
+        body = "Dit CRM-modul er aktivt, men din virksomheds CRM-data er endnu ikke adskilt fra det fælles datasæt.";
+        hint = "Du får adgang, så snart data er scoped til din virksomhed.";
+      } else if (reason === "no_company") {
+        title = "🔒 Ingen virksomhed";
+        body = "Din profil mangler virksomhedstilknytning, så CVR berigelse ikke kan åbnes.";
+        hint = "";
+      }
+      return `
+        <div class="card">
+          <div class="error-message">
+            <h3>${title}</h3>
+            <p>${body}</p>
+            ${hint ? `<p style="margin-top:8px;font-size:12px;">${hint}</p>` : ""}
+          </div>
+        </div>
+      `;
     }
 
     function escapeHtml(text) {
@@ -573,7 +637,7 @@
         return;
       }
 
-      if (!hasAccess()) {
+      if (!isPlatformAdmin(currentUser, currentProfile)) {
         alert("Du har ikke adgang til at oprette berigelse jobs");
         return;
       }
@@ -896,26 +960,66 @@
       }
     }
 
+    const crmMain = document.getElementById("crmMain");
+    const crmGateMessage = document.getElementById("crmGateMessage");
+
+    function hideCrmUi() {
+      if (crmMain) {
+        crmMain.hidden = true;
+        crmMain.setAttribute("aria-hidden", "true");
+      }
+    }
+
+    function showCrmUi() {
+      if (crmMain) {
+        crmMain.hidden = false;
+        crmMain.removeAttribute("aria-hidden");
+      }
+      if (crmGateMessage) {
+        crmGateMessage.hidden = true;
+        crmGateMessage.innerHTML = "";
+      }
+    }
+
+    function showGateMessage(html) {
+      hideCrmUi();
+      if (crmGateMessage) {
+        crmGateMessage.innerHTML = html;
+        crmGateMessage.hidden = false;
+      }
+    }
+
     setupAuthGate({
-      onAuthenticated: async (user, profile) => {
+      appName: "Madkontrollen Pro - CRM",
+      onSignedOut: async () => {
+        // Not logged in: keep all CRM UI hidden. The auth gate overlay shows the login form.
+        currentUser = null;
+        currentProfile = null;
+        hideCrmUi();
+        if (crmGateMessage) {
+          crmGateMessage.hidden = true;
+          crmGateMessage.innerHTML = "";
+        }
+      },
+      onAuthenticated: async ({ user, profile }) => {
         currentUser = user;
         currentProfile = profile;
 
-        await loadLayout();
+        // Layout chrome is non-sensitive; never let a layout failure block access control.
+        try {
+          await loadLayout();
+        } catch (error) {
+          console.error("Kunne ikke indlæse layout:", error);
+        }
 
-        if (!hasAccess()) {
-          document.querySelector(".enrichment-container").innerHTML = `
-            <div class="card">
-              <div class="error-message">
-                <h3>🔒 Ingen adgang</h3>
-                <p>Du har ikke adgang til CVR berigelse.</p>
-                <p style="margin-top:8px;font-size:12px;">Kun owner, admin, hq_admin og super-admin har adgang.</p>
-              </div>
-            </div>
-          `;
+        // Confirm auth + company context + CRM module entitlement BEFORE revealing UI or loading data.
+        const access = await resolveCrmAccess(user, profile);
+        if (!access.allowed) {
+          showGateMessage(crmDeniedHtml(access.reason));
           return;
         }
 
+        showCrmUi();
         await loadJobs();
         jobsCard.style.display = "block";
       }
