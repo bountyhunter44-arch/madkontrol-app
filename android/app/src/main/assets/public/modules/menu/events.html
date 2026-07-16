@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Events | Madkontrollen Pro</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .placeholder-wrap{display:grid;gap:16px;}
+    .placeholder-card{background:#fff;border:1px solid #d9e4d9;border-radius:18px;padding:20px;box-shadow:0 8px 20px rgba(15,23,15,.06);}
+    .placeholder-card h1,.placeholder-card h2{margin:0 0 8px;}
+    .placeholder-card p{margin:0;color:#5c6d5c;line-height:1.6;}
+    .promo-box{display:grid;gap:10px;background:linear-gradient(145deg,#eff8ef 0%,#f7fbf7 100%);border:1px solid #cfe0cf;border-radius:16px;padding:16px;}
+    .promo-kicker{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#1f5a23;}
+    .promo-title{font-size:20px;font-weight:800;color:#142514;}
+    .promo-copy{color:#355035;line-height:1.55;}
+  </style>
+</head>
+<body>
+  <div id="headerMount"></div>
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+      <section class="page-content">
+        <div class="placeholder-wrap">
+          <article class="placeholder-card">
+            <h1>Events</h1>
+            <p>Ny side oprettet til front-linket med samme sidebar-logik som resten af systemet.</p>
+            <div style="margin-top:12px;"><a class="btn btn-secondary" href="/modules/drift/events.html">Gaa til drift/events</a></div>
+          </article>
+          <article class="placeholder-card promo-box" aria-live="polite">
+            <div class="promo-kicker">Reklame</div>
+            <div id="promoTitle" class="promo-title">Planlaeg events hurtigere</div>
+            <p id="promoCopy" class="promo-copy">Byg eventpakker med standardrutiner og automatisk opfoelgning.</p>
+            <a id="promoCta" class="btn btn-secondary" href="/modules/drift/events.html">Se eventmodul</a>
+          </article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script type="module">
+    import { loadLayout } from "/core/layout.js";
+    const promotions = [
+      { title: "Planlaeg events hurtigere", copy: "Byg eventpakker med standardrutiner og automatisk opfoelgning.", ctaHref: "/modules/drift/events.html", ctaText: "Se eventmodul" },
+      { title: "Checklister pa tid", copy: "Fa opgaver rullet ud automatisk op til hvert arrangement.", ctaHref: "/modules/egenkontrol/rutiner.html", ctaText: "Aabn rutiner" },
+      { title: "Mere salg pr. event", copy: "Brug kampagner og package-priser til bedre margin.", ctaHref: "/modules/drift/menu.html", ctaText: "Se menu" }
+    ];
+    function initPromoRotator() {
+      const titleEl = document.getElementById("promoTitle");
+      const copyEl = document.getElementById("promoCopy");
+      const ctaEl = document.getElementById("promoCta");
+      if (!titleEl || !copyEl || !ctaEl) return;
+      let index = 0;
+      const render = () => {
+        const promo = promotions[index % promotions.length];
+        titleEl.textContent = promo.title;
+        copyEl.textContent = promo.copy;
+        ctaEl.textContent = promo.ctaText;
+        ctaEl.href = promo.ctaHref;
+      };
+      render();
+      setInterval(() => { index += 1; render(); }, 5000);
+    }
+    await loadLayout();
+    initPromoRotator();
+  </script>
+</body>
+</html>

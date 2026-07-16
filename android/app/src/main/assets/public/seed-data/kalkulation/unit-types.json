@@ -1,0 +1,102 @@
+[
+    {
+        "id": "g",
+        "name": "Gram",
+        "symbol": "g",
+        "type": "weight",
+        "baseUnit": true,
+        "conversionToBase": 1,
+        "sortOrder": 10,
+        "active": true
+    },
+    {
+        "id": "kg",
+        "name": "Kilogram",
+        "symbol": "kg",
+        "type": "weight",
+        "baseUnit": false,
+        "conversionToBase": 1000,
+        "sortOrder": 20,
+        "active": true
+    },
+    {
+        "id": "ml",
+        "name": "Milliliter",
+        "symbol": "ml",
+        "type": "volume",
+        "baseUnit": true,
+        "conversionToBase": 1,
+        "sortOrder": 30,
+        "active": true
+    },
+    {
+        "id": "l",
+        "name": "Liter",
+        "symbol": "l",
+        "type": "volume",
+        "baseUnit": false,
+        "conversionToBase": 1000,
+        "sortOrder": 40,
+        "active": true
+    },
+    {
+        "id": "cl",
+        "name": "Centiliter",
+        "symbol": "cl",
+        "type": "volume",
+        "baseUnit": false,
+        "conversionToBase": 10,
+        "sortOrder": 50,
+        "active": true
+    },
+    {
+        "id": "dl",
+        "name": "Deciliter",
+        "symbol": "dl",
+        "type": "volume",
+        "baseUnit": false,
+        "conversionToBase": 100,
+        "sortOrder": 60,
+        "active": true
+    },
+    {
+        "id": "stk",
+        "name": "Styk",
+        "symbol": "stk",
+        "type": "count",
+        "baseUnit": true,
+        "conversionToBase": 1,
+        "sortOrder": 70,
+        "active": true
+    },
+    {
+        "id": "pakke",
+        "name": "Pakke",
+        "symbol": "pakke",
+        "type": "count",
+        "baseUnit": false,
+        "conversionToBase": 1,
+        "sortOrder": 80,
+        "active": true
+    },
+    {
+        "id": "bakke",
+        "name": "Bakke",
+        "symbol": "bakke",
+        "type": "count",
+        "baseUnit": false,
+        "conversionToBase": 1,
+        "sortOrder": 90,
+        "active": true
+    },
+    {
+        "id": "portion",
+        "name": "Portion",
+        "symbol": "portion",
+        "type": "count",
+        "baseUnit": false,
+        "conversionToBase": 1,
+        "sortOrder": 100,
+        "active": true
+    }
+]

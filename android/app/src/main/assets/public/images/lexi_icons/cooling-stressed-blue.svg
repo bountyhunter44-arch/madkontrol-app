@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Attention status icon">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <circle cx="64" cy="64" r="56" fill="#3b82f6" filter="url(#shadow)"/>
+  <circle cx="46" cy="50" r="6" fill="#0f274f"/>
+  <circle cx="82" cy="50" r="6" fill="#0f274f"/>
+  <path d="M42 82c7-12 15-17 22-17 7 0 15 5 22 17" fill="none" stroke="#0f274f" stroke-width="6" stroke-linecap="round"/>
+</svg>

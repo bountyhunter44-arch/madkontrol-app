@@ -1,0 +1,1 @@
+﻿No screenshot captured: adb reported no connected devices/emulators.

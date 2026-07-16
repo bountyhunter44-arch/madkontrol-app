@@ -1,0 +1,86 @@
+[
+    {
+        "id": "dry_goods",
+        "name": "Tørvarer",
+        "description": "Mel, sukker, ris, pasta og andre tørvarer",
+        "sortOrder": 10,
+        "active": true
+    },
+    {
+        "id": "dairy",
+        "name": "Mejeri",
+        "description": "Mælk, fløde, smør, ost og andre mejeriprodukter",
+        "sortOrder": 20,
+        "active": true
+    },
+    {
+        "id": "meat",
+        "name": "Kød",
+        "description": "Oksekød, svinekød, kylling og andre kødprodukter",
+        "sortOrder": 30,
+        "active": true
+    },
+    {
+        "id": "fish",
+        "name": "Fisk",
+        "description": "Fisk og skaldyr",
+        "sortOrder": 40,
+        "active": true
+    },
+    {
+        "id": "vegetables",
+        "name": "Grøntsager",
+        "description": "Friske grøntsager og rodfrugter",
+        "sortOrder": 50,
+        "active": true
+    },
+    {
+        "id": "fruit",
+        "name": "Frugt",
+        "description": "Frugt og bær",
+        "sortOrder": 60,
+        "active": true
+    },
+    {
+        "id": "spices",
+        "name": "Krydderier",
+        "description": "Salt, peber, krydderier og smagsgivere",
+        "sortOrder": 70,
+        "active": true
+    },
+    {
+        "id": "oils_fats",
+        "name": "Olier og fedtstoffer",
+        "description": "Olier, margarine og fedtstoffer",
+        "sortOrder": 80,
+        "active": true
+    },
+    {
+        "id": "frozen",
+        "name": "Frostvarer",
+        "description": "Frosne råvarer",
+        "sortOrder": 90,
+        "active": true
+    },
+    {
+        "id": "drinks",
+        "name": "Drikkevarer",
+        "description": "Juice, sodavand, øl og andre drikkevarer",
+        "sortOrder": 100,
+        "active": true
+    },
+    {
+        "id": "packaging",
+        "name": "Emballage",
+        "description": "Takeaway emballage og engangsprodukter",
+        "sortOrder": 110,
+        "active": true
+    },
+    {
+        "id": "other",
+        "name": "Andet",
+        "description": "Ingredienser der ikke passer i andre kategorier",
+        "sortOrder": 120,
+        "active": true
+    }
+]

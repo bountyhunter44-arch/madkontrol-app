@@ -2,10 +2,9 @@
   "firestore": {
     "rules": "firestore.rules"
   },
-  "hosting": {
-    "predeploy": [
-      "node scripts/sync-tools-to-functions.cjs"
-    ],
+  "hosting": [
+    {
+    "target": "madkontrollen",
     "public": "public",
     "ignore": [
       "firebase.json",
@@ -21,6 +20,16 @@
       {
         "source": "/dashbord.html",
         "destination": "/dashboard",
+        "type": 301
+      },
+      {
+        "source": "/modules/egenkontrol/front.html",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/modules/egenkontrol/front",
+        "destination": "/",
         "type": 301
       }
     ],
@@ -125,11 +134,9 @@
         "function": "api"
       }
     ]
-  },
+    }
+  ],
   "functions": {
-    "predeploy": [
-      "node scripts/sync-tools-to-functions.cjs"
-    ],
     "source": "functions",
     "runtime": "nodejs22"
   }

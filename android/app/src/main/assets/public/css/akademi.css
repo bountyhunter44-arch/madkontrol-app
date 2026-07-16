@@ -1,0 +1,77 @@
+/* Header styles */
+#headerMount {
+    width: 100%;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    z-index: 100;
+}
+
+/* Sidebar styles */
+#sidebarMount {
+    width: 220px;
+    background: #f8f9fa;
+    min-height: 100vh;
+    float: left;
+    border-right: 1px solid #e0e0e0;
+}
+
+.sidebar a {
+    display: block;
+    padding: 12px 20px;
+    color: #333;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.sidebar a.active,
+.sidebar a:hover {
+    background: #e3e7fa;
+    color: #1a237e;
+    font-weight: bold;
+}
+
+/* Card grid (example) */
+.card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin: 12px 0;
+    padding: 16px;
+    transition: box-shadow 0.2s;
+}
+.card[style*="display: none"] {
+    display: none !important;
+}
+
+/* Empty state */
+#emptyStateId {
+    text-align: center;
+    color: #888;
+    margin: 40px 0;
+    font-size: 1.1em;
+}
+
+/* FAQ Accordion */
+.faq-item {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 16px 0;
+    transition: background 0.2s;
+}
+.faq-item.open {
+    background: #f5f7fa;
+}
+.faq-btn {
+    background: none;
+    border: none;
+    font-size: 1.1em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+}
+.faq-btn span:last-child {
+    font-size: 1.3em;
+    margin-left: 8px;
+    transition: transform 0.2s;
+}

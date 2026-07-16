@@ -1,0 +1,1 @@
+﻿No logcat captured: logcat waits for a connected device; adb devices returned none.

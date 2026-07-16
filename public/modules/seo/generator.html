@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
 <title>SEO Hjemmeside Generator | Madkontrollen Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
@@ -71,11 +72,10 @@ textarea{min-height:120px;resize:vertical;}
 .module-button.active{background:#2f7d32;}
 .module-button.secondary{background:#edf4ed;color:#215b25;border:1px solid #d5e5d6;}
 .preview{--theme-primary:#1f7a3d;--theme-secondary:#f8f4ea;--theme-accent:#b91c1c;--theme-text:#1f2937;--theme-hero-overlay:rgba(0,0,0,0.42);}
-.hero-awning{position:absolute;top:0;left:0;width:100%;z-index:6;pointer-events:none;line-height:0;color:var(--theme-primary);}
-.hero-awning svg{display:block;width:100%;height:auto;max-width:none;}
-.preview-hero{position:relative;min-height:520px;background-size:cover;background-position:center;overflow:hidden;padding:0;border-bottom:none;}
-.preview-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.22),var(--theme-hero-overlay));}
-.hero-inner{position:relative;z-index:7;max-width:1200px;margin:0 auto;padding:80px 24px 60px;text-align:center;color:#ffffff;}
+.site-hero,.preview-hero{position:relative;min-height:420px;background:var(--theme-primary);background-size:cover;background-position:center;overflow:hidden;padding:0;border-bottom:none;border-radius:24px;}
+.hero-bg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;}
+.hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,.45),rgba(0,0,0,.62));}
+.hero-inner,.hero-content{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:72px 28px;text-align:center;color:#ffffff;}
 .hero-logo-badge{width:90px;height:90px;margin:0 auto 16px;border-radius:999px;background:rgba(255,255,255,0.94);border:4px solid var(--theme-primary);display:grid;place-items:center;color:var(--theme-primary);font-weight:800;font-size:24px;box-shadow:0 8px 20px rgba(0,0,0,0.18);}
 .hero-title{margin:0;font-size:clamp(36px,6vw,72px);line-height:0.95;font-weight:900;letter-spacing:-0.03em;text-shadow:0 4px 12px rgba(0,0,0,0.3);color:#fff;}
 .hero-subtitle{margin:14px auto 0;max-width:700px;font-size:clamp(18px,2vw,28px);line-height:1.2;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.25);color:#fff;}
@@ -197,6 +197,8 @@ textarea{min-height:120px;resize:vertical;}
 .subdomain-banner-status{font-size:12px;color:rgba(255,255,255,.65);margin-top:2px;}
 @media (max-width:1120px){.templates{grid-template-columns:repeat(2,minmax(0,1fr));}.hero-grid,.preview-main{grid-template-columns:1fr;}}
 @media (max-width:780px){body{padding:18px;}.grid,.templates,.module-grid,.hero-stat-grid,.features,.menu,.seo-grid{grid-template-columns:1fr;}h1{font-size:32px;}#previewTitle{font-size:30px;}.selection-row{flex-direction:column;align-items:flex-start;}.module-button-row{grid-template-columns:1fr;}}
+@media (max-width:700px){html,body{overflow-x:hidden;}.site-hero,.preview-hero{min-height:360px;border-radius:18px;}.hero-inner,.hero-content{padding:54px 20px;}.hero-content h1,.hero h1,#previewTitle{font-size:clamp(2rem,9vw,3.1rem);line-height:1.04;}.actions,.hero-actions{display:flex;flex-wrap:wrap;gap:10px;}.hero-action{max-width:100%;}}
+@media (max-width:420px){.site-hero,.preview-hero{min-height:330px;}.hero-inner,.hero-content{padding:46px 18px;}}
 /* === IMAGE SEARCH PANEL === */
 .img-search-panel{margin-top:20px;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border:1px solid rgba(221,231,221,.95);border-radius:var(--radius-xl);box-shadow:var(--shadow);padding:28px;}
 .img-search-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:20px;}
@@ -234,6 +236,12 @@ textarea{min-height:120px;resize:vertical;}
 .business-image-meta{display:grid;gap:8px;font-size:13px;color:var(--muted);}
 .business-image-meta strong{font-size:15px;color:#172117;}
 .business-image-status{margin:10px 0 0;font-size:13px;display:none;}
+.hero-effects-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:16px;}
+.hero-effect-control{display:grid;gap:8px;background:#fcfefc;border:1px solid var(--border);border-radius:16px;padding:14px;}
+.hero-effect-control label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0;font-size:13px;}
+.hero-effect-value{font-variant-numeric:tabular-nums;color:var(--green-dark);font-weight:800;}
+.hero-effect-control input[type="range"]{height:36px;padding:0;accent-color:var(--green);cursor:pointer;touch-action:pan-x;}
+.hero-effect-stub{display:grid;gap:8px;align-content:start;background:#f7faf7;border:1px dashed #cfdccf;border-radius:16px;padding:14px;color:var(--muted);font-size:13px;}
 @media(max-width:780px){.business-image-preview{grid-template-columns:1fr;}}
 .places-panel{margin:0 0 20px;background:#fbfdfb;border:1px solid var(--border);border-radius:18px;padding:18px;display:grid;gap:12px;}
 .places-search-row{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:10px;align-items:end;}
@@ -250,21 +258,50 @@ textarea{min-height:120px;resize:vertical;}
 @media(max-width:780px){.places-search-row,.places-result{grid-template-columns:1fr;}}
 /* === HERO IMAGE BACKGROUND === */
 .preview-hero.has-hero-image{position:relative;background-size:cover;background-position:center;background-repeat:no-repeat;}
-.preview-hero.has-hero-image::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:0;pointer-events:none;}
-.preview-hero.has-hero-image>*{position:relative;z-index:1;}
+.preview-hero.has-hero-image .hero-overlay{background:rgba(0,0,0,.45);}
+.preview-hero.has-hero-image .hero-content,.preview-hero.has-hero-image .hero-inner{position:relative;z-index:5;}
 .preview-hero.has-hero-image .hero-badge{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.25);color:#fff;}
 .preview-hero.has-hero-image #previewTitle{color:#fff;}
 .preview-hero.has-hero-image #previewSeo,.preview-hero.has-hero-image .muted{color:rgba(255,255,255,.82);}
 .preview-hero.has-hero-image .subdomain-banner{background:rgba(0,0,0,.5);}
 .preview-hero.has-hero-image .stat-mini{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.22);color:#fff;}
 .preview-hero.has-hero-image .stat-label,.preview-hero.has-hero-image .muted{color:rgba(255,255,255,.70);}
+.seo-product-topbar{position:sticky;top:0;z-index:1000;background:rgba(255,255,255,.94);border-bottom:1px solid var(--border,#dde7dd);backdrop-filter:blur(14px);}
+.seo-product-topbar-inner{max-width:1180px;margin:0 auto;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.seo-product-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#172117;font-weight:800;}
+.seo-product-brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:#2f7d32;color:#fff;}
+.seo-product-brand span:last-child{display:grid;gap:2px;}
+.seo-product-brand small{font-size:12px;font-weight:600;color:var(--muted,#607060);}
+.seo-product-nav{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;}
+.seo-product-nav a{display:inline-flex;align-items:center;min-height:36px;padding:8px 12px;border-radius:999px;border:1px solid transparent;text-decoration:none;color:var(--muted,#607060);font-size:14px;font-weight:700;}
+.seo-product-nav a:hover,.seo-product-nav a[aria-current="page"]{background:#eaf5ea;border-color:#d7e6d7;color:#215b25;}
+.page-shell .container.app-layout{display:block;width:min(1240px,calc(100% - 32px));max-width:1240px;margin:0 auto;}
+.page-shell .page-content{width:100%;max-width:100%;min-width:0;}
+.seo-wrap{width:100%;max-width:100%;}
+@media(max-width:780px){.seo-product-topbar-inner{display:grid;align-items:start}.seo-product-nav{justify-content:flex-start}.container.app-layout{display:block}.page-content{width:100%;}}
 </style>
 </head>
 <body>
-  <div id="headerMount"></div>
+  <header class="seo-product-topbar">
+    <div class="seo-product-topbar-inner">
+      <a class="seo-product-brand" href="/modules/seo/index.html">
+        <span class="seo-product-brand-mark">SEO</span>
+        <span>SEO Automatik<small>VPS generator og publisher</small></span>
+      </a>
+      <nav class="seo-product-nav" aria-label="SEO Automatik navigation">
+        <a href="/modules/seo/dashboard.html">Dashboard</a>
+        <a href="/modules/seo/clients.html">Kunder</a>
+        <a href="/modules/seo/site-builder.html">Site-builder</a>
+        <a href="/modules/seo/generator.html" aria-current="page">Generator</a>
+        <a href="/modules/seo/pages.html">Sider</a>
+        <a href="/modules/seo/operations.html#search-console">Search Console</a>
+        <a href="/modules/seo/reports.html">Rapporter</a>
+        <a href="/modules/seo/operations.html">Operations</a>
+      </nav>
+    </div>
+  </header>
   <main class="page-shell">
     <div class="container app-layout">
-      <div id="sidebarMount"></div>
       <section class="page-content">
         <div class="seo-wrap">
 
@@ -446,10 +483,46 @@ textarea{min-height:120px;resize:vertical;}
     </div>
   </div>
 
+  <div class="img-search-panel" id="heroImageEffectsPanel">
+    <h3 class="section-title" style="margin-top:0;">Hero billede effekter</h3>
+    <p class="help-text">Juster hvordan hero-billedet vises på landingssiden. Originalbilledet bevares uændret, og effekterne lægges kun på den publicerede visning.</p>
+    <div class="hero-effects-grid">
+      <div class="hero-effect-control">
+        <label for="heroEffectBrightness">Brightness <span class="hero-effect-value" id="heroEffectBrightnessValue">8</span></label>
+        <input id="heroEffectBrightness" class="hero-effect-input" type="range" min="-40" max="50" step="1" value="8">
+      </div>
+      <div class="hero-effect-control">
+        <label for="heroEffectContrast">Contrast <span class="hero-effect-value" id="heroEffectContrastValue">4</span></label>
+        <input id="heroEffectContrast" class="hero-effect-input" type="range" min="-30" max="40" step="1" value="4">
+      </div>
+      <div class="hero-effect-control">
+        <label for="heroEffectBlur">Blur <span class="hero-effect-value" id="heroEffectBlurValue">0</span></label>
+        <input id="heroEffectBlur" class="hero-effect-input" type="range" min="0" max="12" step="1" value="0">
+      </div>
+      <div class="hero-effect-control">
+        <label for="heroEffectSaturation">Saturation <span class="hero-effect-value" id="heroEffectSaturationValue">8</span></label>
+        <input id="heroEffectSaturation" class="hero-effect-input" type="range" min="-40" max="60" step="1" value="8">
+      </div>
+      <div class="hero-effect-control">
+        <label for="heroEffectOverlay">Overlay darkness <span class="hero-effect-value" id="heroEffectOverlayValue">0.38</span></label>
+        <input id="heroEffectOverlay" class="hero-effect-input" type="range" min="0.20" max="0.75" step="0.01" value="0.38">
+      </div>
+      <div class="hero-effect-control">
+        <label for="heroEffectZoom">Zoom <span class="hero-effect-value" id="heroEffectZoomValue">1.00</span></label>
+        <input id="heroEffectZoom" class="hero-effect-input" type="range" min="1" max="1.35" step="0.01" value="1">
+      </div>
+      <div class="hero-effect-stub">
+        <strong>Focus X/Y</strong>
+        <span>Kommer senere. Første version bruger Cloudinary <code>g_auto</code>.</span>
+      </div>
+    </div>
+  </div>
+
   <div class="preview" id="preview">
-    <section class="preview-hero">
-      <div id="heroAwning" class="hero-awning" aria-hidden="true"></div>
-      <div class="hero-inner">
+    <section class="preview-hero site-hero" id="previewHero">
+      <div class="hero-bg" id="previewHeroBg" aria-hidden="true"></div>
+      <div class="hero-overlay" aria-hidden="true"></div>
+      <div class="hero-inner hero-content">
         <div class="hero-logo-badge" id="heroLogo">MK</div>
         <h1 class="hero-title" id="previewTitle"></h1>
         <p class="hero-subtitle" id="previewSeo"></p>
@@ -531,46 +604,45 @@ textarea{min-height:120px;resize:vertical;}
               <div>
                 <span class="eyebrow">Portal</span>
                 <h2 style="margin:6px 0 4px;">Flere værktøjer</h2>
-                <p style="margin:0;color:var(--muted,#607060);font-size:14px;">Arbejd videre med dine data i andre moduler</p>
+                <p style="margin:0;color:var(--muted,#607060);font-size:14px;">Arbejd videre i SEO Automatik</p>
               </div>
             </div>
             <div class="mkp-footer-nav-grid">
-              <a href="/modules/drift/menu.html" class="mkp-footer-card">
-                <div class="mkp-footer-card-icon">🍽️</div>
-                <div class="mkp-footer-card-title">Drift</div>
-                <div class="mkp-footer-card-desc">Daglig driftsstyring, menuer og retter</div>
+              <a href="/modules/seo/dashboard.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">SEO</div>
+                <div class="mkp-footer-card-title">Dashboard</div>
+                <div class="mkp-footer-card-desc">Overblik over SEO-kunder og sites</div>
               </a>
-              <a href="/modules/kalkulation/index.html" class="mkp-footer-card">
-                <div class="mkp-footer-card-icon">🧮</div>
-                <div class="mkp-footer-card-title">Kalkulation</div>
-                <div class="mkp-footer-card-desc">Opskrifter, priser og menugrundlag</div>
+              <a href="/modules/seo/site-builder.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">Byg</div>
+                <div class="mkp-footer-card-title">Site-builder</div>
+                <div class="mkp-footer-card-desc">Klargør virksomhedsdata før generatoren</div>
               </a>
-              <a href="/modules/egenkontrol/rutiner.html" class="mkp-footer-card">
-                <div class="mkp-footer-card-icon">✅</div>
-                <div class="mkp-footer-card-title">Rutiner</div>
-                <div class="mkp-footer-card-desc">Temperaturkontrol, rengøring og registreringer</div>
+              <a href="/modules/seo/pages.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">Sider</div>
+                <div class="mkp-footer-card-title">SEO sider</div>
+                <div class="mkp-footer-card-desc">Planlagte landingssider og søgeintentioner</div>
               </a>
-              <a href="/modules/egenkontrol/rapporter.html" class="mkp-footer-card">
-                <div class="mkp-footer-card-icon">📊</div>
+              <a href="/modules/seo/reports.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">Rap.</div>
                 <div class="mkp-footer-card-title">Rapporter</div>
-                <div class="mkp-footer-card-desc">Eksportér logs, fotos og dokumentation</div>
+                <div class="mkp-footer-card-desc">Status for sider, sitemap, robots og CTA</div>
               </a>
-              <a href="/modules/egenkontrol/risikoanalyse.html" class="mkp-footer-card">
-                <div class="mkp-footer-card-icon">🛡️</div>
-                <div class="mkp-footer-card-title">Risikoanalyse</div>
-                <div class="mkp-footer-card-desc">HACCP-plan og dokumentation til myndighedsbesøg</div>
+              <a href="/modules/seo/clients.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">Kunde</div>
+                <div class="mkp-footer-card-title">Kunder</div>
+                <div class="mkp-footer-card-desc">SEO-only og bundle kunder</div>
               </a>
-              <a href="/modules/core/billed-arkiv.html" class="mkp-footer-card">
-                <div class="mkp-footer-card-icon">🖼️</div>
-                <div class="mkp-footer-card-title">Billedarkiv</div>
-                <div class="mkp-footer-card-desc">Foto-dokumentation fra drift og kontroller</div>
+              <a href="/modules/seo/generator.html" class="mkp-footer-card">
+                <div class="mkp-footer-card-icon">Live</div>
+                <div class="mkp-footer-card-title">Generator</div>
+                <div class="mkp-footer-card-desc">Gem, publish og deploy via VPS-flowet</div>
               </a>
             </div>
           </section>
 
 
 <script type="module">
-import { loadLayout } from "/core/layout.js";
 import { setupAuthGate } from "/core/auth.js";
 import app, { db, auth } from "/core/firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -618,6 +690,7 @@ const kitchenTypeModuleMap = {
 const templates = document.querySelectorAll(".template");
 const templateTitles = {classic:"Standard / Classic",modern:"Modern",dark:"Dark",street:"Streetfood",minimal:"Minimal",luxury:"Luxury",bistro:"Bistro",fastfood:"Fastfood",takeaway:"Takeaway",foodtruck:"Foodtruck"};
 const coreSignupData = {businessName:"Århus Burger",subdomain:"aarhus-burger",city:"Aarhus",cuisineType:"Burger",offerings:"burger, takeaway, catering, menuer, frokost",keyword:"bedste burger i Aarhus",phone:"70 12 34 56",address:"Søndergade 24, 8000 Aarhus C",description:"Århus Burger laver saftige burgere, sprøde fritter, takeaway og catering til både hverdag og events i Aarhus.",preferredTemplate:"classic",pageCount:"50",logoPosition:"card"};
+const DEFAULT_HERO_IMAGE_EFFECTS = { brightness: 8, contrast: 4, blur: 0, saturation: 8, overlayDarkness: 0.38, zoom: 1 };
 const modules = [
   {key:"core",addonKey:null,title:"Madkontrollen Kernen",status:"Aktiv",description:"Grundmodulet med stamdata, onboarding og standard hjemmeside.",button:"Aktiv nu",previewButton:"Se indhold",price:"123",locked:false,kind:"base"},
 ];
@@ -796,7 +869,7 @@ function mapQuickIndustryToCuisine(value){
   const map={
     restaurant:"Klassisk dansk restaurant",
     cafe:"Café",
-    "cafÃ©":"Café",
+    "café":"Café",
     takeaway:"Takeaway",
     ice_shop:"Isbutik",
     bakery:"Bageri og konditori",
@@ -1255,6 +1328,10 @@ function getGeneratorConfig(){
     subdomain
   });
   const ctaButtons=buildSeoActionButtons({ phone, websiteUrl, subdomain, cta });
+  const authenticImages=collectSeoAuthenticImages();
+  const primaryAuthenticImage=authenticImages[0] || null;
+  const heroImageEffects=readHeroImageEffects();
+  console.log("[seo hero image effects]", heroImageEffects);
 
   return {
     businessName:name,
@@ -1277,7 +1354,11 @@ function getGeneratorConfig(){
     design:selectedTemplate,
     logoDataUrl:uploadedLogoDataUrl || "",
     seoNarrative,
-    heroImageUrl:imgState.enhancedUrl || getDefaultHeroImageUrl(),
+    heroImageUrl:primaryAuthenticImage?.heroImageUrl || "",
+    heroImageAlt:primaryAuthenticImage?.heroImageAlt || `${name} hero`,
+    heroImagePublicId:primaryAuthenticImage?.heroImagePublicId || "",
+    heroImageEffects,
+    authenticImages,
     websiteUrl,
     cta,
     ctaText:cta.text,
@@ -1369,7 +1450,7 @@ function sanitizeSeoConfigForFirestore(config){
     }
     if(typeof value==="number" || typeof value==="boolean") return value;
     if(Array.isArray(value)){
-      const limit=key==="landingPages" ? SEO_HARD_MAX_PAGES : 10;
+      const limit=(key==="landingPages" || key==="authenticImages") ? SEO_HARD_MAX_PAGES : 10;
       return value.slice(0,limit)
         .map((item)=>cleanValue(item,"",depth+1))
         .filter((item)=>item !== undefined);
@@ -1394,7 +1475,18 @@ function sanitizeSeoConfigForFirestore(config){
   sanitized.googleMapsUrl=sanitized.googlePlace.googleMapsUrl || "";
   if(/^data:/i.test(String(sanitized.logoDataUrl || ""))) sanitized.logoDataUrl="";
   if(/^data:/i.test(String(sanitized.heroImageUrl || ""))) sanitized.heroImageUrl="";
+  sanitized.heroImageEffects={
+    brightness:Math.round(clampNumber(source.heroImageEffects?.brightness, -40, 50, DEFAULT_HERO_IMAGE_EFFECTS.brightness)),
+    contrast:Math.round(clampNumber(source.heroImageEffects?.contrast, -30, 40, DEFAULT_HERO_IMAGE_EFFECTS.contrast)),
+    blur:Math.round(clampNumber(source.heroImageEffects?.blur, 0, 12, DEFAULT_HERO_IMAGE_EFFECTS.blur)),
+    saturation:Math.round(clampNumber(source.heroImageEffects?.saturation, -40, 60, DEFAULT_HERO_IMAGE_EFFECTS.saturation)),
+    overlayDarkness:Number(clampNumber(source.heroImageEffects?.overlayDarkness, 0.2, 0.75, DEFAULT_HERO_IMAGE_EFFECTS.overlayDarkness).toFixed(2)),
+    zoom:Number(clampNumber(source.heroImageEffects?.zoom, 1, 1.35, DEFAULT_HERO_IMAGE_EFFECTS.zoom).toFixed(2))
+  };
   if(Array.isArray(sanitized.landingPages)) sanitized.landingPages=sanitized.landingPages.slice(0,SEO_HARD_MAX_PAGES);
+  sanitized.authenticImages=Array.isArray(sanitized.authenticImages)
+    ? sanitized.authenticImages.map(normalizeSeoAuthenticImage).filter(Boolean).slice(0,SEO_HARD_MAX_PAGES)
+    : [];
   if(Array.isArray(sanitized.ctaButtons)) sanitized.ctaButtons=sanitized.ctaButtons.slice(0,10);
   return sanitized;
 }
@@ -1566,6 +1658,7 @@ function saveLocalDraft(){
       googleMapsUrl:c.googleMapsUrl,
       logoDataUrl:  c.logoDataUrl || "",
       heroImageUrl: c.heroImageUrl || "",
+      heroImageEffects:c.heroImageEffects,
       savedAt:      Date.now()
     };
     localStorage.setItem(draftKey, JSON.stringify(draft));
@@ -1576,11 +1669,14 @@ function restoreLocalDraft(){
   try{
     const draftKey=getScopedSeoDraftKey();
     if(!draftKey) return false;
-    const raw = localStorage.getItem(draftKey);
+    const raw = localStorage.getItem(draftKey) || localStorage.getItem("seoAutomatikDraft");
     if(!raw) return false;
     const d = JSON.parse(raw);
     if(!d || !d.businessName) return false;
-    if(String(d.companyId || "") !== String(currentCompanyId || "") || String(d.locationId || "") !== String(currentLocationId || "")) return false;
+    if((d.companyId || d.locationId) && (String(d.companyId || "") !== String(currentCompanyId || "") || String(d.locationId || "") !== String(currentLocationId || ""))) return false;
+    if(!d.cuisineType && d.industry) d.cuisineType = d.industry;
+    if(!d.keyword && d.primaryKeywords) d.keyword = String(d.primaryKeywords).split(/[\n,]+/).map((item)=>item.trim()).filter(Boolean)[0] || "";
+    if(!d.subdomain && d.domain) d.subdomain = slugifySeoPathPart(d.domain, d.businessName || "restaurant").replace(/-madkontrollen-dk$/,"");
     const set = (id, val) => { const el = document.getElementById(id); if(el && val != null && val !== "") el.value = val; };
     set("name",         d.businessName);
     set("subdomain",    d.subdomain);
@@ -1601,6 +1697,7 @@ function restoreLocalDraft(){
     set("googleMapsUrl", d.googleMapsUrl || d.googlePlace?.googleMapsUrl || "");
     renderSelectedGooglePlace();
     if(d.heroImageUrl)  imgState.enhancedUrl   = d.heroImageUrl;
+    setHeroImageEffects(d.heroImageEffects || DEFAULT_HERO_IMAGE_EFFECTS);
     if(d.logoDataUrl)   uploadedLogoDataUrl     = d.logoDataUrl;
     if(d.selectedTemplate){
       selectedTemplate = d.selectedTemplate;
@@ -1992,6 +2089,13 @@ function scheduleAutoSave(){
   const el = document.getElementById(id);
   if(el) el.addEventListener("input", scheduleAutoSave);
 });
+document.querySelectorAll(".hero-effect-input").forEach((el)=>{
+  el.addEventListener("input",()=>{
+    updateHeroEffectLabels();
+    if(document.getElementById("preview").style.display==="block") generateSite(false,{silent:true});
+  });
+  el.addEventListener("change",scheduleAutoSave);
+});
 ["themePrimary","themeSecondary","themeAccent"].forEach(id=>{
   const el = document.getElementById(id);
   if(el) el.addEventListener("input", scheduleAutoSave);
@@ -2030,6 +2134,88 @@ if(placesSearchInput){
 
 function capitalize(text){return text ? text.charAt(0).toUpperCase()+text.slice(1) : "";}
 function slugify(text,fallback=""){return slugifySeoPathPart(text,fallback);}
+function clampNumber(value,min,max,fallback){
+  const num=Number(value);
+  if(!Number.isFinite(num)) return fallback;
+  return Math.min(max,Math.max(min,num));
+}
+function readHeroImageEffects(){
+  return {
+    brightness:Math.round(clampNumber(document.getElementById("heroEffectBrightness")?.value, -40, 50, DEFAULT_HERO_IMAGE_EFFECTS.brightness)),
+    contrast:Math.round(clampNumber(document.getElementById("heroEffectContrast")?.value, -30, 40, DEFAULT_HERO_IMAGE_EFFECTS.contrast)),
+    blur:Math.round(clampNumber(document.getElementById("heroEffectBlur")?.value, 0, 12, DEFAULT_HERO_IMAGE_EFFECTS.blur)),
+    saturation:Math.round(clampNumber(document.getElementById("heroEffectSaturation")?.value, -40, 60, DEFAULT_HERO_IMAGE_EFFECTS.saturation)),
+    overlayDarkness:Number(clampNumber(document.getElementById("heroEffectOverlay")?.value, 0.2, 0.75, DEFAULT_HERO_IMAGE_EFFECTS.overlayDarkness).toFixed(2)),
+    zoom:Number(clampNumber(document.getElementById("heroEffectZoom")?.value, 1, 1.35, DEFAULT_HERO_IMAGE_EFFECTS.zoom).toFixed(2))
+  };
+}
+function setHeroImageEffects(effects={}){
+  const normalized={
+    brightness:Math.round(clampNumber(effects.brightness, -40, 50, DEFAULT_HERO_IMAGE_EFFECTS.brightness)),
+    contrast:Math.round(clampNumber(effects.contrast, -30, 40, DEFAULT_HERO_IMAGE_EFFECTS.contrast)),
+    blur:Math.round(clampNumber(effects.blur, 0, 12, DEFAULT_HERO_IMAGE_EFFECTS.blur)),
+    saturation:Math.round(clampNumber(effects.saturation, -40, 60, DEFAULT_HERO_IMAGE_EFFECTS.saturation)),
+    overlayDarkness:Number(clampNumber(effects.overlayDarkness, 0.2, 0.75, DEFAULT_HERO_IMAGE_EFFECTS.overlayDarkness).toFixed(2)),
+    zoom:Number(clampNumber(effects.zoom, 1, 1.35, DEFAULT_HERO_IMAGE_EFFECTS.zoom).toFixed(2))
+  };
+  const values=[
+    ["heroEffectBrightness",normalized.brightness],
+    ["heroEffectContrast",normalized.contrast],
+    ["heroEffectBlur",normalized.blur],
+    ["heroEffectSaturation",normalized.saturation],
+    ["heroEffectOverlay",normalized.overlayDarkness],
+    ["heroEffectZoom",normalized.zoom]
+  ];
+  values.forEach(([id,value])=>{
+    const el=document.getElementById(id);
+    if(el) el.value=String(value);
+  });
+  updateHeroEffectLabels(normalized);
+  return normalized;
+}
+function updateHeroEffectLabels(effects=readHeroImageEffects()){
+  const labels={
+    heroEffectBrightnessValue:effects.brightness,
+    heroEffectContrastValue:effects.contrast,
+    heroEffectBlurValue:effects.blur,
+    heroEffectSaturationValue:effects.saturation,
+    heroEffectOverlayValue:Number(effects.overlayDarkness).toFixed(2),
+    heroEffectZoomValue:Number(effects.zoom).toFixed(2)
+  };
+  Object.entries(labels).forEach(([id,value])=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=String(value);
+  });
+}
+function buildCloudinaryHeroTransformUrl(url,effects={}){
+  const clean=normalizeSeoCloudinaryUrl(url);
+  if(!clean || !clean.includes("/image/upload/")) return url || "";
+  const normalized={
+    brightness:Math.round(clampNumber(effects.brightness, -40, 50, DEFAULT_HERO_IMAGE_EFFECTS.brightness)),
+    contrast:Math.round(clampNumber(effects.contrast, -30, 40, DEFAULT_HERO_IMAGE_EFFECTS.contrast)),
+    blur:Math.round(clampNumber(effects.blur, 0, 12, DEFAULT_HERO_IMAGE_EFFECTS.blur)),
+    saturation:Math.round(clampNumber(effects.saturation, -40, 60, DEFAULT_HERO_IMAGE_EFFECTS.saturation)),
+    zoom:Number(clampNumber(effects.zoom, 1, 1.35, DEFAULT_HERO_IMAGE_EFFECTS.zoom).toFixed(2))
+  };
+  const transforms=[
+    "f_auto",
+    "q_auto",
+    "c_fill",
+    "g_auto",
+    "w_1800",
+    "h_1000"
+  ];
+  if(normalized.zoom > 1) transforms.push(`z_${normalized.zoom.toFixed(2).replace(/0+$/,"").replace(/\.$/,"")}`);
+  if(normalized.brightness) transforms.push(`e_brightness:${normalized.brightness}`);
+  if(normalized.contrast) transforms.push(`e_contrast:${normalized.contrast}`);
+  if(normalized.saturation) transforms.push(`e_saturation:${normalized.saturation}`);
+  if(normalized.blur) transforms.push(`e_blur:${normalized.blur * 100}`);
+  const [prefix,rest]=clean.split("/image/upload/");
+  const cleanRest=String(rest || "").replace(/^\/+/,"");
+  const transformed=`${prefix}/image/upload/${transforms.join(",")}/${cleanRest}`;
+  console.log("[seo transformed hero image url]", transformed);
+  return transformed;
+}
 function normalizeSeoCtaInput({ ctaText, ctaUrl, websiteUrl, phone, subdomain } = {}){
   const cleanText=String(ctaText || "").trim();
   const cleanPhone=String(phone || "").trim();
@@ -2107,6 +2293,60 @@ function buildSeoActionButtons({ phone, websiteUrl, subdomain, cta } = {}){
   }
   buttons.push({ label:"Se menu", text:"Se menu", href:`${domain}/#menu`, url:`${domain}/#menu`, kind:"menu" });
   return dedupeSeoActionButtons(buttons,3);
+}
+function normalizeSeoCloudinaryUrl(value){
+  const url=String(value || "").trim();
+  return /^https:\/\/res\.cloudinary\.com\//i.test(url) ? url : "";
+}
+function normalizeSeoAuthenticImage(candidate={}){
+  if(!candidate || typeof candidate !== "object") return null;
+  const source=String(candidate.source || candidate.provider || candidate.sourceProvider || "").toLowerCase();
+  if(/pexels|stock|openai|ai_generated|ai-generated/.test(source)) return null;
+  const heroImageUrl=normalizeSeoCloudinaryUrl(
+    candidate.heroImageUrl ||
+    candidate.optimizedUrl ||
+    candidate.enhancedUrl ||
+    candidate.secureUrl ||
+    candidate.secure_url ||
+    candidate.url ||
+    candidate.originalUrl ||
+    ""
+  );
+  if(!heroImageUrl) return null;
+  return {
+    heroImageUrl,
+    heroImageAlt:String(candidate.heroImageAlt || candidate.alt || "Restaurant billede").trim().slice(0,220),
+    heroImagePublicId:String(candidate.heroImagePublicId || candidate.publicId || candidate.cloudinaryPublicId || "").trim().slice(0,300),
+    source:String(candidate.source || candidate.provider || "cloudinary").trim().slice(0,80)
+  };
+}
+function collectSeoAuthenticImages(){
+  const candidates=[];
+  const push=(value)=>{
+    if(!value) return;
+    if(Array.isArray(value)){ value.forEach(push); return; }
+    if(typeof value==="object") candidates.push(value);
+  };
+  push(selectedBusinessImage?.cloudinaryImage);
+  push(selectedBusinessImage?.heroImage);
+  push(imgState.selected);
+  if(selectedBusinessImage?.cloudinaryImage && imgState.enhancedUrl){
+    push({
+      heroImageUrl:imgState.enhancedUrl,
+      heroImageAlt:`${document.getElementById("name")?.value || "Restaurant"} hero`,
+      source:selectedBusinessImage.cloudinaryImage.source || "business_image_search"
+    });
+  }
+  const seen=new Set();
+  return candidates
+    .map(normalizeSeoAuthenticImage)
+    .filter(Boolean)
+    .filter((image)=>{
+      if(seen.has(image.heroImageUrl)) return false;
+      seen.add(image.heroImageUrl);
+      return true;
+    })
+    .slice(0,SEO_HARD_MAX_PAGES);
 }
 function setPlacesStatus(message,isError=false){
   const el=document.getElementById("placesStatus");
@@ -2306,7 +2546,7 @@ const _MENU_POOLS={
     {n:"Bistecca",v:["Beef pizza med rucola","Tyndskåret oksekød pizza","Dry-aged beef pizza"]},
     {n:"Hawai",v:["Hawaii pizza","Skinke og ananas","Tropical pizza med ananas og jalapeño"]},
   ],
-  café:[
+  "café":[
     {n:"Smørrebrød",v:["Klassisk smørrebrød","Avocado smørrebrød med radisser","Æg og rejer på rugbrød"]},
     {n:"Sandwich",v:["Grillet kylling sandwich","Club sandwich","BLT sandwich med crispy bacon"]},
     {n:"Salat",v:["Caesar salat med kylling","Nicoise salat","Sæson-salat med gedeost og nødder"]},
@@ -2363,7 +2603,7 @@ const _DISH_DESC={
     d=>`${d} – håndkastet bund med friske, sæsonbetingede topping og kun det bedste.`,
     d=>`Nyd ${d} – en klassisk kombination på tyndt, sprødt pizzabund.`,
   ],
-  café:[
+  "café":[
     d=>`${d} – tilberedt med sæsonens bedste råvarer og kærlighed til detaljen.`,
     d=>`${d} er en fast favorit – dejlig og nem at nyde i godt selskab.`,
     d=>`${d} serveres frisklavet med hjemmelavet tilbehør og et smil.`,
@@ -2547,13 +2787,16 @@ function openSeoModal(page){
     .join("");
 
   document.getElementById("seoModalBody").innerHTML=`
-    <div class="seo-lp-hero${heroClass}"${heroBgAttr}>
-      <div class="hero-awning" data-awning></div>
-      <div class="seo-lp-path">${escapeHtml(page.canonicalPath||"")} &nbsp;&bull;&nbsp; <em>${escapeHtml(page.title||"")}</em></div>
-      <h1 class="seo-lp-h1">${escapeHtml(page.h1||page.title||"")}</h1>
-      <p class="seo-lp-meta">${escapeHtml(page.metaDescription||"")}</p>
-      ${ctaTag}
-      ${styleNote}
+    <div class="seo-lp-hero site-hero${heroClass}"${heroBgAttr}>
+      <div class="hero-bg" aria-hidden="true"${heroBgAttr ? heroBgAttr.replace(/^ style=/," style=") : ""}></div>
+      <div class="hero-overlay" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="seo-lp-path">${escapeHtml(page.canonicalPath||"")} &nbsp;&bull;&nbsp; <em>${escapeHtml(page.title||"")}</em></div>
+        <h1 class="seo-lp-h1">${escapeHtml(page.h1||page.title||"")}</h1>
+        <p class="seo-lp-meta">${escapeHtml(page.metaDescription||"")}</p>
+        ${ctaTag}
+        ${styleNote}
+      </div>
     </div>
     <div class="seo-lp-body">${_bodySecs}</div>
     <div class="seo-lp-meta-bar">
@@ -2563,13 +2806,6 @@ function openSeoModal(page){
       ${addressHtml}
       ${mapsHtml}
     </div>`;
-
-  // Mount canopy/awning after DOM injection, using same config as preview
-  const theme = config.theme || getThemePresetForCuisine(config.cuisineType);
-  const awningEl = document.querySelector('.seo-lp-hero .hero-awning[data-awning]');
-  if (awningEl) {
-    loadHeroAwningInlineInto(awningEl, theme.primary, config.awningType || "default");
-  }
 
   overlay.classList.add("active");
 }
@@ -2688,16 +2924,24 @@ async function generateSite(shouldPersist = false, options = {}){
   const heroEl=preview.querySelector('.preview-hero');
   if(heroEl){
     const heroImg=config.heroImageUrl||"";
+    const heroBg=preview.querySelector("#previewHeroBg");
+    const heroOverlay=preview.querySelector(".hero-overlay");
+    const transformedHeroImg=buildCloudinaryHeroTransformUrl(heroImg,config.heroImageEffects);
+    if(heroOverlay){
+      const darkness=clampNumber(config.heroImageEffects?.overlayDarkness,0.2,0.75,DEFAULT_HERO_IMAGE_EFFECTS.overlayDarkness);
+      heroOverlay.style.background=`linear-gradient(to bottom,rgba(0,0,0,${Math.max(0.2,darkness - 0.08).toFixed(2)}),rgba(0,0,0,${darkness.toFixed(2)}))`;
+    }
     if(heroImg){
-      heroEl.style.backgroundImage=`url('${heroImg}')`;
+      heroEl.classList.add("has-hero-image");
+      if(heroBg) heroBg.style.backgroundImage=`url('${transformedHeroImg || heroImg}')`;
     }else{
-      heroEl.style.backgroundImage='';
+      heroEl.classList.remove("has-hero-image");
+      if(heroBg) heroBg.style.backgroundImage='';
+      if(heroOverlay) heroOverlay.style.background='';
     }
   }
 
-  // Load hero awning after hero DOM is ready
   const theme=config.theme||getThemePresetForCuisine(config.cuisineType);
-  loadHeroAwningInline(theme.primary);
 
   // Update hero content
   const initials=name.split(" ").slice(0,2).map((part)=>part.charAt(0).toUpperCase()).join("") || "MK";
@@ -2925,7 +3169,6 @@ function buildLandingPageConfigFromGenerator() {
     themeSecondary: theme.secondary,
     themeAccent: theme.accent,
     themeText: theme.text,
-    awningType: config.awningType || "default",
     isLive: true
   };
 }
@@ -3246,15 +3489,9 @@ document.getElementById("businessImageSearchBtn")?.addEventListener("click", asy
       renderSelectedGooglePlace();
     }
     if(!businessImageSearchResults.length){
-      console.info("[seo images] fallback image search", { query: googleResult.data?.fallbackQuery || query });
       const reason = googleResult.data?.fallbackReason || "no_google_place_photos";
-      setBusinessImageStatus(`Ingen Google Place billeder fundet (${reason}). Bruger fallback-søgning.`, true);
-      const fallbackResult = await searchRestaurantImagesCallable({
-        query: googleResult.data?.fallbackQuery || query,
-        businessType: document.getElementById("type")?.value.trim() || "",
-        perPage: 12
-      });
-      businessImageSearchResults = fallbackResult.data?.photos || [];
+      console.info("[seo images] place photos empty", { reason });
+      setBusinessImageStatus(`Ingen Google Place billeder fundet (${reason}). Upload egne billeder eller brug Cloudinary SEO-biblioteket.`, true);
     } else {
       console.info("[seo images] place photo used", { count: businessImageSearchResults.length, placeId: googleResult.data?.place?.placeId || "" });
       businessImageSearchResults.forEach((photo)=>console.info("[seo images] relevance score", { score: photo.relevanceScore || 0, reasons: photo.relevanceReasons || [] }));
@@ -3266,29 +3503,10 @@ document.getElementById("businessImageSearchBtn")?.addEventListener("click", asy
       setBusinessImageStatus("Ingen billeder fundet. Brug eksisterende upload/AI-billede flow.", true);
     }
   } catch (err) {
-    console.error("Google business image search failed, trying fallback:", err);
-    try {
-      console.info("[seo images] fallback image search", { query });
-      const fallbackResult = await searchRestaurantImagesCallable({
-        query,
-        businessType: document.getElementById("type")?.value.trim() || "",
-        perPage: 12
-      });
-      businessImageSearchResults = fallbackResult.data?.photos || [];
-      businessImageSearchResults.forEach((photo)=>console.info("[seo images] relevance score", { score: photo.relevanceScore || 0, reasons: photo.relevanceReasons || [] }));
-      renderBusinessImageSearchResults(businessImageSearchResults);
-      setBusinessImageStatus(
-        businessImageSearchResults.length
-          ? "Google Places fejlede. Viser fallback-billeder."
-          : "Ingen billeder fundet. Brug eksisterende upload/AI-billede flow.",
-        !businessImageSearchResults.length
-      );
-    } catch (fallbackErr) {
-      console.error("Business image fallback search failed:", fallbackErr);
-      businessImageSearchResults = [];
-      grid.innerHTML = '<div class="img-search-empty">Billedsøgning fejlede. Brug eksisterende upload/AI-billede flow.</div>';
-      setBusinessImageStatus("Billedsøgning fejlede. Brug eksisterende upload/AI-billede flow.", true);
-    }
+    console.error("Google business image search failed:", err);
+    businessImageSearchResults = [];
+    renderBusinessImageSearchResults(businessImageSearchResults);
+    setBusinessImageStatus("Google Places billedsøgning fejlede. Upload egne billeder eller brug Cloudinary SEO-biblioteket.", true);
   } finally {
     btn.disabled = false;
     btn.textContent = "Find billeder";
@@ -3530,6 +3748,7 @@ async function loadSavedConfig(){
     set("websiteUrl",   c.websiteUrl || "");
     set("ctaText",      c.ctaText || "");
     set("ctaUrl",       c.ctaUrl  || "");
+    setHeroImageEffects(c.heroImageEffects || DEFAULT_HERO_IMAGE_EFFECTS);
     selectedGooglePlace = c.googlePlace || null;
     set("googlePlaceId", c.googlePlaceId || c.googlePlace?.placeId || "");
     set("googleMapsUrl", c.googleMapsUrl || c.googlePlace?.googleMapsUrl || "");
@@ -3573,8 +3792,6 @@ async function loadSavedConfig(){
 async function prefillFromLiveProfile(){
   return hydrateSeoFormFromActiveOnboardingContext({ overwrite:false });
 }
-
-await loadLayout();
 
 await setupAuthGate({
   appName:"Madkontrollen Pro",
@@ -3627,55 +3844,8 @@ await setupAuthGate({
 });
 
 
-async function loadHeroAwningInline(color) {
-  const mount = document.getElementById("heroAwning");
-  if (!mount) return;
-
-  const resolvedColor = color || "#2f6d3a";
-
-  if (!mount.dataset.loaded) {
-    try {
-      const res = await fetch("/images/awnings/awning-base.png", { cache: "no-cache" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const svg = await res.text();
-      mount.innerHTML = svg;
-      mount.dataset.loaded = "true";
-    } catch (err) {
-      console.error("[awning] Failed to load awning SVG:", err);
-      return;
-    }
-  }
-
-  mount.style.color = resolvedColor;
-}
-
-async function loadHeroAwningInlineInto(mount, color, awningType = "default") {
-  if (!mount) return;
-
-  const resolvedColor = color || "#2f6d3a";
-  const awningPath =
-    awningType && awningType !== "default"
-      ? `/images/awnings/${awningType}.svg`
-      : "/images/awnings/awning-base.png";
-
-  if (!mount.dataset.loaded || mount.dataset.awningPath !== awningPath) {
-    try {
-      const res = await fetch(awningPath, { cache: "no-cache" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const svg = await res.text();
-      mount.innerHTML = svg;
-      mount.dataset.loaded = "true";
-      mount.dataset.awningPath = awningPath;
-    } catch (err) {
-      console.error("[awning] Failed to load awning SVG into target:", err);
-      return;
-    }
-  }
-
-  mount.style.color = resolvedColor;
-}
-
 // Init
+setHeroImageEffects(DEFAULT_HERO_IMAGE_EFFECTS);
 restoreLocalDraft();
 syncSubdomainFromName(false);
 generateSite();

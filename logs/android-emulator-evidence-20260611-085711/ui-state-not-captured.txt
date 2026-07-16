@@ -1,0 +1,1 @@
+﻿No UIAutomator dump captured: adb reported no connected devices/emulators.

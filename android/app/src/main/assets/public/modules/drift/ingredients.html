@@ -1,0 +1,818 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Råvarer | Madkontrollen Pro</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        .ingredients-page{
+            display:grid;
+            gap:24px;
+        }
+
+        .hero-ingredients{
+            position:relative;
+            overflow:hidden;
+            border-radius:28px;
+            padding:32px;
+            background:
+                radial-gradient(circle at top right, rgba(46,125,50,0.18), transparent 30%),
+                linear-gradient(135deg, #132d18 0%, #1f4d28 55%, #2e7d32 100%);
+            color:#fff;
+            border:1px solid rgba(255,255,255,0.08);
+            box-shadow:0 24px 60px rgba(22,34,22,0.16);
+        }
+
+        .hero-ingredients::after{
+            content:"";
+            position:absolute;
+            right:-30px;
+            bottom:-40px;
+            width:220px;
+            height:220px;
+            border-radius:50%;
+            background:rgba(255,255,255,0.08);
+            filter:blur(8px);
+        }
+
+        .hero-ingredients h1{
+            margin:0 0 10px;
+            font-size:clamp(2rem, 3vw, 2.7rem);
+            line-height:1.05;
+            font-weight:800;
+            max-width:760px;
+        }
+
+        .hero-ingredients p{
+            margin:0;
+            max-width:780px;
+            color:rgba(255,255,255,0.88);
+            line-height:1.7;
+            font-size:1.02rem;
+        }
+
+        .hero-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:12px;
+            margin-top:24px;
+        }
+
+        .hero-actions .btn-secondary{
+            background:rgba(255,255,255,0.14);
+            color:#fff;
+            border:1px solid rgba(255,255,255,0.16);
+        }
+
+        .hero-actions .btn-secondary:hover{
+            background:rgba(255,255,255,0.22);
+        }
+
+        .stats-grid{
+            display:grid;
+            grid-template-columns:repeat(4, minmax(0, 1fr));
+            gap:16px;
+        }
+
+        .stat-card{
+            background:#fff;
+            border:1px solid var(--border, #d9e4d9);
+            border-radius:22px;
+            padding:20px;
+            box-shadow:0 12px 30px rgba(19,34,20,0.06);
+        }
+
+        .stat-label{
+            font-size:0.92rem;
+            color:var(--muted, #667267);
+            margin-bottom:10px;
+        }
+
+        .stat-value{
+            font-size:1.8rem;
+            font-weight:800;
+            color:var(--text, #182118);
+            line-height:1;
+            margin-bottom:8px;
+        }
+
+        .stat-meta{
+            font-size:0.92rem;
+            color:var(--muted, #667267);
+        }
+
+        .toolbar-card,
+        .table-card,
+        .panel-card{
+            background:#fff;
+            border:1px solid var(--border, #d9e4d9);
+            border-radius:24px;
+            box-shadow:0 14px 34px rgba(19,34,20,0.06);
+        }
+
+        .toolbar-card{
+            padding:18px;
+            display:grid;
+            grid-template-columns:1.5fr 180px 180px 180px auto;
+            gap:14px;
+            align-items:center;
+        }
+
+        .field,
+        .select{
+            width:100%;
+            border:1px solid #d8e3d8;
+            background:#f8fbf8;
+            border-radius:14px;
+            min-height:48px;
+            padding:0 14px;
+            font:inherit;
+            color:#182118;
+            outline:none;
+        }
+
+        .field:focus,
+        .select:focus{
+            border-color:#2e7d32;
+            box-shadow:0 0 0 3px rgba(46,125,50,0.12);
+            background:#fff;
+        }
+
+        .ingredients-layout{
+            display:grid;
+            grid-template-columns:minmax(0, 1.7fr) minmax(320px, 0.9fr);
+            gap:24px;
+            align-items:start;
+        }
+
+        .table-card{
+            overflow:hidden;
+        }
+
+        .table-header{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+            padding:22px 22px 0;
+        }
+
+        .table-header h2,
+        .panel-card h2{
+            margin:0;
+            font-size:1.15rem;
+            color:#182118;
+        }
+
+        .table-wrap{
+            overflow-x:auto;
+            padding:18px 22px 22px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            min-width:960px;
+        }
+
+        thead th{
+            text-align:left;
+            font-size:0.85rem;
+            color:#667267;
+            font-weight:700;
+            padding:14px 14px;
+            border-bottom:1px solid #e3ece3;
+            background:#f9fbf9;
+            white-space:nowrap;
+        }
+
+        tbody td{
+            padding:16px 14px;
+            border-bottom:1px solid #edf3ed;
+            vertical-align:middle;
+            color:#1d271e;
+        }
+
+        tbody tr:hover{
+            background:#fbfdfb;
+        }
+
+        .ingredient-name{
+            display:flex;
+            flex-direction:column;
+            gap:4px;
+        }
+
+        .ingredient-name strong{
+            color:#182118;
+            font-size:0.98rem;
+        }
+
+        .ingredient-name span{
+            color:#6a776b;
+            font-size:0.86rem;
+        }
+
+        .badge{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-height:30px;
+            padding:0 12px;
+            border-radius:999px;
+            font-size:0.82rem;
+            font-weight:700;
+            border:1px solid transparent;
+            white-space:nowrap;
+        }
+
+        .badge-green{
+            background:#e8f5e9;
+            color:#1f5a23;
+            border-color:#cae9cf;
+        }
+
+        .badge-yellow{
+            background:#fff6df;
+            color:#9a6700;
+            border-color:#f4dfad;
+        }
+
+        .badge-red{
+            background:#fdecec;
+            color:#b42318;
+            border-color:#f6caca;
+        }
+
+        .badge-blue{
+            background:#e7f0ff;
+            color:#2457a6;
+            border-color:#d3e1ff;
+        }
+
+        .allergen-tags{
+            display:flex;
+            flex-wrap:wrap;
+            gap:6px;
+        }
+
+        .tag{
+            display:inline-flex;
+            align-items:center;
+            min-height:28px;
+            padding:0 10px;
+            border-radius:999px;
+            background:#f4f7f4;
+            border:1px solid #dde7dd;
+            color:#415042;
+            font-size:0.8rem;
+            font-weight:600;
+        }
+
+        .action-links{
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+
+        .action-links a{
+            color:#2e7d32;
+            font-weight:700;
+            text-decoration:none;
+        }
+
+        .action-links a:hover{
+            text-decoration:underline;
+        }
+
+        .panel-card{
+            padding:22px;
+            display:grid;
+            gap:18px;
+        }
+
+        .quick-list{
+            display:grid;
+            gap:12px;
+        }
+
+        .quick-item{
+            display:flex;
+            justify-content:space-between;
+            gap:14px;
+            align-items:center;
+            padding:14px 16px;
+            border-radius:18px;
+            background:#f8fbf8;
+            border:1px solid #e3ece3;
+        }
+
+        .quick-item strong{
+            display:block;
+            color:#182118;
+            margin-bottom:4px;
+        }
+
+        .quick-item span{
+            color:#667267;
+            font-size:0.92rem;
+        }
+
+        .quick-pill{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-width:88px;
+            min-height:34px;
+            border-radius:999px;
+            background:#fff;
+            border:1px solid #dae5da;
+            font-weight:700;
+            color:#2e7d32;
+            padding:0 10px;
+            white-space:nowrap;
+        }
+
+        .mini-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:12px;
+        }
+
+        .mini-card{
+            background:#f8fbf8;
+            border:1px solid #e3ece3;
+            border-radius:18px;
+            padding:16px;
+        }
+
+        .mini-card .label{
+            font-size:0.85rem;
+            color:#667267;
+            margin-bottom:8px;
+        }
+
+        .mini-card .value{
+            font-size:1.05rem;
+            font-weight:800;
+            color:#182118;
+        }
+
+        .btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-height:46px;
+            padding:0 16px;
+            border-radius:14px;
+            border:none;
+            cursor:pointer;
+            font:inherit;
+            font-weight:700;
+            transition:0.18s ease;
+            text-decoration:none;
+        }
+
+        .btn-primary{
+            background:#2e7d32;
+            color:#fff;
+        }
+
+        .btn-primary:hover{
+            background:#25672a;
+            transform:translateY(-1px);
+        }
+
+        .btn-secondary{
+            background:#f5f8f5;
+            color:#1f2a20;
+            border:1px solid #d8e3d8;
+        }
+
+        .btn-secondary:hover{
+            background:#edf4ed;
+        }
+
+        @media (max-width: 1180px){
+            .toolbar-card{
+                grid-template-columns:1fr 1fr;
+            }
+
+            .ingredients-layout{
+                grid-template-columns:1fr;
+            }
+
+            .stats-grid{
+                grid-template-columns:repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 680px){
+            .stats-grid,
+            .mini-grid,
+            .toolbar-card{
+                grid-template-columns:1fr;
+            }
+
+            .hero-ingredients{
+                padding:24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="headerMount"></div>
+
+    <main class="page-shell">
+        <div class="container app-layout">
+            <div id="sidebarMount"></div>
+
+            <section class="page-content">
+                <div class="ingredients-page">
+
+                    <section class="hero-ingredients">
+                        <h1>Råvarer med styr på pris, leverandør, allergener og status</h1>
+                        <p>
+                            Få samlet alle råvarer ét sted og brug dem direkte i opskrifter, indkøb,
+                            kalkulation og egenkontrol. Her får du overblik over pris pr. enhed,
+                            lagerstatus, holdbarhed, allergener og leverandørtilknytning.
+                        </p>
+
+                        <div class="hero-actions">
+                            <a href="#" class="btn btn-primary">+ Opret råvare</a>
+                            <a href="/modules/drift/recipes.html" class="btn btn-secondary">Se opskrifter</a>
+                            <a href="/modules/drift/suppliers.html" class="btn btn-secondary">Se leverandører</a>
+                        </div>
+                    </section>
+
+                    <section class="stats-grid">
+                        <article class="stat-card">
+                            <div class="stat-label">Råvarer i systemet</div>
+                            <div class="stat-value">186</div>
+                            <div class="stat-meta">12 nye denne måned</div>
+                        </article>
+
+                        <article class="stat-card">
+                            <div class="stat-label">Aktive leverandører</div>
+                            <div class="stat-value">14</div>
+                            <div class="stat-meta">Fordelt på kød, grønt og kolonial</div>
+                        </article>
+
+                        <article class="stat-card">
+                            <div class="stat-label">Mangler prisopdatering</div>
+                            <div class="stat-value">9</div>
+                            <div class="stat-meta">Bør opdateres før næste indkøb</div>
+                        </article>
+
+                        <article class="stat-card">
+                            <div class="stat-label">Lav lagerstatus</div>
+                            <div class="stat-value">7</div>
+                            <div class="stat-meta">Kræver handling i dag</div>
+                        </article>
+                    </section>
+
+                    <section class="toolbar-card">
+                        <input class="field" type="text" placeholder="Søg efter råvare, kategori, leverandør eller allergen..." />
+                        <select class="select">
+                            <option>Alle kategorier</option>
+                            <option>Kød</option>
+                            <option>Grønt</option>
+                            <option>Mejeri</option>
+                            <option>Tørvarer</option>
+                            <option>Drikkevarer</option>
+                            <option>Emballage</option>
+                        </select>
+                        <select class="select">
+                            <option>Alle leverandører</option>
+                            <option>Danish Crown</option>
+                            <option>Inco</option>
+                            <option>Hørkram</option>
+                            <option>Nemlig B2B</option>
+                        </select>
+                        <select class="select">
+                            <option>Alle statuser</option>
+                            <option>Aktiv</option>
+                            <option>Lav lager</option>
+                            <option>Mangler pris</option>
+                            <option>Udgået</option>
+                        </select>
+                        <button class="btn btn-primary">Filtrér</button>
+                    </section>
+
+                    <section class="ingredients-layout">
+                        <div class="table-card">
+                            <div class="table-header">
+                                <h2>Råvareoversigt</h2>
+                                <a href="#" class="btn btn-secondary">Eksportér liste</a>
+                            </div>
+
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Råvare</th>
+                                            <th>Kategori</th>
+                                            <th>Leverandør</th>
+                                            <th>Enhed</th>
+                                            <th>Pris</th>
+                                            <th>Lager</th>
+                                            <th>Allergener</th>
+                                            <th>Status</th>
+                                            <th>Handling</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="ingredient-name">
+                                                    <strong>Oksekød 180 g bøffer</strong>
+                                                    <span>Varenr: KØD-1024</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-blue">Kød</span></td>
+                                            <td>Danish Crown</td>
+                                            <td>kg</td>
+                                            <td>89,00 kr.</td>
+                                            <td>24 kg</td>
+                                            <td><span class="tag">Ingen</span></td>
+                                            <td><span class="badge badge-green">Aktiv</span></td>
+                                            <td>
+                                                <div class="action-links">
+                                                    <a href="#">Redigér</a>
+                                                    <a href="#">Historik</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <div class="ingredient-name">
+                                                    <strong>Briocheboller</strong>
+                                                    <span>Varenr: BAG-2031</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-blue">Bageri</span></td>
+                                            <td>Inco</td>
+                                            <td>stk</td>
+                                            <td>4,20 kr.</td>
+                                            <td>86 stk</td>
+                                            <td>
+                                                <div class="allergen-tags">
+                                                    <span class="tag">Gluten</span>
+                                                    <span class="tag">Æg</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-green">Aktiv</span></td>
+                                            <td>
+                                                <div class="action-links">
+                                                    <a href="#">Redigér</a>
+                                                    <a href="#">Historik</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <div class="ingredient-name">
+                                                    <strong>Cheddar skiver</strong>
+                                                    <span>Varenr: MEJ-4410</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-blue">Mejeri</span></td>
+                                            <td>Hørkram</td>
+                                            <td>pakke</td>
+                                            <td>32,00 kr.</td>
+                                            <td>7 pakker</td>
+                                            <td><span class="tag">Mælk</span></td>
+                                            <td><span class="badge badge-yellow">Lav lager</span></td>
+                                            <td>
+                                                <div class="action-links">
+                                                    <a href="#">Redigér</a>
+                                                    <a href="#">Bestil</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <div class="ingredient-name">
+                                                    <strong>Romaine salat</strong>
+                                                    <span>Varenr: GRØNT-5512</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-blue">Grønt</span></td>
+                                            <td>Inco</td>
+                                            <td>stk</td>
+                                            <td>11,50 kr.</td>
+                                            <td>12 stk</td>
+                                            <td><span class="tag">Ingen</span></td>
+                                            <td><span class="badge badge-green">Aktiv</span></td>
+                                            <td>
+                                                <div class="action-links">
+                                                    <a href="#">Redigér</a>
+                                                    <a href="#">Historik</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <div class="ingredient-name">
+                                                    <strong>Trøffelolie</strong>
+                                                    <span>Varenr: KOL-7008</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-blue">Tørvarer</span></td>
+                                            <td>Nemlig B2B</td>
+                                            <td>flaske</td>
+                                            <td>74,00 kr.</td>
+                                            <td>2 flasker</td>
+                                            <td><span class="tag">Ingen</span></td>
+                                            <td><span class="badge badge-red">Mangler pris</span></td>
+                                            <td>
+                                                <div class="action-links">
+                                                    <a href="#">Opdatér</a>
+                                                    <a href="#">Redigér</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <div class="ingredient-name">
+                                                    <strong>Parmesan</strong>
+                                                    <span>Varenr: MEJ-8844</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-blue">Mejeri</span></td>
+                                            <td>Hørkram</td>
+                                            <td>kg</td>
+                                            <td>128,00 kr.</td>
+                                            <td>4,5 kg</td>
+                                            <td><span class="tag">Mælk</span></td>
+                                            <td><span class="badge badge-green">Aktiv</span></td>
+                                            <td>
+                                                <div class="action-links">
+                                                    <a href="#">Redigér</a>
+                                                    <a href="#">Historik</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <div class="ingredient-name">
+                                                    <strong>Pommes frites 10 mm</strong>
+                                                    <span>Varenr: FROST-3002</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-blue">Frost</span></td>
+                                            <td>Inco</td>
+                                            <td>pose</td>
+                                            <td>26,00 kr.</td>
+                                            <td>3 poser</td>
+                                            <td><span class="tag">Ingen</span></td>
+                                            <td><span class="badge badge-yellow">Lav lager</span></td>
+                                            <td>
+                                                <div class="action-links">
+                                                    <a href="#">Bestil</a>
+                                                    <a href="#">Redigér</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <div class="ingredient-name">
+                                                    <strong>Mørk chokolade 70%</strong>
+                                                    <span>Varenr: DES-1180</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-blue">Dessert</span></td>
+                                            <td>Hørkram</td>
+                                            <td>kg</td>
+                                            <td>96,00 kr.</td>
+                                            <td>8 kg</td>
+                                            <td>
+                                                <div class="allergen-tags">
+                                                    <span class="tag">Soja</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-green">Aktiv</span></td>
+                                            <td>
+                                                <div class="action-links">
+                                                    <a href="#">Redigér</a>
+                                                    <a href="#">Historik</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <aside class="panel-card">
+                            <h2>Hurtigt overblik</h2>
+
+                            <div class="quick-list">
+                                <div class="quick-item">
+                                    <div>
+                                        <strong>Brugt i aktive opskrifter</strong>
+                                        <span>Råvarer som indgår direkte i menu og kalkulation</span>
+                                    </div>
+                                    <div class="quick-pill">142 stk.</div>
+                                </div>
+
+                                <div class="quick-item">
+                                    <div>
+                                        <strong>Allergenmærkede varer</strong>
+                                        <span>Bruges til deklaration og menuoplysning</span>
+                                    </div>
+                                    <div class="quick-pill">38 stk.</div>
+                                </div>
+
+                                <div class="quick-item">
+                                    <div>
+                                        <strong>Kræver genbestilling</strong>
+                                        <span>Lav lagerbeholdning eller kritisk niveau</span>
+                                    </div>
+                                    <div class="quick-pill">7 stk.</div>
+                                </div>
+                            </div>
+
+                            <div class="mini-grid">
+                                <div class="mini-card">
+                                    <div class="label">Dyreste råvare</div>
+                                    <div class="value">Oksemørbrad</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="label">Mest brugte råvare</div>
+                                    <div class="value">Briochebolle</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="label">Senest opdateret</div>
+                                    <div class="value">Parmesan</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="label">Næste fokus</div>
+                                    <div class="value">Prisgennemgang</div>
+                                </div>
+                            </div>
+
+                            <a href="/modules/drift/purchases.html" class="btn btn-primary">Gå til indkøb</a>
+                            <a href="/modules/drift/recipes.html" class="btn btn-secondary">Til opskrifter</a>
+                        </aside>
+                    </section>
+
+                </div>
+            </section>
+        </div>
+    </main>
+<script src="/modules/drift/drift.js"></script>
+    <script>
+        async function loadSharedPartials() {
+            const headerMount = document.getElementById("headerMount");
+            const sidebarMount = document.getElementById("sidebarMount");
+
+            try {
+                const [headerRes, sidebarRes] = await Promise.all([
+                    fetch("/components/header.html"),
+                    fetch("/components/sidebar.html")
+                ]);
+
+                if (headerRes.ok) {
+                    headerMount.innerHTML = await headerRes.text();
+                }
+
+                if (sidebarRes.ok) {
+                    sidebarMount.innerHTML = await sidebarRes.text();
+                }
+
+                const currentPath = window.location.pathname;
+                document.querySelectorAll(".sidebar-link, .nav a").forEach(link => {
+                    const href = link.getAttribute("href");
+                    if (href && currentPath.includes(href.replace("/index.html", "/"))) {
+                        link.classList.add("active");
+                    }
+                    if (href === currentPath) {
+                        link.classList.add("active");
+                    }
+                });
+            } catch (error) {
+                console.error("Kunne ikke indlæse header/sidebar:", error);
+            }
+        }
+
+        loadSharedPartials();
+    </script>
+
+</body>
+</html>

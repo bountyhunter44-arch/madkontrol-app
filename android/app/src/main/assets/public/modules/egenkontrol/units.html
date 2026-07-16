@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enheder pr. lokation | Madkontrollen Pro</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      background: linear-gradient(180deg, #f4f8f1 0%, #eef5ee 100%);
+    }
+
+    .units-page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 20px 72px;
+    }
+
+    .units-hero {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 24px;
+      padding: 24px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #ffffff 0%, #f5fbf4 100%);
+      border: 1px solid #dbe7d8;
+      box-shadow: 0 18px 40px rgba(41, 63, 38, 0.08);
+    }
+
+    .units-hero h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.08;
+    }
+
+    .units-hero p {
+      margin: 0;
+      max-width: 720px;
+      color: #546454;
+      line-height: 1.6;
+    }
+
+    .units-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .units-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid #d7e3d4;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      color: #355035;
+    }
+
+    .units-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .units-status {
+      min-height: 22px;
+      color: #536353;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .units-status.is-error {
+      color: #a53a3a;
+    }
+
+    .units-status.is-success {
+      color: #1f7a31;
+    }
+
+    .units-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .unit-type-card {
+      padding: 20px;
+      border-radius: 22px;
+      background: #fff;
+      border: 1px solid #dbe6da;
+      box-shadow: 0 10px 26px rgba(36, 58, 37, 0.06);
+    }
+
+    .unit-type-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .unit-type-head h2 {
+      margin: 0 0 4px;
+      font-size: 20px;
+    }
+
+    .unit-type-head p {
+      margin: 0;
+      color: #647264;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .unit-count-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid #dce6db;
+      background: #f7faf7;
+      font-size: 12px;
+      font-weight: 800;
+      color: #304430;
+    }
+
+    .unit-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .unit-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid #dde6dc;
+      background: #f9fbf9;
+    }
+
+    .unit-row.is-inactive {
+      background: #f6f6f6;
+      border-style: dashed;
+      opacity: 0.82;
+    }
+
+    .unit-row label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #4f5f4f;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .unit-row input[type="text"] {
+      width: 100%;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid #d4dfd3;
+      background: #fff;
+      font: inherit;
+      color: #1f291f;
+    }
+
+    .unit-row input[type="text"]:disabled {
+      background: #f2f3f2;
+      color: #728072;
+    }
+
+    .unit-row-meta {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .unit-row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .unit-empty {
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px dashed #d7e0d6;
+      background: #fbfcfb;
+      color: #687668;
+      font-size: 14px;
+    }
+
+    .units-footer {
+      margin-top: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px;
+      border-radius: 20px;
+      background: #fff;
+      border: 1px solid #dbe6da;
+      box-shadow: 0 10px 28px rgba(35, 54, 34, 0.06);
+    }
+
+    .units-footer p {
+      margin: 0;
+      color: #5f705f;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+      .units-page {
+        padding-inline: 14px;
+      }
+
+      .units-hero {
+        padding: 20px;
+      }
+
+      .units-hero h1 {
+        font-size: 28px;
+      }
+
+      .unit-row {
+        grid-template-columns: 1fr;
+      }
+
+      .unit-row-actions {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="units-page">
+    <section class="units-hero">
+      <div>
+        <h1>Enheder for lokationen</h1>
+        <p>Tilføj, omdøb og deaktivér de samme typer udstyr som i onboarding. Gem påvirker kun den valgte lokation og genbruger de eksisterende sync-rutiner for manglende kort.</p>
+      </div>
+      <div class="units-meta">
+        <span class="units-pill" id="companyPill">Virksomhed: -</span>
+        <span class="units-pill" id="locationPill">Lokation: -</span>
+      </div>
+    </section>
+
+    <div class="units-toolbar">
+      <div id="statusText" class="units-status">Venter på login…</div>
+      <a class="btn btn-secondary" href="/dashboard">Tilbage til dashboard</a>
+    </div>
+
+    <section id="editorMount" class="units-grid"></section>
+
+    <section class="units-footer">
+      <p>Eksisterende historik bevares. Nye rutinekort oprettes kun når de mangler, og deaktiverede enheder slettes ikke hårdt.</p>
+      <button id="saveBtn" class="btn btn-primary" type="button" disabled>Gem enheder</button>
+    </section>
+  </main>
+
+  <!-- SLET FRA HER -->
+<script type="module">
+  import app, { auth, db } from "/core/firebase-config.js";
+  import { setupAuthGate } from "/core/auth.js";
+  import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    query,
+    where
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+  const functions = getFunctions(app, "us-central1");
+  const saveLocationEquipmentUnits = httpsCallable(functions, "saveLocationEquipmentUnits");
+
+  const EQUIPMENT_DEFS = [
+    { type: "fridge", label: "Køleskab", description: "Temperaturrelevant enhed med daglige kontrolkort." },
+    { type: "freezer", label: "Fryser", description: "Temperaturrelevant enhed med daglige kontrolkort." },
+    { type: "walk_in_cooler", label: "Walk-in køler", description: "Kølerum som kræver temperaturkontrol." },
+    { type: "walk_in_freezer", label: "Walk-in fryser", description: "Fryserum som kræver temperaturkontrol." },
+    { type: "display_fridge", label: "Displaykøl", description: "Køleenhed i front eller serveringsområde." },
+    { type: "blast_chiller", label: "Blast chiller", description: "Temperaturrelevant enhed til hurtig nedkøling." },
+    { type: "warming_cabinet", label: "Varmeskab", description: "Varmeholdende enhed med drift- og rengøringsrelevans." },
+    { type: "dishwasher", label: "Opvaskemaskine", description: "Skaber rengørings- og vedligeholdelseskort." },
+    { type: "fryer", label: "Frituregryde", description: "Drifts- og rengøringsrelevant enhed." },
+    { type: "ice_machine", label: "Isterningemaskine", description: "Udløser rengørings- og vandrelaterede kort." },
+    { type: "softice_machine", label: "Softice maskine", description: "Temperatur- og rengøringsrelevant enhed." },
+    { type: "ice_box", label: "Isboks", description: "Køleenhed, hvis lokationen bruger isbokse." }
+  ];
+
+  const editorMount = document.getElementById("editorMount");
+  const statusText = document.getElementById("statusText");
+  const companyPill = document.getElementById("companyPill");
+  const locationPill = document.getElementById("locationPill");
+  const saveBtn = document.getElementById("saveBtn");
+
+  const state = {
+    profile: null,
+    companyId: "",
+    locationId: "",
+    companyName: "",
+    locationName: "",
+    unitsByType: Object.fromEntries(EQUIPMENT_DEFS.map((def) => [def.type, []])),
+    saving: false
+  };
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  function setStatus(message, tone = "") {
+    statusText.textContent = message || "";
+    statusText.className = `units-status${tone ? ` is-${tone}` : ""}`;
+  }
+
+  function collectStringValues(values, candidate) {
+    if (Array.isArray(candidate)) {
+      candidate.forEach((item) => collectStringValues(values, item));
+      return;
+    }
+
+    const normalized = String(candidate || "").trim();
+    if (normalized) values.push(normalized);
+  }
+
+  function normalizeLocationIds(profile) {
+    const values = [];
+
+    if (!profile || typeof profile !== "object") {
+      return [];
+    }
+
+    collectStringValues(values, profile.allowedLocationIds);
+    collectStringValues(values, profile.locationIds);
+    collectStringValues(values, profile.locations);
+    collectStringValues(values, profile.locationId);
+    collectStringValues(values, profile.primaryLocationId);
+    collectStringValues(values, profile.selectedLocationId);
+
+    return [...new Set(values)];
+  }
+
+  function getProfileCompanyId(profile) {
+    return String(
+      profile?.companyId ||
+      profile?.organizationId ||
+      profile?.company?.id ||
+      profile?.organization?.id ||
+      ""
+    ).trim();
+  }
+
+  function getProfileDisplayName(profile) {
+    return String(
+      profile?.displayName ||
+      profile?.name ||
+      auth?.currentUser?.displayName ||
+      auth?.currentUser?.email ||
+      "Ukendt bruger"
+    ).trim();
+  }
+
+  function getStoredLocationId() {
+    try {
+      return String(sessionStorage.getItem("mkp_selected_locationId") || "").trim();
+    } catch {
+      return "";
+    }
+  }
+
+  function setStoredLocationId(locationId) {
+    try {
+      if (locationId) {
+        sessionStorage.setItem("mkp_selected_locationId", locationId);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  function parseUnitNumber(unit) {
+    const explicit = Number(unit?.unitNumber || 0);
+    if (Number.isFinite(explicit) && explicit > 0) return explicit;
+
+    const id = String(unit?.id || "");
+    const match = id.match(/_(\d+)$/);
+    return match ? Number(match[1]) : 0;
+  }
+
+  function getDefaultName(type, unitNumber) {
+    const def = EQUIPMENT_DEFS.find((item) => item.type === type);
+    const label = def?.label || "Enhed";
+    return `${label} ${unitNumber}`;
+  }
+
+  function sortUnits(units) {
+    return [...units].sort((left, right) => {
+      if (left.active !== right.active) return left.active === false ? 1 : -1;
+      return parseUnitNumber(left) - parseUnitNumber(right);
+    });
+  }
+
+  function buildFallbackUnitsFromCounts(counts = {}) {
+    const units = [];
+    for (const def of EQUIPMENT_DEFS) {
+      const count = Math.max(0, Number(counts?.[def.type] || 0));
+      for (let index = 1; index <= count; index += 1) {
+        units.push({
+          id: `onboarding_${def.type}_${index}`,
+          type: def.type,
+          unitNumber: index,
+          name: getDefaultName(def.type, index),
+          displayName: getDefaultName(def.type, index),
+          active: true
+        });
+      }
+    }
+    return units;
+  }
+
+  function setUnits(units = []) {
+    const grouped = Object.fromEntries(EQUIPMENT_DEFS.map((def) => [def.type, []]));
+
+    for (const rawUnit of units) {
+      const type = String(rawUnit?.type || rawUnit?.equipmentType || "").trim();
+      if (!grouped[type]) continue;
+
+      grouped[type].push({
+        id: String(rawUnit?.id || "").trim(),
+        type,
+        name:
+          String(rawUnit?.displayName || rawUnit?.name || rawUnit?.title || "").trim() ||
+          getDefaultName(type, parseUnitNumber(rawUnit) || 1),
+        active: rawUnit?.active !== false,
+        unitNumber: parseUnitNumber(rawUnit) || 0,
+        isNew: !String(rawUnit?.id || "").trim()
+      });
+    }
+
+    for (const key of Object.keys(grouped)) {
+      grouped[key] = sortUnits(grouped[key]);
+    }
+
+    state.unitsByType = grouped;
+  }
+
+  function renderBlocked(message) {
+    editorMount.innerHTML = `
+      <article class="unit-type-card">
+        <h2>Adgang kræver owner</h2>
+        <p>${escapeHtml(message)}</p>
+      </article>
+    `;
+    saveBtn.disabled = true;
+  }
+
+  function updateName(type, index, value) {
+    if (!state.unitsByType[type] || !state.unitsByType[type][index]) return;
+    state.unitsByType[type][index].name = value;
+  }
+
+  function toggleUnitActive(type, index, nextActive) {
+    const unit = state.unitsByType[type]?.[index];
+    if (!unit) return;
+    unit.active = nextActive;
+    state.unitsByType[type] = sortUnits(state.unitsByType[type]);
+    render();
+  }
+
+  function removeNewUnit(type, index) {
+    const unit = state.unitsByType[type]?.[index];
+    if (!unit || !unit.isNew) return;
+    state.unitsByType[type].splice(index, 1);
+    render();
+  }
+
+  function addUnit(type) {
+    const rows = state.unitsByType[type] || [];
+    const nextNumber =
+      rows.reduce((maxValue, item) => Math.max(maxValue, Number(item.unitNumber || 0)), 0) + 1;
+
+    rows.push({
+      id: "",
+      type,
+      name: getDefaultName(type, nextNumber),
+      active: true,
+      unitNumber: nextNumber,
+      isNew: true
+    });
+
+    state.unitsByType[type] = sortUnits(rows);
+    render();
+  }
+
+  function render() {
+    const html = EQUIPMENT_DEFS.map((def) => {
+      const rows = state.unitsByType[def.type] || [];
+      const activeRows = rows.filter((item) => item.active !== false);
+      const inactiveRows = rows.filter((item) => item.active === false);
+
+      return `
+        <article class="unit-type-card">
+          <div class="unit-type-head">
+            <div>
+              <h2>${escapeHtml(def.label)}</h2>
+              <p>${escapeHtml(def.description)}</p>
+            </div>
+            <div class="unit-row-actions">
+              <span class="unit-count-badge">${activeRows.length} aktive</span>
+              <button class="btn btn-secondary" type="button" data-add-unit="${escapeHtml(def.type)}">Tilføj enhed</button>
+            </div>
+          </div>
+
+          <div class="unit-list">
+            ${
+              activeRows.length
+                ? activeRows.map((unit) => {
+                    const index = rows.indexOf(unit);
+                    return `
+                      <div class="unit-row">
+                        <div>
+                          <label>Enhedsnavn</label>
+                          <input type="text" value="${escapeHtml(unit.name)}" data-unit-name="${escapeHtml(def.type)}" data-unit-index="${index}">
+                          <div class="unit-row-meta">
+                            <span class="units-pill">${escapeHtml(unit.id || "Ny enhed")}</span>
+                          </div>
+                        </div>
+                        <div class="unit-row-actions">
+                          ${unit.isNew ? `<button class="btn btn-secondary" type="button" data-remove-new="${escapeHtml(def.type)}" data-remove-index="${index}">Fjern</button>` : ""}
+                          ${!unit.isNew ? `<button class="btn btn-secondary" type="button" data-deactivate-unit="${escapeHtml(def.type)}" data-deactivate-index="${index}">Deaktivér</button>` : ""}
+                        </div>
+                      </div>
+                    `;
+                  }).join("")
+                : `<div class="unit-empty">Ingen aktive enheder endnu. Tilføj den første for denne type.</div>`
+            }
+
+            ${
+              inactiveRows.length
+                ? `
+              <div class="unit-empty">
+                <strong>Deaktiverede enheder</strong>
+                <div class="unit-list" style="margin-top:12px;">
+                  ${inactiveRows.map((unit) => {
+                    const index = rows.indexOf(unit);
+                    return `
+                      <div class="unit-row is-inactive">
+                        <div>
+                          <label>Enhedsnavn</label>
+                          <input type="text" value="${escapeHtml(unit.name)}" data-unit-name="${escapeHtml(def.type)}" data-unit-index="${index}" disabled>
+                          <div class="unit-row-meta">
+                            <span class="units-pill">${escapeHtml(unit.id)}</span>
+                            <span class="units-pill">Deaktiveret</span>
+                          </div>
+                        </div>
+                        <div class="unit-row-actions">
+                          <button class="btn btn-secondary" type="button" data-restore-unit="${escapeHtml(def.type)}" data-restore-index="${index}">Gendan</button>
+                        </div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              </div>
+            `
+                : ""
+            }
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    editorMount.innerHTML = html;
+
+    editorMount.querySelectorAll("[data-add-unit]").forEach((button) => {
+      button.addEventListener("click", () => addUnit(button.dataset.addUnit));
+    });
+
+    editorMount.querySelectorAll("[data-unit-name]").forEach((input) => {
+      input.addEventListener("input", () => {
+        updateName(input.dataset.unitName, Number(input.dataset.unitIndex), input.value);
+      });
+    });
+
+    editorMount.querySelectorAll("[data-deactivate-unit]").forEach((button) => {
+      button.addEventListener("click", () => {
+        toggleUnitActive(button.dataset.deactivateUnit, Number(button.dataset.deactivateIndex), false);
+      });
+    });
+
+    editorMount.querySelectorAll("[data-restore-unit]").forEach((button) => {
+      button.addEventListener("click", () => {
+        toggleUnitActive(button.dataset.restoreUnit, Number(button.dataset.restoreIndex), true);
+      });
+    });
+
+    editorMount.querySelectorAll("[data-remove-new]").forEach((button) => {
+      button.addEventListener("click", () => {
+        removeNewUnit(button.dataset.removeNew, Number(button.dataset.removeIndex));
+      });
+    });
+
+    saveBtn.disabled = state.saving || !state.companyId || !state.locationId;
+  }
+
+async function loadCompanyAndLocationNames() {
+    state.companyName = state.companyId || "";
+
+    try {
+      const companySnap = await getDoc(doc(db, "companies", state.companyId));
+      if (companySnap.exists()) {
+        const companyData = companySnap.data() || {};
+        state.companyName = String(companyData.displayName || companyData.name || state.companyId).trim();
+      }
+    } catch (error) {
+      console.warn("Kunne ikke hente virksomhedsnavn:", error);
+    }
+
+    try {
+      const locationSnap = await getDoc(doc(db, "companies", state.companyId, "locations", state.locationId));
+      if (locationSnap.exists()) {
+        const locationData = locationSnap.data() || {};
+        state.locationName = String(locationData.displayName || locationData.name || state.locationId).trim();
+      }
+    } catch (error) {
+      console.warn("Kunne ikke hente lokationsnavn:", error);
+    }
+
+    companyPill.textContent = `Virksomhed: ${state.companyName} (${state.companyId})`;
+    locationPill.textContent = `Lokation: ${state.locationName} (${state.locationId})`;
+  }
+    } catch (error) {
+      console.warn("Kunne ikke hente virksomhedsnavn:", error);
+    }
+
+    try {
+      const locationSnap = await getDoc(doc(db, "companies", state.companyId, "locations", state.locationId));
+      if (locationSnap.exists()) {
+        state.locationName = String(locationSnap.data()?.name || state.locationId).trim();
+      }
+    } catch (error) {
+      console.warn("Kunne ikke hente lokationsnavn:", error);
+    }
+
+    companyPill.textContent = `Virksomhed: ${state.companyName} (${state.companyId})`;
+    locationPill.textContent = `Lokation: ${state.locationName} (${state.locationId})`;
+  }
+
+  async function loadUnits() {
+    setStatus("Henter enheder for lokationen…");
+
+    const unitsQuery = query(
+      collection(db, "equipment"),
+      where("locationId", "==", state.locationId),
+      where("source", "==", "onboarding")
+    );
+
+    const unitsSnap = await getDocs(unitsQuery);
+    const units = unitsSnap.docs
+      .map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data()
+      }))
+      .filter((item) => String(item.companyId || item.organizationId || "").trim() === state.companyId);
+
+    if (units.length > 0) {
+      setUnits(units);
+      render();
+      setStatus(`Logget ind som ${getProfileDisplayName(state.profile)} • Enheder for ${state.locationName} er klar.`);
+      return;
+    }
+
+    const onboardingSnap = await getDoc(
+      doc(db, "onboarding_answers", `${state.companyId}__${state.locationId}__onboarding`)
+    );
+    const counts = onboardingSnap.exists() ? (onboardingSnap.data()?.equipmentCounts || {}) : {};
+
+    setUnits(buildFallbackUnitsFromCounts(counts));
+    render();
+    setStatus(`Logget ind som ${getProfileDisplayName(state.profile)} • Ingen equipment-dokumenter endnu. Viser onboarding-antal.`);
+  }
+
+  async function handleSave() {
+    if (state.saving) return;
+    if (!state.companyId || !state.locationId) {
+      setStatus("Kan ikke gemme uden companyId og locationId.", "error");
+      return;
+    }
+
+    state.saving = true;
+    saveBtn.disabled = true;
+    setStatus("Gemmer enheder og synkroniserer manglende kort…");
+
+    try {
+      const units = Object.values(state.unitsByType)
+        .flat()
+        .map((unit) => ({
+          id: unit.id || "",
+          type: unit.type,
+          name: String(unit.name || "").trim() || getDefaultName(unit.type, Number(unit.unitNumber || 1)),
+          active: unit.active !== false
+        }));
+
+      await saveLocationEquipmentUnits({
+        companyId: state.companyId,
+        locationId: state.locationId,
+        units
+      });
+
+      await loadUnits();
+      setStatus(`Logget ind som ${getProfileDisplayName(state.profile)} • Enheder gemt uden dubletter.`, "success");
+    } catch (error) {
+      console.error("Kunne ikke gemme enheder:", error);
+      setStatus(String(error?.message || "Kunne ikke gemme enheder."), "error");
+    } finally {
+      state.saving = false;
+      saveBtn.disabled = false;
+    }
+  }
+
+  saveBtn.addEventListener("click", handleSave);
+
+  setupAuthGate({
+    appName: "Madkontrollen Pro - Enheder",
+    onAuthenticated: async ({ profile }) => {
+      state.profile = profile || null;
+
+      if (String(profile?.role || "").trim().toLowerCase() !== "owner") {
+        setStatus("Kun owner kan redigere enheder for lokationen.", "error");
+        renderBlocked("Denne side er kun tilgængelig for owner på den valgte lokation.");
+        return;
+      }
+
+      state.companyId = getProfileCompanyId(profile);
+
+      const locationIds = normalizeLocationIds(profile);
+      const storedLocationId = getStoredLocationId();
+      const fallbackLocationId = String(
+        profile?.locationId ||
+        profile?.primaryLocationId ||
+        profile?.selectedLocationId ||
+        ""
+      ).trim();
+
+      state.locationId =
+        (storedLocationId && locationIds.includes(storedLocationId) ? storedLocationId : "") ||
+        locationIds[0] ||
+        fallbackLocationId;
+
+      if (!state.companyId || !state.locationId) {
+        console.error("unit.html mangler scope", {
+          profile,
+          derivedCompanyId: state.companyId,
+          derivedLocationIds: locationIds,
+          derivedLocationId: state.locationId
+        });
+
+        setStatus("Mangler companyId eller locationId i brugerprofilen.", "error");
+        renderBlocked("Din profil mangler firma- eller lokationsscope.");
+        return;
+      }
+
+      setStoredLocationId(state.locationId);
+      await loadCompanyAndLocationNames();
+      await loadUnits();
+    },
+    onSignedOut: async () => {
+      state.profile = null;
+      state.companyId = "";
+      state.locationId = "";
+      state.companyName = "";
+      state.locationName = "";
+      companyPill.textContent = "Virksomhed: -";
+      locationPill.textContent = "Lokation: -";
+      setStatus("Log ind for at redigere lokationens enheder.");
+      renderBlocked("Log ind som owner for at åbne enhedsredigeringen.");
+    }
+  });
+</script>
+</body>
+</html>

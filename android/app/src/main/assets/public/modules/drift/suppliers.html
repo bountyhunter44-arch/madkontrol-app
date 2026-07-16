@@ -1,0 +1,807 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leverandører | Madkontrollen Pro</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        .suppliers-page{
+            display:grid;
+            gap:24px;
+        }
+
+        .hero-suppliers{
+            position:relative;
+            overflow:hidden;
+            border-radius:28px;
+            padding:32px;
+            background:
+                radial-gradient(circle at top right, rgba(46,125,50,0.18), transparent 30%),
+                linear-gradient(135deg, #16311b 0%, #21532a 55%, #2e7d32 100%);
+            color:#fff;
+            border:1px solid rgba(255,255,255,0.08);
+            box-shadow:0 24px 60px rgba(22,34,22,0.16);
+        }
+
+        .hero-suppliers::after{
+            content:"";
+            position:absolute;
+            right:-34px;
+            bottom:-42px;
+            width:220px;
+            height:220px;
+            border-radius:50%;
+            background:rgba(255,255,255,0.08);
+            filter:blur(8px);
+        }
+
+        .hero-suppliers h1{
+            margin:0 0 10px;
+            font-size:clamp(2rem, 3vw, 2.7rem);
+            line-height:1.05;
+            font-weight:800;
+            max-width:760px;
+        }
+
+        .hero-suppliers p{
+            margin:0;
+            max-width:800px;
+            color:rgba(255,255,255,0.88);
+            line-height:1.7;
+            font-size:1.02rem;
+        }
+
+        .hero-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:12px;
+            margin-top:24px;
+        }
+
+        .hero-actions .btn-secondary{
+            background:rgba(255,255,255,0.14);
+            color:#fff;
+            border:1px solid rgba(255,255,255,0.16);
+        }
+
+        .hero-actions .btn-secondary:hover{
+            background:rgba(255,255,255,0.22);
+        }
+
+        .stats-grid{
+            display:grid;
+            grid-template-columns:repeat(4, minmax(0, 1fr));
+            gap:16px;
+        }
+
+        .stat-card{
+            background:#fff;
+            border:1px solid var(--border, #d9e4d9);
+            border-radius:22px;
+            padding:20px;
+            box-shadow:0 12px 30px rgba(19,34,20,0.06);
+        }
+
+        .stat-label{
+            font-size:0.92rem;
+            color:var(--muted, #667267);
+            margin-bottom:10px;
+        }
+
+        .stat-value{
+            font-size:1.8rem;
+            font-weight:800;
+            color:var(--text, #182118);
+            line-height:1;
+            margin-bottom:8px;
+        }
+
+        .stat-meta{
+            font-size:0.92rem;
+            color:var(--muted, #667267);
+        }
+
+        .toolbar-card,
+        .suppliers-grid,
+        .panel-card{
+            background:#fff;
+            border:1px solid var(--border, #d9e4d9);
+            border-radius:24px;
+            box-shadow:0 14px 34px rgba(19,34,20,0.06);
+        }
+
+        .toolbar-card{
+            padding:18px;
+            display:grid;
+            grid-template-columns:1.5fr 180px 180px 180px auto;
+            gap:14px;
+            align-items:center;
+        }
+
+        .field,
+        .select{
+            width:100%;
+            border:1px solid #d8e3d8;
+            background:#f8fbf8;
+            border-radius:14px;
+            min-height:48px;
+            padding:0 14px;
+            font:inherit;
+            color:#182118;
+            outline:none;
+        }
+
+        .field:focus,
+        .select:focus{
+            border-color:#2e7d32;
+            box-shadow:0 0 0 3px rgba(46,125,50,0.12);
+            background:#fff;
+        }
+
+        .suppliers-layout{
+            display:grid;
+            grid-template-columns:minmax(0, 1.7fr) minmax(320px, 0.9fr);
+            gap:24px;
+            align-items:start;
+        }
+
+        .suppliers-grid{
+            padding:22px;
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:18px;
+        }
+
+        .supplier-card{
+            border:1px solid #e3ece3;
+            border-radius:22px;
+            background:#fbfdfb;
+            padding:20px;
+            display:grid;
+            gap:16px;
+        }
+
+        .supplier-top{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:14px;
+        }
+
+        .supplier-name{
+            margin:0;
+            font-size:1.12rem;
+            font-weight:800;
+            color:#182118;
+        }
+
+        .supplier-sub{
+            margin-top:4px;
+            font-size:0.92rem;
+            color:#667267;
+        }
+
+        .badge{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-height:30px;
+            padding:0 12px;
+            border-radius:999px;
+            font-size:0.82rem;
+            font-weight:700;
+            border:1px solid transparent;
+            white-space:nowrap;
+        }
+
+        .badge-green{
+            background:#e8f5e9;
+            color:#1f5a23;
+            border-color:#cae9cf;
+        }
+
+        .badge-yellow{
+            background:#fff6df;
+            color:#9a6700;
+            border-color:#f4dfad;
+        }
+
+        .badge-blue{
+            background:#e7f0ff;
+            color:#2457a6;
+            border-color:#d3e1ff;
+        }
+
+        .supplier-details{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:12px;
+        }
+
+        .detail-box{
+            background:#fff;
+            border:1px solid #e3ece3;
+            border-radius:16px;
+            padding:14px;
+        }
+
+        .detail-label{
+            font-size:0.8rem;
+            color:#667267;
+            margin-bottom:6px;
+        }
+
+        .detail-value{
+            font-size:0.96rem;
+            font-weight:700;
+            color:#182118;
+            line-height:1.45;
+        }
+
+        .category-tags{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+
+        .tag{
+            display:inline-flex;
+            align-items:center;
+            min-height:30px;
+            padding:0 10px;
+            border-radius:999px;
+            background:#f3f7f3;
+            border:1px solid #dde7dd;
+            color:#405041;
+            font-size:0.82rem;
+            font-weight:700;
+        }
+
+        .supplier-meta{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+        }
+
+        .meta-pill{
+            display:inline-flex;
+            align-items:center;
+            min-height:34px;
+            padding:0 12px;
+            border-radius:999px;
+            background:#fff;
+            border:1px solid #dbe5db;
+            color:#2c3a2d;
+            font-size:0.86rem;
+            font-weight:700;
+        }
+
+        .supplier-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+        }
+
+        .btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-height:46px;
+            padding:0 16px;
+            border-radius:14px;
+            border:none;
+            cursor:pointer;
+            font:inherit;
+            font-weight:700;
+            transition:0.18s ease;
+            text-decoration:none;
+        }
+
+        .btn-primary{
+            background:#2e7d32;
+            color:#fff;
+        }
+
+        .btn-primary:hover{
+            background:#25672a;
+            transform:translateY(-1px);
+        }
+
+        .btn-secondary{
+            background:#f5f8f5;
+            color:#1f2a20;
+            border:1px solid #d8e3d8;
+        }
+
+        .btn-secondary:hover{
+            background:#edf4ed;
+        }
+
+        .panel-card{
+            padding:22px;
+            display:grid;
+            gap:18px;
+        }
+
+        .panel-card h2{
+            margin:0;
+            font-size:1.15rem;
+            color:#182118;
+        }
+
+        .quick-list{
+            display:grid;
+            gap:12px;
+        }
+
+        .quick-item{
+            display:flex;
+            justify-content:space-between;
+            gap:14px;
+            align-items:center;
+            padding:14px 16px;
+            border-radius:18px;
+            background:#f8fbf8;
+            border:1px solid #e3ece3;
+        }
+
+        .quick-item strong{
+            display:block;
+            color:#182118;
+            margin-bottom:4px;
+        }
+
+        .quick-item span{
+            color:#667267;
+            font-size:0.92rem;
+        }
+
+        .quick-pill{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-width:88px;
+            min-height:34px;
+            border-radius:999px;
+            background:#fff;
+            border:1px solid #dae5da;
+            font-weight:700;
+            color:#2e7d32;
+            padding:0 10px;
+            white-space:nowrap;
+        }
+
+        .mini-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:12px;
+        }
+
+        .mini-card{
+            background:#f8fbf8;
+            border:1px solid #e3ece3;
+            border-radius:18px;
+            padding:16px;
+        }
+
+        .mini-card .label{
+            font-size:0.85rem;
+            color:#667267;
+            margin-bottom:8px;
+        }
+
+        .mini-card .value{
+            font-size:1.05rem;
+            font-weight:800;
+            color:#182118;
+        }
+
+        @media (max-width: 1180px){
+            .toolbar-card{
+                grid-template-columns:1fr 1fr;
+            }
+
+            .suppliers-layout{
+                grid-template-columns:1fr;
+            }
+
+            .suppliers-grid{
+                grid-template-columns:1fr;
+            }
+
+            .stats-grid{
+                grid-template-columns:repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 680px){
+            .stats-grid,
+            .mini-grid,
+            .toolbar-card,
+            .supplier-details{
+                grid-template-columns:1fr;
+            }
+
+            .hero-suppliers{
+                padding:24px;
+            }
+
+            .supplier-top{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="headerMount"></div>
+
+    <main class="page-shell">
+        <div class="container app-layout">
+            <div id="sidebarMount"></div>
+
+            <section class="page-content">
+                <div class="suppliers-page">
+
+                    <section class="hero-suppliers">
+                        <h1>Leverandører samlet ét sted med kontakt, priser og indkøbsflow</h1>
+                        <p>
+                            Hold styr på dine leverandører, deres varegrupper, kontaktpersoner,
+                            leveringstider og prisniveauer. Siden binder råvarer, indkøb, historik
+                            og drift sammen, så du hurtigt kan reagere ved prisændringer eller lav lagerstatus.
+                        </p>
+
+                        <div class="hero-actions">
+                            <a href="#" class="btn btn-primary">+ Opret leverandør</a>
+                            <a href="/modules/drift/ingredients.html" class="btn btn-secondary">Se råvarer</a>
+                            <a href="/modules/drift/purchases.html" class="btn btn-secondary">Gå til indkøb</a>
+                        </div>
+                    </section>
+
+                    <section class="stats-grid">
+                        <article class="stat-card">
+                            <div class="stat-label">Aktive leverandører</div>
+                            <div class="stat-value">14</div>
+                            <div class="stat-meta">3 med levering flere gange ugentligt</div>
+                        </article>
+
+                        <article class="stat-card">
+                            <div class="stat-label">Prisændringer denne måned</div>
+                            <div class="stat-value">27</div>
+                            <div class="stat-meta">Registreret på tværs af råvarer</div>
+                        </article>
+
+                        <article class="stat-card">
+                            <div class="stat-label">Kritiske afhængigheder</div>
+                            <div class="stat-value">4</div>
+                            <div class="stat-meta">Kun én primær leverandør på disse varer</div>
+                        </article>
+
+                        <article class="stat-card">
+                            <div class="stat-label">Åbne bestillinger</div>
+                            <div class="stat-value">8</div>
+                            <div class="stat-meta">Afventer levering eller bekræftelse</div>
+                        </article>
+                    </section>
+
+                    <section class="toolbar-card">
+                        <input class="field" type="text" placeholder="Søg efter leverandør, kontaktperson, kategori eller telefon..." />
+                        <select class="select">
+                            <option>Alle kategorier</option>
+                            <option>Kød</option>
+                            <option>Grønt</option>
+                            <option>Mejeri</option>
+                            <option>Tørvarer</option>
+                            <option>Emballage</option>
+                            <option>Drikkevarer</option>
+                        </select>
+                        <select class="select">
+                            <option>Alle statusser</option>
+                            <option>Aktiv</option>
+                            <option>Afventer svar</option>
+                            <option>Alternativ</option>
+                        </select>
+                        <select class="select">
+                            <option>Sortér: Navn A-Å</option>
+                            <option>Sortér: Seneste aktivitet</option>
+                            <option>Sortér: Flest råvarer</option>
+                            <option>Sortér: Leveringsfrekvens</option>
+                        </select>
+                        <button class="btn btn-primary">Filtrér</button>
+                    </section>
+
+                    <section class="suppliers-layout">
+                        <div class="suppliers-grid">
+
+                            <article class="supplier-card">
+                                <div class="supplier-top">
+                                    <div>
+                                        <h2 class="supplier-name">Inco</h2>
+                                        <div class="supplier-sub">Kolonial, frost, grønt og storkøkkenvarer</div>
+                                    </div>
+                                    <span class="badge badge-green">Aktiv</span>
+                                </div>
+
+                                <div class="supplier-details">
+                                    <div class="detail-box">
+                                        <div class="detail-label">Kontaktperson</div>
+                                        <div class="detail-value">Mette Sørensen</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">Telefon</div>
+                                        <div class="detail-value">+45 70 12 34 56</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">E-mail</div>
+                                        <div class="detail-value">ordre@inco.dk</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">Levering</div>
+                                        <div class="detail-value">Mandag, onsdag og fredag</div>
+                                    </div>
+                                </div>
+
+                                <div class="category-tags">
+                                    <span class="tag">Grønt</span>
+                                    <span class="tag">Frost</span>
+                                    <span class="tag">Tørvarer</span>
+                                    <span class="tag">Engangsartikler</span>
+                                </div>
+
+                                <div class="supplier-meta">
+                                    <span class="meta-pill">63 råvarer tilknyttet</span>
+                                    <span class="meta-pill">5 åbne bestillinger</span>
+                                    <span class="meta-pill">Senest opdateret i går</span>
+                                </div>
+
+                                <div class="supplier-actions">
+                                    <a href="#" class="btn btn-primary">Åbn leverandør</a>
+                                    <a href="#" class="btn btn-secondary">Ny bestilling</a>
+                                </div>
+                            </article>
+
+                            <article class="supplier-card">
+                                <div class="supplier-top">
+                                    <div>
+                                        <h2 class="supplier-name">Hørkram</h2>
+                                        <div class="supplier-sub">Mejeri, kolonial og dessertvarer</div>
+                                    </div>
+                                    <span class="badge badge-green">Aktiv</span>
+                                </div>
+
+                                <div class="supplier-details">
+                                    <div class="detail-box">
+                                        <div class="detail-label">Kontaktperson</div>
+                                        <div class="detail-value">Lars Holm</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">Telefon</div>
+                                        <div class="detail-value">+45 70 22 44 88</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">E-mail</div>
+                                        <div class="detail-value">bestilling@horkram.dk</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">Levering</div>
+                                        <div class="detail-value">Tirsdag og torsdag</div>
+                                    </div>
+                                </div>
+
+                                <div class="category-tags">
+                                    <span class="tag">Mejeri</span>
+                                    <span class="tag">Kolonial</span>
+                                    <span class="tag">Dessert</span>
+                                </div>
+
+                                <div class="supplier-meta">
+                                    <span class="meta-pill">41 råvarer tilknyttet</span>
+                                    <span class="meta-pill">2 åbne bestillinger</span>
+                                    <span class="meta-pill">Prisændring denne uge</span>
+                                </div>
+
+                                <div class="supplier-actions">
+                                    <a href="#" class="btn btn-primary">Åbn leverandør</a>
+                                    <a href="#" class="btn btn-secondary">Ny bestilling</a>
+                                </div>
+                            </article>
+
+                            <article class="supplier-card">
+                                <div class="supplier-top">
+                                    <div>
+                                        <h2 class="supplier-name">Danish Crown</h2>
+                                        <div class="supplier-sub">Oksekød, hakket kød og specialudskæringer</div>
+                                    </div>
+                                    <span class="badge badge-green">Primær</span>
+                                </div>
+
+                                <div class="supplier-details">
+                                    <div class="detail-box">
+                                        <div class="detail-label">Kontaktperson</div>
+                                        <div class="detail-value">Jesper Knudsen</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">Telefon</div>
+                                        <div class="detail-value">+45 70 44 11 22</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">E-mail</div>
+                                        <div class="detail-value">foodservice@danishcrown.dk</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">Levering</div>
+                                        <div class="detail-value">Mandag til fredag</div>
+                                    </div>
+                                </div>
+
+                                <div class="category-tags">
+                                    <span class="tag">Kød</span>
+                                    <span class="tag">Premium</span>
+                                    <span class="tag">Burger</span>
+                                </div>
+
+                                <div class="supplier-meta">
+                                    <span class="meta-pill">19 råvarer tilknyttet</span>
+                                    <span class="meta-pill">1 kritisk varegruppe</span>
+                                    <span class="meta-pill">Høj leveringssikkerhed</span>
+                                </div>
+
+                                <div class="supplier-actions">
+                                    <a href="#" class="btn btn-primary">Åbn leverandør</a>
+                                    <a href="#" class="btn btn-secondary">Se prisudvikling</a>
+                                </div>
+                            </article>
+
+                            <article class="supplier-card">
+                                <div class="supplier-top">
+                                    <div>
+                                        <h2 class="supplier-name">Nemlig B2B</h2>
+                                        <div class="supplier-sub">Suppleringskøb, specialvarer og hurtig levering</div>
+                                    </div>
+                                    <span class="badge badge-yellow">Alternativ</span>
+                                </div>
+
+                                <div class="supplier-details">
+                                    <div class="detail-box">
+                                        <div class="detail-label">Kontaktperson</div>
+                                        <div class="detail-value">Online ordreteam</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">Telefon</div>
+                                        <div class="detail-value">+45 70 77 77 77</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">E-mail</div>
+                                        <div class="detail-value">b2b@nemlig.com</div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-label">Levering</div>
+                                        <div class="detail-value">Dag-til-dag ved ledige slots</div>
+                                    </div>
+                                </div>
+
+                                <div class="category-tags">
+                                    <span class="tag">Specialvarer</span>
+                                    <span class="tag">Hastekøb</span>
+                                    <span class="tag">Dagligvarer</span>
+                                </div>
+
+                                <div class="supplier-meta">
+                                    <span class="meta-pill">12 råvarer tilknyttet</span>
+                                    <span class="meta-pill">Bruges ved lav lagerstatus</span>
+                                    <span class="meta-pill">Hurtig fallback</span>
+                                </div>
+
+                                <div class="supplier-actions">
+                                    <a href="#" class="btn btn-primary">Åbn leverandør</a>
+                                    <a href="#" class="btn btn-secondary">Ny bestilling</a>
+                                </div>
+                            </article>
+
+                        </div>
+
+                        <aside class="panel-card">
+                            <h2>Hurtigt overblik</h2>
+
+                            <div class="quick-list">
+                                <div class="quick-item">
+                                    <div>
+                                        <strong>Primære leverandører</strong>
+                                        <span>Bruges på de vigtigste varegrupper og daglig drift</span>
+                                    </div>
+                                    <div class="quick-pill">6 stk.</div>
+                                </div>
+
+                                <div class="quick-item">
+                                    <div>
+                                        <strong>Alternativ backup</strong>
+                                        <span>Kan aktiveres ved udsolgt vare eller forsinkelse</span>
+                                    </div>
+                                    <div class="quick-pill">4 stk.</div>
+                                </div>
+
+                                <div class="quick-item">
+                                    <div>
+                                        <strong>Prisovervågning</strong>
+                                        <span>Leverandører med ændringer i seneste periode</span>
+                                    </div>
+                                    <div class="quick-pill">3 stk.</div>
+                                </div>
+                            </div>
+
+                            <div class="mini-grid">
+                                <div class="mini-card">
+                                    <div class="label">Flest råvarer</div>
+                                    <div class="value">Inco</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="label">Mest kritisk</div>
+                                    <div class="value">Danish Crown</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="label">Hurtigste fallback</div>
+                                    <div class="value">Nemlig B2B</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="label">Næste fokus</div>
+                                    <div class="value">Prisrevision</div>
+                                </div>
+                            </div>
+
+                            <a href="/modules/drift/purchases.html" class="btn btn-primary">Gå til indkøb</a>
+                            <a href="/modules/drift/ingredients.html" class="btn btn-secondary">Til råvarer</a>
+                        </aside>
+                    </section>
+
+                </div>
+            </section>
+        </div>
+    </main>
+<script src="/modules/drift/drift.js"></script>
+    <script>
+        async function loadSharedPartials() {
+            const headerMount = document.getElementById("headerMount");
+            const sidebarMount = document.getElementById("sidebarMount");
+
+            try {
+                const [headerRes, sidebarRes] = await Promise.all([
+                    fetch("/components/header.html"),
+                    fetch("/components/sidebar.html")
+                ]);
+
+                if (headerRes.ok) {
+                    headerMount.innerHTML = await headerRes.text();
+                }
+
+                if (sidebarRes.ok) {
+                    sidebarMount.innerHTML = await sidebarRes.text();
+                }
+
+                const currentPath = window.location.pathname;
+                document.querySelectorAll(".sidebar-link, .nav a").forEach(link => {
+                    const href = link.getAttribute("href");
+                    if (href && currentPath.includes(href.replace("/index.html", "/"))) {
+                        link.classList.add("active");
+                    }
+                    if (href === currentPath) {
+                        link.classList.add("active");
+                    }
+                });
+            } catch (error) {
+                console.error("Kunne ikke indlæse header/sidebar:", error);
+            }
+        }
+
+        loadSharedPartials();
+    </script>
+
+</body>
+</html>

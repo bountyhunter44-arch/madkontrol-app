@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Billedarkiv | Madkontrollen Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .archive-wrap { padding: 0; }
+    .archive-shell { display: grid; gap: 16px; }
+    .archive-card { background: #fff; border: 1px solid #dbe8db; border-radius: 18px; box-shadow: 0 10px 24px rgba(16, 33, 16, 0.06); }
+    .archive-head { padding: 18px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-end; padding-bottom: 18px; }
+    .archive-head h1 { margin: 0; font-size: 24px; }
+    .archive-head p { margin: 6px 0 0; color: #5e6b5e; }
+    .archive-kpis { display: flex; gap: 10px; flex-wrap: wrap; }
+    .archive-pill { padding: 7px 11px; border-radius: 999px; background: #f3f8f3; border: 1px solid #dbe8db; font-size: 12px; font-weight: 700; }
+    .archive-filters { padding: 0 18px 18px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; align-items: end; }
+    .archive-filters label { display: grid; gap: 6px; font-size: 12px; font-weight: 700; color: #4b5a4b; }
+    .archive-filters input, .archive-filters select { min-height: 40px; border: 1px solid #d7e3d7; border-radius: 10px; padding: 8px 10px; }
+    .archive-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .archive-actions .btn { padding: 10px 18px; font-size: 14px; white-space: nowrap; }
+    .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; padding: 0 18px 18px; }
+    .asset-card { border: 1px solid #deeadf; border-radius: 14px; overflow: hidden; background: #fff; }
+    .asset-preview { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; background: #eef4ee; }
+    .asset-body { padding: 10px; display: grid; gap: 7px; }
+    .asset-title { margin: 0; font-size: 14px; }
+    .asset-meta { margin: 0; color: #5d6b5d; font-size: 12px; }
+    .asset-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .asset-links a { font-size: 12px; font-weight: 700; color: #1c5d28; text-decoration: none; }
+    .asset-links a:hover { text-decoration: underline; }
+    .archive-empty { padding: 26px 18px; color: #596659; }
+    @media (max-width: 980px) { 
+      .archive-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } 
+    }
+    @media (max-width: 640px) { 
+      .archive-filters { grid-template-columns: 1fr; }
+      .archive-head { align-items: flex-start; }
+      .archive-actions { width: 100%; justify-content: stretch; }
+      .archive-actions .btn { flex: 1; min-width: 0; font-size: 13px; padding: 8px 12px; }
+    }
+  </style>
+</head>
+<body data-page="billed-arkiv">
+  <div id="headerMount"></div>
+
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+
+      <section class="page-content">
+        <div class="archive-wrap">
+          <div id="archiveRoot" class="archive-shell"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import React, { useEffect, useMemo, useState } from "https://esm.sh/react@18.3.1";
+    import { createRoot } from "https://esm.sh/react-dom@18.3.1/client";
+    import { setupAuthGate } from "/core/auth.js";
+    import { loadLayout } from "/core/layout.js";
+    import { db } from "/core/firebase-config.js";
+    import { collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    try {
+      await loadLayout();
+    } catch (error) {
+      console.error("Layout load fejl:", error);
+    }
+
+    function parseAssetDate(value) {
+      if (!value) return null;
+      if (typeof value?.toDate === "function") return value.toDate();
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function fmtDate(value) {
+      const parsed = parseAssetDate(value);
+      if (!parsed) return "-";
+      return new Intl.DateTimeFormat("da-DK", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(parsed);
+    }
+
+    function optimizedUrl(value) {
+      const raw = String(value || "").trim();
+      if (!raw) return "";
+      return raw.includes("/upload/")
+        ? raw.replace("/upload/", "/upload/f_auto,q_auto/")
+        : raw;
+    }
+
+    function resolveModuleLink(asset) {
+      const moduleType = String(asset.moduleType || "").toLowerCase();
+      if (moduleType === "egenkontrol") {
+        return `/modules/egenkontrol/rapporter.html?taskInstanceId=${encodeURIComponent(asset.taskInstanceId || "")}`;
+      }
+      if (moduleType === "finance") {
+        return `/modules/accounting/bilag-historik.html?itemId=${encodeURIComponent(asset.itemId || "")}`;
+      }
+      if (moduleType === "institution") {
+        return `/modules/platform/unified-core.html?citizenId=${encodeURIComponent(asset.itemId || "")}`;
+      }
+      return "";
+    }
+
+    function App({ user, profile }) {
+      const [assets, setAssets] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState("");
+      const [locationName, setLocationName] = useState("");
+      const [fromDate, setFromDate] = useState("");
+      const [toDate, setToDate] = useState("");
+      const [moduleType, setModuleType] = useState("all");
+      const [itemQuery, setItemQuery] = useState("");
+
+      const companyId = String(profile?.companyId || profile?.organizationId || "").trim();
+      const locationId = String(sessionStorage.getItem("mkp_selected_locationId") || profile?.locationId || "").trim();
+
+      useEffect(() => {
+        async function loadLocationName() {
+          if (!companyId || !locationId) {
+            setLocationName("");
+            return;
+          }
+
+          try {
+            const [locationSnap, liveProfileSnap] = await Promise.all([
+              getDoc(doc(db, "companies", companyId, "locations", locationId)),
+              getDoc(doc(db, "live_user_profiles", `${companyId}__${locationId}__live_profile`))
+            ]);
+
+            const locationData = locationSnap.exists() ? (locationSnap.data() || {}) : {};
+            const liveData = liveProfileSnap.exists() ? (liveProfileSnap.data() || {}) : {};
+            const profileData = liveData.profile || liveData;
+
+            const name = String(
+              locationData.displayName || 
+              locationData.name || 
+              ""
+            ).trim();
+
+            const address = [
+              profileData.address || locationData.address,
+              profileData.zip || locationData.zip,
+              profileData.city || locationData.city
+            ].filter(Boolean).join(", ");
+
+            setLocationName(name || address || "");
+          } catch (err) {
+            console.warn("Kunne ikke hente læsbart lokationsnavn:", err);
+            setLocationName("");
+          }
+        }
+
+        loadLocationName();
+      }, [companyId, locationId]);
+
+      useEffect(() => {
+        async function loadAssets() {
+          setLoading(true);
+          setError("");
+          try {
+            const q = query(collection(db, "media_assets"), where("userId", "==", user.uid));
+            const snap = await getDocs(q);
+            const rows = snap.docs.map((docItem) => ({ id: docItem.id, ...docItem.data() }));
+            const scoped = rows.filter((item) => {
+              const itemCompany = String(item.companyId || item.organizationId || "").trim();
+              const itemLocation = String(item.locationId || "").trim();
+              if (companyId && itemCompany && itemCompany !== companyId) return false;
+              if (locationId && itemLocation && itemLocation !== locationId) return false;
+              return true;
+            });
+            scoped.sort((a, b) => {
+              const left = parseAssetDate(a.createdAt || a.createdAtClient)?.getTime() || 0;
+              const right = parseAssetDate(b.createdAt || b.createdAtClient)?.getTime() || 0;
+              return right - left;
+            });
+            setAssets(scoped);
+          } catch (err) {
+            console.error("Kunne ikke hente media assets:", err);
+            setError("Kunne ikke hente billedarkiv for denne bruger.");
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        loadAssets();
+      }, [user.uid, companyId, locationId]);
+
+      const filtered = useMemo(() => {
+        const fromTs = fromDate ? new Date(`${fromDate}T00:00:00`).getTime() : null;
+        const toTs = toDate ? new Date(`${toDate}T23:59:59`).getTime() : null;
+        const term = itemQuery.trim().toLowerCase();
+
+        return assets.filter((asset) => {
+          const assetTs = parseAssetDate(asset.createdAt || asset.createdAtClient)?.getTime() || 0;
+          if (fromTs && assetTs < fromTs) return false;
+          if (toTs && assetTs > toTs) return false;
+
+          if (moduleType !== "all" && String(asset.moduleType || "").toLowerCase() !== moduleType) {
+            return false;
+          }
+
+          if (term) {
+            const haystack = [
+              asset.itemId,
+              asset.moduleType,
+              asset.publicId,
+              asset.taskId,
+              asset.taskInstanceId
+            ].join(" ").toLowerCase();
+            if (!haystack.includes(term)) return false;
+          }
+
+          return true;
+        });
+      }, [assets, fromDate, toDate, moduleType, itemQuery]);
+
+      function downloadManifest() {
+        // Create CSV with BOM for proper Excel encoding
+        const BOM = "\uFEFF";
+        
+        // Create CSV header
+        const headers = ["Dato", "Modul", "Opgave", "Billede URL"];
+        
+        // Create CSV rows - simplified for better readability
+        const rows = filtered.map((asset) => {
+          const date = fmtDate(asset.createdAt || asset.createdAtClient);
+          const module = (asset.moduleType || "").charAt(0).toUpperCase() + (asset.moduleType || "").slice(1);
+          const itemId = asset.itemId || "Dokumentation";
+          const imageUrl = asset.secureUrl || "";
+          
+          // Escape CSV values properly
+          const escapeCsv = (val) => {
+            const str = String(val);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+              return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+          };
+          
+          return [date, module, itemId, imageUrl]
+            .map(escapeCsv)
+            .join(",");
+        });
+        
+        const csvContent = BOM + [headers.join(","), ...rows].join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `madkontrollen-billedarkiv-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      return React.createElement(
+        "section",
+        { className: "archive-card" },
+        React.createElement(
+          "div",
+          { className: "archive-head" },
+          React.createElement(
+            "div",
+            null,
+            React.createElement("h1", null, "Billedarkiv"),
+            React.createElement("p", null, "Bruger-specifik dokumentation med fuld sporbarhed: user_id, module_type og item_id.")
+          ),
+          React.createElement(
+            "div",
+            { className: "archive-kpis" },
+            React.createElement("span", { className: "archive-pill" }, `Bruger: ${profile?.displayName || user.displayName || user.email || "Ukendt"}`),
+            React.createElement("span", { className: "archive-pill" }, `Fundet: ${filtered.length}`),
+            React.createElement("span", { className: "archive-pill" }, `Lokation: ${locationName || locationId || "-"}`)
+          )
+        ),
+        React.createElement(
+          "div",
+          { className: "archive-filters" },
+          React.createElement("label", null, "Fra dato", React.createElement("input", { type: "date", value: fromDate, onChange: (e) => setFromDate(e.target.value) })),
+          React.createElement("label", null, "Til dato", React.createElement("input", { type: "date", value: toDate, onChange: (e) => setToDate(e.target.value) })),
+          React.createElement(
+            "label",
+            null,
+            "Kategori",
+            React.createElement(
+              "select",
+              { value: moduleType, onChange: (e) => setModuleType(e.target.value) },
+              React.createElement("option", { value: "all" }, "Alle"),
+              React.createElement("option", { value: "egenkontrol" }, "Egenkontrol"),
+              React.createElement("option", { value: "finance" }, "Finance"),
+              React.createElement("option", { value: "institution" }, "Institution")
+            )
+          ),
+          React.createElement("label", null, "Søg item", React.createElement("input", { value: itemQuery, onChange: (e) => setItemQuery(e.target.value), placeholder: "Kølerum 1, Faktura-123..." })),
+          React.createElement(
+            "div",
+            { className: "archive-actions" },
+            React.createElement("button", { className: "btn btn-secondary", type: "button", onClick: () => {
+              setFromDate("");
+              setToDate("");
+              setModuleType("all");
+              setItemQuery("");
+            } }, "Nulstil"),
+            React.createElement("button", { className: "btn btn-primary", type: "button", onClick: downloadManifest }, "Hent dokumentation")
+          )
+        ),
+        loading
+          ? React.createElement("div", { className: "archive-empty" }, "Henter billeder...")
+          : error
+            ? React.createElement("div", { className: "archive-empty" }, error)
+            : !filtered.length
+              ? React.createElement("div", { className: "archive-empty" }, "Ingen billeder matcher filteret.")
+              : React.createElement(
+                  "div",
+                  { className: "archive-grid" },
+                  filtered.map((asset) => {
+                    const moduleLink = resolveModuleLink(asset);
+                    const preview = optimizedUrl(asset.optimizedUrl || asset.secureUrl || "");
+                    const original = String(asset.secureUrl || "");
+
+                    return React.createElement(
+                      "article",
+                      { key: asset.id, className: "asset-card" },
+                      React.createElement("img", {
+                        className: "asset-preview",
+                        src: preview,
+                        loading: "lazy",
+                        alt: `${asset.moduleType || "Bilag"} ${asset.itemId || ""}`
+                      }),
+                      React.createElement(
+                        "div",
+                        { className: "asset-body" },
+                        React.createElement("h3", { className: "asset-title" }, 
+                          `${asset.moduleType ? asset.moduleType.charAt(0).toUpperCase() + asset.moduleType.slice(1) : ""} ${asset.itemId || "Dokumentation"}`
+                        ),
+                        React.createElement("p", { className: "asset-meta" }, fmtDate(asset.createdAt || asset.createdAtClient)),
+                        React.createElement("p", { className: "asset-meta", style: { fontSize: "11px", wordBreak: "break-all" } }, 
+                          asset.publicId ? `ID: .../${asset.publicId.split('/').slice(-2).join('/')}` : ""
+                        ),
+                        React.createElement(
+                          "div",
+                          { className: "asset-links" },
+                          original ? React.createElement("a", { href: original, target: "_blank", rel: "noopener noreferrer" }, "Åbn original") : null,
+                          moduleLink ? React.createElement("a", { href: moduleLink }, "Åbn modul") : null
+                        )
+                      )
+                    );
+                  })
+                )
+      );
+    }
+
+    const root = createRoot(document.getElementById("archiveRoot"));
+
+    try {
+      await setupAuthGate({
+        appName: "Madkontrollen Pro",
+        onAuthenticated: async ({ user, profile }) => {
+          root.render(React.createElement(App, { user, profile }));
+        },
+        onSignedOut: async () => {
+          root.render(React.createElement("div", { className: "archive-card archive-empty" }, "Log ind for at se billedarkiv."));
+        }
+      });
+    } catch (error) {
+      console.error("Auth gate fejl:", error);
+      root.render(React.createElement("div", { className: "archive-card archive-empty" }, `Fejl ved indlæsning: ${error.message}`));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+.local-event-note {
+  appearance: none;
+  border: 1px solid #cfe7d6;
+  background: #f4fbf6;
+  color: #126b3a;
+  border-radius: 999px;
+  padding: 8px 13px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.local-event-note:hover {
+  background: #e7f6eb;
+}
+
+.local-event-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.local-event-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 20, 12, .58);
+}
+
+.local-event-modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(520px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .28);
+}
+
+.local-event-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #e2ece5;
+}
+
+.local-event-kicker {
+  margin: 0 0 4px;
+  color: #168245;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.local-event-modal-header h2 {
+  margin: 0;
+  color: #102117;
+  font-size: clamp(1.35rem, 4vw, 1.9rem);
+  line-height: 1.08;
+}
+
+.local-event-icon-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d5e4da;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.local-event-modal-body {
+  padding: 18px 20px 20px;
+}
+
+.local-event-meta {
+  margin: 0 0 10px;
+  color: #52645a;
+  font-weight: 700;
+}
+
+.local-event-copy {
+  margin: 0 0 18px;
+  color: #24392d;
+  line-height: 1.5;
+}
+
+.local-event-question {
+  margin: 0 0 10px;
+  font-weight: 800;
+  color: #102117;
+}
+
+.local-event-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.local-event-primary,
+.local-event-secondary {
+  min-height: 42px;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.local-event-primary {
+  border: 1px solid #168245;
+  background: #168245;
+  color: #fff;
+}
+
+.local-event-secondary {
+  border: 1px solid #d5e4da;
+  background: #fff;
+  color: #183124;
+}
+
+.local-event-competition {
+  display: grid;
+  gap: 13px;
+}
+
+.local-event-competition[hidden] {
+  display: none;
+}
+
+.local-event-prize {
+  display: grid;
+  gap: 4px;
+  padding: 13px;
+  border-radius: 14px;
+  background: #f4fbf6;
+  color: #183124;
+}
+
+.local-event-competition label {
+  display: grid;
+  gap: 6px;
+  color: #24392d;
+  font-weight: 700;
+}
+
+.local-event-competition input,
+.local-event-competition textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #cfded4;
+  border-radius: 12px;
+  padding: 11px 12px;
+  font: inherit;
+}
+
+.local-event-checkbox {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+}
+
+.local-event-privacy {
+  margin: 0;
+  color: #637268;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.local-event-status {
+  min-height: 20px;
+  margin-top: 12px;
+  font-weight: 700;
+}
+
+.local-event-status[data-status="success"] {
+  color: #168245;
+}
+
+.local-event-status[data-status="error"] {
+  color: #b42318;
+}
+
+.local-event-admin-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.local-event-admin-summary div {
+  display: grid;
+  gap: 3px;
+  padding: 12px;
+  border: 1px solid #e0ebe4;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.local-event-admin-summary strong {
+  color: #168245;
+  font-size: 1.45rem;
+}
+
+.local-event-admin-summary span,
+.local-event-admin-list small {
+  color: #627167;
+}
+
+.local-event-admin-actions {
+  margin: 12px 0;
+}
+
+.local-event-admin-list {
+  display: grid;
+  gap: 8px;
+}
+
+.local-event-admin-list article {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid #e0ebe4;
+  border-radius: 12px;
+}
+
+@media (max-width: 520px) {
+  .local-event-modal {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .local-event-modal-card {
+    border-radius: 18px 18px 12px 12px;
+  }
+
+  .local-event-actions,
+  .local-event-primary,
+  .local-event-secondary {
+    width: 100%;
+  }
+
+  .local-event-admin-summary {
+    grid-template-columns: 1fr;
+  }
+}

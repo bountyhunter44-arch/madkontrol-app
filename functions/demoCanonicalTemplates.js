@@ -5,6 +5,9 @@
  */
 
 const { CANONICAL_ROUTINE_TYPES } = require('./canonicalRoutines');
+const { OWNER_KIND, buildOwnerScopeMetadata } = require("./lib/ownerScope");
+
+const DEMO_OWNER_SCOPE = buildOwnerScopeMetadata(OWNER_KIND.DEMO_OWNER);
 
 /**
  * Demo canonical templates
@@ -184,6 +187,7 @@ function buildCanonicalDemoTemplatePayload({ routineType, unitId, unitName, comp
     companyId,
     organizationId: companyId,
     locationId,
+    ...DEMO_OWNER_SCOPE,
     
     // Canonical fields
     routineType,
@@ -246,6 +250,7 @@ function buildCanonicalDemoEquipmentPayload({ unit, companyId, locationId, userI
     companyId,
     organizationId: companyId,
     locationId,
+    ...DEMO_OWNER_SCOPE,
     
     name: unit.name,
     displayName: unit.displayName,

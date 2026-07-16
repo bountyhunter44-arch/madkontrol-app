@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug User Data</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 { margin-top: 0; }
+    h2 { margin-top: 0; font-size: 18px; color: #666; }
+    pre {
+      background: #f5f5f5;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .btn {
+      background: #2f7d32;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+    .btn:hover { background: #1b5e20; }
+    .btn-secondary {
+      background: #666;
+    }
+    .btn-secondary:hover { background: #444; }
+    .status {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+    .status.success { background: #e8f5e9; color: #2f7d32; }
+    .status.error { background: #ffebee; color: #c62828; }
+    .status.warning { background: #fff3e0; color: #ef6c00; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔍 Debug User Data</h1>
+    <p>Denne side viser din Firebase Auth og Firestore brugerdata for at diagnosticere login-problemer.</p>
+    <div id="authStatus"></div>
+    <button class="btn" onclick="loadUserData()">Genindlæs Data</button>
+    <button class="btn btn-secondary" onclick="window.location.href='/dashboard'">Gå til Dashboard</button>
+  </div>
+
+  <div class="card" id="authCard" style="display:none;">
+    <h2>Firebase Authentication</h2>
+    <pre id="authData"></pre>
+  </div>
+
+  <div class="card" id="firestoreCard" style="display:none;">
+    <h2>Firestore Users Document</h2>
+    <pre id="firestoreData"></pre>
+  </div>
+
+  <div class="card" id="sessionCard" style="display:none;">
+    <h2>SessionStorage</h2>
+    <pre id="sessionData"></pre>
+  </div>
+
+  <div class="card" id="localCard" style="display:none;">
+    <h2>LocalStorage (Credentials)</h2>
+    <pre id="localData"></pre>
+  </div>
+
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import app, { auth, db } from "/core/firebase-config.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    window.loadUserData = async function() {
+      const authStatus = document.getElementById('authStatus');
+      
+      setupAuthGate({
+        appName: "Debug User Data",
+        onAuthenticated: async ({ user, profile }) => {
+          authStatus.innerHTML = '<div class="status success">✅ Logget ind</div>';
+
+        // Show Firebase Auth data
+        document.getElementById('authCard').style.display = 'block';
+        document.getElementById('authData').textContent = JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          emailVerified: user.emailVerified,
+          creationTime: user.metadata.creationTime,
+          lastSignInTime: user.metadata.lastSignInTime
+        }, null, 2);
+
+        // Show Firestore data
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          document.getElementById('firestoreCard').style.display = 'block';
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            document.getElementById('firestoreData').textContent = JSON.stringify(userData, null, 2);
+            
+            // Check for missing fields
+            const requiredFields = ['companyId', 'locationId', 'role'];
+            const missingFields = requiredFields.filter(field => !userData[field]);
+            
+            if (missingFields.length > 0) {
+              authStatus.innerHTML += `<div class="status error">❌ Manglende felter: ${missingFields.join(', ')}</div>`;
+            } else {
+              authStatus.innerHTML += '<div class="status success">✅ Alle påkrævede felter er sat</div>';
+            }
+          } else {
+            document.getElementById('firestoreData').textContent = 'INGEN FIRESTORE DOCUMENT FUNDET!';
+            authStatus.innerHTML += '<div class="status error">❌ Firestore users document mangler</div>';
+          }
+        } catch (error) {
+          document.getElementById('firestoreData').textContent = `Fejl: ${error.message}`;
+          authStatus.innerHTML += `<div class="status error">❌ Kunne ikke hente Firestore data: ${error.message}</div>`;
+        }
+
+        // Show SessionStorage
+        document.getElementById('sessionCard').style.display = 'block';
+        const sessionData = {
+          mkp_user_uid: sessionStorage.getItem('mkp_user_uid'),
+          mkp_user_companyId: sessionStorage.getItem('mkp_user_companyId'),
+          mkp_user_locationIds: sessionStorage.getItem('mkp_user_locationIds'),
+          mkp_selected_locationId: sessionStorage.getItem('mkp_selected_locationId'),
+          mkp_latest_onboarding_snapshotId: sessionStorage.getItem('mkp_latest_onboarding_snapshotId')
+        };
+        document.getElementById('sessionData').textContent = JSON.stringify(sessionData, null, 2);
+
+        // Show LocalStorage credentials
+        document.getElementById('localCard').style.display = 'block';
+        const credentialsRaw = localStorage.getItem('mkp_onboarding_credentials_v1');
+        if (credentialsRaw) {
+          try {
+            const credentials = JSON.parse(credentialsRaw);
+            document.getElementById('localData').textContent = JSON.stringify({
+              email: credentials.email,
+              password: '***' + credentials.password.slice(-4)
+            }, null, 2);
+          } catch (e) {
+            document.getElementById('localData').textContent = 'Kunne ikke parse credentials';
+          }
+        } else {
+          document.getElementById('localData').textContent = 'Ingen credentials gemt';
+        }
+        },
+        onSignedOut: async () => {
+          authStatus.innerHTML = '<div class="status error">❌ Ikke logget ind</div>';
+          document.getElementById('authCard').style.display = 'none';
+          document.getElementById('firestoreCard').style.display = 'none';
+        }
+      });
+    };
+
+    // Auto-load on page load
+    loadUserData();
+  </script>
+</body>
+</html>

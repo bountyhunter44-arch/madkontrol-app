@@ -1,0 +1,804 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Opskrifter | Madkontrollen Pro</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        .recipes-page{
+            display:grid;
+            gap:24px;
+        }
+
+        .hero-recipes{
+            position:relative;
+            overflow:hidden;
+            border-radius:28px;
+            padding:32px;
+            background:
+                radial-gradient(circle at top right, rgba(46,125,50,0.18), transparent 30%),
+                linear-gradient(135deg, #18361d 0%, #25552d 55%, #2e7d32 100%);
+            color:#fff;
+            border:1px solid rgba(255,255,255,0.08);
+            box-shadow:0 24px 60px rgba(22,34,22,0.16);
+        }
+
+        .hero-recipes::after{
+            content:"";
+            position:absolute;
+            inset:auto -40px -50px auto;
+            width:220px;
+            height:220px;
+            border-radius:50%;
+            background:rgba(255,255,255,0.08);
+            filter:blur(8px);
+        }
+
+        .hero-recipes h1{
+            margin:0 0 10px;
+            font-size:clamp(2rem, 3vw, 2.8rem);
+            line-height:1.05;
+            font-weight:800;
+            max-width:720px;
+        }
+
+        .hero-recipes p{
+            margin:0;
+            max-width:720px;
+            color:rgba(255,255,255,0.88);
+            font-size:1.02rem;
+            line-height:1.7;
+        }
+
+        .hero-recipes-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:12px;
+            margin-top:24px;
+        }
+
+        .hero-recipes .btn{
+            text-decoration:none;
+        }
+
+        .hero-recipes .btn-secondary{
+            background:rgba(255,255,255,0.14);
+            color:#fff;
+            border:1px solid rgba(255,255,255,0.16);
+        }
+
+        .hero-recipes .btn-secondary:hover{
+            background:rgba(255,255,255,0.2);
+        }
+
+        .stats-grid{
+            display:grid;
+            grid-template-columns:repeat(4, minmax(0, 1fr));
+            gap:16px;
+        }
+
+        .stat-card{
+            background:#fff;
+            border:1px solid var(--border, #d9e4d9);
+            border-radius:22px;
+            padding:20px;
+            box-shadow:0 12px 30px rgba(19,34,20,0.06);
+        }
+
+        .stat-label{
+            font-size:0.92rem;
+            color:var(--muted, #667267);
+            margin-bottom:10px;
+        }
+
+        .stat-value{
+            font-size:1.8rem;
+            font-weight:800;
+            color:var(--text, #182118);
+            line-height:1;
+            margin-bottom:8px;
+        }
+
+        .stat-meta{
+            font-size:0.92rem;
+            color:var(--muted, #667267);
+        }
+
+        .toolbar-card,
+        .recipe-card,
+        .panel-card{
+            background:#fff;
+            border:1px solid var(--border, #d9e4d9);
+            border-radius:24px;
+            box-shadow:0 14px 34px rgba(19,34,20,0.06);
+        }
+
+        .toolbar-card{
+            padding:18px;
+            display:grid;
+            grid-template-columns:1.4fr 180px 180px 180px auto;
+            gap:14px;
+            align-items:center;
+        }
+
+        .field,
+        .select{
+            width:100%;
+            border:1px solid #d8e3d8;
+            background:#f8fbf8;
+            border-radius:14px;
+            min-height:48px;
+            padding:0 14px;
+            font:inherit;
+            color:#182118;
+            outline:none;
+        }
+
+        .field:focus,
+        .select:focus{
+            border-color:#2e7d32;
+            box-shadow:0 0 0 3px rgba(46,125,50,0.12);
+            background:#fff;
+        }
+
+        .recipes-layout{
+            display:grid;
+            grid-template-columns:minmax(0, 1.6fr) minmax(320px, 0.95fr);
+            gap:24px;
+            align-items:start;
+        }
+
+        .recipe-list{
+            display:grid;
+            gap:18px;
+        }
+
+        .recipe-card{
+            padding:22px;
+            display:grid;
+            grid-template-columns:minmax(0, 1fr) auto;
+            gap:18px;
+            align-items:start;
+        }
+
+        .recipe-top{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            align-items:center;
+            margin-bottom:12px;
+        }
+
+        .recipe-title{
+            font-size:1.2rem;
+            font-weight:800;
+            color:#182118;
+            margin:0;
+        }
+
+        .badge{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-height:30px;
+            padding:0 12px;
+            border-radius:999px;
+            font-size:0.82rem;
+            font-weight:700;
+            border:1px solid transparent;
+            white-space:nowrap;
+        }
+
+        .badge-green{
+            background:#e8f5e9;
+            color:#1f5a23;
+            border-color:#cae9cf;
+        }
+
+        .badge-yellow{
+            background:#fff6df;
+            color:#9a6700;
+            border-color:#f4dfad;
+        }
+
+        .badge-blue{
+            background:#e7f0ff;
+            color:#2457a6;
+            border-color:#d3e1ff;
+        }
+
+        .recipe-desc{
+            margin:0 0 18px;
+            color:#5f6d61;
+            line-height:1.7;
+        }
+
+        .recipe-meta{
+            display:grid;
+            grid-template-columns:repeat(4, minmax(0, 1fr));
+            gap:12px;
+            margin-bottom:18px;
+        }
+
+        .meta-box{
+            background:#f8fbf8;
+            border:1px solid #e3ece3;
+            border-radius:18px;
+            padding:14px;
+        }
+
+        .meta-label{
+            font-size:0.8rem;
+            color:#6a776b;
+            margin-bottom:6px;
+        }
+
+        .meta-value{
+            font-size:1rem;
+            font-weight:700;
+            color:#182118;
+        }
+
+        .ingredients-inline{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+
+        .chip{
+            display:inline-flex;
+            align-items:center;
+            min-height:34px;
+            padding:0 12px;
+            border-radius:999px;
+            background:#f3f7f3;
+            border:1px solid #dde7dd;
+            color:#2a362b;
+            font-size:0.9rem;
+            font-weight:600;
+        }
+
+        .recipe-actions{
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+            min-width:180px;
+        }
+
+        .btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-height:46px;
+            padding:0 16px;
+            border-radius:14px;
+            border:none;
+            cursor:pointer;
+            font:inherit;
+            font-weight:700;
+            transition:0.18s ease;
+            text-decoration:none;
+        }
+
+        .btn-primary{
+            background:#2e7d32;
+            color:#fff;
+        }
+
+        .btn-primary:hover{
+            background:#25672a;
+            transform:translateY(-1px);
+        }
+
+        .btn-secondary{
+            background:#f5f8f5;
+            color:#1f2a20;
+            border:1px solid #d8e3d8;
+        }
+
+        .btn-secondary:hover{
+            background:#edf4ed;
+        }
+
+        .panel-card{
+            padding:22px;
+            display:grid;
+            gap:18px;
+        }
+
+        .panel-card h2{
+            margin:0;
+            font-size:1.15rem;
+            color:#182118;
+        }
+
+        .quick-list{
+            display:grid;
+            gap:12px;
+        }
+
+        .quick-item{
+            display:flex;
+            justify-content:space-between;
+            gap:14px;
+            align-items:center;
+            padding:14px 16px;
+            border-radius:18px;
+            background:#f8fbf8;
+            border:1px solid #e3ece3;
+        }
+
+        .quick-item strong{
+            display:block;
+            color:#182118;
+            margin-bottom:4px;
+        }
+
+        .quick-item span{
+            color:#667267;
+            font-size:0.92rem;
+        }
+
+        .quick-pill{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-width:90px;
+            min-height:34px;
+            border-radius:999px;
+            background:#ffffff;
+            border:1px solid #dae5da;
+            font-weight:700;
+            color:#2e7d32;
+            padding:0 10px;
+            white-space:nowrap;
+        }
+
+        .mini-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:12px;
+        }
+
+        .mini-card{
+            background:#f8fbf8;
+            border:1px solid #e3ece3;
+            border-radius:18px;
+            padding:16px;
+        }
+
+        .mini-card .label{
+            font-size:0.85rem;
+            color:#667267;
+            margin-bottom:8px;
+        }
+
+        .mini-card .value{
+            font-size:1.1rem;
+            font-weight:800;
+            color:#182118;
+        }
+
+        @media (max-width: 1180px){
+            .toolbar-card{
+                grid-template-columns:1fr 1fr;
+            }
+
+            .recipes-layout{
+                grid-template-columns:1fr;
+            }
+
+            .stats-grid{
+                grid-template-columns:repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 860px){
+            .recipe-card{
+                grid-template-columns:1fr;
+            }
+
+            .recipe-actions{
+                min-width:0;
+                flex-direction:row;
+                flex-wrap:wrap;
+            }
+
+            .recipe-meta{
+                grid-template-columns:repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px){
+            .hero-recipes{
+                padding:24px;
+            }
+
+            .stats-grid,
+            .mini-grid,
+            .recipe-meta,
+            .toolbar-card{
+                grid-template-columns:1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="headerMount"></div>
+
+    <main class="page-shell">
+        <div class="container app-layout">
+            <div id="sidebarMount"></div>
+
+            <section class="page-content">
+                <div class="recipes-page">
+
+                    <section class="hero-recipes">
+                        <h1>Opskrifter med styr på råvarer, avance og drift</h1>
+                        <p>
+                            Saml alle dine opskrifter ét sted og få overblik over portionsstørrelser,
+                            kostpris, salgspris, dækningsbidrag og status. Brug siden som fundament
+                            for menu, indkøb, kalkulation og selskabsplanlægning.
+                        </p>
+
+                        <div class="hero-recipes-actions">
+                            <a href="#" class="btn btn-primary">+ Opret opskrift</a>
+                            <a href="/modules/drift/menu.html" class="btn btn-secondary">Gå til menu / retter</a>
+                            <a href="/modules/drift/ingredients.html" class="btn btn-secondary">Se råvarer</a>
+                        </div>
+                    </section>
+
+                    <section class="stats-grid">
+                        <article class="stat-card">
+                            <div class="stat-label">Aktive opskrifter</div>
+                            <div class="stat-value">48</div>
+                            <div class="stat-meta">6 nye denne måned</div>
+                        </article>
+
+                        <article class="stat-card">
+                            <div class="stat-label">Gns. kostpris</div>
+                            <div class="stat-value">31 kr.</div>
+                            <div class="stat-meta">Beregnet pr. portion</div>
+                        </article>
+
+                        <article class="stat-card">
+                            <div class="stat-label">Top avance</div>
+                            <div class="stat-value">74%</div>
+                            <div class="stat-meta">På bedst performende ret</div>
+                        </article>
+
+                        <article class="stat-card">
+                            <div class="stat-label">Mangler prisopdatering</div>
+                            <div class="stat-value">5</div>
+                            <div class="stat-meta">Bør gennemgås i dag</div>
+                        </article>
+                    </section>
+
+                    <section class="toolbar-card">
+                        <input class="field" type="text" placeholder="Søg efter opskrift, kategori eller ingrediens..." />
+                        <select class="select">
+                            <option>Alle kategorier</option>
+                            <option>Forretter</option>
+                            <option>Hovedretter</option>
+                            <option>Desserter</option>
+                            <option>Drikkevarer</option>
+                            <option>Tilbehør</option>
+                        </select>
+                        <select class="select">
+                            <option>Alle statusser</option>
+                            <option>Aktiv</option>
+                            <option>Kladde</option>
+                            <option>Mangler priser</option>
+                        </select>
+                        <select class="select">
+                            <option>Sortér: Nyeste</option>
+                            <option>Sortér: Navn A-Å</option>
+                            <option>Sortér: Højeste avance</option>
+                            <option>Sortér: Laveste kostpris</option>
+                        </select>
+                        <button class="btn btn-primary">Filtrér</button>
+                    </section>
+
+                    <section class="recipes-layout">
+                        <div class="recipe-list">
+
+                            <article class="recipe-card">
+                                <div>
+                                    <div class="recipe-top">
+                                        <h2 class="recipe-title">Signatur Burger</h2>
+                                        <span class="badge badge-green">Aktiv</span>
+                                        <span class="badge badge-blue">Hovedret</span>
+                                    </div>
+
+                                    <p class="recipe-desc">
+                                        Klassisk premium burger med briochebolle, 180 g oksebøf, cheddar,
+                                        hjemmesyltede agurker, salat, tomat og signaturdressing.
+                                    </p>
+
+                                    <div class="recipe-meta">
+                                        <div class="meta-box">
+                                            <div class="meta-label">Kostpris</div>
+                                            <div class="meta-value">34,80 kr.</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Salgspris</div>
+                                            <div class="meta-value">109,00 kr.</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Dækningsgrad</div>
+                                            <div class="meta-value">68,1%</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Portion</div>
+                                            <div class="meta-value">1 stk.</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="ingredients-inline">
+                                        <span class="chip">Briochebolle</span>
+                                        <span class="chip">Oksekød</span>
+                                        <span class="chip">Cheddar</span>
+                                        <span class="chip">Tomat</span>
+                                        <span class="chip">Salat</span>
+                                        <span class="chip">Dressing</span>
+                                    </div>
+                                </div>
+
+                                <div class="recipe-actions">
+                                    <a href="#" class="btn btn-primary">Åbn opskrift</a>
+                                    <a href="#" class="btn btn-secondary">Redigér</a>
+                                    <a href="#" class="btn btn-secondary">Duplikér</a>
+                                </div>
+                            </article>
+
+                            <article class="recipe-card">
+                                <div>
+                                    <div class="recipe-top">
+                                        <h2 class="recipe-title">Cæsarsalat med kylling</h2>
+                                        <span class="badge badge-green">Aktiv</span>
+                                        <span class="badge badge-blue">Frokost</span>
+                                    </div>
+
+                                    <p class="recipe-desc">
+                                        Sprød romainesalat med grillet kylling, croutoner, parmesan,
+                                        hjemmelavet dressing og citron.
+                                    </p>
+
+                                    <div class="recipe-meta">
+                                        <div class="meta-box">
+                                            <div class="meta-label">Kostpris</div>
+                                            <div class="meta-value">27,20 kr.</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Salgspris</div>
+                                            <div class="meta-value">95,00 kr.</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Dækningsgrad</div>
+                                            <div class="meta-value">71,4%</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Portion</div>
+                                            <div class="meta-value">1 skål</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="ingredients-inline">
+                                        <span class="chip">Kylling</span>
+                                        <span class="chip">Romaine</span>
+                                        <span class="chip">Parmesan</span>
+                                        <span class="chip">Croutoner</span>
+                                        <span class="chip">Citron</span>
+                                    </div>
+                                </div>
+
+                                <div class="recipe-actions">
+                                    <a href="#" class="btn btn-primary">Åbn opskrift</a>
+                                    <a href="#" class="btn btn-secondary">Redigér</a>
+                                    <a href="#" class="btn btn-secondary">Duplikér</a>
+                                </div>
+                            </article>
+
+                            <article class="recipe-card">
+                                <div>
+                                    <div class="recipe-top">
+                                        <h2 class="recipe-title">Pommes frites trøffel-style</h2>
+                                        <span class="badge badge-yellow">Mangler priser</span>
+                                        <span class="badge badge-blue">Tilbehør</span>
+                                    </div>
+
+                                    <p class="recipe-desc">
+                                        Sprøde pommes vendt med trøffelolie, fintrevet parmesan og urter.
+                                        Bruges både som side order og som premium tilvalg i menuen.
+                                    </p>
+
+                                    <div class="recipe-meta">
+                                        <div class="meta-box">
+                                            <div class="meta-label">Kostpris</div>
+                                            <div class="meta-value">12,40 kr.</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Salgspris</div>
+                                            <div class="meta-value">39,00 kr.</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Dækningsgrad</div>
+                                            <div class="meta-value">68,2%</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Portion</div>
+                                            <div class="meta-value">180 g</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="ingredients-inline">
+                                        <span class="chip">Pommes</span>
+                                        <span class="chip">Trøffelolie</span>
+                                        <span class="chip">Parmesan</span>
+                                        <span class="chip">Persille</span>
+                                        <span class="chip">Salt</span>
+                                    </div>
+                                </div>
+
+                                <div class="recipe-actions">
+                                    <a href="#" class="btn btn-primary">Åbn opskrift</a>
+                                    <a href="#" class="btn btn-secondary">Opdatér priser</a>
+                                    <a href="#" class="btn btn-secondary">Duplikér</a>
+                                </div>
+                            </article>
+
+                            <article class="recipe-card">
+                                <div>
+                                    <div class="recipe-top">
+                                        <h2 class="recipe-title">Chokolademousse</h2>
+                                        <span class="badge badge-green">Aktiv</span>
+                                        <span class="badge badge-blue">Dessert</span>
+                                    </div>
+
+                                    <p class="recipe-desc">
+                                        Cremet mousse med mørk chokolade, vanilje og flødeskum.
+                                        Serveres med crumble og friske bær.
+                                    </p>
+
+                                    <div class="recipe-meta">
+                                        <div class="meta-box">
+                                            <div class="meta-label">Kostpris</div>
+                                            <div class="meta-value">14,90 kr.</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Salgspris</div>
+                                            <div class="meta-value">59,00 kr.</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Dækningsgrad</div>
+                                            <div class="meta-value">74,7%</div>
+                                        </div>
+                                        <div class="meta-box">
+                                            <div class="meta-label">Portion</div>
+                                            <div class="meta-value">1 glas</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="ingredients-inline">
+                                        <span class="chip">Mørk chokolade</span>
+                                        <span class="chip">Fløde</span>
+                                        <span class="chip">Æg</span>
+                                        <span class="chip">Vanilje</span>
+                                        <span class="chip">Bær</span>
+                                    </div>
+                                </div>
+
+                                <div class="recipe-actions">
+                                    <a href="#" class="btn btn-primary">Åbn opskrift</a>
+                                    <a href="#" class="btn btn-secondary">Redigér</a>
+                                    <a href="#" class="btn btn-secondary">Duplikér</a>
+                                </div>
+                            </article>
+
+                        </div>
+
+                        <aside class="panel-card">
+                            <h2>Hurtigt overblik</h2>
+
+                            <div class="quick-list">
+                                <div class="quick-item">
+                                    <div>
+                                        <strong>Opskrifter koblet til menu</strong>
+                                        <span>Retter der bruges direkte i bestilling og visning</span>
+                                    </div>
+                                    <div class="quick-pill">31 stk.</div>
+                                </div>
+
+                                <div class="quick-item">
+                                    <div>
+                                        <strong>Mangler leverandørpris</strong>
+                                        <span>Råvarer uden seneste prisopdatering</span>
+                                    </div>
+                                    <div class="quick-pill">5 stk.</div>
+                                </div>
+
+                                <div class="quick-item">
+                                    <div>
+                                        <strong>Klar til selskaber</strong>
+                                        <span>Opskrifter der kan skaleres til større events</span>
+                                    </div>
+                                    <div class="quick-pill">14 stk.</div>
+                                </div>
+                            </div>
+
+                            <div class="mini-grid">
+                                <div class="mini-card">
+                                    <div class="label">Mest solgte opskrift</div>
+                                    <div class="value">Signatur Burger</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="label">Bedste avance</div>
+                                    <div class="value">Chokolademousse</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="label">Senest oprettet</div>
+                                    <div class="value">Loaded fries</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="label">Kræver handling</div>
+                                    <div class="value">Prisgennemgang</div>
+                                </div>
+                            </div>
+
+                            <a href="/modules/drift/purchases.html" class="btn btn-secondary">Gå til indkøb</a>
+                            <a href="/modules/drift/events.html" class="btn btn-primary">Planlæg selskab</a>
+                        </aside>
+                    </section>
+
+                </div>
+            </section>
+        </div>
+    </main>
+<script src="/modules/drift/drift.js"></script>
+    <script>
+        async function loadSharedPartials() {
+            const headerMount = document.getElementById("headerMount");
+            const sidebarMount = document.getElementById("sidebarMount");
+
+            try {
+                const [headerRes, sidebarRes] = await Promise.all([
+                    fetch("/components/header.html"),
+                    fetch("/components/sidebar.html")
+                ]);
+
+                if (headerRes.ok) {
+                    headerMount.innerHTML = await headerRes.text();
+                }
+
+                if (sidebarRes.ok) {
+                    sidebarMount.innerHTML = await sidebarRes.text();
+                }
+
+                const currentPath = window.location.pathname;
+                document.querySelectorAll(".sidebar-link, .nav a").forEach(link => {
+                    const href = link.getAttribute("href");
+                    if (href && currentPath.includes(href.replace("/index.html", "/"))) {
+                        link.classList.add("active");
+                    }
+                    if (href === currentPath) {
+                        link.classList.add("active");
+                    }
+                });
+            } catch (error) {
+                console.error("Kunne ikke indlæse header/sidebar:", error);
+            }
+        }
+
+        loadSharedPartials();
+    </script>
+
+</body>
+</html>

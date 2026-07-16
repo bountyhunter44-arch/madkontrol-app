@@ -1,0 +1,90 @@
+﻿NOT_FOUND_IN_DOCS_ARCHIVE_LOGS: AI_GULV_AFL\303\230B_UPGRADE.md
+MOVED_OR_ARCHIVED: ARCHITECTURE_PROPOSAL.md
+  -> D:\madkontrol-app\docs\architecture\ARCHITECTURE_PROPOSAL.md
+MOVED_OR_ARCHIVED: CLOUDINARY_SETUP.md
+  -> D:\madkontrol-app\docs\deployment\CLOUDINARY_SETUP.md
+MOVED_OR_ARCHIVED: COMPREHENSIVE_HACCP_UPGRADE.md
+  -> D:\madkontrol-app\docs\modules\egenkontrol\COMPREHENSIVE_HACCP_UPGRADE.md
+MOVED_OR_ARCHIVED: COOLING_CONTROL_ARCHITECTURE.md
+  -> D:\madkontrol-app\docs\architecture\COOLING_CONTROL_ARCHITECTURE.md
+MOVED_OR_ARCHIVED: COOLING_LEARNING_MODEL.md
+  -> D:\madkontrol-app\docs\architecture\COOLING_LEARNING_MODEL.md
+MOVED_OR_ARCHIVED: CUSTOMER_READY_CHECKLIST.md
+  -> D:\madkontrol-app\docs\status\CUSTOMER_READY_CHECKLIST.md
+MOVED_OR_ARCHIVED: DATABASE_AUDIT_REPORT.md
+  -> D:\madkontrol-app\docs\audits\DATABASE_AUDIT_REPORT.md
+MOVED_OR_ARCHIVED: DEPLOY_READINESS_CHECK.md
+  -> D:\madkontrol-app\docs\deployment\DEPLOY_READINESS_CHECK.md
+MOVED_OR_ARCHIVED: DEPLOY_SUMMARY.md
+  -> D:\madkontrol-app\docs\deployment\DEPLOY_SUMMARY.md
+MOVED_OR_ARCHIVED: EGENKONTROL_V2_INTEGRATION.md
+  -> D:\madkontrol-app\docs\modules\egenkontrol\EGENKONTROL_V2_INTEGRATION.md
+MOVED_OR_ARCHIVED: FINAL_DEPLOYMENT_GUIDE.md
+  -> D:\madkontrol-app\docs\deployment\FINAL_DEPLOYMENT_GUIDE.md
+MOVED_OR_ARCHIVED: FINAL_IMPLEMENTATION_STATUS.md
+  -> D:\madkontrol-app\docs\status\FINAL_IMPLEMENTATION_STATUS.md
+MOVED_OR_ARCHIVED: FIRESTORE_BACKUP_SETUP.md
+  -> D:\madkontrol-app\docs\deployment\FIRESTORE_BACKUP_SETUP.md
+MOVED_OR_ARCHIVED: HONEST_STATUS_REPORT.md
+  -> D:\madkontrol-app\docs\status\HONEST_STATUS_REPORT.md
+MOVED_OR_ARCHIVED: IMPLEMENTATION_COMPLETE.md
+  -> D:\madkontrol-app\docs\status\IMPLEMENTATION_COMPLETE.md
+MOVED_OR_ARCHIVED: IMPLEMENTATION_MODEL.md
+  -> D:\madkontrol-app\docs\architecture\IMPLEMENTATION_MODEL.md
+MOVED_OR_ARCHIVED: INVENTORY_MODULE_DESIGN.md
+  -> D:\madkontrol-app\docs\modules\lagerkontrol\INVENTORY_MODULE_DESIGN.md
+MOVED_OR_ARCHIVED: KOKKENS_GUIDE_SYSTEM.md
+  -> D:\madkontrol-app\docs\modules\egenkontrol\KOKKENS_GUIDE_SYSTEM.md
+MOVED_OR_ARCHIVED: MULTI_TENANT_IMPLEMENTATION.md
+  -> D:\madkontrol-app\docs\architecture\MULTI_TENANT_IMPLEMENTATION.md
+MOVED_OR_ARCHIVED: OWNER_DASHBOARD_GUIDE.md
+  -> D:\madkontrol-app\docs\status\OWNER_DASHBOARD_GUIDE.md
+MOVED_OR_ARCHIVED: RUTINER_INTEGRATION_GUIDE.md
+  -> D:\madkontrol-app\docs\modules\egenkontrol\RUTINER_INTEGRATION_GUIDE.md
+MOVED_OR_ARCHIVED: RUTINE_OPDATERINGER.md
+  -> D:\madkontrol-app\docs\modules\egenkontrol\RUTINE_OPDATERINGER.md
+MOVED_OR_ARCHIVED: SECURITY_FINAL_IMPLEMENTATION.md
+  -> D:\madkontrol-app\docs\deployment\SECURITY_FINAL_IMPLEMENTATION.md
+MOVED_OR_ARCHIVED: SECURITY_IMPLEMENTATION.md
+  -> D:\madkontrol-app\docs\deployment\SECURITY_IMPLEMENTATION.md
+MOVED_OR_ARCHIVED: SUPER_ADMIN_SYSTEM.md
+  -> D:\madkontrol-app\docs\status\SUPER_ADMIN_SYSTEM.md
+MOVED_OR_ARCHIVED: TEMPLATE_REGENERATION_GUIDE.md
+  -> D:\madkontrol-app\docs\modules\egenkontrol\TEMPLATE_REGENERATION_GUIDE.md
+MOVED_OR_ARCHIVED: WELCOME_EMAIL_TEMPLATE.md
+  -> D:\madkontrol-app\docs\status\WELCOME_EMAIL_TEMPLATE.md
+MOVED_OR_ARCHIVED: audit-task-relations.json
+  -> D:\madkontrol-app\docs\audits\audit-task-relations.json
+MOVED_OR_ARCHIVED: bilag-code.txt
+  -> D:\madkontrol-app\archive\old-snippets\bilag-code.txt
+MOVED_OR_ARCHIVED: control-center-code.txt
+  -> D:\madkontrol-app\archive\old-snippets\control-center-code.txt
+MOVED_OR_ARCHIVED: dashboard-process-section.txt
+  -> D:\madkontrol-app\archive\old-snippets\dashboard-process-section.txt
+MOVED_OR_ARCHIVED: environmentGuard-code.txt
+  -> D:\madkontrol-app\archive\old-snippets\environmentGuard-code.txt
+MOVED_OR_ARCHIVED: firestore-audit-report.json
+  -> D:\madkontrol-app\docs\audits\firestore-audit-report.json
+NOT_FOUND_IN_DOCS_ARCHIVE_LOGS: functions-config-export.json
+MOVED_OR_ARCHIVED: functions-deploy-log.txt
+  -> D:\madkontrol-app\logs\deploy\functions-deploy-log.txt
+MOVED_OR_ARCHIVED: hosting-deploy-log.txt
+  -> D:\madkontrol-app\logs\deploy\hosting-deploy-log.txt
+MOVED_OR_ARCHIVED: index-code.txt
+  -> D:\madkontrol-app\archive\old-snippets\index-code.txt
+MOVED_OR_ARCHIVED: index-snippet.txt
+  -> D:\madkontrol-app\archive\old-snippets\index-snippet.txt
+MOVED_OR_ARCHIVED: process-dashboard-code.txt
+  -> D:\madkontrol-app\archive\old-snippets\process-dashboard-code.txt
+MOVED_OR_ARCHIVED: processInstances-code.txt
+  -> D:\madkontrol-app\archive\old-snippets\processInstances-code.txt
+NOT_FOUND_IN_DOCS_ARCHIVE_LOGS: public/sites/aroi-d.madkontrollen.dk/index.html
+NOT_FOUND_IN_DOCS_ARCHIVE_LOGS: public/sites/aroi-d.madkontrollen.dk/robots.txt
+NOT_FOUND_IN_DOCS_ARCHIVE_LOGS: public/sites/aroi-d.madkontrollen.dk/sitemap.xml
+NOT_FOUND_IN_DOCS_ARCHIVE_LOGS: public/sites/det-gyldne-krus.madkontrollen.dk/index.html
+NOT_FOUND_IN_DOCS_ARCHIVE_LOGS: public/sites/det-gyldne-krus.madkontrollen.dk/robots.txt
+NOT_FOUND_IN_DOCS_ARCHIVE_LOGS: public/sites/det-gyldne-krus.madkontrollen.dk/sitemap.xml
+NOT_FOUND_IN_DOCS_ARCHIVE_LOGS: server/ops-api.env.example
+NOT_FOUND_IN_DOCS_ARCHIVE_LOGS: server/seo-gateway.env.example
+MOVED_OR_ARCHIVED: structure.txt
+  -> D:\madkontrol-app\docs\audits\structure.txt

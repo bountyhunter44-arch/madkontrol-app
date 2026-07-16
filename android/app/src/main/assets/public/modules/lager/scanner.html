@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lager Scanner | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import app, { auth, db } from "/core/firebase-config.js";
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+    const functions = getFunctions(app);
+
+    let currentUser = null;
+    let userSettings = {};
+    let html5QrCode = null;
+    let scanMode = null; // 'in' or 'out'
+
+    setupAuthGate({
+      appName: "Madkontrollen Pro - Lager Scanner",
+      onAuthenticated: async ({ user, profile }) => {
+        currentUser = user;
+        userSettings = profile || {};
+        checkInventoryAccess();
+      },
+      onSignedOut: async () => {
+        document.getElementById("scanner-locked").style.display = "block";
+        document.getElementById("scanner-active").style.display = "none";
+      }
+    });
+
+    function checkInventoryAccess() {
+      const hasAccess = userSettings.hasInventoryModule === true;
+      
+      if (!hasAccess) {
+        document.getElementById("scanner-locked").style.display = "block";
+        document.getElementById("scanner-active").style.display = "none";
+        return;
+      }
+
+      document.getElementById("scanner-locked").style.display = "none";
+      document.getElementById("scanner-active").style.display = "block";
+    }
+
+    window.startScanIn = function() {
+      scanMode = 'in';
+      document.getElementById("scan-mode-select").style.display = "none";
+      document.getElementById("scanner-view").style.display = "block";
+      document.getElementById("scan-mode-title").textContent = "Scan ind - Modtagelse";
+      startScanner();
+    };
+
+    window.startScanOut = function() {
+      scanMode = 'out';
+      document.getElementById("scan-mode-select").style.display = "none";
+      document.getElementById("scanner-view").style.display = "block";
+      document.getElementById("scan-mode-title").textContent = "Scan ud - Forbrug";
+      startScanner();
+    };
+
+    window.startMarkAsOpened = function() {
+      scanMode = 'opened';
+      document.getElementById("scan-mode-select").style.display = "none";
+      document.getElementById("scanner-view").style.display = "block";
+      document.getElementById("scan-mode-title").textContent = "Åbnet vare - Ny holdbarhed";
+      startScanner();
+    };
+
+    function startScanner() {
+      html5QrCode = new Html5Qrcode("scanner-reader");
+      
+      const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+      };
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess,
+        onScanError
+      ).catch(err => {
+        console.error("Scanner start error:", err);
+        alert("Kunne ikke starte kamera. Tjek tilladelser.");
+      });
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+      html5QrCode.stop();
+      
+      document.getElementById("scanner-view").style.display = "none";
+      
+      if (scanMode === 'in') {
+        showScanInForm(decodedText);
+      } else if (scanMode === 'out') {
+        showScanOutForm(decodedText);
+      } else if (scanMode === 'opened') {
+        showOpenedItemForm(decodedText);
+      }
+    }
+
+    function onScanError(errorMessage) {
+      // Ignore scan errors (happens continuously while scanning)
+    }
+
+    async function showScanInForm(barcode) {
+      document.getElementById("scan-in-form").style.display = "block";
+      document.getElementById("barcode-display").textContent = barcode;
+      document.getElementById("scanned-barcode").value = barcode;
+
+      // Try to find existing product
+      const existingItem = await findItemByBarcode(barcode);
+      
+      if (existingItem) {
+        document.getElementById("product-name").value = existingItem.productName;
+        document.getElementById("product-category").value = existingItem.productCategory || "";
+        document.getElementById("product-supplier").value = existingItem.supplier || "";
+        document.getElementById("product-unit").value = existingItem.unit || "stk";
+      }
+    }
+
+    async function showScanOutForm(barcode) {
+      const item = await findItemByBarcode(barcode);
+      
+      if (!item) {
+        alert("Vare ikke fundet på lager. Scan den ind først.");
+        resetScanner();
+        return;
+      }
+
+      document.getElementById("scan-out-form").style.display = "block";
+      document.getElementById("out-barcode-display").textContent = barcode;
+      document.getElementById("out-product-name").textContent = item.productName;
+      document.getElementById("out-current-stock").textContent = `${item.currentQuantity} ${item.unit}`;
+      
+      // Display batches - prioritize opened items, then by expiry date
+      const batchesHtml = item.batches
+        .sort((a, b) => {
+          // Opened items first
+          if (a.isOpened && !b.isOpened) return -1;
+          if (!a.isOpened && b.isOpened) return 1;
+          // Then by expiry date
+          return new Date(a.expiryDate) - new Date(b.expiryDate);
+        })
+        .map((batch, index) => {
+          const daysUntilExpiry = Math.ceil((new Date(batch.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+          const isOldest = index === 0;
+          const isOpened = batch.isOpened === true;
+          
+          return `
+            <div class="batch-option ${isOldest ? 'oldest-batch' : ''}" onclick="selectBatch('${batch.batchId}', '${barcode}')">
+              <input type="radio" name="batch" value="${batch.batchId}" ${isOldest ? 'checked' : ''}>
+              <div>
+                <div class="batch-expiry">Udløber: ${new Date(batch.expiryDate).toLocaleDateString('da-DK')} (om ${daysUntilExpiry} dage)</div>
+                <div class="batch-quantity">Mængde: ${batch.quantity} ${item.unit}</div>
+                ${isOldest ? '<div class="batch-label">✅ Ældste (FIFO)</div>' : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      
+      document.getElementById("batches-list").innerHTML = batchesHtml;
+      
+      window.currentScanOutItem = item;
+    }
+
+    window.selectBatch = function(batchId, barcode) {
+      // Check FIFO compliance
+      const item = window.currentScanOutItem;
+      const sortedBatches = item.batches.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+      const oldestBatch = sortedBatches[0];
+      
+      if (oldestBatch.batchId !== batchId && oldestBatch.quantity > 0) {
+        showFifoWarning(oldestBatch, batchId);
+      }
+    };
+
+    function showFifoWarning(oldestBatch, selectedBatchId) {
+      const modal = document.getElementById("fifo-warning-modal");
+      const item = window.currentScanOutItem;
+      const selectedBatch = item.batches.find(b => b.batchId === selectedBatchId);
+      
+      const oldestDays = Math.ceil((new Date(oldestBatch.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+      const selectedDays = Math.ceil((new Date(selectedBatch.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+      
+      document.getElementById("oldest-batch-info").innerHTML = `
+        <strong>Ældste vare:</strong>
+        <div>Udløber: ${new Date(oldestBatch.expiryDate).toLocaleDateString('da-DK')} (om ${oldestDays} dage)</div>
+        <div>Mængde: ${oldestBatch.quantity} ${item.unit}</div>
+      `;
+      
+      document.getElementById("selected-batch-info").innerHTML = `
+        <strong>Du valgte:</strong>
+        <div>Udløber: ${new Date(selectedBatch.expiryDate).toLocaleDateString('da-DK')} (om ${selectedDays} dage)</div>
+      `;
+      
+      modal.style.display = "flex";
+      
+      window.useOldestBatch = () => {
+        document.querySelector(`input[value="${oldestBatch.batchId}"]`).checked = true;
+        modal.style.display = "none";
+      };
+      
+      window.continueAnyway = () => {
+        modal.style.display = "none";
+      };
+    }
+
+    async function findItemByBarcode(barcode) {
+      const q = query(
+        collection(db, "inventory_items"),
+        where("companyId", "==", userSettings.companyId),
+        where("locationId", "==", userSettings.locationId),
+        where("barcode", "==", barcode)
+      );
+      
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        return null;
+      }
+      
+      return snapshot.docs[0].data();
+    }
+
+    window.submitScanIn = async function() {
+      const barcode = document.getElementById("scanned-barcode").value;
+      const productName = document.getElementById("product-name").value.trim();
+      const category = document.getElementById("product-category").value;
+      const supplier = document.getElementById("product-supplier").value.trim();
+      const quantity = parseFloat(document.getElementById("quantity").value);
+      const unit = document.getElementById("product-unit").value;
+      const expiryDate = document.getElementById("expiry-date").value;
+      const temperature = parseFloat(document.getElementById("delivery-temp").value);
+      const tempOk = document.getElementById("temp-ok").checked;
+
+      if (!productName || !quantity || !expiryDate) {
+        alert("Udfyld alle påkrævede felter.");
+        return;
+      }
+
+      const submitBtn = document.getElementById("submit-scan-in");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Gemmer...";
+
+      try {
+        const batchId = `batch_${Date.now()}`;
+        const arrivalTimestamp = new Date().toISOString();
+        const itemId = `item_${barcode}`;
+
+        // Check if item exists
+        const existingItem = await findItemByBarcode(barcode);
+
+        if (existingItem) {
+          // Update existing item - add new batch
+          const itemRef = doc(db, "inventory_items", existingItem.itemId);
+          await updateDoc(itemRef, {
+            currentQuantity: existingItem.currentQuantity + quantity,
+            batches: arrayUnion({
+              batchId,
+              quantity,
+              expiryDate,
+              receivedDate: new Date().toISOString(),
+              arrivalTimestamp,
+              receivedBy: currentUser.uid,
+              deliveryTemperature: temperature,
+              deliveryTemperatureOk: tempOk,
+              scannedInAt: serverTimestamp(),
+              isOpened: false
+            }),
+            updatedAt: serverTimestamp(),
+            lastScannedAt: serverTimestamp()
+          });
+        } else {
+          // Create new item
+          await setDoc(doc(db, "inventory_items", itemId), {
+            itemId,
+            companyId: userSettings.companyId,
+            locationId: userSettings.locationId,
+            barcode,
+            productName,
+            productCategory: category,
+            supplier,
+            currentQuantity: quantity,
+            unit,
+            batches: [{
+              batchId,
+              quantity,
+              expiryDate,
+              receivedDate: new Date().toISOString(),
+              arrivalTimestamp,
+              receivedBy: currentUser.uid,
+              deliveryTemperature: temperature,
+              deliveryTemperatureOk: tempOk,
+              scannedInAt: serverTimestamp(),
+              isOpened: false
+            }],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            lastScannedAt: serverTimestamp()
+          });
+        }
+
+        // Create transaction record
+        const transactionId = `trans_${Date.now()}`;
+        await setDoc(doc(db, "inventory_transactions", transactionId), {
+          transactionId,
+          companyId: userSettings.companyId,
+          locationId: userSettings.locationId,
+          type: "scan_in",
+          itemId: existingItem ? existingItem.itemId : itemId,
+          barcode,
+          productName,
+          quantity,
+          unit,
+          batchId,
+          expiryDate,
+          deliveryTemperature: temperature,
+          deliveryTemperatureOk: tempOk,
+          performedBy: currentUser.uid,
+          performedByName: userSettings.displayName || currentUser.email,
+          performedAt: serverTimestamp(),
+          temperatureCheckRecorded: true
+        });
+
+        alert(`✅ ${productName} scannet ind!\n${quantity} ${unit} tilføjet til lager.`);
+        resetScanner();
+      } catch (error) {
+        console.error("Scan in error:", error);
+        alert("Fejl ved scanning. Prøv igen.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Gem modtagelse";
+      }
+    };
+
+    window.submitScanOut = async function() {
+      const item = window.currentScanOutItem;
+      const selectedBatchId = document.querySelector('input[name="batch"]:checked').value;
+      const quantity = parseFloat(document.getElementById("out-quantity").value);
+
+      if (!quantity || quantity <= 0) {
+        alert("Indtast en gyldig mængde.");
+        return;
+      }
+
+      const selectedBatch = item.batches.find(b => b.batchId === selectedBatchId);
+      
+      if (quantity > selectedBatch.quantity) {
+        alert(`Ikke nok på lager. Kun ${selectedBatch.quantity} ${item.unit} tilgængelig i denne batch.`);
+        return;
+      }
+
+      const submitBtn = document.getElementById("submit-scan-out");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Trækker fra lager...";
+
+      try {
+        // Update batch quantity
+        const updatedBatches = item.batches.map(b => {
+          if (b.batchId === selectedBatchId) {
+            return { ...b, quantity: b.quantity - quantity };
+          }
+          return b;
+        }).filter(b => b.quantity > 0); // Remove empty batches
+
+        const itemRef = doc(db, "inventory_items", item.itemId);
+        await updateDoc(itemRef, {
+          currentQuantity: item.currentQuantity - quantity,
+          batches: updatedBatches,
+          updatedAt: serverTimestamp(),
+          lastScannedAt: serverTimestamp()
+        });
+
+        // Create transaction record
+        const transactionId = `trans_${Date.now()}`;
+        await setDoc(doc(db, "inventory_transactions", transactionId), {
+          transactionId,
+          companyId: userSettings.companyId,
+          locationId: userSettings.locationId,
+          type: "scan_out",
+          itemId: item.itemId,
+          barcode: item.barcode,
+          productName: item.productName,
+          quantity,
+          unit: item.unit,
+          batchId: selectedBatchId,
+          performedBy: currentUser.uid,
+          performedByName: userSettings.displayName || currentUser.email,
+          performedAt: serverTimestamp()
+        });
+
+        alert(`✅ ${item.productName} trukket fra lager!\n${quantity} ${item.unit} fjernet.`);
+        resetScanner();
+      } catch (error) {
+        console.error("Scan out error:", error);
+        alert("Fejl ved udtræk. Prøv igen.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Træk fra lager";
+      }
+    };
+
+    function resetScanner() {
+      document.getElementById("scan-in-form").style.display = "none";
+      document.getElementById("scan-out-form").style.display = "none";
+      document.getElementById("opened-item-form").style.display = "none";
+      document.getElementById("scan-mode-select").style.display = "block";
+      
+      // Reset forms
+      document.getElementById("product-name").value = "";
+      document.getElementById("quantity").value = "";
+      document.getElementById("expiry-date").value = "";
+      document.getElementById("delivery-temp").value = "";
+      document.getElementById("temp-ok").checked = false;
+      
+      scanMode = null;
+      window.currentScanOutItem = null;
+    }
+
+    async function showOpenedItemForm(barcode) {
+      const item = await findItemByBarcode(barcode);
+      
+      if (!item) {
+        alert("Vare ikke fundet på lager. Scan den ind først.");
+        resetScanner();
+        return;
+      }
+
+      document.getElementById("opened-item-form").style.display = "block";
+      document.getElementById("opened-barcode-display").textContent = barcode;
+      document.getElementById("opened-product-name").textContent = item.productName;
+      
+      // Display unopened batches
+      const unopenedBatches = item.batches.filter(b => !b.isOpened);
+      
+      if (unopenedBatches.length === 0) {
+        alert("Alle batches er allerede markeret som åbnede.");
+        resetScanner();
+        return;
+      }
+
+      const batchesHtml = unopenedBatches
+        .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))
+        .map(batch => {
+          const daysUntilExpiry = Math.ceil((new Date(batch.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+          
+          return `
+            <div class="batch-option" onclick="selectOpenedBatch('${batch.batchId}')">
+              <input type="radio" name="opened-batch" value="${batch.batchId}">
+              <div>
+                <div class="batch-expiry">Original udløb: ${new Date(batch.expiryDate).toLocaleDateString('da-DK')} (om ${daysUntilExpiry} dage)</div>
+                <div class="batch-quantity">Mængde: ${batch.quantity} ${item.unit}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      
+      document.getElementById("opened-batches-list").innerHTML = batchesHtml;
+      
+      window.currentOpenedItem = item;
+    }
+
+    window.selectOpenedBatch = function(batchId) {
+      // Just select the batch
+    };
+
+    window.submitOpenedItem = async function() {
+      const item = window.currentOpenedItem;
+      const selectedBatchId = document.querySelector('input[name="opened-batch"]:checked')?.value;
+      const newExpiryDays = parseInt(document.getElementById("new-expiry-days").value);
+
+      if (!selectedBatchId) {
+        alert("Vælg en batch.");
+        return;
+      }
+
+      if (!newExpiryDays || newExpiryDays <= 0) {
+        alert("Indtast antal dage til ny holdbarhed.");
+        return;
+      }
+
+      const submitBtn = document.getElementById("submit-opened-item");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Gemmer...";
+
+      try {
+        const newExpiryDate = new Date();
+        newExpiryDate.setDate(newExpiryDate.getDate() + newExpiryDays);
+        const newExpiryDateStr = newExpiryDate.toISOString().split('T')[0];
+
+        // Update batch to mark as opened with new expiry
+        const updatedBatches = item.batches.map(b => {
+          if (b.batchId === selectedBatchId) {
+            return {
+              ...b,
+              isOpened: true,
+              openedAt: new Date().toISOString(),
+              originalExpiryDate: b.expiryDate,
+              expiryDate: newExpiryDateStr,
+              newExpiryDays
+            };
+          }
+          return b;
+        });
+
+        const itemRef = doc(db, "inventory_items", item.itemId);
+        await updateDoc(itemRef, {
+          batches: updatedBatches,
+          updatedAt: serverTimestamp()
+        });
+
+        // Create transaction record
+        const transactionId = `trans_${Date.now()}`;
+        await setDoc(doc(db, "inventory_transactions", transactionId), {
+          transactionId,
+          companyId: userSettings.companyId,
+          locationId: userSettings.locationId,
+          type: "mark_opened",
+          itemId: item.itemId,
+          barcode: item.barcode,
+          productName: item.productName,
+          batchId: selectedBatchId,
+          originalExpiryDate: item.batches.find(b => b.batchId === selectedBatchId).expiryDate,
+          newExpiryDate: newExpiryDateStr,
+          newExpiryDays,
+          performedBy: currentUser.uid,
+          performedByName: userSettings.displayName || currentUser.email,
+          performedAt: serverTimestamp()
+        });
+
+        alert(`✅ ${item.productName} markeret som åbnet!\nNy holdbarhed: ${newExpiryDays} dage (udløber ${newExpiryDate.toLocaleDateString('da-DK')})`);
+        resetScanner();
+      } catch (error) {
+        console.error("Mark opened error:", error);
+        alert("Fejl ved markering. Prøv igen.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Gem ny holdbarhed";
+      }
+    };
+
+    window.cancelScan = resetScanner;
+
+    window.showUpgradeModal = function() {
+      document.getElementById("upgrade-modal").style.display = "flex";
+    };
+
+    window.closeUpgradeModal = function() {
+      document.getElementById("upgrade-modal").style.display = "none";
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #111827;
+      margin: 0 0 8px;
+    }
+
+    .page-header p {
+      font-size: 14px;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    #scanner-locked {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .locked-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .locked-message h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 12px;
+    }
+
+    .locked-message p {
+      font-size: 15px;
+      color: #6b7280;
+      margin: 0 0 24px;
+      line-height: 1.6;
+    }
+
+    .upgrade-btn {
+      display: inline-block;
+      padding: 14px 28px;
+      background: #3b82f6;
+      color: #fff;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+    }
+
+    .upgrade-btn:hover {
+      background: #2563eb;
+    }
+
+    #scanner-active {
+      display: none;
+    }
+
+    .scan-mode-select {
+      display: grid;
+      gap: 16px;
+    }
+
+    .scan-mode-btn {
+      padding: 24px;
+      background: #fff;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .scan-mode-btn:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .scan-mode-btn h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 8px;
+    }
+
+    .scan-mode-btn p {
+      font-size: 14px;
+      color: #6b7280;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    #scanner-view {
+      display: none;
+    }
+
+    .scanner-container {
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    #scanner-reader {
+      width: 100%;
+      min-height: 300px;
+    }
+
+    .scanner-instructions {
+      text-align: center;
+      padding: 16px;
+      background: #fff;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .form-section {
+      display: none;
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .form-section h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 16px;
+    }
+
+    .barcode-display {
+      padding: 12px;
+      background: #f3f4f6;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 16px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #2563eb;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .batch-option {
+      padding: 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      display: flex;
+      gap: 12px;
+      align-items: start;
+      transition: all 0.2s;
+    }
+
+    .batch-option:hover {
+      border-color: #3b82f6;
+    }
+
+    .batch-option.oldest-batch {
+      border-color: #10b981;
+      background: #ecfdf5;
+    }
+
+    .batch-option.opened-batch {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .batch-option input[type="radio"] {
+      margin-top: 2px;
+    }
+
+    .batch-expiry {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .batch-quantity {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .batch-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #059669;
+      margin-top: 4px;
+    }
+
+    #fifo-warning-modal,
+    #upgrade-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      padding: 28px;
+    }
+
+    .modal-content h3 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #111827;
+      margin: 0 0 16px;
+    }
+
+    .modal-content p {
+      font-size: 15px;
+      color: #374151;
+      line-height: 1.6;
+      margin: 0 0 20px;
+    }
+
+    .batch-comparison {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-header">
+      <h1>📦 Lager Scanner</h1>
+      <p>Scan varer ind og ud med stregkode</p>
+    </div>
+
+    <div id="scanner-locked">
+      <div class="locked-icon">🔒</div>
+      <div class="locked-message">
+        <h2>Intelligent Lager & Stregkode</h2>
+        <p>Dette modul kræver en opgradering for at bruge stregkode-scanning, FIFO-logik og automatisk udløbsadvarsel.</p>
+        <button class="upgrade-btn" onclick="showUpgradeModal()">Opgrader her</button>
+      </div>
+    </div>
+
+    <div id="scanner-active">
+      <div id="scan-mode-select" class="scan-mode-select">
+        <div class="scan-mode-btn" onclick="startScanIn()">
+          <h3>📥 Scan ind</h3>
+          <p>Registrér modtagne varer med mængde, holdbarhedsdato og temperaturkontrol</p>
+        </div>
+        <div class="scan-mode-btn" onclick="startScanOut()">
+          <h3>📤 Scan ud</h3>
+          <p>Træk varer fra lageret når de tages i brug i køkkenet</p>
+        </div>
+        <div class="scan-mode-btn" onclick="startMarkAsOpened()">
+          <h3>📦 Åbnet vare</h3>
+          <p>Markér vare som åbnet og beregn ny holdbarhed (prioriteres i FIFO)</p>
+        </div>
+      </div>
+
+      <div id="scanner-view">
+        <h3 id="scan-mode-title" style="text-align: center; margin-bottom: 16px;"></h3>
+        <div class="scanner-container">
+          <div id="scanner-reader"></div>
+        </div>
+        <div class="scanner-instructions">
+          📱 Placer stregkoden i kameraets ramme
+        </div>
+      </div>
+
+      <div id="scan-in-form" class="form-section">
+        <h3>Modtagelse af vare</h3>
+        <div class="barcode-display">
+          Stregkode: <strong id="barcode-display"></strong>
+        </div>
+        <input type="hidden" id="scanned-barcode">
+        
+        <div class="form-group">
+          <label>Varenavn *</label>
+          <input type="text" id="product-name" placeholder="F.eks. Mælk 3.5%" required>
+        </div>
+
+        <div class="form-group">
+          <label>Kategori</label>
+          <select id="product-category">
+            <option value="">Vælg kategori</option>
+            <option value="dairy">Mejeriprodukter</option>
+            <option value="meat">Kød</option>
+            <option value="fish">Fisk</option>
+            <option value="vegetables">Grøntsager</option>
+            <option value="fruit">Frugt</option>
+            <option value="dry_goods">Tørvarer</option>
+            <option value="frozen">Frost</option>
+            <option value="other">Andet</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Leverandør</label>
+          <input type="text" id="product-supplier" placeholder="F.eks. Arla">
+        </div>
+
+        <div class="form-group">
+          <label>Mængde *</label>
+          <input type="number" id="quantity" step="0.1" min="0.1" placeholder="F.eks. 10" required>
+        </div>
+
+        <div class="form-group">
+          <label>Enhed</label>
+          <select id="product-unit">
+            <option value="stk">Stk</option>
+            <option value="kg">Kg</option>
+            <option value="liter">Liter</option>
+            <option value="pakke">Pakke</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Holdbarhedsdato *</label>
+          <input type="date" id="expiry-date" required>
+        </div>
+
+        <div class="form-group">
+          <label>Leveringstemperatur (°C)</label>
+          <input type="number" id="delivery-temp" step="0.1" placeholder="F.eks. 4.2">
+        </div>
+
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="temp-ok">
+            <label for="temp-ok">Er temperaturen på varebilen ok?</label>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="cancelScan()">Annuller</button>
+          <button class="btn btn-primary" id="submit-scan-in" onclick="submitScanIn()">Gem modtagelse</button>
+        </div>
+      </div>
+
+      <div id="scan-out-form" class="form-section">
+        <h3>Træk fra lager</h3>
+        <div class="barcode-display">
+          Stregkode: <strong id="out-barcode-display"></strong>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;" id="out-product-name"></div>
+          <div style="font-size: 14px; color: #6b7280;">På lager: <strong id="out-current-stock"></strong></div>
+        </div>
+
+        <div class="form-group">
+          <label>Vælg batch (FIFO - brug ældste først)</label>
+          <div id="batches-list"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Mængde at tage ud *</label>
+          <input type="number" id="out-quantity" step="0.1" min="0.1" placeholder="F.eks. 2" required>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="cancelScan()">Annuller</button>
+          <button class="btn btn-primary" id="submit-scan-out" onclick="submitScanOut()">Træk fra lager</button>
+        </div>
+      </div>
+
+      <div id="opened-item-form" class="form-section">
+        <h3>Åbnet vare - Ny holdbarhed</h3>
+        <div class="barcode-display">
+          Stregkode: <strong id="opened-barcode-display"></strong>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;" id="opened-product-name"></div>
+          <div style="font-size: 14px; color: #6b7280;">Vælg batch der er blevet åbnet</div>
+        </div>
+
+        <div class="form-group">
+          <label>Vælg batch som er åbnet</label>
+          <div id="opened-batches-list"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Ny holdbarhed (antal dage fra i dag) *</label>
+          <input type="number" id="new-expiry-days" min="1" max="30" placeholder="F.eks. 3" required>
+          <div style="font-size: 12px; color: #6b7280; margin-top: 6px;">
+            Typisk: Åbnet mælk 3 dage, åbnet kød 1-2 dage, åbnet grøntsager 2-3 dage
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="cancelScan()">Annuller</button>
+          <button class="btn btn-primary" id="submit-opened-item" onclick="submitOpenedItem()">Gem ny holdbarhed</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="fifo-warning-modal">
+    <div class="modal-content">
+      <h3>⚠️ FIFO Advarsel</h3>
+      <p>Hov! Brug den ældste vare først for at undgå spild.</p>
+      <div class="batch-comparison">
+        <div id="oldest-batch-info"></div>
+        <div id="selected-batch-info"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="useOldestBatch()">Brug ældste vare</button>
+        <button class="btn btn-secondary" onclick="continueAnyway()">Fortsæt alligevel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="upgrade-modal">
+    <div class="modal-content">
+      <h3>🚀 Opgrader til Lager & Stregkode</h3>
+      <p>Med dette modul får du:</p>
+      <ul style="line-height: 1.8; margin: 16px 0;">
+        <li>📱 Mobil stregkode-scanning</li>
+        <li>📦 Automatisk lager-styring</li>
+        <li>⏰ FIFO-logik og udløbsadvarsler</li>
+        <li>🌡️ Integration med temperaturkontrol</li>
+        <li>📊 Madspildsrapporter</li>
+      </ul>
+      <p style="font-size: 14px; color: #6b7280;">Kontakt support for at aktivere modulet.</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeUpgradeModal()">Luk</button>
+        <button class="btn btn-primary">Kontakt support</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

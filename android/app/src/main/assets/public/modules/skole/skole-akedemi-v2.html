@@ -1,0 +1,988 @@
+﻿<!--
+    Madkontrollen Pro Akademi v2
+
+    Denne HTML-side er en prototype for en undervisningsplatform, der fokuserer på egenkontrol, køkkenstruktur, restaurantdrift og hotelkurser. Platformen er designet til at lære elever og medarbejdere at forstå og anvende egenkontrol i praksis, med fokus på både regler og praktisk drift.
+
+    Funktioner og indhold:
+    - Fast sidebar-navigation med oversigt over læringsspor, moduler, lektionsstruktur, scenebilleder, quiz, målgrupper, datamodel og roadmap.
+    - Hero-sektion med introduktion, illustration af køkkenflow og nøglestatistikker.
+    - Læringsspor (tracks) opdelt i basis, struktureret køkken og hotel/kursus.
+    - Anbefalet læringssekvens, der guider brugeren gennem forståelse, processer og dokumentation.
+    - Kernemoduler (12 stk.) med beskrivelse, formål og meta-tags for onboarding, adfærd, rutiner, risikohåndtering m.m.
+    - Fast lektionsskabelon med seks trin: forklaring, illustration, mini-quiz, case, egen beskrivelse og dokumentation.
+    - Indbyggede SVG-illustrationer til brug i undervisningen (fx korrekt køleskab, håndvask, nedkøling).
+    - Spil- og opgaveformat (Jeopardy) til holdundervisning, repetition og diskussion.
+    - Interaktiv quiz-demo med feedback på svarvalg.
+    - Målgrupper: elev, medarbejder, leder og underviser – med forskelligt fokus.
+    - Datamodel for læringsspor, moduler, lektioner, quiz, opgaver og progression.
+    - Roadmap for udvikling af platformen i seks faser.
+    - Responsivt design med CSS-variabler, grid-layouts og tilpasset visning på forskellige skærmstørrelser.
+    - JavaScript til aktiv navigation og interaktiv quiz-feedback.
+
+    Særlige bemærkninger:
+    - Alle illustrationer er indbyggede SVG'er, så siden kan bruges uden eksterne billedkilder.
+    - Prototypen er velegnet som blueprint for videreudvikling og implementering i eksisterende layoutstil.
+    - Koden er struktureret med semantiske HTML-sektioner og genanvendelige CSS-klasser for nem vedligeholdelse og udvidelse.
+
+    Forfatter: Madkontrollen Pro
+    Sprog: Dansk
+    Version: v2
+--><!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Madkontrollen Pro Akademi v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f3f7f2;
+      --panel:#ffffff;
+      --panel-soft:#f8fbf8;
+      --line:#d8e4d7;
+      --text:#182118;
+      --muted:#677267;
+      --green:#2e7d32;
+      --green-dark:#1f5a23;
+      --green-soft:#e8f5e9;
+      --blue:#1d4ed8;
+      --blue-soft:#eef5ff;
+      --amber:#b7791f;
+      --amber-soft:#fff7e8;
+      --red:#c62828;
+      --red-soft:#fff1f1;
+      --shadow:0 18px 48px rgba(24,33,24,.08);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:"Inter",system-ui,sans-serif;
+      background:linear-gradient(180deg,#f8fbf7 0%, var(--bg) 100%);
+      color:var(--text);
+    }
+
+    .shell{
+      display:grid;
+      grid-template-columns:300px minmax(0,1fr);
+      min-height:100vh;
+    }
+
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow:auto;
+      padding:22px;
+      border-right:1px solid var(--line);
+      background:rgba(255,255,255,.88);
+      backdrop-filter:blur(14px);
+    }
+
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-bottom:20px;
+    }
+
+    .brand-mark{
+      width:48px;
+      height:48px;
+      border-radius:16px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,var(--green-dark),var(--green));
+      color:#fff;
+      font-size:24px;
+      box-shadow:var(--shadow);
+      flex:none;
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:18px;
+      line-height:1.2;
+    }
+
+    .brand p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .sidebar-title{
+      margin:22px 0 10px;
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-weight:800;
+      color:var(--muted);
+    }
+
+    .nav-list{
+      display:grid;
+      gap:8px;
+    }
+
+    .nav-link{
+      display:block;
+      padding:11px 13px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      color:var(--text);
+      text-decoration:none;
+      font-size:14px;
+      font-weight:600;
+      transition:.18s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active{
+      border-color:rgba(46,125,50,.35);
+      background:linear-gradient(180deg,#f8fcf8 0%, #edf7ee 100%);
+      transform:translateY(-1px);
+    }
+
+    .sidebar-note{
+      margin-top:18px;
+      padding:14px;
+      border:1px dashed rgba(46,125,50,.35);
+      border-radius:16px;
+      background:linear-gradient(180deg,#fbfefb 0%, #f3faf3 100%);
+      color:#2a412b;
+      font-size:13px;
+      line-height:1.65;
+    }
+
+    .main{
+      padding:28px;
+    }
+
+    .hero{
+      border:1px solid var(--line);
+      border-radius:32px;
+      background:linear-gradient(135deg,#ffffff 0%, #f6fbf6 52%, #eef7ef 100%);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:0;
+      align-items:stretch;
+    }
+
+    .hero-copy{
+      padding:32px;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:var(--green-soft);
+      color:var(--green-dark);
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    .hero h2{
+      margin:18px 0 12px;
+      font-size:42px;
+      line-height:1.05;
+      max-width:780px;
+    }
+
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      font-size:17px;
+      line-height:1.75;
+      max-width:760px;
+    }
+
+    .hero-stats{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:14px;
+      margin-top:24px;
+    }
+
+    .stat{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:#fff;
+    }
+
+    .stat span{
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:8px;
+    }
+
+    .stat strong{
+      font-size:28px;
+      line-height:1;
+    }
+
+    .hero-visual{
+      min-height:360px;
+      border-left:1px solid var(--line);
+      background:linear-gradient(180deg,#f4faf4 0%, #edf6ee 100%);
+      display:grid;
+      place-items:center;
+      padding:18px;
+    }
+
+    .card-stack{
+      display:grid;
+      gap:18px;
+      margin-top:22px;
+    }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:28px;
+      background:var(--panel);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head{
+      padding:24px 24px 10px;
+    }
+
+    .card-head h3{
+      margin:0;
+      font-size:28px;
+    }
+
+    .card-head p{
+      margin:10px 0 0;
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    .card-body{
+      padding:0 24px 24px;
+    }
+
+    .pill-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4{
+      display:grid;
+      gap:16px;
+    }
+
+    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .grid-4{grid-template-columns:repeat(4,minmax(0,1fr));}
+
+    .info-box,
+    .module-box,
+    .lesson-box,
+    .step-box,
+    .track-box,
+    .role-box,
+    .tool-box{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:linear-gradient(180deg,#fff 0%, #fbfdfb 100%);
+    }
+
+    .info-box h4,
+    .module-box h4,
+    .lesson-box h4,
+    .step-box h4,
+    .track-box h4,
+    .role-box h4,
+    .tool-box h4{
+      margin:0 0 8px;
+      font-size:18px;
+    }
+
+    .info-box p,
+    .module-box p,
+    .lesson-box p,
+    .step-box p,
+    .track-box p,
+    .role-box p,
+    .tool-box p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .module-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .module-meta span{
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      border:1px solid var(--line);
+      background:var(--panel-soft);
+    }
+
+    .teaching-demo{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    .demo-board{
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:16px;
+      background:linear-gradient(180deg,#1d2675 0%, #2a3698 100%);
+      color:#fff;
+      overflow:hidden;
+    }
+
+    .board-grid{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:8px;
+    }
+
+    .board-head,
+    .board-cell{
+      border-radius:14px;
+      text-align:center;
+      display:grid;
+      place-items:center;
+      min-height:78px;
+      padding:10px;
+    }
+
+    .board-head{
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.15);
+      font-size:13px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+
+    .board-cell{
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.14);
+      font-size:26px;
+      font-weight:800;
+      color:#ffec74;
+    }
+
+    .lesson-flow{
+      display:grid;
+      grid-template-columns:repeat(6,minmax(0,1fr));
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .flow-step{
+      padding:16px 12px;
+      border:1px solid #d8e7ff;
+      border-radius:18px;
+      background:linear-gradient(180deg,#fbfdff 0%, var(--blue-soft) 100%);
+      color:#234978;
+      text-align:center;
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .quiz-card{
+      margin-top:18px;
+      border:1px solid #d9e4d9;
+      border-radius:22px;
+      overflow:hidden;
+      background:#fff;
+    }
+
+    .quiz-head{
+      padding:18px 20px;
+      background:linear-gradient(180deg,#f8fbf8 0%, #f2f8f2 100%);
+      border-bottom:1px solid var(--line);
+    }
+
+    .quiz-head strong{
+      display:block;
+      font-size:18px;
+      margin-bottom:6px;
+    }
+
+    .quiz-options{
+      display:grid;
+      gap:12px;
+      padding:18px 20px 10px;
+    }
+
+    .quiz-option{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#fff;
+      padding:14px 16px;
+      cursor:pointer;
+      transition:.18s ease;
+      font-weight:600;
+      text-align:left;
+      width:100%;
+    }
+
+    .quiz-option:hover{transform:translateY(-1px);}
+    .quiz-option.correct{border-color:rgba(46,125,50,.45); background:linear-gradient(180deg,#f7fcf7 0%, #edf7ee 100%);}
+    .quiz-option.wrong{border-color:rgba(198,40,40,.3); background:linear-gradient(180deg,#fff7f7 0%, #fff0f0 100%);}
+
+    .quiz-result{
+      min-height:54px;
+      padding:0 20px 18px;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:14px;
+    }
+
+    .scene-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+    }
+
+    .scene-card{
+      border:1px solid var(--line);
+      border-radius:22px;
+      overflow:hidden;
+      background:#fff;
+    }
+
+    .scene-art{
+      aspect-ratio:16 / 10;
+      background:linear-gradient(180deg,#f8fbf8 0%, #edf7ee 100%);
+      border-bottom:1px solid var(--line);
+      display:grid;
+      place-items:center;
+      padding:10px;
+    }
+
+    .scene-copy{
+      padding:16px;
+    }
+
+    .scene-copy h4{
+      margin:0 0 8px;
+      font-size:17px;
+    }
+
+    .scene-copy p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+      font-size:14px;
+    }
+
+    .timeline{
+      display:grid;
+      gap:12px;
+    }
+
+    .timeline-row{
+      display:grid;
+      grid-template-columns:160px minmax(0,1fr);
+      gap:12px;
+      padding:14px 16px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:#fff;
+    }
+
+    .timeline-row strong{
+      font-size:14px;
+    }
+
+    .timeline-row div:last-child{
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .footer-note{
+      margin-top:18px;
+      padding:18px;
+      border:1px dashed rgba(46,125,50,.35);
+      border-radius:18px;
+      background:linear-gradient(180deg,#fbfefb 0%, #f2faf3 100%);
+      color:#29412b;
+      line-height:1.7;
+    }
+
+    svg{max-width:100%; height:auto; display:block}
+
+    @media (max-width:1180px){
+      .shell{grid-template-columns:1fr;}
+      .sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+      .hero-grid,.teaching-demo,.grid-4,.grid-3,.grid-2,.scene-grid,.lesson-flow{grid-template-columns:1fr 1fr;}
+      .hero-stats{grid-template-columns:1fr 1fr;}
+    }
+
+    @media (max-width:760px){
+      .main{padding:16px;}
+      .sidebar{padding:16px;}
+      .hero-copy{padding:22px;}
+      .hero h2{font-size:31px;}
+      .hero-grid,.teaching-demo,.grid-4,.grid-3,.grid-2,.scene-grid,.lesson-flow,.hero-stats,.timeline-row,.board-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">🎓</div>
+        <div>
+          <h1>Madkontrollen Pro Akademi</h1>
+          <p>Undervisningsmodel v2</p>
+        </div>
+      </div>
+
+      <div class="sidebar-title">Navigation</div>
+      <div class="nav-list">
+        <a class="nav-link active" href="#intro">Intro</a>
+        <a class="nav-link" href="#tracks">Læringsspor</a>
+        <a class="nav-link" href="#sequence">Rækkefølge</a>
+        <a class="nav-link" href="#modules">Kernemoduler</a>
+        <a class="nav-link" href="#lesson-structure">Lektionsskabelon</a>
+        <a class="nav-link" href="#scenes">Scenebilleder</a>
+        <a class="nav-link" href="#game">Spil og opgaver</a>
+        <a class="nav-link" href="#quiz-demo">Quiz-demo</a>
+        <a class="nav-link" href="#roles">Målgrupper</a>
+        <a class="nav-link" href="#data">Datamodel</a>
+        <a class="nav-link" href="#roadmap">Roadmap</a>
+      </div>
+
+      <div class="sidebar-title">V1 emner</div>
+      <div class="nav-list">
+        <a class="nav-link" href="#m-virksomhed">Virksomheden</a>
+        <a class="nav-link" href="#m-hygiejne">Personlig hygiejne</a>
+        <a class="nav-link" href="#m-rengoering">Rengøring</a>
+        <a class="nav-link" href="#m-varemodtagelse">Varemodtagelse</a>
+        <a class="nav-link" href="#m-opbevaring">Opbevaring</a>
+        <a class="nav-link" href="#m-adskillelse">Adskillelse</a>
+        <a class="nav-link" href="#m-allergener">Allergener</a>
+        <a class="nav-link" href="#m-opvarmning">Opvarmning</a>
+        <a class="nav-link" href="#m-nedkoeling">Nedkøling</a>
+        <a class="nav-link" href="#m-varmholdelse">Varmholdelse</a>
+        <a class="nav-link" href="#m-udbringning">Udbringning</a>
+        <a class="nav-link" href="#m-sporbarhed">Sporbarhed</a>
+      </div>
+
+      <div class="sidebar-note">
+        Alle billeder i denne prototype er indbygget som egne illustrationer i filen, så siden kan bruges uden eksterne billedkilder.
+      </div>
+    </aside>
+
+    <main class="main">
+      <section id="intro" class="hero">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <div class="eyebrow">Læring · drift · compliance</div>
+            <h2>En undervisningsplatform for egenkontrol, køkkenstruktur, restaurantdrift og hotelkurser.</h2>
+            <p>
+              Madkontrollen Pro Akademi skal lære elever og medarbejdere at forstå egenkontrol i praksis. Ikke kun hvad reglerne siger, men hvordan et struktureret køkken fungerer, hvordan vareflow bygges op, og hvordan man handler rigtigt i rigtig drift.
+            </p>
+            <div class="hero-stats">
+              <div class="stat"><span>Læringsspor</span><strong>3</strong></div>
+              <div class="stat"><span>Kernemoduler</span><strong>12</strong></div>
+              <div class="stat"><span>Lektionstyper</span><strong>6</strong></div>
+              <div class="stat"><span>Opgaveformer</span><strong>5</strong></div>
+            </div>
+          </div>
+          <div class="hero-visual">
+            <svg viewBox="0 0 540 400" aria-label="Illustration af køkkenflow">
+              <defs>
+                <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#ffffff"/>
+                  <stop offset="100%" stop-color="#ecf6ed"/>
+                </linearGradient>
+              </defs>
+              <rect x="18" y="18" width="504" height="364" rx="28" fill="url(#g1)" stroke="#d8e4d7"/>
+              <rect x="42" y="48" width="122" height="78" rx="18" fill="#eef5ff" stroke="#d5e4ff"/>
+              <rect x="208" y="48" width="122" height="78" rx="18" fill="#e8f5e9" stroke="#d4ead6"/>
+              <rect x="374" y="48" width="122" height="78" rx="18" fill="#fff7e8" stroke="#f0dfb7"/>
+              <rect x="42" y="168" width="122" height="78" rx="18" fill="#fff1f1" stroke="#f0d2d2"/>
+              <rect x="208" y="168" width="122" height="78" rx="18" fill="#eef5ff" stroke="#d5e4ff"/>
+              <rect x="374" y="168" width="122" height="78" rx="18" fill="#e8f5e9" stroke="#d4ead6"/>
+              <rect x="125" y="290" width="288" height="62" rx="18" fill="#ffffff" stroke="#d8e4d7"/>
+              <text x="103" y="94" font-size="16" text-anchor="middle" fill="#234978" font-weight="700">Varemodtagelse</text>
+              <text x="269" y="94" font-size="16" text-anchor="middle" fill="#235428" font-weight="700">Opbevaring</text>
+              <text x="435" y="94" font-size="16" text-anchor="middle" fill="#8b5b16" font-weight="700">Produktion</text>
+              <text x="103" y="214" font-size="16" text-anchor="middle" fill="#8f1f1f" font-weight="700">Rengøring</text>
+              <text x="269" y="214" font-size="16" text-anchor="middle" fill="#234978" font-weight="700">Temperatur</text>
+              <text x="435" y="214" font-size="16" text-anchor="middle" fill="#235428" font-weight="700">Dokumentation</text>
+              <text x="269" y="327" font-size="22" text-anchor="middle" fill="#1f5a23" font-weight="800">Læring ↔ Drift ↔ Kontrol</text>
+              <path d="M165 87 H205" stroke="#7ba37d" stroke-width="6" stroke-linecap="round"/>
+              <path d="M331 87 H371" stroke="#7ba37d" stroke-width="6" stroke-linecap="round"/>
+              <path d="M103 127 V156" stroke="#d28b8b" stroke-width="6" stroke-linecap="round"/>
+              <path d="M269 127 V156" stroke="#7ea5d8" stroke-width="6" stroke-linecap="round"/>
+              <path d="M435 127 V156" stroke="#7ba37d" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <div class="card-stack">
+        <section id="tracks" class="card">
+          <div class="card-head">
+            <h3>Læringsspor</h3>
+            <p>Akademiet skal have spor, der kan genbruges på tværs af restauranter, hoteller, skoler og kurser.</p>
+          </div>
+          <div class="card-body grid-3">
+            <div class="track-box">
+              <h4>Spor A · Egenkontrol basis</h4>
+              <p>Basal forståelse af regler, temperaturer, hygiejne, allergener, sporbarhed og daglige rutiner.</p>
+            </div>
+            <div class="track-box">
+              <h4>Spor B · Struktureret køkken</h4>
+              <p>Opbygning af arbejdszoner, vareflow, serviceflow, ren/uren logik og samarbejde mellem stationer.</p>
+            </div>
+            <div class="track-box">
+              <h4>Spor C · Hotel og kursus</h4>
+              <p>Buffet, morgenmad, room service, selskaber, personaleoplæring og certificeringsforløb.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="sequence" class="card">
+          <div class="card-head">
+            <h3>Anbefalet rækkefølge</h3>
+            <p>Brugeren skal først forstå helheden, derefter processerne, og til sidst dokumentationen.</p>
+          </div>
+          <div class="card-body timeline">
+            <div class="timeline-row"><strong>Trin 1</strong><div>Hvad er egenkontrol, risiko og ansvar i en fødevarevirksomhed?</div></div>
+            <div class="timeline-row"><strong>Trin 2</strong><div>Hvordan ser et struktureret køkken ud, og hvordan bevæger varer og mennesker sig sikkert?</div></div>
+            <div class="timeline-row"><strong>Trin 3</strong><div>Hvordan styres temperatur, produktion, opbevaring, rengøring og allergener?</div></div>
+            <div class="timeline-row"><strong>Trin 4</strong><div>Hvordan håndteres fejl, afvigelser, sporbarhed, tilbagetrækning og revision?</div></div>
+          </div>
+        </section>
+
+        <section id="modules" class="card">
+          <div class="card-head">
+            <h3>Kernemoduler i v1</h3>
+            <p>De første moduler bør være direkte koblet til de kontrolpunkter og læringsbehov, du allerede har samlet.</p>
+          </div>
+          <div class="card-body grid-2">
+            <div id="m-virksomhed" class="module-box"><h4>1 · Beskrivelse af virksomheden</h4><p>Virksomhedstype, produkter, registrering, ledelse og rammer for driften.</p><div class="module-meta"><span>Onboarding</span><span>Virksomhedsprofil</span></div></div>
+            <div id="m-hygiejne" class="module-box"><h4>2 · Personlig hygiejne</h4><p>Håndvask, smykker, sygdom, hovedbeklædning og arbejdsvaner i produktionen.</p><div class="module-meta"><span>Adfærd</span><span>Medarbejdertræning</span></div></div>
+            <div id="m-rengoering" class="module-box"><h4>3 · Rengøring og desinfektion</h4><p>Daglig rengøring, før-opstartskontrol, sæbe/papir og forskellen mellem rent og desinficeret.</p><div class="module-meta"><span>Rutiner</span><span>Forebyggelse</span></div></div>
+            <div id="m-varemodtagelse" class="module-box"><h4>4 · Varemodtagelse</h4><p>Temperatur, emballage, mærkning, leverandører og afhentning af fødevarer.</p><div class="module-meta"><span>Vareflow</span><span>Kontrolpunkt</span></div></div>
+            <div id="m-opbevaring" class="module-box"><h4>5 · Opbevaring</h4><p>Køl, frost, holdbarhed, placering, materialer og sikker opbevaring af varer.</p><div class="module-meta"><span>Køkkenstruktur</span><span>Køl/frost</span></div></div>
+            <div id="m-adskillelse" class="module-box"><h4>6 · Adskillelse</h4><p>Krydssmitte, rå/færdigvare-logik og korrekt zoneopdeling i køkken og køl.</p><div class="module-meta"><span>Risiko</span><span>Produktion</span></div></div>
+            <div id="m-allergener" class="module-box"><h4>7 · Allergener</h4><p>Oplysningspligt, forebyggelse, mærkning og korrekt håndtering af gæsters sikkerhed.</p><div class="module-meta"><span>Gæstesikkerhed</span><span>Service</span></div></div>
+            <div id="m-opvarmning" class="module-box"><h4>8 · Opvarmning</h4><p>75°C, temperaturmåling og handling når fødevarer ikke er varme nok.</p><div class="module-meta"><span>Temperatur</span><span>Varmebehandling</span></div></div>
+            <div id="m-nedkoeling" class="module-box"><h4>9 · Nedkøling</h4><p>Korrekt nedkøling, tidsgrænser, portionsstørrelser og dokumentation af kritiske trin.</p><div class="module-meta"><span>Høj risiko</span><span>Praktisk læring</span></div></div>
+            <div id="m-varmholdelse" class="module-box"><h4>10 · Varmholdelse</h4><p>65°C, 3-timers-regel, salg uden køl og styring i service og takeaway.</p><div class="module-meta"><span>Service</span><span>Drift</span></div></div>
+            <div id="m-udbringning" class="module-box"><h4>11 · Udbringning</h4><p>Transportkasser, leveringstid, temperatur under transport og logistik ved ud af huset.</p><div class="module-meta"><span>Takeaway</span><span>Levering</span></div></div>
+            <div id="m-sporbarhed" class="module-box"><h4>12 · Sporbarhed og tilbagetrækning</h4><p>Hvor varer kommer fra, hvad der er solgt, og hvordan fejl og tilbagekaldelser håndteres.</p><div class="module-meta"><span>Dokumentation</span><span>Myndighedsforståelse</span></div></div>
+          </div>
+        </section>
+
+        <section id="lesson-structure" class="card">
+          <div class="card-head">
+            <h3>Fast lektionsskabelon</h3>
+            <p>Alle moduler skal følge samme form, så læring føles enkel og genkendelig.</p>
+          </div>
+          <div class="card-body">
+            <div class="lesson-flow">
+              <div class="flow-step">1 · Forklaring</div>
+              <div class="flow-step">2 · Illustration</div>
+              <div class="flow-step">3 · Mini-quiz</div>
+              <div class="flow-step">4 · Case</div>
+              <div class="flow-step">5 · Egen beskrivelse</div>
+              <div class="flow-step">6 · Dokumentation</div>
+            </div>
+            <div class="grid-3" style="margin-top:18px;">
+              <div class="lesson-box"><h4>Forklaring</h4><p>Kort, tydelig tekst på dansk der forklarer hvorfor reglen findes, og hvad der kan gå galt.</p></div>
+              <div class="lesson-box"><h4>Illustration</h4><p>Visuel scene med korrekt og forkert praksis, så eleven ser situationen i stedet for kun at læse den.</p></div>
+              <div class="lesson-box"><h4>Mini-quiz</h4><p>2-5 spørgsmål som tester basal forståelse, før eleven går videre til case eller opgave.</p></div>
+              <div class="lesson-box"><h4>Case</h4><p>Et konkret driftsproblem: køleskab for varmt, råt kød forkert placeret eller forkert håndvask.</p></div>
+              <div class="lesson-box"><h4>Egen beskrivelse</h4><p>Brugeren beskriver hvordan deres køkken eller arbejdsstation løser situationen i praksis.</p></div>
+              <div class="lesson-box"><h4>Dokumentation</h4><p>Foto, temperatur, kommentar eller bekræftelse der viser at viden kan omsættes til handling.</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="scenes" class="card">
+          <div class="card-head">
+            <h3>Scenebilleder til undervisning</h3>
+            <p>Her er indbyggede illustrationer, som kan bruges som prototype på de typer billeder, Akademiet bør have i modulerne.</p>
+          </div>
+          <div class="card-body scene-grid">
+            <article class="scene-card">
+              <div class="scene-art">
+                <svg viewBox="0 0 320 200" aria-label="Køleskab med korrekt opbevaring">
+                  <rect x="30" y="18" width="260" height="164" rx="20" fill="#f7fbff" stroke="#d6e5fb"/>
+                  <rect x="64" y="40" width="192" height="120" rx="12" fill="#dff1ff" stroke="#bddcf2"/>
+                  <line x1="64" y1="82" x2="256" y2="82" stroke="#b7d6ed" stroke-width="4"/>
+                  <line x1="64" y1="122" x2="256" y2="122" stroke="#b7d6ed" stroke-width="4"/>
+                  <rect x="88" y="50" width="48" height="20" rx="8" fill="#7bc96f"/>
+                  <rect x="146" y="50" width="48" height="20" rx="8" fill="#f3c25d"/>
+                  <rect x="204" y="50" width="30" height="20" rx="8" fill="#d96a6a"/>
+                  <rect x="88" y="90" width="44" height="20" rx="8" fill="#ffcf6d"/>
+                  <rect x="144" y="90" width="50" height="20" rx="8" fill="#7bc96f"/>
+                  <rect x="206" y="90" width="30" height="20" rx="8" fill="#7bc96f"/>
+                  <rect x="88" y="130" width="58" height="20" rx="8" fill="#d96a6a"/>
+                  <rect x="160" y="130" width="58" height="20" rx="8" fill="#d96a6a"/>
+                  <text x="160" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#2b4a71">Korrekt køleskabsopbygning</text>
+                  <text x="112" y="64" text-anchor="middle" font-size="10" fill="#1f5a23" font-weight="700">Salat</text>
+                  <text x="170" y="64" text-anchor="middle" font-size="10" fill="#8b5b16" font-weight="700">Mejeri</text>
+                  <text x="219" y="64" text-anchor="middle" font-size="10" fill="#7d1d1d" font-weight="700">Fisk</text>
+                  <text x="160" y="144" text-anchor="middle" font-size="11" fill="#7d1d1d" font-weight="800">Råt kød nederst</text>
+                </svg>
+              </div>
+              <div class="scene-copy">
+                <h4>Opbevaring og adskillelse</h4>
+                <p>Bruges til at forklare køleskabslogik, råt kød nederst, adskillelse mellem råvarer og færdigvarer samt risiko for dryp og krydssmitte.</p>
+              </div>
+            </article>
+
+            <article class="scene-card">
+              <div class="scene-art">
+                <svg viewBox="0 0 320 200" aria-label="Håndvask og hygiejne">
+                  <rect x="20" y="20" width="280" height="160" rx="20" fill="#f8fbf8" stroke="#d8e4d7"/>
+                  <rect x="92" y="110" width="136" height="34" rx="16" fill="#dcebe0" stroke="#bed3c3"/>
+                  <ellipse cx="160" cy="108" rx="58" ry="18" fill="#eef6f0" stroke="#cfded2"/>
+                  <path d="M130 82 C130 58 148 50 148 68 V96" fill="#f4c9a7"/>
+                  <path d="M190 82 C190 58 172 50 172 68 V96" fill="#f4c9a7"/>
+                  <rect x="142" y="58" width="36" height="14" rx="6" fill="#ffffff" stroke="#d8e4d7"/>
+                  <path d="M160 36 C160 52 150 58 150 70" stroke="#6ab6ff" stroke-width="5" stroke-linecap="round"/>
+                  <circle cx="160" cy="30" r="8" fill="#6ab6ff"/>
+                  <circle cx="126" cy="78" r="8" fill="#ffffff" stroke="#d8e4d7"/>
+                  <circle cx="198" cy="78" r="8" fill="#ffffff" stroke="#d8e4d7"/>
+                  <text x="160" y="162" text-anchor="middle" font-size="14" font-weight="700" fill="#235428">Korrekt håndvask før nyt arbejde</text>
+                </svg>
+              </div>
+              <div class="scene-copy">
+                <h4>Personlig hygiejne</h4>
+                <p>Bruges til håndvask, sygdom, smykker, handsker, hovedbeklædning og adfærd når man skifter arbejdsopgaver.</p>
+              </div>
+            </article>
+
+            <article class="scene-card">
+              <div class="scene-art">
+                <svg viewBox="0 0 320 200" aria-label="Nedkøling og temperaturmåling">
+                  <rect x="20" y="20" width="280" height="160" rx="20" fill="#fff8ef" stroke="#f1dfc0"/>
+                  <rect x="62" y="78" width="196" height="56" rx="18" fill="#d4dde6" stroke="#b6c4cf"/>
+                  <ellipse cx="160" cy="78" rx="98" ry="18" fill="#e7edf3" stroke="#c5d0d9"/>
+                  <path d="M110 54 L160 78 L210 54" fill="none" stroke="#d36a4b" stroke-width="8" stroke-linecap="round"/>
+                  <rect x="224" y="42" width="16" height="70" rx="8" fill="#ffffff" stroke="#cbd6de"/>
+                  <circle cx="232" cy="114" r="14" fill="#6ab6ff" stroke="#5fa3ea"/>
+                  <rect x="228" y="62" width="8" height="30" rx="4" fill="#ff8c5a"/>
+                  <text x="160" y="158" text-anchor="middle" font-size="14" font-weight="700" fill="#8b5b16">Nedkøling med måling og små portioner</text>
+                </svg>
+              </div>
+              <div class="scene-copy">
+                <h4>Nedkøling og temperatur</h4>
+                <p>Bruges til at forklare portionsstørrelse, måling, 65°C → 10°C-logik og hvad der er kritisk i processen.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="game" class="card">
+          <div class="card-head">
+            <h3>Spil og opgaver som læringsmotor</h3>
+            <p>Jeopardy-formatet er en rigtig stærk opgavetype til holdundervisning, repetition og fælles diskussion i klassen.</p>
+            <div class="pill-row">
+              <span class="pill">Holdspil</span>
+              <span class="pill">Storskærm</span>
+              <span class="pill">Gentagelse</span>
+              <span class="pill">Diskussion</span>
+            </div>
+          </div>
+          <div class="card-body teaching-demo">
+            <div class="demo-board">
+              <div class="board-grid">
+                <div class="board-head">Begreber</div>
+                <div class="board-head">Temperaturer</div>
+                <div class="board-head">Regler</div>
+                <div class="board-head">Hygiejne</div>
+                <div class="board-head">Kontrol</div>
+                <div class="board-cell">100</div>
+                <div class="board-cell">100</div>
+                <div class="board-cell">100</div>
+                <div class="board-cell">100</div>
+                <div class="board-cell">100</div>
+                <div class="board-cell">200</div>
+                <div class="board-cell">200</div>
+                <div class="board-cell">200</div>
+                <div class="board-cell">200</div>
+                <div class="board-cell">200</div>
+                <div class="board-cell">300</div>
+                <div class="board-cell">300</div>
+                <div class="board-cell">300</div>
+                <div class="board-cell">300</div>
+                <div class="board-cell">300</div>
+              </div>
+            </div>
+            <div class="grid-1" style="display:grid; gap:16px;">
+              <div class="info-box">
+                <h4>Hvad spillet er godt til</h4>
+                <p>Det skaber energi, samarbejde og hurtig repetition. Eleverne taler sammen om svarene, og læreren kan forklare reglerne bagefter.</p>
+              </div>
+              <div class="info-box">
+                <h4>Sådan bruger vi det i Akademiet</h4>
+                <p>Efter et modul kan man låse op for et spil med spørgsmål om fx nedkøling, opbevaring eller fødevarekontrol.</p>
+              </div>
+              <div class="info-box">
+                <h4>Bedste kombination</h4>
+                <p>Forklaring + case + quiz + Jeopardy + praktisk opgave. Så får man både forståelse, hukommelse og anvendelse.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="quiz-demo" class="card">
+          <div class="card-head">
+            <h3>Interaktiv quiz-demo</h3>
+            <p>Et lille eksempel på hvordan et modul kan teste forståelsen direkte i siden.</p>
+          </div>
+          <div class="card-body">
+            <div class="quiz-card">
+              <div class="quiz-head">
+                <strong>Eksempel · Adskillelse i køleskab</strong>
+                Hvor bør råt kød placeres i køleskabet for bedst at forebygge krydssmitte?
+              </div>
+              <div class="quiz-options">
+                <button class="quiz-option" data-correct="false">Øverst, så det er lettest at få fat i</button>
+                <button class="quiz-option" data-correct="false">Midt i køleskabet sammen med færdigvarer</button>
+                <button class="quiz-option" data-correct="true">Nederst, så dryp ikke forurener andre varer</button>
+                <button class="quiz-option" data-correct="false">Lige meget, så længe døren er lukket</button>
+              </div>
+              <div id="quizResult" class="quiz-result">Vælg et svar for at se feedback.</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="roles" class="card">
+          <div class="card-head">
+            <h3>Målgrupper</h3>
+            <p>Det samme faglige indhold skal kunne pakkes forskelligt alt efter brugerens rolle.</p>
+          </div>
+          <div class="card-body grid-4">
+            <div class="role-box"><h4>Elev</h4><p>Fokus på forståelse, cases, quiz, billeder og forklaring af hvorfor reglerne findes.</p></div>
+            <div class="role-box"><h4>Medarbejder</h4><p>Fokus på hurtig onboarding, sikker adfærd, drift og konkrete handlinger i hverdagen.</p></div>
+            <div class="role-box"><h4>Leder</h4><p>Fokus på struktur, dokumentation, rutiner, opfølgning og ansvar ved fejl og afvigelser.</p></div>
+            <div class="role-box"><h4>Underviser</h4><p>Fokus på hold, opgaver, faglig progression, spil, evaluering og elevbesvarelser.</p></div>
+          </div>
+        </section>
+
+        <section id="data" class="card">
+          <div class="card-head">
+            <h3>Datamodel for Akademi</h3>
+            <p>En enkel struktur der senere kan kobles direkte til onboarding, egenkontrolrutiner og certifikater.</p>
+          </div>
+          <div class="card-body grid-2">
+            <div class="tool-box"><h4>learning_tracks</h4><p>Overordnede spor som restaurant basis, hoteldrift eller egenkontrolkursus.</p></div>
+            <div class="tool-box"><h4>learning_modules</h4><p>Moduler som nedkøling, rengøring, opbevaring, allergener og sporbarhed.</p></div>
+            <div class="tool-box"><h4>learning_lessons</h4><p>Indholdstrin som forklaring, scene, quiz, case og dokumentation.</p></div>
+            <div class="tool-box"><h4>quiz_questions</h4><p>Spørgsmål, svarmuligheder, korrekt svar og forklaring til feedback.</p></div>
+            <div class="tool-box"><h4>practical_assignments</h4><p>Tekstsvar, fotoopgaver, temperaturmålinger og scenariebesvarelser.</p></div>
+            <div class="tool-box"><h4>learner_progress</h4><p>Status, score, gennemførte moduler, læringsspor og anbefalet næste trin.</p></div>
+          </div>
+        </section>
+
+        <section id="roadmap" class="card">
+          <div class="card-head">
+            <h3>Roadmap for første version</h3>
+            <p>Det her er den mest realistiske rækkefølge for at komme hurtigt i luften med noget stærkt.</p>
+          </div>
+          <div class="card-body grid-2">
+            <div class="step-box"><h4>Fase 1 · Akademi-forside</h4><p>En oversigtsside med læringsspor, moduler, billeder og progression.</p></div>
+            <div class="step-box"><h4>Fase 2 · 8-12 moduler</h4><p>Byg de vigtigste moduler først med fast skabelon og enkel progression.</p></div>
+            <div class="step-box"><h4>Fase 3 · Quiz og cases</h4><p>Læg mini-quiz og cases ind i hvert modul før mere avancerede ting som certifikater.</p></div>
+            <div class="step-box"><h4>Fase 4 · Spil</h4><p>Tilføj Jeopardy- eller holdspil som ekstra lag til undervisning og repetition.</p></div>
+            <div class="step-box"><h4>Fase 5 · Dokumentation</h4><p>Kobl læring sammen med foto, notater og senere direkte relation til rutiner og afvigelser.</p></div>
+            <div class="step-box"><h4>Fase 6 · Certifikat og skolevisning</h4><p>Score, bestået-status, holdvisninger og læreroversigt.</p></div>
+          </div>
+          <div class="footer-note">
+            Denne v2 side er lavet som en navigerbar prototype med indbyggede illustrationer. Den er god som blueprint for den rigtige Madkontrollen Pro Akademi-side, som næste gang kan bygges direkte i din eksisterende layoutstil med header, sidebar og modulkort.
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const links = [...document.querySelectorAll('.nav-link')];
+    const sections = links
+      .map(link => document.querySelector(link.getAttribute('href')))
+      .filter(Boolean);
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter(entry => entry.isIntersecting)
+        .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      const id = '#' + visible.target.id;
+      links.forEach(link => link.classList.toggle('active', link.getAttribute('href') === id));
+    }, { rootMargin: '-20% 0px -60% 0px', threshold: [0.15, 0.35, 0.6] });
+
+    sections.forEach(section => observer.observe(section));
+
+    document.querySelectorAll('.quiz-option').forEach((button) => {
+      button.addEventListener('click', () => {
+        const isCorrect = button.dataset.correct === 'true';
+        const result = document.getElementById('quizResult');
+
+        document.querySelectorAll('.quiz-option').forEach((opt) => {
+          opt.classList.remove('correct', 'wrong');
+        });
+
+        if (isCorrect) {
+          button.classList.add('correct');
+          result.innerHTML = '<strong style="color:#1f5a23;">Korrekt.</strong> Råt kød bør ligge nederst, så saft og dryp ikke forurener færdigvarer, grøntsager eller andre produkter.';
+        } else {
+          button.classList.add('wrong');
+          result.innerHTML = '<strong style="color:#9a1f1f;">Ikke helt.</strong> Tænk i krydssmitte: råt kød skal nederst, så det ikke drypper ned over andre varer.';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+

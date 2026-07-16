@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow">
     <title>Owner Dashboard | Madkontrollen Pro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -137,6 +138,31 @@
             color: #991b1b;
         }
 
+        .status-locked {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-archived {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-pause, .btn-reopen, .btn-archive, .btn-dev {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-pause { background: #f59e0b; color: #fff; }
+        .btn-reopen { background: #10b981; color: #fff; }
+        .btn-archive { background: #6b7280; color: #fff; }
+        .btn-dev { background: #eef2ff; color: #3730a3; }
+        .btn-pause:hover, .btn-reopen:hover, .btn-archive:hover, .btn-dev:hover { transform: translateY(-1px); opacity: 0.92; }
+
         .btn-impersonate {
             background: var(--owner-primary);
             color: white;
@@ -264,19 +290,24 @@
 
     <script type="module">
         import { setupAuthGate } from "/core/auth.js";
-        import { db } from "/core/firebase-config.js";
-        import { 
-            collection, 
-            getDocs, 
-            query, 
-            orderBy, 
+        import { auth, db } from "/core/firebase-config.js";
+        import {
+            collection,
+            getDocs,
+            query,
+            orderBy,
             limit,
             where,
-            Timestamp
+            Timestamp,
+            doc,
+            updateDoc,
+            serverTimestamp,
+            addDoc
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const SUPER_ADMIN_EMAILS = [
-            'mn@aroid.dk'  // Replace with actual super-admin email
+            'mn@aroid.dk',
+            'mn@madkontrollen.dk'
         ];
 
         function isSuperAdmin(user, profile) {
@@ -367,6 +398,9 @@
 
         function renderDashboard(companies, users, deviations, stats) {
             const root = document.getElementById('ownerDashboardRoot');
+            // Join map: deviation.companyId -> company doc (for name/CVR/location lookups).
+            const companyById = {};
+            companies.forEach((c) => { if (c && c.id) companyById[c.id] = c; });
 
             root.innerHTML = `
                 <div class="owner-header">
@@ -422,21 +456,32 @@
                                     u.companyId === company.id || u.organizationId === company.id
                                 );
                                 const isActive = company.status !== 'inactive';
-                                
+                                const accessStatus = company.accessStatus || (isActive ? 'active' : 'inactive');
+                                const isArchived = accessStatus === 'archived' || company.archived === true;
+                                const isLocked = !isArchived && (
+                                    accessStatus === 'locked' ||
+                                    company.registrationWriteLocked === true ||
+                                    company.billingStatus === 'paused' ||
+                                    company.billingStatus === 'past_due'
+                                );
+                                const statusLabel = isArchived ? 'Arkiveret' : (isLocked ? 'Pauset / betaling mangler' : 'Aktiv');
+                                const statusClass = isArchived ? 'status-archived' : (isLocked ? 'status-locked' : 'status-active');
+                                const safeName = (company.companyName || company.name || '').replace(/'/g, "\\'");
+
                                 return `
                                     <tr>
                                         <td class="company-name">${company.companyName || company.name || 'Unavngivet'}</td>
                                         <td>${company.cvr || '-'}</td>
                                         <td>${companyUsers.length} brugere</td>
                                         <td>
-                                            <span class="company-status ${isActive ? 'status-active' : 'status-inactive'}">
-                                                ${isActive ? 'Aktiv' : 'Inaktiv'}
-                                            </span>
+                                            <span class="company-status ${statusClass}">${statusLabel}</span>
+                                            ${company.lockedFromDateKey ? `<div style="font-size:11px;color:#9b1c1c;margin-top:4px;">Låst fra ${company.lockedFromDateKey}</div>` : ''}
                                         </td>
-                                        <td>
-                                            <button class="btn-impersonate" onclick="impersonateCompany('${company.id}', '${company.companyName || company.name}')">
-                                                👁️ Se som kunde
-                                            </button>
+                                        <td style="white-space:nowrap;">
+                                            <button class="btn-impersonate" onclick="impersonateCompany('${company.id}', '${safeName}')">👁️ Se som kunde</button>
+                                            ${!isArchived && !isLocked ? `<button class="btn-pause" onclick="pauseCompany('${company.id}', '${safeName}')">⏸️ Pause</button>` : ''}
+                                            ${!isArchived && isLocked ? `<button class="btn-reopen" onclick="reopenCompany('${company.id}', '${safeName}')">▶️ Genåbn</button>` : ''}
+                                            ${!isArchived ? `<button class="btn-archive" onclick="archiveCompany('${company.id}', '${safeName}')">🗄️ Arkivér</button>` : ''}
                                         </td>
                                     </tr>
                                 `;
@@ -448,20 +493,35 @@
                 <div class="deviations-section">
                     <h2>⚠️ Seneste Afvigelser (Alle Kunder)</h2>
                     <div id="deviationsContainer">
-                        ${deviations.slice(0, 10).map(dev => {
-                            const company = companies.find(c => c.id === dev.companyId || c.id === dev.organizationId);
+                        ${deviations.slice(0, 25).map(dev => {
+                            const cid = dev.companyId || dev.organizationId || '';
+                            const lid = dev.locationId || '';
+                            const company = companyById[cid] || {};
+                            const companyName = company.name || company.companyName || company.displayName || company.legalName || dev.companyName || 'Ukendt firma';
+                            const cvr = company.cvr || company.vatNumber || company.cvrNumber || dev.cvr || 'Ukendt CVR';
+                            const locationName = (company.location && (company.location.name || company.location.displayName)) || dev.locationName || lid || 'Ukendt lokation';
+                            const title = dev.title || dev.description || 'Afvigelse';
+                            const routine = dev.routineTitle || dev.routineType || dev.taskTitle || '';
+                            const status = dev.status || 'open';
+                            const severity = dev.severity || '';
                             const timeAgo = formatTimeAgo(dev.createdAt);
-                            
+                            const safeName = String(companyName).replace(/'/g, "\\'");
                             return `
                                 <div class="deviation-item">
                                     <div class="deviation-company">
-                                        ${company?.companyName || company?.name || 'Ukendt virksomhed'}
+                                        ${companyName}
+                                        <span style="font-size:11px;color:#6b7280;font-weight:400;"> · CVR ${cvr}</span>
                                     </div>
-                                    <div class="deviation-desc">
-                                        ${dev.description || dev.title || 'Ingen beskrivelse'}
+                                    <div style="font-size:11px;color:#9ca3af;margin:2px 0;" title="companyId: ${cid}${lid ? ' · locationId: ' + lid : ''}">${cid || '—'}${lid ? ' / ' + lid : ''} · ${locationName}</div>
+                                    <div class="deviation-desc">${title}${routine ? ` <span style="color:#6b7280;">(${routine})</span>` : ''}</div>
+                                    <div style="font-size:12px;margin:4px 0;color:#374151;">
+                                        Status: <strong>${status}</strong>${severity ? ` · Alvorlighed: <strong>${severity}</strong>` : ''} · <span class="deviation-time">${timeAgo}</span>
                                     </div>
-                                    <div class="deviation-time">
-                                        ${timeAgo}
+                                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+                                        <button class="btn-dev" onclick="openDeviation('${cid}','${lid}','${dev.id || ''}')">📄 Se afvigelse</button>
+                                        <button class="btn-dev" onclick="openAllDeviations('${cid}','${lid}')">📋 Alle afvigelser</button>
+                                        <button class="btn-impersonate" onclick="impersonateCompany('${cid}','${safeName}','${lid}')">👁️ Se som kunde</button>
+                                        <button class="btn-pause" onclick="pauseCompany('${cid}','${safeName}')">⏸️ Pause/lås</button>
                                     </div>
                                 </div>
                             `;
@@ -483,33 +543,139 @@
             return `${Math.floor(seconds / 86400)} dage siden`;
         }
 
-        // Global function for impersonation
-        window.impersonateCompany = async function(companyId, companyName) {
+        function todayDateKeyCph() {
+            return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Copenhagen", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+        }
+
+        // Pause: lock new registrations from a chosen date (payment overdue). No delete.
+        window.pauseCompany = async function(companyId, companyName) {
+            const defaultDate = todayDateKeyCph();
+            const input = prompt(`Sæt "${companyName}" på pause pga. manglende betaling.\n\nLås nye registreringer fra dato (YYYY-MM-DD):`, defaultDate);
+            if (input === null) return;
+            const lockedFromDateKey = /^\d{4}-\d{2}-\d{2}$/.test(input.trim()) ? input.trim() : defaultDate;
+            const note = prompt("Note (valgfri):", "Manglende betaling") || "";
+            try {
+                const u = auth.currentUser;
+                await updateDoc(doc(db, "companies", companyId), {
+                    billingStatus: "paused",
+                    accessStatus: "locked",
+                    registrationWriteLocked: true,
+                    lockedAt: serverTimestamp(),
+                    lockedFromDateKey,
+                    lockedReason: "payment_overdue",
+                    lockedNote: note,
+                    lockedByUid: u?.uid || "",
+                    lockedByEmail: u?.email || ""
+                });
+                alert(`"${companyName}" er sat på pause. Låst fra ${lockedFromDateKey}.`);
+                location.reload();
+            } catch (e) {
+                console.error("[company-lock] pause failed", e);
+                alert("Kunne ikke sætte på pause: " + (e?.message || e));
+            }
+        };
+
+        // Reopen: unlock registrations again.
+        window.reopenCompany = async function(companyId, companyName) {
+            if (!confirm(`Genåbn "${companyName}"? Registreringer låses op igen.`)) return;
+            try {
+                const u = auth.currentUser;
+                await updateDoc(doc(db, "companies", companyId), {
+                    billingStatus: "active",
+                    accessStatus: "active",
+                    registrationWriteLocked: false,
+                    unlockedAt: serverTimestamp(),
+                    unlockedByUid: u?.uid || "",
+                    unlockedByEmail: u?.email || ""
+                });
+                alert(`"${companyName}" er genåbnet.`);
+                location.reload();
+            } catch (e) {
+                console.error("[company-lock] reopen failed", e);
+                alert("Kunne ikke genåbne: " + (e?.message || e));
+            }
+        };
+
+        // Archive: SOFT-archive only — nothing is deleted; history stays readable, writes stay locked.
+        window.archiveCompany = async function(companyId, companyName) {
+            if (!confirm(`Arkivér "${companyName}"?\n\nSOFT-archive — intet slettes. Kunden kan stadig se historik, men kan ikke oprette nye registreringer.`)) return;
+            const reason = prompt("Årsag til arkivering (valgfri):", "") || "";
+            try {
+                const u = auth.currentUser;
+                await updateDoc(doc(db, "companies", companyId), {
+                    accessStatus: "archived",
+                    archived: true,
+                    registrationWriteLocked: true,
+                    archivedAt: serverTimestamp(),
+                    archivedByUid: u?.uid || "",
+                    archivedReason: reason
+                });
+                alert(`"${companyName}" er arkiveret (soft-archive, intet slettet).`);
+                location.reload();
+            } catch (e) {
+                console.error("[company-lock] archive failed", e);
+                alert("Kunne ikke arkivere: " + (e?.message || e));
+            }
+        };
+
+        // Open a single deviation in the customer's afvigelser view (admin context, new tab).
+        window.openDeviation = function(companyId, locationId, deviationId) {
+            const p = new URLSearchParams();
+            if (companyId) p.set('adminCompanyId', companyId);
+            if (locationId) p.set('adminLocationId', locationId);
+            if (deviationId) p.set('deviationId', deviationId);
+            window.open('/modules/egenkontrol/afvigelser.html?' + p.toString(), '_blank');
+        };
+
+        // Open all deviations for a customer (admin context, new tab).
+        window.openAllDeviations = function(companyId, locationId) {
+            const p = new URLSearchParams();
+            if (companyId) p.set('adminCompanyId', companyId);
+            if (locationId) p.set('adminLocationId', locationId);
+            window.open('/modules/egenkontrol/afvigelser.html?' + p.toString(), '_blank');
+        };
+
+        // "Se som kunde" — reuses the existing admin impersonation (sessionStorage only).
+        // It NEVER writes the platform-admin's users-doc and sets no companyId/locationId on them.
+        window.impersonateCompany = async function(companyId, companyName, knownLocationId) {
+            if (!companyId) { alert('Mangler companyId.'); return; }
             if (!confirm(`Vil du se dashboardet som "${companyName}"?\n\nDu vil blive omdirigeret til deres dashboard.`)) {
                 return;
             }
 
             try {
-                // Fetch company's first location
-                const locationsQuery = query(
-                    collection(db, "locations"),
-                    where("companyId", "==", companyId),
-                    limit(1)
-                );
-                const locationsSnap = await getDocs(locationsQuery);
-                
-                let locationId = 'location_demo_1'; // fallback
-                if (!locationsSnap.empty) {
-                    locationId = locationsSnap.docs[0].id;
+                let locationId = knownLocationId || '';
+                if (!locationId) {
+                    const locationsSnap = await getDocs(query(
+                        collection(db, "locations"),
+                        where("companyId", "==", companyId),
+                        limit(1)
+                    ));
+                    locationId = locationsSnap.empty ? 'location_demo_1' : locationsSnap.docs[0].id;
                 }
 
-                // Store impersonation data
+                // Best-effort audit — never blocks the preview if rules deny the write.
+                try {
+                    const u = auth.currentUser;
+                    await addDoc(collection(db, "platform_admin_audit"), {
+                        action: "admin_preview_company",
+                        adminUid: u?.uid || "",
+                        adminEmail: u?.email || "",
+                        companyId,
+                        locationId,
+                        companyName: companyName || "",
+                        createdAt: serverTimestamp(),
+                        source: "owner-dashboard"
+                    });
+                } catch (auditErr) {
+                    console.warn("[admin-preview] audit skipped", auditErr);
+                }
+
                 sessionStorage.setItem('mkp_impersonate_companyId', companyId);
-                sessionStorage.setItem('mkp_impersonate_companyName', companyName);
+                sessionStorage.setItem('mkp_impersonate_companyName', companyName || '');
                 sessionStorage.setItem('mkp_impersonate_locationId', locationId);
                 sessionStorage.setItem('mkp_impersonate_active', 'true');
 
-                // Redirect to main dashboard
                 window.location.href = '/dashboard';
             } catch (error) {
                 console.error('Error setting up impersonation:', error);

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unified Core Prototype | Madkontrollen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f8f4;
+      --panel: #ffffff;
+      --line: #dbe8db;
+      --text: #172117;
+      --muted: #5e705e;
+      --ok: #2f7d32;
+      --warn: #9a6700;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top left, #f9fdf9 0%, transparent 35%), var(--bg);
+      padding: 24px;
+    }
+
+    .wrap {
+      max-width: 1360px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 22px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.1;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .hero-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    select, input, textarea, button {
+      border: 1px solid #cfdccf;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      background: #132113;
+      color: #fff;
+      border: none;
+      font-weight: 700;
+    }
+
+    .small-btn {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1.1fr 0.8fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .panel h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .flags {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .flag {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      background: #fafdfa;
+    }
+
+    .flag.on strong { color: var(--ok); }
+    .flag.off strong { color: var(--warn); }
+
+    .forms {
+      display: grid;
+      gap: 12px;
+    }
+
+    .forms form {
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fbfefb;
+    }
+
+    .forms h4 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .items {
+      display: grid;
+      gap: 10px;
+      max-height: 360px;
+      overflow: auto;
+    }
+
+    .item-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fafdfa;
+    }
+
+    .item-card h4 {
+      margin: 0 0 6px;
+      font-size: 15px;
+    }
+
+    .item-card p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .feed {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+      max-height: 520px;
+      overflow: auto;
+    }
+
+    .feed li {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .quick-lists {
+      display: grid;
+      gap: 8px;
+    }
+
+    .quick-lists ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1140px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .split {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Madkontrollen Unified Core Prototype</h1>
+      <p>
+        Event-drevet prototype for 100% modulær arkitektur: Core, Institutional, Commercial, Kalkulation og forberedt Finance/Tax.
+        Demonstrerer den rode trad med dataflow pa tværs af moduler.
+      </p>
+      <div class="hero-row">
+        <label for="contextSwitcher"><strong>Kontekst:</strong></label>
+        <select id="contextSwitcher">
+          <option value="restaurant">Restaurant</option>
+          <option value="pizzeria">Pizzeria</option>
+          <option value="plejehjem">Plejehjem</option>
+          <option value="skole">Skole</option>
+          <option value="kantine">Kantine</option>
+        </select>
+        <span>Aktiv kontekst: <strong id="activeContextLabel">restaurant</strong></span>
+      </div>
+      <div class="flags" id="featureFlags"></div>
+    </section>
+
+    <section class="grid">
+      <article class="panel" id="institutionSection">
+        <h3>Institutional: Borger-profil & Ernaringsregnskab</h3>
+        <div class="forms">
+          <form id="citizenForm">
+            <h4>Ny borger-profil</h4>
+            <input name="name" placeholder="Navn" required>
+            <input name="diet" placeholder="Diæt (fx diabetes, vegetar)" required>
+            <select name="dysphagiaLevel">
+              <option value="none">Ingen dysfagi</option>
+              <option value="idssi-4">IDDSI 4</option>
+              <option value="idssi-5">IDDSI 5</option>
+              <option value="idssi-6">IDDSI 6</option>
+              <option value="idssi-7">IDDSI 7</option>
+            </select>
+            <input name="proteinTarget" type="number" step="0.1" placeholder="Protein mål pr dag (g)">
+            <input name="allergens" placeholder="Allergener, komma-separeret">
+            <button type="submit" class="small-btn">Gem borger</button>
+          </form>
+
+          <form id="mealServedForm">
+            <h4>Log serveret måltid</h4>
+            <input name="citizenId" placeholder="Citizen ID (kopier fra kort)" required>
+            <input name="protein" type="number" step="0.1" placeholder="Protein (g)" required>
+            <input name="calories" type="number" step="1" placeholder="Kalorier" required>
+            <button type="submit" class="small-btn">Log indtag</button>
+          </form>
+        </div>
+        <div class="items" id="citizenList"></div>
+      </article>
+
+      <article class="panel">
+        <h3>Kalkulation: Opskrift, kostpris og avance</h3>
+        <div class="forms">
+          <form id="recipeForm">
+            <h4>Ny opskrift</h4>
+            <input name="name" placeholder="Opskriftsnavn" required>
+            <input name="salesPrice" type="number" step="0.01" placeholder="Salgspris" required>
+            <textarea name="ingredients" rows="4" placeholder="sku;navn;qty;unitCost&#10;tomat;Tomat;0.2;26&#10;dej;Pizzadej;0.3;18" required></textarea>
+            <button type="submit" class="small-btn">Gem opskrift</button>
+          </form>
+
+          <form id="bookingTestForm">
+            <h4>Restaurant-flow: booking + allergi-check</h4>
+            <select name="menuId">
+              <option value="menu_1">Margherita</option>
+              <option value="menu_2">Pepperoni</option>
+              <option value="menu_3">Vegansk Bowl</option>
+            </select>
+            <input name="guestAllergens" placeholder="fx gluten, soja">
+            <button type="submit" class="small-btn">Kør booking-check</button>
+          </form>
+        </div>
+        <div class="items" id="recipeList"></div>
+      </article>
+
+      <article class="panel">
+        <h3>Quick-Log (5 sek)</h3>
+        <div class="forms">
+          <form id="quickTempForm">
+            <h4>Temperatur</h4>
+            <input name="zone" placeholder="Zone (Køl, Frys, Varm)" required>
+            <input name="temperature" type="number" step="0.1" placeholder="°C" required>
+            <button type="submit" class="small-btn">Log nu</button>
+          </form>
+
+          <form id="quickReceiptForm">
+            <h4>Bilag / varekob</h4>
+            <input name="supplier" placeholder="Leverandør" required>
+            <input name="sku" placeholder="SKU" required>
+            <input name="ingredientName" placeholder="Vare" required>
+            <input name="qty" type="number" step="0.01" placeholder="Mængde" required>
+            <input name="unitCost" type="number" step="0.01" placeholder="Enhedspris" required>
+            <input name="imageUrl" placeholder="Bilag URL (valgfri)">
+            <button type="submit" class="small-btn">Log køb</button>
+          </form>
+        </div>
+
+        <div class="quick-lists">
+          <strong>Seneste temperaturer</strong>
+          <ul id="tempLogList"></ul>
+          <strong>Seneste varemodtagelser</strong>
+          <ul id="goodsReceiptList"></ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel" id="commercialSection">
+      <h3>Commercial kontekst</h3>
+      <p>SEO/Bordbestilling er kun aktivt for kommercielle kontekster. Ved institution skjules denne sektion automatisk.</p>
+    </section>
+
+    <section class="panel">
+      <h3>Event Feed (Rode Trad)</h3>
+      <ol class="feed" id="eventFeed"></ol>
+    </section>
+  </div>
+
+  <script type="module" src="/modules/platform/unified-core.js"></script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+[
+    {
+        "module": "egenkontrol",
+        "taskId": "cleaning_daily_check",
+        "title": "Kontrollér at dagens rengøring er udført",
+        "description": "Kontrollér at rengøringen er gennemført korrekt i alle relevante arbejdsområder.",
+        "category": "Rengøring",
+        "taskType": "check",
+        "frequency": "daily",
+        "active": true,
+        "sortOrder": 10,
+        "guideEnabled": true,
+        "guideTitle": "Rengøringsguide",
+        "guideIntro": "Brug guiden til at kontrollere at dagens rengøring er udført korrekt.",
+        "guideAreas": [
+            "Arbejdsborde og produktionsflader",
+            "Håndtag og kontaktflader",
+            "Skærebrætter og redskaber",
+            "Vaskeområde",
+            "Gulv i arbejdszone"
+        ],
+        "guideSteps": [
+            "Kontrollér for madrester, fedt eller snavs",
+            "Sikre at kontaktflader er rengjorte",
+            "Tjek at området fremstår klart til drift"
+        ],
+        "guideApproval": [
+            "Ingen synlige madrester",
+            "Kontaktflader er rengjorte",
+            "Området fremstår ryddeligt"
+        ],
+        "guideIfNotOk": [
+            "Marker 'Mangler rengøring'",
+            "Udfør rengøring straks",
+            "Opret afvigelse ved gentagne fejl"
+        ]
+    },
+    {
+        "module": "egenkontrol",
+        "taskId": "temperature_fridge",
+        "title": "Registrér køleskabstemperatur",
+        "description": "Aflæs og registrér temperaturen i køleskabet.",
+        "category": "Temperatur",
+        "taskType": "measurement",
+        "unit": "°C",
+        "placeholder": "Fx 4",
+        "frequency": "daily",
+        "active": true,
+        "sortOrder": 20,
+        "guideEnabled": true,
+        "guideTitle": "Guide til køleskabstemperatur",
+        "guideIntro": "Registrér temperaturen og vurder om den ligger inden for grænsen.",
+        "guideAreas": [
+            "Køleskabets temperaturdisplay",
+            "Målepunkt i enheden"
+        ],
+        "guideSteps": [
+            "Aflæs temperaturen korrekt",
+            "Indtast målingen",
+            "Registrér kommentar hvis nødvendigt"
+        ],
+        "guideApproval": [
+            "Temperatur under 5°C",
+            "Enheden virker stabil"
+        ],
+        "guideIfNotOk": [
+            "Opret afvigelse",
+            "Vurder om enheden skal tages ud af drift"
+        ]
+    },
+    {
+        "module": "egenkontrol",
+        "taskId": "freezer_temperature",
+        "title": "Registrér frysertemperatur",
+        "description": "Aflæs og registrér temperaturen i fryseren.",
+        "category": "Temperatur",
+        "taskType": "measurement",
+        "unit": "°C",
+        "placeholder": "Fx -20",
+        "frequency": "daily",
+        "active": true,
+        "sortOrder": 30,
+        "guideEnabled": true,
+        "guideTitle": "Guide til frysertemperatur",
+        "guideIntro": "Kontrollér at fryseren holder korrekt temperatur.",
+        "guideAreas": [
+            "Fryserens display",
+            "Temperaturmåling"
+        ],
+        "guideSteps": [
+            "Aflæs temperatur",
+            "Registrér måling"
+        ],
+        "guideApproval": [
+            "Temperatur -18°C eller lavere"
+        ],
+        "guideIfNotOk": [
+            "Opret afvigelse",
+            "Vurder varer i fryseren"
+        ]
+    },
+    {
+        "module": "egenkontrol",
+        "taskId": "date_label_check",
+        "title": "Kontrollér datomærkning",
+        "description": "Kontrollér at varer er korrekt mærket og inden for holdbarhed.",
+        "category": "Datokontrol",
+        "taskType": "check",
+        "frequency": "daily",
+        "active": true,
+        "sortOrder": 40,
+        "guideEnabled": true,
+        "guideTitle": "Guide til datokontrol",
+        "guideIntro": "Kontrollér at varer er korrekt mærket og ikke overskrider holdbarhed.",
+        "guideAreas": [
+            "Kølevarer",
+            "Tørvarer",
+            "Klargjorte fødevarer"
+        ],
+        "guideSteps": [
+            "Tjek datomærkning",
+            "Kontrollér holdbarhed"
+        ],
+        "guideApproval": [
+            "Alle varer er korrekt mærkede",
+            "Ingen varer overskrider dato"
+        ],
+        "guideIfNotOk": [
+            "Kasser varen",
+            "Opret afvigelse"
+        ]
+    },
+    {
+        "module": "egenkontrol",
+        "taskId": "opening_check",
+        "title": "Udfør åbningskontrol",
+        "description": "Kontrollér at lokationen er klar til drift.",
+        "category": "Åbning",
+        "taskType": "check",
+        "frequency": "daily",
+        "active": true,
+        "sortOrder": 50,
+        "guideEnabled": true,
+        "guideTitle": "Guide til åbning",
+        "guideIntro": "Kontrollér at arbejdsområde og udstyr er klar.",
+        "guideAreas": [
+            "Arbejdsområde",
+            "Køleenheder",
+            "Hygiejnefaciliteter"
+        ],
+        "guideSteps": [
+            "Tjek renhed",
+            "Kontrollér udstyr"
+        ],
+        "guideApproval": [
+            "Området er klart til drift"
+        ],
+        "guideIfNotOk": [
+            "Løs problemet",
+            "Opret afvigelse"
+        ]
+    },
+    {
+        "module": "egenkontrol",
+        "taskId": "closing_check",
+        "title": "Udfør lukketjek",
+        "description": "Kontrollér at arbejdsområde er korrekt afsluttet.",
+        "category": "Lukning",
+        "taskType": "check",
+        "frequency": "daily",
+        "active": true,
+        "sortOrder": 60,
+        "guideEnabled": true,
+        "guideTitle": "Guide til lukning",
+        "guideIntro": "Kontrollér at området efterlades korrekt.",
+        "guideAreas": [
+            "Arbejdsborde",
+            "Køleenheder",
+            "Affald"
+        ],
+        "guideSteps": [
+            "Tjek rengøring",
+            "Kontrollér opbevaring"
+        ],
+        "guideApproval": [
+            "Området er rent",
+            "Varer opbevaret korrekt"
+        ],
+        "guideIfNotOk": [
+            "Opret afvigelse"
+        ]
+    },
+    {
+        "module": "egenkontrol",
+        "taskId": "handwash_station_check",
+        "title": "Kontrollér håndvask",
+        "description": "Kontrollér at håndvask og sæbe er tilgængelig.",
+        "category": "Hygiejne",
+        "taskType": "check",
+        "frequency": "daily",
+        "active": true,
+        "sortOrder": 70,
+        "guideEnabled": true,
+        "guideTitle": "Guide til håndvask",
+        "guideIntro": "Kontrollér håndhygiejnefaciliteter.",
+        "guideAreas": [
+            "Håndvask",
+            "Sæbe",
+            "Aftørring"
+        ],
+        "guideSteps": [
+            "Tjek at håndvask fungerer",
+            "Tjek sæbe"
+        ],
+        "guideApproval": [
+            "Håndvask fungerer",
+            "Sæbe tilgængelig"
+        ],
+        "guideIfNotOk": [
+            "Udbedr manglen",
+            "Opret afvigelse"
+        ]
+    },
+    {
+        "module": "egenkontrol",
+        "taskId": "waste_area_check",
+        "title": "Kontrollér affaldsområde",
+        "description": "Kontrollér at affald håndteres korrekt.",
+        "category": "Hygiejne",
+        "taskType": "check",
+        "frequency": "daily",
+        "active": true,
+        "sortOrder": 80,
+        "guideEnabled": true,
+        "guideTitle": "Guide til affald",
+        "guideIntro": "Kontrollér affaldsområdet.",
+        "guideAreas": [
+            "Affaldsbeholdere",
+            "Låg",
+            "Område"
+        ],
+        "guideSteps": [
+            "Tjek beholdere",
+            "Tjek renhed"
+        ],
+        "guideApproval": [
+            "Affald håndteres korrekt"
+        ],
+        "guideIfNotOk": [
+            "Tøm affald",
+            "Opret afvigelse"
+        ]
+    },
+    {
+        "module": "egenkontrol",
+        "taskId": "pest_visual_check",
+        "title": "Kontrollér tegn på skadedyr",
+        "description": "Udfør visuel kontrol for skadedyr.",
+        "category": "Skadedyr",
+        "taskType": "check",
+        "frequency": "daily",
+        "active": true,
+        "sortOrder": 90,
+        "guideEnabled": true,
+        "guideTitle": "Guide til skadedyrskontrol",
+        "guideIntro": "Kontrollér tegn på skadedyr.",
+        "guideAreas": [
+            "Lager",
+            "Hjørner",
+            "Affaldsområde"
+        ],
+        "guideSteps": [
+            "Se efter ekskrementer",
+            "Se efter gnavespor"
+        ],
+        "guideApproval": [
+            "Ingen tegn på skadedyr"
+        ],
+        "guideIfNotOk": [
+            "Opret afvigelse"
+        ]
+    }
+]

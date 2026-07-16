@@ -1,0 +1,893 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Indkøb | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    .purchases-page{
+      display:grid;
+      gap:24px;
+    }
+
+    .hero-purchases{
+      position:relative;
+      overflow:hidden;
+      border-radius:28px;
+      padding:32px;
+      background:
+        radial-gradient(circle at top right, rgba(46,125,50,0.18), transparent 30%),
+        linear-gradient(135deg, #17311b 0%, #21532a 55%, #2e7d32 100%);
+      color:#fff;
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow:0 24px 60px rgba(22,34,22,0.16);
+    }
+
+    .hero-purchases::after{
+      content:"";
+      position:absolute;
+      right:-34px;
+      bottom:-42px;
+      width:220px;
+      height:220px;
+      border-radius:50%;
+      background:rgba(255,255,255,0.08);
+      filter:blur(8px);
+    }
+
+    .hero-purchases h1{
+      margin:0 0 10px;
+      font-size:clamp(2rem, 3vw, 2.75rem);
+      line-height:1.05;
+      font-weight:800;
+      max-width:760px;
+    }
+
+    .hero-purchases p{
+      margin:0;
+      max-width:820px;
+      color:rgba(255,255,255,0.88);
+      line-height:1.7;
+      font-size:1.02rem;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:24px;
+    }
+
+    .hero-actions .btn-secondary{
+      background:rgba(255,255,255,0.14);
+      color:#fff;
+      border:1px solid rgba(255,255,255,0.16);
+    }
+
+    .hero-actions .btn-secondary:hover{
+      background:rgba(255,255,255,0.22);
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:16px;
+    }
+
+    .stat-card{
+      background:#fff;
+      border:1px solid var(--border, #d9e4d9);
+      border-radius:22px;
+      padding:20px;
+      box-shadow:0 12px 30px rgba(19,34,20,0.06);
+    }
+
+    .stat-label{
+      font-size:0.92rem;
+      color:var(--muted, #667267);
+      margin-bottom:10px;
+    }
+
+    .stat-value{
+      font-size:1.8rem;
+      font-weight:800;
+      color:var(--text, #182118);
+      line-height:1;
+      margin-bottom:8px;
+    }
+
+    .stat-meta{
+      font-size:0.92rem;
+      color:var(--muted, #667267);
+    }
+
+    .toolbar-card,
+    .orders-card,
+    .shopping-card,
+    .panel-card{
+      background:#fff;
+      border:1px solid var(--border, #d9e4d9);
+      border-radius:24px;
+      box-shadow:0 14px 34px rgba(19,34,20,0.06);
+    }
+
+    .toolbar-card{
+      padding:18px;
+      display:grid;
+      grid-template-columns:1.5fr 180px 180px 180px auto;
+      gap:14px;
+      align-items:center;
+    }
+
+    .field,
+    .select{
+      width:100%;
+      border:1px solid #d8e3d8;
+      background:#f8fbf8;
+      border-radius:14px;
+      min-height:48px;
+      padding:0 14px;
+      font:inherit;
+      color:#182118;
+      outline:none;
+    }
+
+    .field:focus,
+    .select:focus{
+      border-color:#2e7d32;
+      box-shadow:0 0 0 3px rgba(46,125,50,0.12);
+      background:#fff;
+    }
+
+    .purchases-layout{
+      display:grid;
+      grid-template-columns:minmax(0, 1.6fr) minmax(320px, 0.95fr);
+      gap:24px;
+      align-items:start;
+    }
+
+    .left-column{
+      display:grid;
+      gap:24px;
+    }
+
+    .orders-card{
+      overflow:hidden;
+    }
+
+    .card-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:22px 22px 0;
+    }
+
+    .card-header h2,
+    .panel-card h2,
+    .shopping-card h2{
+      margin:0;
+      font-size:1.15rem;
+      color:#182118;
+    }
+
+    .table-wrap{
+      overflow-x:auto;
+      padding:18px 22px 22px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:920px;
+    }
+
+    thead th{
+      text-align:left;
+      font-size:0.85rem;
+      color:#667267;
+      font-weight:700;
+      padding:14px 14px;
+      border-bottom:1px solid #e3ece3;
+      background:#f9fbf9;
+      white-space:nowrap;
+    }
+
+    tbody td{
+      padding:16px 14px;
+      border-bottom:1px solid #edf3ed;
+      vertical-align:middle;
+      color:#1d271e;
+    }
+
+    tbody tr:hover{
+      background:#fbfdfb;
+    }
+
+    .order-name{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    .order-name strong{
+      color:#182118;
+      font-size:0.98rem;
+    }
+
+    .order-name span{
+      color:#6a776b;
+      font-size:0.86rem;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:30px;
+      padding:0 12px;
+      border-radius:999px;
+      font-size:0.82rem;
+      font-weight:700;
+      border:1px solid transparent;
+      white-space:nowrap;
+    }
+
+    .badge-green{
+      background:#e8f5e9;
+      color:#1f5a23;
+      border-color:#cae9cf;
+    }
+
+    .badge-yellow{
+      background:#fff6df;
+      color:#9a6700;
+      border-color:#f4dfad;
+    }
+
+    .badge-blue{
+      background:#e7f0ff;
+      color:#2457a6;
+      border-color:#d3e1ff;
+    }
+
+    .badge-red{
+      background:#fdecec;
+      color:#b42318;
+      border-color:#f6caca;
+    }
+
+    .action-links{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .action-links a{
+      color:#2e7d32;
+      font-weight:700;
+      text-decoration:none;
+    }
+
+    .action-links a:hover{
+      text-decoration:underline;
+    }
+
+    .shopping-card{
+      padding:22px;
+      display:grid;
+      gap:18px;
+    }
+
+    .shopping-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:14px;
+    }
+
+    .shopping-item{
+      background:#f8fbf8;
+      border:1px solid #e3ece3;
+      border-radius:18px;
+      padding:16px;
+      display:grid;
+      gap:10px;
+    }
+
+    .shopping-item-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .shopping-item strong{
+      display:block;
+      color:#182118;
+      font-size:0.98rem;
+    }
+
+    .shopping-item small{
+      color:#667267;
+      font-size:0.84rem;
+    }
+
+    .shopping-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .meta-pill{
+      display:inline-flex;
+      align-items:center;
+      min-height:32px;
+      padding:0 10px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid #dbe5db;
+      color:#2c3a2d;
+      font-size:0.82rem;
+      font-weight:700;
+    }
+
+    .shopping-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:4px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:46px;
+      padding:0 16px;
+      border-radius:14px;
+      border:none;
+      cursor:pointer;
+      font:inherit;
+      font-weight:700;
+      transition:0.18s ease;
+      text-decoration:none;
+    }
+
+    .btn-primary{
+      background:#2e7d32;
+      color:#fff;
+    }
+
+    .btn-primary:hover{
+      background:#25672a;
+      transform:translateY(-1px);
+    }
+
+    .btn-secondary{
+      background:#f5f8f5;
+      color:#1f2a20;
+      border:1px solid #d8e3d8;
+    }
+
+    .btn-secondary:hover{
+      background:#edf4ed;
+    }
+
+    .btn-small{
+      min-height:38px;
+      padding:0 12px;
+      border-radius:12px;
+      font-size:0.88rem;
+    }
+
+    .panel-card{
+      padding:22px;
+      display:grid;
+      gap:18px;
+    }
+
+    .quick-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .quick-item{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:center;
+      padding:14px 16px;
+      border-radius:18px;
+      background:#f8fbf8;
+      border:1px solid #e3ece3;
+    }
+
+    .quick-item strong{
+      display:block;
+      color:#182118;
+      margin-bottom:4px;
+    }
+
+    .quick-item span{
+      color:#667267;
+      font-size:0.92rem;
+    }
+
+    .quick-pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:88px;
+      min-height:34px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid #dae5da;
+      font-weight:700;
+      color:#2e7d32;
+      padding:0 10px;
+      white-space:nowrap;
+    }
+
+    .mini-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+
+    .mini-card{
+      background:#f8fbf8;
+      border:1px solid #e3ece3;
+      border-radius:18px;
+      padding:16px;
+    }
+
+    .mini-card .label{
+      font-size:0.85rem;
+      color:#667267;
+      margin-bottom:8px;
+    }
+
+    .mini-card .value{
+      font-size:1.05rem;
+      font-weight:800;
+      color:#182118;
+    }
+
+    @media (max-width: 1180px){
+      .toolbar-card{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .purchases-layout{
+        grid-template-columns:1fr;
+      }
+
+      .stats-grid{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 860px){
+      .shopping-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 680px){
+      .stats-grid,
+      .mini-grid,
+      .toolbar-card{
+        grid-template-columns:1fr;
+      }
+
+      .hero-purchases{
+        padding:24px;
+      }
+
+      .card-header{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="headerMount"></div>
+
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+
+      <section class="page-content">
+        <div class="purchases-page">
+
+          <section class="hero-purchases">
+            <h1>Indkøb med overblik over bestillinger, leverancer og lagerbehov</h1>
+            <p>
+              Saml dine indkøb ét sted og få styr på bestillinger, leverandører,
+              varelinjer, leveringstid og status. Siden binder råvarer, leverandører
+              og drift sammen, så du hurtigt kan reagere på lav lagerstatus, prisændringer
+              og kommende behov i køkkenet.
+            </p>
+
+            <div class="hero-actions">
+              <a href="#" class="btn btn-primary">+ Opret bestilling</a>
+              <a href="/modules/drift/suppliers.html" class="btn btn-secondary">Se leverandører</a>
+              <a href="/modules/drift/ingredients.html" class="btn btn-secondary">Se råvarer</a>
+            </div>
+          </section>
+
+          <section class="stats-grid">
+            <article class="stat-card">
+              <div class="stat-label">Åbne bestillinger</div>
+              <div class="stat-value">8</div>
+              <div class="stat-meta">3 afventer levering i dag</div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-label">Indkøb denne uge</div>
+              <div class="stat-value">18.420 kr.</div>
+              <div class="stat-meta">På tværs af alle leverandører</div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-label">Lav lager varer</div>
+              <div class="stat-value">7</div>
+              <div class="stat-meta">Bør bestilles hurtigst muligt</div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-label">Forsinkede leveringer</div>
+              <div class="stat-value">2</div>
+              <div class="stat-meta">Kræver opfølgning i dag</div>
+            </article>
+          </section>
+
+          <section class="toolbar-card">
+            <input class="field" type="text" placeholder="Søg efter bestilling, leverandør, vare eller ordrenummer..." />
+            <select class="select">
+              <option>Alle leverandører</option>
+              <option>Inco</option>
+              <option>Hørkram</option>
+              <option>Danish Crown</option>
+              <option>Nemlig B2B</option>
+            </select>
+            <select class="select">
+              <option>Alle statusser</option>
+              <option>Afventer</option>
+              <option>Bestilt</option>
+              <option>Modtaget</option>
+              <option>Forsinket</option>
+            </select>
+            <select class="select">
+              <option>Sortér: Nyeste</option>
+              <option>Sortér: Leveringsdato</option>
+              <option>Sortér: Højeste beløb</option>
+              <option>Sortér: Leverandør A-Å</option>
+            </select>
+            <button class="btn btn-primary">Filtrér</button>
+          </section>
+
+          <section class="purchases-layout">
+            <div class="left-column">
+
+              <section class="orders-card">
+                <div class="card-header">
+                  <h2>Seneste bestillinger</h2>
+                  <a href="#" class="btn btn-secondary">Eksportér bestillinger</a>
+                </div>
+
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Bestilling</th>
+                        <th>Leverandør</th>
+                        <th>Dato</th>
+                        <th>Forventet levering</th>
+                        <th>Varelinjer</th>
+                        <th>Beløb</th>
+                        <th>Status</th>
+                        <th>Handling</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div class="order-name">
+                            <strong>PO-2026-0184</strong>
+                            <span>Køkkenbasis til weekendservice</span>
+                          </div>
+                        </td>
+                        <td>Inco</td>
+                        <td>14-03-2026</td>
+                        <td>15-03-2026 kl. 07:00</td>
+                        <td>18</td>
+                        <td>4.280 kr.</td>
+                        <td><span class="badge badge-blue">Bestilt</span></td>
+                        <td>
+                          <div class="action-links">
+                            <a href="#">Åbn</a>
+                            <a href="#">Redigér</a>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>
+                          <div class="order-name">
+                            <strong>PO-2026-0183</strong>
+                            <span>Mejeri og dessertvarer</span>
+                          </div>
+                        </td>
+                        <td>Hørkram</td>
+                        <td>13-03-2026</td>
+                        <td>16-03-2026 kl. 08:30</td>
+                        <td>11</td>
+                        <td>2.960 kr.</td>
+                        <td><span class="badge badge-yellow">Afventer</span></td>
+                        <td>
+                          <div class="action-links">
+                            <a href="#">Åbn</a>
+                            <a href="#">Send</a>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>
+                          <div class="order-name">
+                            <strong>PO-2026-0182</strong>
+                            <span>Kød til burger og selskab</span>
+                          </div>
+                        </td>
+                        <td>Danish Crown</td>
+                        <td>13-03-2026</td>
+                        <td>14-03-2026 kl. 06:15</td>
+                        <td>7</td>
+                        <td>5.740 kr.</td>
+                        <td><span class="badge badge-green">Modtaget</span></td>
+                        <td>
+                          <div class="action-links">
+                            <a href="#">Åbn</a>
+                            <a href="#">Historik</a>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>
+                          <div class="order-name">
+                            <strong>PO-2026-0181</strong>
+                            <span>Suppleringskøb til hastebehov</span>
+                          </div>
+                        </td>
+                        <td>Nemlig B2B</td>
+                        <td>12-03-2026</td>
+                        <td>12-03-2026 kl. 14:00</td>
+                        <td>6</td>
+                        <td>1.180 kr.</td>
+                        <td><span class="badge badge-red">Forsinket</span></td>
+                        <td>
+                          <div class="action-links">
+                            <a href="#">Åbn</a>
+                            <a href="#">Følg op</a>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>
+                          <div class="order-name">
+                            <strong>PO-2026-0180</strong>
+                            <span>Frost og pommes replenishment</span>
+                          </div>
+                        </td>
+                        <td>Inco</td>
+                        <td>11-03-2026</td>
+                        <td>13-03-2026 kl. 07:00</td>
+                        <td>9</td>
+                        <td>2.245 kr.</td>
+                        <td><span class="badge badge-green">Modtaget</span></td>
+                        <td>
+                          <div class="action-links">
+                            <a href="#">Åbn</a>
+                            <a href="#">Historik</a>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section class="shopping-card">
+                <h2>Indkøbskladde / anbefalet genbestilling</h2>
+
+                <div class="shopping-grid">
+                  <article class="shopping-item">
+                    <div class="shopping-item-top">
+                      <div>
+                        <strong>Cheddar skiver</strong>
+                        <small>Hørkram · Mejeri</small>
+                      </div>
+                      <span class="badge badge-yellow">Lav lager</span>
+                    </div>
+                    <div class="shopping-meta">
+                      <span class="meta-pill">På lager: 7 pakker</span>
+                      <span class="meta-pill">Anbefalet køb: 18 pakker</span>
+                      <span class="meta-pill">Pris: 32,00 kr.</span>
+                    </div>
+                    <div class="shopping-actions">
+                      <a href="#" class="btn btn-primary btn-small">Læg i bestilling</a>
+                      <a href="#" class="btn btn-secondary btn-small">Se råvare</a>
+                    </div>
+                  </article>
+
+                  <article class="shopping-item">
+                    <div class="shopping-item-top">
+                      <div>
+                        <strong>Pommes frites 10 mm</strong>
+                        <small>Inco · Frost</small>
+                      </div>
+                      <span class="badge badge-yellow">Lav lager</span>
+                    </div>
+                    <div class="shopping-meta">
+                      <span class="meta-pill">På lager: 3 poser</span>
+                      <span class="meta-pill">Anbefalet køb: 12 poser</span>
+                      <span class="meta-pill">Pris: 26,00 kr.</span>
+                    </div>
+                    <div class="shopping-actions">
+                      <a href="#" class="btn btn-primary btn-small">Læg i bestilling</a>
+                      <a href="#" class="btn btn-secondary btn-small">Se råvare</a>
+                    </div>
+                  </article>
+
+                  <article class="shopping-item">
+                    <div class="shopping-item-top">
+                      <div>
+                        <strong>Romaine salat</strong>
+                        <small>Inco · Grønt</small>
+                      </div>
+                      <span class="badge badge-blue">Snart lav</span>
+                    </div>
+                    <div class="shopping-meta">
+                      <span class="meta-pill">På lager: 12 stk</span>
+                      <span class="meta-pill">Anbefalet køb: 20 stk</span>
+                      <span class="meta-pill">Pris: 11,50 kr.</span>
+                    </div>
+                    <div class="shopping-actions">
+                      <a href="#" class="btn btn-primary btn-small">Læg i bestilling</a>
+                      <a href="#" class="btn btn-secondary btn-small">Se råvare</a>
+                    </div>
+                  </article>
+
+                  <article class="shopping-item">
+                    <div class="shopping-item-top">
+                      <div>
+                        <strong>Trøffelolie</strong>
+                        <small>Nemlig B2B · Specialvarer</small>
+                      </div>
+                      <span class="badge badge-red">Kritisk</span>
+                    </div>
+                    <div class="shopping-meta">
+                      <span class="meta-pill">På lager: 2 flasker</span>
+                      <span class="meta-pill">Anbefalet køb: 6 flasker</span>
+                      <span class="meta-pill">Pris tjek mangler</span>
+                    </div>
+                    <div class="shopping-actions">
+                      <a href="#" class="btn btn-primary btn-small">Læg i bestilling</a>
+                      <a href="#" class="btn btn-secondary btn-small">Opdatér pris</a>
+                    </div>
+                  </article>
+                </div>
+              </section>
+
+            </div>
+
+            <aside class="panel-card">
+              <h2>Hurtigt overblik</h2>
+
+              <div class="quick-list">
+                <div class="quick-item">
+                  <div>
+                    <strong>Bestillinger til i dag</strong>
+                    <span>Forventede leverancer som bør modtages og tjekkes</span>
+                  </div>
+                  <div class="quick-pill">3 stk.</div>
+                </div>
+
+                <div class="quick-item">
+                  <div>
+                    <strong>Afventer godkendelse</strong>
+                    <span>Kladder eller bestillinger der ikke er sendt endnu</span>
+                  </div>
+                  <div class="quick-pill">2 stk.</div>
+                </div>
+
+                <div class="quick-item">
+                  <div>
+                    <strong>Potentiel besparelse</strong>
+                    <span>Ved prisrevision og alternative leverandører</span>
+                  </div>
+                  <div class="quick-pill">1.240 kr.</div>
+                </div>
+              </div>
+
+              <div class="mini-grid">
+                <div class="mini-card">
+                  <div class="label">Største leverandør</div>
+                  <div class="value">Inco</div>
+                </div>
+                <div class="mini-card">
+                  <div class="label">Højeste ordre</div>
+                  <div class="value">Danish Crown</div>
+                </div>
+                <div class="mini-card">
+                  <div class="label">Næste fokus</div>
+                  <div class="value">Forsinkede leveringer</div>
+                </div>
+                <div class="mini-card">
+                  <div class="label">Lav lager pres</div>
+                  <div class="value">7 varer</div>
+                </div>
+              </div>
+
+              <a href="/modules/drift/suppliers.html" class="btn btn-primary">Til leverandører</a>
+              <a href="/modules/drift/ingredients.html" class="btn btn-secondary">Til råvarer</a>
+            </aside>
+          </section>
+
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/modules/drift/drift.js"></script>
+  <script>
+    async function loadSharedPartials() {
+      const headerMount = document.getElementById("headerMount");
+      const sidebarMount = document.getElementById("sidebarMount");
+
+      try {
+        const [headerRes, sidebarRes] = await Promise.all([
+          fetch("/components/header.html"),
+          fetch("/components/sidebar.html")
+        ]);
+
+        if (headerRes.ok) {
+          headerMount.innerHTML = await headerRes.text();
+        }
+
+        if (sidebarRes.ok) {
+          sidebarMount.innerHTML = await sidebarRes.text();
+        }
+
+        const currentPath = window.location.pathname;
+        document.querySelectorAll(".sidebar-link, .nav a").forEach((link) => {
+          const href = link.getAttribute("href");
+          if (href && currentPath.includes(href.replace("/index.html", "/"))) {
+            link.classList.add("active");
+          }
+          if (href === currentPath) {
+            link.classList.add("active");
+          }
+        });
+      } catch (error) {
+        console.error("Kunne ikke indlæse header/sidebar:", error);
+      }
+    }
+
+    loadSharedPartials();
+  </script>
+
+</body>
+</html>

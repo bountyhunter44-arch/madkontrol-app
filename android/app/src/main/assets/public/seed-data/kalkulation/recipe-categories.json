@@ -1,0 +1,100 @@
+[
+    {
+        "id": "burgers",
+        "name": "Burger",
+        "description": "Klassiske burgere og specialburgere",
+        "sortOrder": 10,
+        "active": true
+    },
+    {
+        "id": "pizza",
+        "name": "Pizza",
+        "description": "Pizzaer og relaterede varianter",
+        "sortOrder": 20,
+        "active": true
+    },
+    {
+        "id": "sandwich",
+        "name": "Sandwich",
+        "description": "Sandwich, toast og baguettes",
+        "sortOrder": 30,
+        "active": true
+    },
+    {
+        "id": "salads",
+        "name": "Salat",
+        "description": "Salater og bowls",
+        "sortOrder": 40,
+        "active": true
+    },
+    {
+        "id": "sides",
+        "name": "Tilbehør",
+        "description": "Pommes frites, dips, snacks og andet tilbehør",
+        "sortOrder": 50,
+        "active": true
+    },
+    {
+        "id": "main_courses",
+        "name": "Hovedretter",
+        "description": "Varme hovedretter og større serveringer",
+        "sortOrder": 60,
+        "active": true
+    },
+    {
+        "id": "desserts",
+        "name": "Dessert",
+        "description": "Desserter, kager og søde serveringer",
+        "sortOrder": 70,
+        "active": true
+    },
+    {
+        "id": "breakfast",
+        "name": "Morgenmad",
+        "description": "Morgenmadsretter og brunchprodukter",
+        "sortOrder": 80,
+        "active": true
+    },
+    {
+        "id": "drinks_hot",
+        "name": "Varme drikke",
+        "description": "Kaffe, te og andre varme drikke",
+        "sortOrder": 90,
+        "active": true
+    },
+    {
+        "id": "drinks_cold",
+        "name": "Kolde drikke",
+        "description": "Sodavand, juice, smoothies og andre kolde drikke",
+        "sortOrder": 100,
+        "active": true
+    },
+    {
+        "id": "sauces_dressings",
+        "name": "Saucer og dressinger",
+        "description": "Dressinger, saucer og basisforberedelser",
+        "sortOrder": 110,
+        "active": true
+    },
+    {
+        "id": "bakery",
+        "name": "Bagværk",
+        "description": "Brød, boller og andet bagværk",
+        "sortOrder": 120,
+        "active": true
+    },
+    {
+        "id": "seasonal",
+        "name": "Sæsonvarer",
+        "description": "Kampagner, sæsonmenuer og tidsbegrænsede produkter",
+        "sortOrder": 130,
+        "active": true
+    },
+    {
+        "id": "other",
+        "name": "Andet",
+        "description": "Opskrifter der ikke passer i andre kategorier",
+        "sortOrder": 140,
+        "active": true
+    }
+]

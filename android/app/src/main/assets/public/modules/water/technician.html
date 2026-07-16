@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>Tekniker — Vandsystem | Madkontrollen Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .wt-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+        .wt-hdr h1{font-size:22px;font-weight:800;color:#182118;margin:0;}
+        .wt-tabs{display:flex;gap:0;border-bottom:2px solid #d9e4d9;margin-bottom:24px;}
+        .wt-tab{padding:10px 20px;font-size:14px;font-weight:700;color:#667267;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+        .wt-tab.active{color:#2e7d32;border-bottom-color:#2e7d32;}
+        .wt-panel{display:none;}.wt-panel.active{display:block;}
+        .wt-card{background:#fff;border:1px solid #d9e4d9;border-radius:18px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:18px;}
+        .wt-card h2{font-size:16px;font-weight:800;color:#182118;margin:0 0 20px;}
+        .wt-field{margin-bottom:16px;}
+        .wt-field label{display:block;font-size:12px;font-weight:700;color:#667267;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+        .wt-field input,.wt-field select,.wt-field textarea{width:100%;padding:10px 13px;border:1px solid #d9e4d9;border-radius:11px;font-size:14px;color:#182118;font-family:inherit;box-sizing:border-box;transition:border-color .15s;}
+        .wt-field input:focus,.wt-field select:focus,.wt-field textarea:focus{outline:none;border-color:#2e7d32;box-shadow:0 0 0 3px rgba(46,125,50,.12);}
+        .wt-field textarea{resize:vertical;min-height:90px;}
+        .wt-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+        .wt-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:13px;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:opacity .15s;}
+        .wt-btn-primary{background:#2e7d32;color:#fff;}
+        .wt-btn-primary:hover{opacity:.88;}
+        .wt-btn-secondary{background:#fff;border:1px solid #d9e4d9;color:#2e7d32;}
+        .wt-btn:disabled{opacity:.45;cursor:not-allowed;}
+        .wt-status{margin-top:14px;padding:12px 16px;border-radius:11px;font-size:14px;font-weight:700;display:none;}
+        .wt-status.ok{display:block;background:#e8f5e9;color:#1b5e20;}
+        .wt-status.err{display:block;background:#fce4ec;color:#b71c1c;}
+        .wt-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#2e7d32;text-decoration:none;margin-bottom:18px;}
+        .wt-back:hover{opacity:.75;}
+        .wt-alert-bar{background:#fce4ec;border:1px solid #f48fb1;border-radius:12px;padding:12px 16px;margin-bottom:18px;color:#880e4f;font-weight:700;font-size:13px;display:none;}
+        @media(max-width:600px){.wt-row{grid-template-columns:1fr;}}
+    </style>
+</head>
+<body data-page="water-technician">
+<div id="headerMount"></div>
+<main class="page-shell">
+    <div class="container app-layout">
+        <div id="sidebarMount"></div>
+        <section class="page-content">
+            <a class="wt-back" href="/modules/water/dashboard.html">← Dashboard</a>
+            <div class="wt-hdr">
+                <h1>🔧 Tekniker</h1>
+            </div>
+            <div id="devAlertBar" class="wt-alert-bar"></div>
+            <div class="wt-tabs">
+                <div class="wt-tab active" data-tab="measurement">Vandmåling</div>
+                <div class="wt-tab" data-tab="service">Servicebesøg</div>
+            </div>
+
+            <!-- MEASUREMENT PANEL -->
+            <div class="wt-panel active" id="panelMeasurement">
+                <div class="wt-card">
+                    <h2>💧 Registrér vandmåling</h2>
+                    <div class="wt-field">
+                        <label>System *</label>
+                        <select id="mSystemId"><option value="">Vælg system…</option></select>
+                    </div>
+                    <div class="wt-row">
+                        <div class="wt-field">
+                            <label>pH (6.5–8.5) *</label>
+                            <input type="number" id="mPh" min="0" max="14" step="0.01" placeholder="7.2"/>
+                        </div>
+                        <div class="wt-field">
+                            <label>TDS (ppm, max 500) *</label>
+                            <input type="number" id="mTds" min="0" max="2000" step="1" placeholder="150"/>
+                        </div>
+                    </div>
+                    <div class="wt-row">
+                        <div class="wt-field">
+                            <label>Temperatur (°C)</label>
+                            <input type="number" id="mTemp" min="0" max="50" step="0.1" placeholder="25"/>
+                        </div>
+                        <div class="wt-field">
+                            <label>Vandtryk (bar)</label>
+                            <input type="number" id="mPressure" min="0" max="20" step="0.1" placeholder="4.5"/>
+                        </div>
+                    </div>
+                    <div class="wt-row">
+                        <div class="wt-field">
+                            <label>Bakteriestatus *</label>
+                            <select id="mBacteria">
+                                <option value="ok">✅ OK — ingen fundet</option>
+                                <option value="trace">⚠️ Spor — lavt niveau</option>
+                                <option value="high">🚨 Høj — kræver handling</option>
+                                <option value="not_tested">Ikke testet</option>
+                            </select>
+                        </div>
+                        <div class="wt-field">
+                            <label>Klarhed *</label>
+                            <select id="mClarity">
+                                <option value="clear">✅ Klar</option>
+                                <option value="slightly_turbid">⚠️ Let uklar</option>
+                                <option value="turbid">🚨 Uklar</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="wt-field">
+                        <label>Tekniker navn</label>
+                        <input type="text" id="mTechName" placeholder="Dit navn…"/>
+                    </div>
+                    <div class="wt-field">
+                        <label>Noter / Kommentar</label>
+                        <textarea id="mNotes" placeholder="Notér evt. observationer…"></textarea>
+                    </div>
+                    <button class="wt-btn wt-btn-primary" id="mSubmit">Gem måling</button>
+                    <div class="wt-status" id="mStatus"></div>
+                </div>
+            </div>
+
+            <!-- SERVICE PANEL -->
+            <div class="wt-panel" id="panelService">
+                <div class="wt-card">
+                    <h2>🛠 Registrér servicebesøg</h2>
+                    <div class="wt-field">
+                        <label>System *</label>
+                        <select id="sSystemId"><option value="">Vælg system…</option></select>
+                    </div>
+                    <div class="wt-row">
+                        <div class="wt-field">
+                            <label>Servicetype *</label>
+                            <select id="sType">
+                                <option value="filter_change">Filterskift</option>
+                                <option value="cleaning">Rengøring</option>
+                                <option value="inspection">Inspektion</option>
+                                <option value="calibration">Kalibrering</option>
+                                <option value="repair">Reparation</option>
+                                <option value="installation">Installation</option>
+                            </select>
+                        </div>
+                        <div class="wt-field">
+                            <label>Status *</label>
+                            <select id="sStatus">
+                                <option value="completed">Afsluttet</option>
+                                <option value="in_progress">I gang</option>
+                                <option value="scheduled">Planlagt</option>
+                                <option value="failed">Fejlet</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="wt-field">
+                        <label>Tekniker navn *</label>
+                        <input type="text" id="sTechName" placeholder="Tekniker / firma…"/>
+                    </div>
+                    <div class="wt-row">
+                        <div class="wt-field">
+                            <label>Pris (THB)</label>
+                            <input type="number" id="sCost" min="0" step="1" placeholder="0"/>
+                        </div>
+                        <div class="wt-field">
+                            <label>Næste service (dato)</label>
+                            <input type="date" id="sNextDate"/>
+                        </div>
+                    </div>
+                    <div class="wt-field">
+                        <label>Udskiftede dele</label>
+                        <textarea id="sParts" placeholder="F.eks. RO-membran, sedimentfilter, aktivt kulfilter…" style="min-height:70px;"></textarea>
+                    </div>
+                    <div class="wt-field">
+                        <label>Rapport / Noter</label>
+                        <textarea id="sNotes" placeholder="Hvad blev udført, observationer…"></textarea>
+                    </div>
+                    <button class="wt-btn wt-btn-primary" id="sSubmit">Gem servicebesøg</button>
+                    <div class="wt-status" id="sStatus"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script type="module">
+import { initializeApp, getApps, getApp }                   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged }                        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFunctions, httpsCallable }                        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+import { loadLayout }                                          from "/core/layout.js";
+
+const cfg = await (await fetch("/firebase-config.json")).json();
+const app = getApps().length ? getApp() : initializeApp(cfg);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const fns  = getFunctions(app);
+
+loadLayout();
+
+const fnMeasure = httpsCallable(fns, "recordWaterMeasurement");
+const fnService = httpsCallable(fns, "recordWaterService");
+
+// Tab switching
+document.querySelectorAll(".wt-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+        document.querySelectorAll(".wt-tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".wt-panel").forEach(p => p.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById("panel" + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)).classList.add("active");
+    });
+});
+
+function showStatus(id, msg, isErr) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = "wt-status " + (isErr ? "err" : "ok");
+    setTimeout(() => { el.className = "wt-status"; }, 5000);
+}
+
+async function getUserCtx(user) {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists()) return null;
+    const d = snap.data();
+    return { companyId: d.companyId || d.organizationId || "", locationId: d.primaryLocationId || (d.locationIds && d.locationIds[0]) || d.locationId || "" };
+}
+
+async function loadSystems(ctx) {
+    const q = query(collection(db, "water_systems"), where("companyId", "==", ctx.companyId), where("locationId", "==", ctx.locationId));
+    const snap = await getDocs(q);
+    const opts = snap.docs.map(d => `<option value="${d.id}">${d.data().name || d.id} (${d.data().status || "–"})</option>`).join("");
+    document.getElementById("mSystemId").innerHTML = `<option value="">Vælg system…</option>${opts}`;
+    document.getElementById("sSystemId").innerHTML = `<option value="">Vælg system…</option>${opts}`;
+}
+
+function v(id) { return document.getElementById(id).value.trim(); }
+function n(id) { const val = parseFloat(document.getElementById(id).value); return isNaN(val) ? null : val; }
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "/"; return; }
+    const ctx = await getUserCtx(user);
+    if (!ctx?.companyId) { window.location.href = "/"; return; }
+    await loadSystems(ctx);
+
+    // Measurement submit
+    document.getElementById("mSubmit").addEventListener("click", async () => {
+        const btn = document.getElementById("mSubmit");
+        const systemId = v("mSystemId");
+        const ph = n("mPh");
+        const tds = n("mTds");
+        if (!systemId) { showStatus("mStatus", "Vælg et system", true); return; }
+        if (ph === null || tds === null) { showStatus("mStatus", "pH og TDS er påkrævet", true); return; }
+        btn.disabled = true;
+        btn.textContent = "Gemmer…";
+        try {
+            await fnMeasure({
+                systemId, companyId: ctx.companyId, locationId: ctx.locationId,
+                ph, tds,
+                temperature: n("mTemp"),
+                pressure: n("mPressure"),
+                bacteriaStatus: v("mBacteria"),
+                clarityStatus: v("mClarity"),
+                technicianName: v("mTechName"),
+                notes: v("mNotes")
+            });
+            showStatus("mStatus", "✅ Måling gemt! Eventuelle afvigelser er registreret som alarm.", false);
+            ["mPh","mTds","mTemp","mPressure","mNotes"].forEach(id => document.getElementById(id).value = "");
+        } catch (err) {
+            showStatus("mStatus", "❌ Fejl: " + err.message, true);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Gem måling";
+        }
+    });
+
+    // Service submit
+    document.getElementById("sSubmit").addEventListener("click", async () => {
+        const btn = document.getElementById("sSubmit");
+        const systemId = v("sSystemId");
+        const technicianName = v("sTechName");
+        if (!systemId) { showStatus("sStatus", "Vælg et system", true); return; }
+        if (!technicianName) { showStatus("sStatus", "Angiv tekniker navn", true); return; }
+        btn.disabled = true;
+        btn.textContent = "Gemmer…";
+        try {
+            const nextDateRaw = v("sNextDate");
+            await fnService({
+                systemId, companyId: ctx.companyId, locationId: ctx.locationId,
+                serviceType: v("sType"),
+                status: v("sStatus"),
+                technicianName,
+                cost: n("sCost") || 0,
+                nextServiceDate: nextDateRaw || null,
+                partsUsed: v("sParts"),
+                notes: v("sNotes")
+            });
+            showStatus("sStatus", "✅ Servicebesøg gemt!", false);
+            ["sTechName","sCost","sParts","sNotes","sNextDate"].forEach(id => document.getElementById(id).value = "");
+        } catch (err) {
+            showStatus("sStatus", "❌ Fejl: " + err.message, true);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Gem servicebesøg";
+        }
+    });
+});
+</script>
+</body>
+</html>

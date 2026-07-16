@@ -1,0 +1,473 @@
+﻿<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ret vare - Madkontrollen POS</title>
+  <style>
+    :root {
+      --bg: #f3f7f1;
+      --surface: #ffffff;
+      --surface-soft: #eef5eb;
+      --text: #17311f;
+      --muted: #667466;
+      --border: #dbe7d7;
+      --green: #236a3a;
+      --green-dark: #164929;
+      --danger: #b42318;
+      --shadow: 0 16px 36px rgba(26, 54, 35, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select { font: inherit; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .brand { display: grid; gap: 2px; }
+    .brand strong { font-size: 18px; }
+    .brand span, .status { color: var(--muted); font-size: 13px; font-weight: 800; }
+    .nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .nav a, .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--green-dark);
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      padding: 9px 13px;
+    }
+    .btn.primary, .nav a[aria-current="page"] { border-color: var(--green); background: var(--green); color: #fff; }
+    main { width: min(1100px, calc(100% - 32px)); margin: 0 auto; padding: 18px 0 36px; }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    h1 { margin: 0 0 12px; font-size: 20px; }
+    .toolbar { margin-bottom: 14px; }
+    input,
+    select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      color: var(--text);
+    }
+    .product-list { display: grid; gap: 10px; }
+    .product-row {
+      display: grid;
+      grid-template-columns: 74px minmax(150px, 1fr) 120px 140px minmax(220px, 1.2fr);
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-soft);
+    }
+    .status { min-height: 20px; margin: 12px 0 0; }
+    .status.error { color: var(--danger); }
+    .image-preview {
+      display: grid;
+      place-items: center;
+      width: 62px;
+      height: 62px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--green);
+      font-size: 24px;
+      font-weight: 950;
+    }
+    .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .image-tools { display: grid; gap: 8px; }
+    .image-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .btn.small { min-height: 32px; padding: 6px 8px; font-size: 12px; }
+    details.advanced-image { color: var(--muted); font-size: 12px; font-weight: 800; }
+    @media (max-width: 760px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .nav { justify-content: flex-start; }
+      .product-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <strong>Ret vare</strong>
+      <span>Madkontrollen POS</span>
+    </div>
+    <nav class="nav" aria-label="POS navigation">
+      <a href="/modules/pos/index.html">Kasse</a>
+      <a href="/modules/pos/create-product.html">Opret produkt</a>
+      <a href="/modules/pos/edit-product.html" aria-current="page">Ret vare</a>
+      <a href="/modules/pos/delete-product.html">Slet produkter</a>
+      <a href="/modules/pos/sales-report.html">Salgsrapport</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h1>Ret produkter</h1>
+      <div class="toolbar">
+        <input id="search" type="search" autocomplete="off" placeholder="Søg efter vare">
+      </div>
+      <div id="product-list" class="product-list"></div>
+      <p class="status" id="status" role="status"></p>
+    </section>
+  </main>
+
+  <script type="module">
+    import app from "/core/firebase-config.js";
+    import { createPosStore } from "/modules/pos/pos-store.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+    const functions = getFunctions(app, "us-central1");
+    window.POS_IMAGE_API = {
+      generateProductImage: httpsCallable(functions, "generatePosProductImage"),
+      getCloudinarySignature: httpsCallable(functions, "getCloudinarySignature")
+    };
+
+    window.POS_STORE_READY = createPosStore({ sourceApp: "pos" })
+      .then((store) => {
+        window.POS_STORE = store;
+        window.dispatchEvent(new CustomEvent("pos:store-ready", { detail: store }));
+        return store;
+      })
+      .catch((error) => {
+        console.warn("[pos] Firestore store fallback", error);
+        window.dispatchEvent(new CustomEvent("pos:store-ready", { detail: null }));
+        return null;
+      });
+  </script>
+
+  <script>
+    let posStore = null;
+    let products = [];
+
+    function requireCloudStore() {
+      if (!posStore?.cloudEnabled) {
+        throw new Error("POS er ikke koblet til en virksomhed endnu.");
+      }
+      return posStore;
+    }
+
+    async function refreshProducts() {
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        products = store?.cloudEnabled ? await store.listProducts() : [];
+      } catch (error) {
+        console.warn("[pos] Produktliste fra Firestore fejlede", error);
+        products = [];
+      }
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const list = document.getElementById("product-list");
+      const query = document.getElementById("search").value.trim().toLowerCase();
+      const visibleProducts = products.filter((product) => String(product.name).toLowerCase().includes(query));
+      if (!visibleProducts.length) {
+        list.innerHTML = '<p class="status">Ingen varer matcher søgningen.</p>';
+        return;
+      }
+      list.innerHTML = visibleProducts
+        .slice()
+        .sort((a, b) => String(a.name).localeCompare(String(b.name), "da-DK"))
+        .map((product) => `
+          <article class="product-row">
+            <div class="image-preview">${renderProductImage(product)}</div>
+            <input data-name="${escapeHtml(String(product.id))}" type="text" value="${escapeHtml(product.name)}" aria-label="Varenavn">
+            <input data-price="${escapeHtml(String(product.id))}" type="number" min="0" step="0.01" value="${Number(product.price).toFixed(2)}" aria-label="Pris">
+            <select data-category="${escapeHtml(String(product.id))}" aria-label="Kategori">
+              ${["Mad", "Drikke", "Tilbehør", "Dessert", "Andet"].map((category) => `<option value="${category}" ${String(product.category || "Andet") === category ? "selected" : ""}>${category}</option>`).join("")}
+            </select>
+            <div class="image-tools">
+              <div class="image-actions">
+                <button class="btn small primary" type="button" data-action="save" data-product-id="${escapeHtml(String(product.id))}">Gem</button>
+                <button class="btn small" type="button" data-action="generate" data-product-id="${escapeHtml(String(product.id))}">Generér billede</button>
+                <button class="btn small" type="button" data-action="upload" data-product-id="${escapeHtml(String(product.id))}">Upload</button>
+                <button class="btn small" type="button" data-action="select" data-product-id="${escapeHtml(String(product.id))}">Vælg eksisterende</button>
+                <button class="btn small" type="button" data-action="remove" data-product-id="${escapeHtml(String(product.id))}">Fjern</button>
+              </div>
+              <input data-image-file="${escapeHtml(String(product.id))}" type="file" accept="image/*" hidden>
+              <details class="advanced-image">
+                <summary>Avanceret</summary>
+                <input data-image-url="${escapeHtml(String(product.id))}" type="url" value="${escapeHtml(product.image?.secureUrl || product.imageUrl || "")}" aria-label="Ekstern billed-URL fallback" placeholder="Ekstern billed-URL (fallback)">
+              </details>
+            </div>
+          </article>
+        `)
+        .join("");
+      list.querySelectorAll("[data-action][data-product-id]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const id = button.dataset.productId || "";
+          if (button.dataset.action === "save") saveProduct(id);
+          if (button.dataset.action === "generate") generateProductImage(id);
+          if (button.dataset.action === "upload") triggerUpload(id);
+          if (button.dataset.action === "select") selectExistingCloudinaryImage(id);
+          if (button.dataset.action === "remove") removeProductImage(id);
+        });
+      });
+      list.querySelectorAll("[data-image-file]").forEach((input) => {
+        input.addEventListener("change", (event) => uploadProductImage(input.dataset.imageFile, event.target.files?.[0]));
+      });
+    }
+
+    function productInitial(product = {}) {
+      return String(product.name || "?").trim().charAt(0).toUpperCase() || "?";
+    }
+
+    function getProductImage(product = {}) {
+      const image = product.image && typeof product.image === "object" ? product.image : null;
+      const secureUrl = image?.secureUrl || product.imageUrl || "";
+      if (!secureUrl && !image?.thumbnailUrl && !image?.cloudinaryPublicId) return null;
+      return {
+        provider: image?.provider || "cloudinary",
+        cloudinaryPublicId: image?.cloudinaryPublicId || image?.publicId || product.cloudinaryPublicId || "",
+        secureUrl,
+        thumbnailUrl: image?.thumbnailUrl || cloudinaryThumbFromUrl(secureUrl),
+        alt: image?.alt || product.imageAlt || product.name || "",
+        width: image?.width || null,
+        height: image?.height || null,
+        format: image?.format || "",
+        source: image?.source || "selected",
+        prompt: image?.prompt || "",
+        generatedAt: image?.generatedAt || "",
+        updatedAt: image?.updatedAt || ""
+      };
+    }
+
+    function renderProductImage(product = {}) {
+      const image = getProductImage(product);
+      const src = image?.thumbnailUrl || image?.secureUrl || "";
+      return src
+        ? `<img src="${escapeHtml(src)}" alt="${escapeHtml(image.alt || product.name || "Produktbillede")}">`
+        : escapeHtml(productInitial(product));
+    }
+
+    function cloudinaryThumbFromUrl(url) {
+      return String(url || "").includes("/image/upload/")
+        ? String(url).replace("/image/upload/", "/image/upload/f_auto,q_auto,c_fill,g_auto,w_400,h_400/")
+        : String(url || "");
+    }
+
+    function buildImageFromUpload(product, uploadData, source = "uploaded") {
+      const secureUrl = String(uploadData.secure_url || uploadData.secureUrl || "");
+      const publicId = String(uploadData.public_id || uploadData.publicId || uploadData.cloudinaryPublicId || "");
+      const isCloudinary = /^https:\/\/res\.cloudinary\.com\//i.test(secureUrl) || Boolean(publicId);
+      return {
+        provider: isCloudinary ? "cloudinary" : "external",
+        cloudinaryPublicId: publicId,
+        secureUrl,
+        thumbnailUrl: cloudinaryThumbFromUrl(secureUrl),
+        width: Number(uploadData.width || 0) || null,
+        height: Number(uploadData.height || 0) || null,
+        format: String(uploadData.format || ""),
+        alt: product.name || "",
+        source,
+        prompt: uploadData.prompt || "",
+        generatedAt: uploadData.generatedAt || "",
+        updatedAt: new Date().toISOString()
+      };
+    }
+
+    function findProductElement(attribute, id) {
+      return Array.from(document.querySelectorAll(`[${attribute}]`))
+        .find((element) => String(element.getAttribute(attribute)) === String(id)) || null;
+    }
+
+    async function saveProduct(id) {
+      const product = products.find((item) => String(item.id) === String(id));
+      const name = findProductElement("data-name", id)?.value.trim() || product?.name || "";
+      const price = parseFloat(findProductElement("data-price", id)?.value);
+      const category = findProductElement("data-category", id)?.value || product?.category || "Andet";
+      if (!product || !name || Number.isNaN(price) || price < 0) {
+        setStatus("Angiv et gyldigt varenavn og en gyldig pris.", true);
+        return;
+      }
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        posStore = store;
+        requireCloudStore();
+        const patch = {
+          name,
+          price,
+          priceIncVat: price,
+          category
+        };
+        await store.updateProduct(id, patch);
+        products = await store.listProducts();
+        renderProducts();
+        setStatus("Varen er opdateret i Firestore.");
+      } catch (error) {
+        setStatus(error.message || "Varen kunne ikke opdateres.", true);
+      }
+    }
+
+    async function generateProductImage(id) {
+      try {
+        await saveProduct(id);
+        const store = posStore || await window.POS_STORE_READY;
+        if (!store?.cloudEnabled) throw new Error("Virksomhedsoplysninger mangler. Gå til onboarding for bedre billeder.");
+        const product = products.find((item) => String(item.id) === String(id));
+        if (!product) throw new Error("Produktet blev ikke fundet.");
+        setStatus("Genererer billede...");
+        const response = await window.POS_IMAGE_API.generateProductImage({
+          companyId: store.context.companyId,
+          locationId: store.context.locationId,
+          productId: id,
+          productName: product.name,
+          category: product.category || "Andet"
+        });
+        const image = response.data?.image || null;
+        await store.updateProduct(id, {
+          image,
+          imageUrl: image?.secureUrl || "",
+          imageAlt: image?.alt || product.name
+        });
+        products = await store.listProducts();
+        renderProducts();
+        setStatus("Billedet er genereret og gemt i Cloudinary.");
+      } catch (error) {
+        setStatus(error.message || "Billedet kunne ikke genereres.", true);
+      }
+    }
+
+    function triggerUpload(id) {
+      findProductElement("data-image-file", id)?.click();
+    }
+
+    async function uploadProductImage(id, file) {
+      if (!file) return;
+      try {
+        await saveProduct(id);
+        const store = posStore || await window.POS_STORE_READY;
+        if (!store?.cloudEnabled) throw new Error("Virksomhedsoplysninger mangler. Gå til onboarding for bedre billeder.");
+        const product = products.find((item) => String(item.id) === String(id));
+        setStatus("Uploader billede til Cloudinary...");
+        const signature = await window.POS_IMAGE_API.getCloudinarySignature({
+          companyId: store.context.companyId,
+          locationId: store.context.locationId,
+          moduleType: "pos_products",
+          itemId: id
+        });
+        const sig = signature.data || {};
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("api_key", sig.apiKey);
+        formData.append("timestamp", sig.timestamp);
+        formData.append("signature", sig.signature);
+        formData.append("folder", sig.folder);
+        formData.append("public_id", sig.publicId);
+        formData.append("tags", sig.tags);
+        formData.append("context", sig.context);
+        const uploadResp = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(sig.cloudName)}/image/upload`, {
+          method: "POST",
+          body: formData
+        });
+        if (!uploadResp.ok) throw new Error(await uploadResp.text());
+        const uploadData = await uploadResp.json();
+        const image = buildImageFromUpload(product || {}, uploadData, "uploaded");
+        await store.updateProduct(id, {
+          image,
+          imageUrl: image.secureUrl,
+          imageAlt: image.alt
+        });
+        products = await store.listProducts();
+        renderProducts();
+        setStatus("Billedet er uploadet og gemt i Cloudinary.");
+      } catch (error) {
+        setStatus(error.message || "Billedet kunne ikke uploades.", true);
+      }
+    }
+
+    async function selectExistingCloudinaryImage(id) {
+      const secureUrl = prompt("Indsæt Cloudinary secure URL:");
+      if (!secureUrl) return;
+      if (!/^https:\/\/res\.cloudinary\.com\//i.test(secureUrl.trim())) {
+        setStatus("Vælg et Cloudinary-billede fra res.cloudinary.com.", true);
+        return;
+      }
+      const publicId = prompt("Indsæt Cloudinary public ID:", "") || "";
+      const product = products.find((item) => String(item.id) === String(id));
+      const image = buildImageFromUpload(product || {}, { secure_url: secureUrl.trim(), public_id: publicId.trim() }, "selected");
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        posStore = store;
+        requireCloudStore();
+        await store.updateProduct(id, { image, imageUrl: image.secureUrl, imageAlt: image.alt });
+        products = await store.listProducts();
+        renderProducts();
+        setStatus("Cloudinary-billedet er valgt.");
+      } catch (error) {
+        setStatus(error.message || "Billedet kunne ikke vælges.", true);
+      }
+    }
+
+    async function removeProductImage(id) {
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        posStore = store;
+        requireCloudStore();
+        await store.updateProduct(id, { image: null, imageUrl: "", imageAlt: "" });
+        products = await store.listProducts();
+        renderProducts();
+        setStatus("Billedet er fjernet fra varen.");
+      } catch (error) {
+        setStatus(error.message || "Billedet kunne ikke fjernes.", true);
+      }
+    }
+
+    function setStatus(message, isError = false) {
+      const status = document.getElementById("status");
+      status.textContent = message;
+      status.className = isError ? "status error" : "status";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    document.getElementById("search").addEventListener("input", renderProducts);
+    window.addEventListener("pos:store-ready", async (event) => {
+      posStore = event.detail || null;
+      await refreshProducts();
+    });
+    window.saveProduct = saveProduct;
+    window.generateProductImage = generateProductImage;
+    window.triggerUpload = triggerUpload;
+    window.selectExistingCloudinaryImage = selectExistingCloudinaryImage;
+    window.removeProductImage = removeProductImage;
+    renderProducts();
+    refreshProducts();
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,9 @@
+{
+	"appId": "dk.madkontrollen.pos",
+	"appName": "Madkontrollen POS",
+	"webDir": "public",
+	"server": {
+		"url": "https://madkontrollen.dk/modules/pos/index.html",
+		"cleartext": false
+	}
+}

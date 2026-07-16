@@ -1,4 +1,5 @@
 import { auth, db } from "./firebase-config.js";
+import { isPlatformAdmin } from "./platform-admin.js";
 import {
 	onAuthStateChanged,
 	FacebookAuthProvider,
@@ -396,6 +397,8 @@ function shouldBypassOnboardingGate() {
  */
 function resolveOnboardingRedirect(profile) {
 	const role = String(profile.role || "employee").trim().toLowerCase();
+	// Platform/super-admins have no company/location and must never be sent to onboarding.
+	if (isPlatformAdmin(null, profile)) return null;
 	if (role === "superadmin" || role === "admin") return null;
 
 	const companyId = String(profile.companyId || profile.organizationId || "").trim();
@@ -721,7 +724,10 @@ export async function setupAuthGate(options = {}) {
 				const locationId = profile.primaryLocationId || profile.locationId || 
 					(Array.isArray(profile.locationIds) && profile.locationIds.length > 0 ? profile.locationIds[0] : null);
 
-				if (!profile.role || !orgId || !locationId) {
+				const platformAdmin = isPlatformAdmin(user, profile);
+
+				// Platform/super-admins log in WITHOUT companyId/locationId. Everyone else still needs them.
+				if (!platformAdmin && (!profile.role || !orgId || !locationId)) {
 					errorEl.textContent = "Din brugerprofil mangler rolle eller virksomhed. Kontakt support.";
 					console.log("[login] profile invalid", {
 						reason: "missing required fields",
@@ -734,14 +740,18 @@ export async function setupAuthGate(options = {}) {
 					return;
 				}
 
-				console.log("[login] redirecting /dashboard");
-				submitBtn.textContent = "Åbner dashboard...";
-				
 				// Set flag to prevent onAuthStateChanged from also redirecting
 				window.__loginRedirectInProgress = true;
-				
-				// Use assign for immediate redirect
-				window.location.assign("/dashboard");
+
+				if (platformAdmin) {
+					console.log("[login] platform-admin → owner-dashboard");
+					submitBtn.textContent = "Åbner platform...";
+					window.location.assign("/admin/owner-dashboard.html");
+				} else {
+					console.log("[login] redirecting /dashboard");
+					submitBtn.textContent = "Åbner dashboard...";
+					window.location.assign("/dashboard");
+				}
 			} catch (error) {
 				console.error("Login fejl:", error);
 				errorEl.textContent = String(error?.message || "Login mislykkedes.");

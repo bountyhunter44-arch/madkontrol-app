@@ -1,0 +1,28 @@
+Subject: [PATCH] fix(schedule): treat interval_days/days as every_n_days alias in shouldRunToday
+
+Root cause: writers (canonicalTaskEngine.js, demoCanonicalTemplates.js,
+modules/egenkontrol/routines.js) emit scheduleConfig.recurrenceMode = "interval_days"
+(and some emit "days"), but shouldRunToday only implements an "every_n_days" branch.
+Unmatched modes fall through to `return false`, so interval-based routines are never
+due -> 0 task_instances generated. This patch normalizes the two synonyms to the
+existing every_n_days branch. Reader-side only; no writer, gate, scope, export,
+doc-id, idempotency or equipment-logic change.
+
+Scope: functions/index.js, function shouldRunToday ONLY.
+
+--- a/functions/index.js
++++ b/functions/index.js
+@@ -2671,4 +2671,12 @@ function shouldRunToday(scheduleConfig, todayKey, anchorDateKey, lastCompletedDateKey) {
+   const scheduleType = scheduleConfig.scheduleType || "operational";
+   const firstRunImmediately = scheduleConfig.firstRunImmediately === true;
+-  const recurrenceMode = scheduleConfig.documentedIntervalMode || scheduleConfig.recurrenceMode || "daily";
++  let recurrenceMode = scheduleConfig.documentedIntervalMode || scheduleConfig.recurrenceMode || "daily";
++
++  // Alias: writers emit "interval_days" / "days" for the same "every N days" cadence
++  // that this function implements under the "every_n_days" branch. Normalize so the
++  // existing every_n_days logic is reused unchanged.
++  if (recurrenceMode === "interval_days" || recurrenceMode === "days") {
++    recurrenceMode = "every_n_days";
++  }
++
+   const recurrenceValue = Number(scheduleConfig.documentedIntervalValue || scheduleConfig.recurrenceValue || 1);

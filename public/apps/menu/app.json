@@ -1,0 +1,15 @@
+{
+  "appKey": "menu",
+  "name": "Menu & Retter",
+  "description": "Menu & Retter med live kategorier, retter, add-ons, ordering foundation og DeleFragt portaltilmelding pr. lokation.",
+  "entryUrl": "/apps/menu/index.html",
+  "standalone": true,
+  "requiredEntitlement": "menu",
+  "optionalIntegrations": ["recipes", "calculation", "seo", "lagerkontrol", "ordering"],
+  "provides": ["menu_items", "menu_categories"],
+  "consumes": ["company_profile", "recipes", "inventory_items"],
+  "providesContracts": ["menu.catalog"],
+  "consumesContracts": ["platform.context", "recipe.catalog", "calculation.costing", "seo.content", "ordering.cart"],
+  "relatedApps": ["recipes", "calculation", "seo", "ordering"],
+  "version": "0.1.0"
+}

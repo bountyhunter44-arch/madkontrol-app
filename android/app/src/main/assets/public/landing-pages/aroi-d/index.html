@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{{title}}</title>
+<meta name="description" content="{{metaDescription}}">
+<meta name="robots" content="index, follow">
+
+<link rel="canonical" href="https://aroi-d.madkontrollen.dk/">
+
+<style>
+body { font-family: Arial; margin:0; background:#f5f5f5; }
+
+.hero {
+  position: relative;
+  overflow: visible;
+  min-height: 600px;
+  padding-top: 180px;
+}
+
+.hero-awning {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1000px;
+  height: auto;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.hero-awning img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.2));
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  padding: 40px 20px;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+header { background:#111; color:#fff; padding:40px; text-align:center; position:relative; z-index:1; }
+.container { max-width:800px; margin:auto; background:#fff; padding:20px; }
+.section { margin-bottom:20px; }
+.cta { text-align:center; margin-top:30px; }
+.cta a { background:#ff5a5f; color:#fff; padding:10px 20px; text-decoration:none; border-radius:8px; }
+.cta a:hover { background:#e04a4f; }
+</style>
+</head>
+
+<body data-config='{
+  "title": "Aroi-D Thai Restaurant | Autentisk Thai Mad i Ørnhøj",
+  "metaDescription": "Aroi-D serverer autentisk thailandsk mad i Ørnhøj. Friske råvarer, hurtig takeaway og catering. Bestil online eller ring 20717861.",
+  "h1": "Aroi-D Thai Restaurant",
+  "intro": "Autentisk thailandsk mad i Ørnhøj med friske råvarer og hurtig takeaway",
+  "orderingUrl": "tel:20717861",
+  "logoText": "Aroi-D"
+}'>
+
+
+
+<section class="hero">
+  <div class="hero-awning" aria-hidden="true">
+    <img src="/images/awnings/awning-bas.png" alt="Restaurant Awning">
+  </div>
+
+  <div class="hero-content">
+    <h1>{{h1}}</h1>
+    <p>{{intro}}</p>
+  </div>
+</section>
+
+<div class="container">
+
+  
+<div class="section">
+  <h2>Friske råvarer</h2>
+  <p>Vi bruger kun friske ingredienser i alle vores retter.</p>
+</div>
+
+<div class="section">
+  <h2>Hurtig takeaway</h2>
+  <p>Bestil nemt og hurtigt til afhentning.</p>
+</div>
+
+
+  <div class="cta">
+    <a href="{{orderingUrl}}" target="_blank">Bestil nu</a>
+  </div>
+
+</div>
+
+<script src="/template-renderer.js"></script>
+</body>
+</html>

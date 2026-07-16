@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://aroi-d.madkontrollen.dk/sitemap.xml

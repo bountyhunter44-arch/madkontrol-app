@@ -1,0 +1,70 @@
+{
+  "moduleKey": "pos",
+  "name": "Madkontrollen POS",
+  "status": "v1",
+  "entryUrl": "/index.html",
+  "entrypoints": [
+    "/index.html",
+    "/create-product.html",
+    "/edit-product.html",
+    "/delete-product.html",
+    "/sales-report.html"
+  ],
+  "usesSharedLayout": false,
+  "usesAuthGate": false,
+  "standalone": true,
+  "optionalIntegrations": [
+    "menu",
+    "recipes",
+    "receipts",
+    "vat"
+  ],
+  "provides": [
+    "sales",
+    "receipts",
+    "cash_sessions",
+    "payment_reconciliation",
+    "credit_notes",
+    "audit_log"
+  ],
+  "consumes": [
+    "company_profile",
+    "products",
+    "recipes",
+    "external_payment_reference"
+  ],
+  "storage": [
+    "Firestore:companies/{companyId}/locations/{locationId}/pos_products",
+    "Firestore:companies/{companyId}/locations/{locationId}/pos_sales",
+    "Firestore:companies/{companyId}/locations/{locationId}/pos_cash_sessions",
+    "Firestore:companies/{companyId}/locations/{locationId}/pos_audit_log",
+    "Firestore:companies/{companyId}/locations/{locationId}/pos_receipt_sequences/main",
+    "Firestore:companies/{companyId}/locations/{locationId}/pos_payment_reconciliations",
+    "Firestore:companies/{companyId}/locations/{locationId}/pos_payment_sessions",
+    "Firestore:companies/{companyId}/locations/{locationId}/pos_payments",
+    "Firestore:companies/{companyId}/locations/{locationId}/pos_settings",
+    "localStorage:migration_backup_only:pos_localStorage_backup_{timestamp}",
+    "localStorage:migration_detection_only:legacy_pos_keys"
+  ],
+  "collections": [
+    "companies/{companyId}/locations/{locationId}/pos_products/{productId}",
+    "companies/{companyId}/locations/{locationId}/pos_sales/{saleId}",
+    "companies/{companyId}/locations/{locationId}/pos_cash_sessions/{sessionId}",
+    "companies/{companyId}/locations/{locationId}/pos_audit_log/{auditId}",
+    "companies/{companyId}/locations/{locationId}/pos_receipt_sequences/main",
+    "companies/{companyId}/locations/{locationId}/pos_payment_reconciliations/{reconciliationId}",
+    "companies/{companyId}/locations/{locationId}/pos_payment_sessions/{paymentSessionId}",
+    "companies/{companyId}/locations/{locationId}/pos_payments/{paymentId}",
+    "companies/{companyId}/locations/{locationId}/pos_settings/main"
+  ],
+  "functions": [
+    "posCreateZettlePayment",
+    "posMarkSalePaidManually"
+  ],
+  "providesContracts": [
+    "pos.sales",
+    "pos.products"
+  ],
+  "dependencies": [],
+  "protectedSystemsTouched": []
+}

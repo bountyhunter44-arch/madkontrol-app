@@ -1,13 +1,9 @@
 # Environment variables
 .env
-.env.*
 .env.local
 .env.*.local
 functions/.env
 functions/.env.local
-!.env.example
-!*.env.example
-!server/*.env.example
 
 # Firebase
 .firebase/
@@ -18,6 +14,7 @@ firebase-debug.*.log
 # Node modules
 node_modules/
 functions/node_modules/
+android/local.properties
 
 # Build outputs
 dist/
@@ -42,9 +39,19 @@ yarn-debug.log*
 yarn-error.log*
 
 # Secrets
-serviceAccountKey.json
 *.pem
 *.key
 .runtimeconfig.json
 
+# Local secrets and deploy/audit artifacts
+serviceAccountKey.json
+functions/.env
+functions/.env.*
+*.local.env
+.deploy-*/
+git-status-before-*.txt
+git-diff-stat-before-*.txt
+git-name-status-before-*.txt
+backup-*-audit.txt
+restore-candidates-from-backup.txt
 functions_config_export.json

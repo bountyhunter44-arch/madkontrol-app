@@ -1,0 +1,280 @@
+[
+    {
+        "id": "temperature_fridge",
+        "name": "Køleskab temperatur",
+        "category": "temperature",
+        "valueType": "number",
+        "requiresEquipment": true,
+        "minValue": 0,
+        "maxValue": 5,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "temperature_freezer",
+        "name": "Fryser temperatur",
+        "category": "temperature",
+        "valueType": "number",
+        "requiresEquipment": true,
+        "minValue": -25,
+        "maxValue": -18,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "hot_holding_check",
+        "name": "Varmholdelse",
+        "category": "temperature",
+        "valueType": "number",
+        "requiresEquipment": true,
+        "minValue": 65,
+        "maxValue": 999,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "cooling_start",
+        "name": "Start nedkøling",
+        "category": "cooling",
+        "valueType": "number",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "cooling_check",
+        "name": "Nedkøling kontrol",
+        "category": "cooling",
+        "valueType": "number",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "cooling_end",
+        "name": "Slut nedkøling",
+        "category": "cooling",
+        "valueType": "number",
+        "requiresEquipment": false,
+        "minValue": 0,
+        "maxValue": 10,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "receiving_cold_goods",
+        "name": "Modtagekontrol kølevarer",
+        "category": "receiving",
+        "valueType": "number",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "receiving_frozen_goods",
+        "name": "Modtagekontrol frostvarer",
+        "category": "receiving",
+        "valueType": "number",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "receiving_packaging_check",
+        "name": "Modtagekontrol emballage",
+        "category": "receiving",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "receiving_date_check",
+        "name": "Modtagekontrol datomærkning",
+        "category": "receiving",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "cleaning_kitchen_daily",
+        "name": "Daglig rengøring køkken",
+        "category": "cleaning",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "cleaning_equipment_daily",
+        "name": "Daglig rengøring udstyr",
+        "category": "cleaning",
+        "valueType": "checklist",
+        "requiresEquipment": true,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "cleaning_fridge",
+        "name": "Rengøring køleskab",
+        "category": "cleaning",
+        "valueType": "checklist",
+        "requiresEquipment": true,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "cleaning_freezer",
+        "name": "Rengøring fryser",
+        "category": "cleaning",
+        "valueType": "checklist",
+        "requiresEquipment": true,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "cleaning_floors",
+        "name": "Rengøring gulve",
+        "category": "cleaning",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "hygiene_handwashing",
+        "name": "Håndvask kontrol",
+        "category": "hygiene",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "hygiene_clothing",
+        "name": "Rent arbejdstøj",
+        "category": "hygiene",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "hygiene_staff_health",
+        "name": "Personale sygdomskontrol",
+        "category": "hygiene",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "date_check_fridge",
+        "name": "Datokontrol køleskab",
+        "category": "date_control",
+        "valueType": "checklist",
+        "requiresEquipment": true,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "date_check_freezer",
+        "name": "Datokontrol fryser",
+        "category": "date_control",
+        "valueType": "checklist",
+        "requiresEquipment": true,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "date_label_open_products",
+        "name": "Mærkning af åbne varer",
+        "category": "date_control",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "opening_check",
+        "name": "Åbningskontrol",
+        "category": "opening_closing",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "closing_check",
+        "name": "Lukkerutine",
+        "category": "opening_closing",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "pest_check",
+        "name": "Skadedyrskontrol",
+        "category": "safety",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "temperature_alarm_check",
+        "name": "Temperatur alarm kontrol",
+        "category": "safety",
+        "valueType": "checklist",
+        "requiresEquipment": true,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "documentation_check",
+        "name": "Kontrol af dokumentation",
+        "category": "documentation",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "cleaning_plan_review",
+        "name": "Kontrol af rengøringsplan",
+        "category": "documentation",
+        "valueType": "checklist",
+        "requiresEquipment": false,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "thermometer_check",
+        "name": "Kontrol af termometer",
+        "category": "equipment",
+        "valueType": "checklist",
+        "requiresEquipment": true,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "thermometer_calibration",
+        "name": "Kalibrering af termometer",
+        "category": "equipment",
+        "valueType": "checklist",
+        "requiresEquipment": true,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    },
+    {
+        "id": "equipment_check",
+        "name": "Kontrol af udstyr",
+        "category": "equipment",
+        "valueType": "checklist",
+        "requiresEquipment": true,
+        "organizationId": "ctpvcnJPqrVVL8I7AKbq",
+        "isSystemTask": true
+    }
+]

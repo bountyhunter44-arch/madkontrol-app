@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "madkontrollen-inventory"
+  },
+  "targets": {
+    "madkontrollen-inventory": {
+      "hosting": {
+        "madkontrollen-inventory": [
+          "madkontrollen-inventory"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

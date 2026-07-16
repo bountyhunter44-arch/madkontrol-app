@@ -1,0 +1,1935 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Madkontrollen Pro Demo</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        :root{
+            --bg:#f4f7f3;
+            --panel:#ffffff;
+            --panel-soft:#f8fbf8;
+            --text:#182118;
+            --muted:#667267;
+            --border:#d9e4d9;
+            --green:#2e7d32;
+            --green-dark:#1f5a23;
+            --green-soft:#e8f5e9;
+            --blue:#1565c0;
+            --blue-soft:#e3f2fd;
+            --amber:#b26a00;
+            --amber-soft:#fff4e5;
+            --red:#c62828;
+            --red-soft:#fdecec;
+            --purple:#6a1b9a;
+            --purple-soft:#f3e5f5;
+            --shadow:0 20px 44px rgba(24,33,24,0.08);
+            --shadow-soft:0 12px 28px rgba(24,33,24,0.06);
+            --radius-xl:28px;
+            --radius-lg:22px;
+            --radius-md:16px;
+        }
+
+        *{
+            box-sizing:border-box;
+        }
+
+        html{
+            scroll-behavior:smooth;
+        }
+
+        body{
+            margin:0;
+            font-family:"Inter",sans-serif;
+            background:var(--bg);
+            color:var(--text);
+        }
+
+        .page-shell{
+            min-height:100vh;
+            background:
+                radial-gradient(circle at top right, rgba(46,125,50,0.10), transparent 20%),
+                radial-gradient(circle at left center, rgba(21,101,192,0.06), transparent 18%),
+                linear-gradient(180deg, #f5f8f4 0%, #f4f7f3 100%);
+        }
+
+        .container{
+            width:min(1440px, calc(100% - 32px));
+            margin:0 auto;
+        }
+
+        .topbar{
+            position:sticky;
+            top:0;
+            z-index:40;
+            backdrop-filter:blur(16px);
+            background:rgba(244,247,243,0.86);
+            border-bottom:1px solid rgba(217,228,217,0.9);
+        }
+
+        .topbar-inner{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+            min-height:76px;
+        }
+
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            font-weight:900;
+            font-size:18px;
+        }
+
+        .brand-mark{
+            width:44px;
+            height:44px;
+            border-radius:14px;
+            display:grid;
+            place-items:center;
+            background:linear-gradient(135deg, var(--green) 0%, #43a047 100%);
+            color:#fff;
+            box-shadow:0 10px 24px rgba(46,125,50,0.22);
+            font-size:22px;
+        }
+
+        .topbar-nav{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+        }
+
+        .topbar-nav a{
+            text-decoration:none;
+            color:var(--muted);
+            font-weight:700;
+            font-size:14px;
+            padding:10px 14px;
+            border-radius:999px;
+            transition:all .18s ease;
+        }
+
+        .topbar-nav a:hover{
+            background:#fff;
+            color:var(--text);
+        }
+
+        .hero{
+            padding:34px 0 24px;
+            display:grid;
+            grid-template-columns:minmax(0, 1.2fr) minmax(340px, 0.8fr);
+            gap:22px;
+            align-items:stretch;
+        }
+
+        .hero-card,
+        .side-card,
+        .stats-card,
+        .category-card,
+        .module-card,
+        .timeline-card,
+        .demo-control-card{
+            background:var(--panel);
+            border:1px solid var(--border);
+            box-shadow:var(--shadow-soft);
+        }
+
+        .hero-card,
+        .side-card{
+            border-radius:var(--radius-xl);
+        }
+
+        .hero-card{
+            padding:32px;
+            position:relative;
+            overflow:hidden;
+            box-shadow:var(--shadow);
+        }
+
+        .hero-card::after{
+            content:"";
+            position:absolute;
+            right:-70px;
+            bottom:-70px;
+            width:240px;
+            height:240px;
+            border-radius:50%;
+            background:radial-gradient(circle, rgba(46,125,50,0.14) 0%, rgba(46,125,50,0.03) 60%, transparent 72%);
+            pointer-events:none;
+        }
+
+        .eyebrow{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:8px 12px;
+            border-radius:999px;
+            background:var(--green-soft);
+            color:var(--green-dark);
+            font-size:12px;
+            font-weight:800;
+            letter-spacing:.04em;
+            text-transform:uppercase;
+        }
+
+        .hero h1{
+            margin:16px 0 12px;
+            font-size:clamp(32px, 5vw, 56px);
+            line-height:1.02;
+            letter-spacing:-0.03em;
+        }
+
+        .hero p{
+            margin:0;
+            max-width:760px;
+            font-size:16px;
+            line-height:1.75;
+            color:var(--muted);
+        }
+
+        .hero-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:12px;
+            margin-top:24px;
+        }
+
+        .btn{
+            appearance:none;
+            border:none;
+            border-radius:14px;
+            padding:14px 18px;
+            font:inherit;
+            font-weight:800;
+            cursor:pointer;
+            text-decoration:none;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;
+            transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+
+        .btn:hover{
+            transform:translateY(-1px);
+        }
+
+        .btn-primary{
+            background:linear-gradient(135deg, var(--green) 0%, #388e3c 100%);
+            color:#fff;
+            box-shadow:0 16px 28px rgba(46,125,50,0.22);
+        }
+
+        .btn-secondary{
+            background:#fff;
+            color:var(--text);
+            border:1px solid var(--border);
+        }
+
+        .side-card{
+            padding:24px;
+            display:flex;
+            flex-direction:column;
+            gap:14px;
+            justify-content:space-between;
+        }
+
+        .side-title{
+            font-size:13px;
+            font-weight:800;
+            color:var(--muted);
+            text-transform:uppercase;
+            letter-spacing:.04em;
+        }
+
+        .side-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:12px;
+        }
+
+        .metric{
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+            border-radius:18px;
+            padding:16px;
+        }
+
+        .metric strong{
+            display:block;
+            font-size:30px;
+            line-height:1;
+            margin-bottom:8px;
+        }
+
+        .metric span{
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.5;
+        }
+
+        .demo-note{
+            padding:14px 16px;
+            border-radius:16px;
+            background:linear-gradient(180deg, #f8fbf8 0%, #eef5ee 100%);
+            border:1px solid var(--border);
+            color:var(--muted);
+            font-size:14px;
+            line-height:1.6;
+        }
+
+        .section{
+            padding:12px 0 8px;
+        }
+
+        .section-head{
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap:18px;
+            margin-bottom:18px;
+        }
+
+        .section-head h2{
+            margin:0;
+            font-size:30px;
+            line-height:1.08;
+        }
+
+        .section-head p{
+            margin:6px 0 0;
+            color:var(--muted);
+            font-size:14px;
+            line-height:1.7;
+            max-width:820px;
+        }
+
+        .stats-grid{
+            display:grid;
+            grid-template-columns:repeat(4, minmax(0, 1fr));
+            gap:16px;
+            margin-bottom:8px;
+        }
+
+        .stats-card{
+            border-radius:22px;
+            padding:22px;
+        }
+
+        .stats-label{
+            color:var(--muted);
+            font-size:13px;
+            font-weight:700;
+            margin-bottom:10px;
+        }
+
+        .stats-value{
+            font-size:36px;
+            line-height:1;
+            font-weight:900;
+            margin-bottom:10px;
+        }
+
+        .stats-note{
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.6;
+        }
+
+        .stats-card.green .stats-value{ color:var(--green); }
+        .stats-card.blue .stats-value{ color:var(--blue); }
+        .stats-card.amber .stats-value{ color:var(--amber); }
+        .stats-card.purple .stats-value{ color:var(--purple); }
+
+        .demo-control-card{
+            border-radius:24px;
+            padding:22px;
+            margin:18px 0 8px;
+        }
+
+        .demo-control-head{
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap:16px;
+            margin-bottom:16px;
+        }
+
+        .demo-control-head h3{
+            margin:0;
+            font-size:24px;
+        }
+
+        .demo-control-head p{
+            margin:6px 0 0;
+            color:var(--muted);
+            font-size:14px;
+            line-height:1.7;
+        }
+
+        .demo-control-grid{
+            display:grid;
+            grid-template-columns:repeat(3, minmax(0, 1fr));
+            gap:14px;
+        }
+
+        .demo-mini-card{
+            border:1px solid var(--border);
+            background:var(--panel-soft);
+            border-radius:18px;
+            padding:16px;
+        }
+
+        .demo-mini-card strong{
+            display:block;
+            margin-bottom:8px;
+            font-size:16px;
+        }
+
+        .demo-mini-card p{
+            margin:0 0 14px;
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.6;
+        }
+
+        .demo-mini-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+
+        .category-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:18px;
+        }
+
+        .category-card{
+            border-radius:26px;
+            overflow:hidden;
+        }
+
+        .category-head{
+            padding:22px 22px 18px;
+            border-bottom:1px solid var(--border);
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:14px;
+            background:linear-gradient(180deg, #ffffff 0%, #fbfdfb 100%);
+        }
+
+        .category-icon{
+            width:58px;
+            height:58px;
+            border-radius:18px;
+            display:grid;
+            place-items:center;
+            font-size:28px;
+            background:var(--green-soft);
+            flex-shrink:0;
+        }
+
+        .category-head h3{
+            margin:0;
+            font-size:22px;
+            line-height:1.15;
+        }
+
+        .category-head p{
+            margin:8px 0 0;
+            color:var(--muted);
+            font-size:14px;
+            line-height:1.65;
+        }
+
+        .module-list{
+            padding:16px;
+            display:grid;
+            gap:12px;
+        }
+
+        .module-card{
+            border-radius:18px;
+            padding:16px;
+            display:grid;
+            grid-template-columns:minmax(0, 1fr) auto;
+            gap:14px;
+            align-items:center;
+            transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+
+        .module-card:hover{
+            transform:translateY(-1px);
+            box-shadow:0 14px 24px rgba(24,33,24,0.08);
+        }
+
+        .module-main{
+            min-width:0;
+        }
+
+        .module-top{
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:10px;
+            margin-bottom:8px;
+        }
+
+        .module-name{
+            font-weight:800;
+            font-size:17px;
+        }
+
+        .module-file{
+            color:var(--muted);
+            font-size:12px;
+            font-weight:700;
+            padding:6px 10px;
+            border-radius:999px;
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+        }
+
+        .module-desc{
+            color:var(--muted);
+            font-size:14px;
+            line-height:1.65;
+        }
+
+        .module-card.hq-promo{
+            align-items:start;
+            gap:12px;
+        }
+
+        .hq-preview{
+            margin-top:10px;
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:8px;
+        }
+
+        .hq-preview-item{
+            border:1px solid var(--border);
+            background:var(--panel-soft);
+            border-radius:12px;
+            padding:8px 10px;
+            display:grid;
+            gap:3px;
+        }
+
+        .hq-preview-item strong{
+            font-size:13px;
+            line-height:1.2;
+        }
+
+        .hq-preview-item span{
+            font-size:12px;
+            color:var(--muted);
+            line-height:1.35;
+        }
+
+        .hq-preview-item.warn{
+            background:#fff4e5;
+            border-color:#f1d6aa;
+        }
+
+        .hq-preview-item.alert{
+            background:#fdecec;
+            border-color:#f3c8c8;
+        }
+
+        .showcase-grid{
+            display:grid;
+            grid-template-columns:minmax(0, 1.05fr) minmax(0, 0.95fr);
+            gap:18px;
+        }
+
+        .showcase-card{
+            border-radius:26px;
+            overflow:hidden;
+            background:var(--panel);
+            border:1px solid var(--border);
+            box-shadow:var(--shadow-soft);
+        }
+
+        .showcase-card-body{
+            padding:20px;
+            display:grid;
+            gap:16px;
+        }
+
+        .showcase-lead{
+            margin:0;
+            color:var(--muted);
+            font-size:14px;
+            line-height:1.7;
+        }
+
+        .showcase-chips{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+
+        .showcase-chip{
+            display:inline-flex;
+            align-items:center;
+            min-height:34px;
+            padding:8px 12px;
+            border-radius:999px;
+            border:1px solid var(--border);
+            background:var(--panel-soft);
+            font-size:12px;
+            font-weight:800;
+            color:var(--text);
+        }
+
+        .showcase-preview{
+            border:1px solid var(--border);
+            border-radius:20px;
+            background:linear-gradient(180deg, #fbfdfb 0%, #f4f8f4 100%);
+            padding:16px;
+        }
+
+        .showcase-preview-head{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:12px;
+            margin-bottom:12px;
+        }
+
+        .showcase-preview-head strong{
+            font-size:18px;
+            line-height:1.1;
+        }
+
+        .showcase-preview-head span{
+            color:var(--muted);
+            font-size:12px;
+            font-weight:700;
+            text-align:right;
+        }
+
+        .showcase-preview-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:10px;
+        }
+
+        .showcase-preview-card{
+            display:grid;
+            gap:4px;
+            padding:12px;
+            border-radius:14px;
+            border:1px solid var(--border);
+            background:#fff;
+        }
+
+        .showcase-preview-card strong{
+            font-size:13px;
+            line-height:1.2;
+        }
+
+        .showcase-preview-card span{
+            font-size:12px;
+            line-height:1.4;
+            color:var(--muted);
+        }
+
+        .showcase-preview-card.warn{
+            background:#fff7e8;
+            border-color:#efd8b0;
+        }
+
+        .showcase-preview-card.alert{
+            background:#fff0f0;
+            border-color:#efc5c5;
+        }
+
+        .showcase-metrics{
+            display:grid;
+            grid-template-columns:repeat(3, minmax(0, 1fr));
+            gap:10px;
+        }
+
+        .showcase-metric{
+            padding:12px;
+            border-radius:14px;
+            border:1px solid var(--border);
+            background:#fff;
+        }
+
+        .showcase-metric strong{
+            display:block;
+            font-size:18px;
+            line-height:1;
+            margin-bottom:6px;
+        }
+
+        .showcase-metric span{
+            color:var(--muted);
+            font-size:12px;
+            line-height:1.45;
+        }
+
+        .showcase-stack,
+        .showcase-roadmap{
+            display:grid;
+            gap:12px;
+        }
+
+        .showcase-feature,
+        .showcase-roadmap-step{
+            border:1px solid var(--border);
+            border-radius:16px;
+            background:linear-gradient(180deg, #ffffff 0%, #f9fcf9 100%);
+        }
+
+        .showcase-feature{
+            padding:14px 16px;
+        }
+
+        .showcase-feature strong{
+            display:block;
+            margin-bottom:6px;
+            font-size:15px;
+        }
+
+        .showcase-feature p{
+            margin:0;
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.6;
+        }
+
+        .showcase-roadmap-step{
+            padding:14px 16px;
+            display:grid;
+            grid-template-columns:auto 1fr;
+            gap:12px;
+            align-items:start;
+        }
+
+        .showcase-roadmap-number{
+            width:34px;
+            height:34px;
+            border-radius:12px;
+            display:grid;
+            place-items:center;
+            background:#fff;
+            border:1px solid var(--border);
+            font-size:14px;
+            font-weight:900;
+        }
+
+        .showcase-roadmap-step strong{
+            display:block;
+            margin-bottom:4px;
+            font-size:15px;
+        }
+
+        .showcase-roadmap-step span{
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.55;
+        }
+
+        .module-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            justify-content:flex-end;
+        }
+
+        .pill{
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            padding:7px 10px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:800;
+            white-space:nowrap;
+        }
+
+        .pill-live{
+            background:var(--green-soft);
+            color:var(--green-dark);
+        }
+
+        .pill-demo{
+            background:var(--blue-soft);
+            color:var(--blue);
+        }
+
+        .pill-build{
+            background:var(--amber-soft);
+            color:var(--amber);
+        }
+
+        .pill-idea{
+            background:var(--purple-soft);
+            color:var(--purple);
+        }
+
+        .mini-btn{
+            appearance:none;
+            border:1px solid var(--border);
+            background:#fff;
+            color:var(--text);
+            border-radius:12px;
+            padding:10px 12px;
+            font:inherit;
+            font-size:13px;
+            font-weight:800;
+            text-decoration:none;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+        }
+
+        .mini-btn:hover{
+            background:#f9fcf9;
+        }
+
+        .timeline-card{
+            border-radius:24px;
+            padding:22px;
+            margin-top:18px;
+        }
+
+        .demo-flow-toolbar{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-bottom:14px;
+        }
+
+        .demo-flow-progress{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            min-width:220px;
+        }
+
+        .demo-flow-progress-track{
+            position:relative;
+            width:220px;
+            height:8px;
+            border-radius:999px;
+            background:#e6eee6;
+            overflow:hidden;
+        }
+
+        .demo-flow-progress-fill{
+            position:absolute;
+            inset:0 auto 0 0;
+            width:25%;
+            border-radius:999px;
+            background:linear-gradient(90deg, #2e7d32 0%, #43a047 100%);
+            transition:width .2s ease;
+        }
+
+        .demo-flow-progress-label{
+            font-size:13px;
+            font-weight:700;
+            color:var(--muted);
+        }
+
+        .demo-flow-actions{
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+        }
+
+        .timeline-grid{
+            display:grid;
+            grid-template-columns:repeat(4, minmax(0, 1fr));
+            gap:14px;
+        }
+
+        .timeline-step{
+            border:1px solid var(--border);
+            background:var(--panel-soft);
+            border-radius:18px;
+            padding:16px;
+            display:grid;
+            gap:12px;
+            align-content:start;
+            transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+        }
+
+        .timeline-step.is-active{
+            border-color:#9dc59f;
+            box-shadow:0 12px 24px rgba(46,125,50,.14);
+            transform:translateY(-1px);
+        }
+
+        .timeline-step.is-complete{
+            border-color:#c8dec9;
+        }
+
+        .timeline-step strong{
+            display:block;
+            font-size:15px;
+        }
+
+        .timeline-step p{
+            margin:0;
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.6;
+        }
+
+        .timeline-step-meta{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:8px;
+        }
+
+        .timeline-step-badge{
+            font-size:12px;
+            font-weight:800;
+            color:#1f5a23;
+            background:#e8f5e9;
+            border:1px solid #cfe0cf;
+            border-radius:999px;
+            padding:6px 9px;
+        }
+
+        .timeline-step-links{
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+        }
+
+        .flow-link{
+            appearance:none;
+            border:1px solid var(--border);
+            background:#fff;
+            color:var(--text);
+            border-radius:10px;
+            padding:8px 10px;
+            font:inherit;
+            font-size:12px;
+            font-weight:800;
+            text-decoration:none;
+            cursor:pointer;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .flow-link:hover{
+            background:#f5faf5;
+        }
+
+        .footer-space{
+            height:34px;
+        }
+
+        @media (max-width:1240px){
+            .hero{
+                grid-template-columns:1fr;
+            }
+
+            .stats-grid,
+            .timeline-grid,
+            .demo-control-grid{
+                grid-template-columns:repeat(2, minmax(0, 1fr));
+            }
+
+            .category-grid{
+                grid-template-columns:1fr;
+            }
+
+            .showcase-grid{
+                grid-template-columns:1fr;
+            }
+        }
+
+        @media (max-width:760px){
+            .container{
+                width:min(100% - 20px, 100%);
+            }
+
+            .topbar-inner,
+            .section-head,
+            .demo-control-head{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+
+            .hero-actions{
+                width:100%;
+            }
+
+            .hero-actions .btn{
+                width:100%;
+            }
+
+            .demo-flow-progress-track{
+                width:100%;
+                max-width:260px;
+            }
+
+            .side-grid,
+            .stats-grid,
+            .timeline-grid,
+            .demo-control-grid,
+            .showcase-preview-grid,
+            .showcase-metrics{
+                grid-template-columns:1fr;
+            }
+
+            .module-card{
+                grid-template-columns:1fr;
+            }
+
+            .hq-preview{
+                grid-template-columns:1fr;
+            }
+
+            .module-actions{
+                justify-content:flex-start;
+            }
+
+            .demo-flow-toolbar{
+                align-items:flex-start;
+            }
+
+            .topbar-nav{
+                width:100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-shell">
+        <header class="topbar">
+            <div class="container topbar-inner">
+                <div class="brand">
+                    <div class="brand-mark">🧾</div>
+                    <span>Madkontrollen Pro Demo</span>
+                </div>
+
+                <nav class="topbar-nav">
+                    <a href="#overview">Overblik</a>
+                    <a href="#demo-controls">Demo kontroller</a>
+                    <a href="#egenkontrol">Egenkontrol</a>
+                    <a href="#drift">Drift</a>
+                    <a href="#business">Business</a>
+                    <a href="#demo-flow">Demo-flow</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="container">
+            <section class="hero" id="overview">
+                <div class="hero-card">
+                    <span class="eyebrow">🚀 Platform demo</span>
+                    <h1>Én frontside til hele Madkontrollen Pro</h1>
+                    <p>
+                        Denne side samler alle moduler, undersider og demoindgange i én præsentation. Brug den til
+                        kundemøder, salgsdemoer, onboarding og intern udvikling, så man hurtigt kan se hele platformens
+                        opbygning, status og sammenhæng mellem egenkontrol, drift, rapportering, økonomi og vækst.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a class="btn btn-primary" href="/dashboard">Åbn dashboard</a>
+                        <a class="btn btn-secondary" href="#egenkontrol">Se moduler</a>
+                        <a class="btn btn-secondary" href="#demo-flow">Vis demo-flow</a>
+                    </div>
+                </div>
+
+                <aside class="side-card">
+                    <div class="side-title">Demo status</div>
+
+                    <div class="side-grid">
+                        <div class="metric">
+                            <strong>20+</strong>
+                            <span>Sider og moduler i demo</span>
+                        </div>
+                        <div class="metric">
+                            <strong>6</strong>
+                            <span>Hovedkategorier</span>
+                        </div>
+                        <div class="metric">
+                            <strong>1</strong>
+                            <span>Samlet præsentationsindgang</span>
+                        </div>
+                        <div class="metric">
+                            <strong>∞</strong>
+                            <span>Plads til nye demo flows</span>
+                        </div>
+                    </div>
+
+                    <div class="demo-note">
+                        Brug denne frontside som showroom. Hver kategori kan åbnes separat, og du kan både sende kunden
+                        til livevisning, formularvisning og demo-visning med forudvalgte data.
+                    </div>
+                </aside>
+            </section>
+
+            <section class="section">
+                <div class="stats-grid">
+                    <article class="stats-card green">
+                        <div class="stats-label">Egenkontrol</div>
+                        <div class="stats-value">Klar</div>
+                        <div class="stats-note">Rutiner, afvigelser, rapporter, onboarding, risikoanalyse og logbøger.</div>
+                    </article>
+
+                    <article class="stats-card blue">
+                        <div class="stats-label">Driftsmoduler</div>
+                        <div class="stats-value">Vokser</div>
+                        <div class="stats-note">Opskrifter, råvarer, leverandører, menu, events og indkøb.</div>
+                    </article>
+
+                    <article class="stats-card amber">
+                        <div class="stats-label">Økonomi & POS</div>
+                        <div class="stats-value">V1</div>
+                        <div class="stats-note">Accounting, bilag, bon-AI og fremtidigt compliant POS-flow.</div>
+                    </article>
+
+                    <article class="stats-card purple">
+                        <div class="stats-label">AI & automation</div>
+                        <div class="stats-value">Næste skridt</div>
+                        <div class="stats-note">Auto-rutiner, intelligente forslag og connector-baseret support.</div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="section" id="platform-story">
+                <div class="section-head">
+                    <div>
+                        <h2>Platformen samlet mere elegant</h2>
+                        <p>
+                            De tunge forklaringsblokke er samlet her i fronten som en del af modulhistorien,
+                            så man ser retningen uden at drukne i gentagelser eller dashboard-støj.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="showcase-grid">
+                    <article class="showcase-card">
+                        <div class="category-head">
+                            <div>
+                                <h3>Hovedkontor & flere lokationer</h3>
+                                <p>Ledelsen får ét roligt overblik over status, afvigelser og dokumentation på tværs af enheder.</p>
+                            </div>
+                            <div class="category-icon">🏢</div>
+                        </div>
+
+                        <div class="showcase-card-body">
+                            <p class="showcase-lead">
+                                I stedet for en separat tung præsentationssektion vises kædeoverblikket nu som en naturlig del af fronten,
+                                tæt på de moduler det faktisk hænger sammen med.
+                            </p>
+
+                            <div class="showcase-chips">
+                                <span class="showcase-chip">Flere lokationer</span>
+                                <span class="showcase-chip">Central styring</span>
+                                <span class="showcase-chip">Kontrolklar dokumentation</span>
+                            </div>
+
+                            <div class="showcase-preview" aria-label="Hovedkontor preview">
+                                <div class="showcase-preview-head">
+                                    <strong>Hovedkontor oversigt</strong>
+                                    <span>6 enheder · 2 kræver opfølgning</span>
+                                </div>
+
+                                <div class="showcase-preview-grid">
+                                    <div class="showcase-preview-card">
+                                        <strong>Restaurant 1</strong>
+                                        <span>Alle rutiner OK</span>
+                                    </div>
+                                    <div class="showcase-preview-card">
+                                        <strong>Restaurant 2</strong>
+                                        <span>Alle rutiner OK</span>
+                                    </div>
+                                    <div class="showcase-preview-card warn">
+                                        <strong>Restaurant 3</strong>
+                                        <span>1 rutine mangler</span>
+                                    </div>
+                                    <div class="showcase-preview-card alert">
+                                        <strong>Restaurant 4</strong>
+                                        <span>Afvigelse registreret</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="showcase-metrics">
+                                <div class="showcase-metric">
+                                    <strong>1 login</strong>
+                                    <span>Samlet adgang for ledelse og administration.</span>
+                                </div>
+                                <div class="showcase-metric">
+                                    <strong>Live status</strong>
+                                    <span>Rutiner og afvigelser kan følges pr. lokation.</span>
+                                </div>
+                                <div class="showcase-metric">
+                                    <strong>Klar til kæder</strong>
+                                    <span>Skalerer fra enkelt køkken til flere enheder.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="showcase-card">
+                        <div class="category-head">
+                            <div>
+                                <h3>Sådan hænger modulerne sammen</h3>
+                                <p>Fronten viser nu både fundament, udvidelser og retning i én samlet komposition.</p>
+                            </div>
+                            <div class="category-icon">🧩</div>
+                        </div>
+
+                        <div class="showcase-card-body">
+                            <div class="showcase-stack">
+                                <div class="showcase-feature">
+                                    <strong>Egenkontrol er fundamentet</strong>
+                                    <p>Daglige registreringer, historik og dokumentation starter her og driver resten af systemet.</p>
+                                </div>
+
+                                <div class="showcase-feature">
+                                    <strong>Risikoanalyse styrer rutinerne</strong>
+                                    <p>HACCP-plan og procestrin former de opgaver medarbejderne møder i driften.</p>
+                                </div>
+
+                                <div class="showcase-feature">
+                                    <strong>Kalkulation, drift og økonomi kobles på bagefter</strong>
+                                    <p>Platformen kan vokse videre uden at splitte oplevelsen i separate forklaringsskærme.</p>
+                                </div>
+                            </div>
+
+                            <div class="showcase-roadmap">
+                                <div class="showcase-roadmap-step">
+                                    <div class="showcase-roadmap-number">1</div>
+                                    <div>
+                                        <strong>Egenkontrol</strong>
+                                        <span>Rutiner, risikoanalyse, afvigelser og rapporter.</span>
+                                    </div>
+                                </div>
+
+                                <div class="showcase-roadmap-step">
+                                    <div class="showcase-roadmap-number">2</div>
+                                    <div>
+                                        <strong>Kalkulation</strong>
+                                        <span>Opskrifter, råvarer, kostpris og dækningsbidrag.</span>
+                                    </div>
+                                </div>
+
+                                <div class="showcase-roadmap-step">
+                                    <div class="showcase-roadmap-number">3</div>
+                                    <div>
+                                        <strong>Menu, drift og økonomi</strong>
+                                        <span>Bestilling, levering, bilag og integrationer i samme univers.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="section" id="demo-controls">
+                <div class="demo-control-card">
+                    <div class="demo-control-head">
+                        <div>
+                            <h3>Demo kontroller</h3>
+                            <p>Herfra kan du hoppe direkte til de vigtigste demo-indgange og forudvælge formularer og kategorier.</p>
+                        </div>
+                    </div>
+
+                    <div class="demo-control-grid">
+                        <article class="demo-mini-card">
+                            <strong>Logbøger demo</strong>
+                            <p>Åbn logbogssiden med demo og den valgte formular aktiv.</p>
+                            <div class="demo-mini-actions">
+                                <a class="mini-btn" href="/modules/egenkontrol/logbooks.html?form=corrective&demo=1">Korrigerende</a>
+                                <a class="mini-btn" href="/modules/egenkontrol/logbooks.html?form=registration&demo=1">Registrering</a>
+                                <a class="mini-btn" href="/modules/egenkontrol/logbooks.html?form=maintenance&demo=1">Vedligehold</a>
+                            </div>
+                        </article>
+
+                        <article class="demo-mini-card">
+                            <strong>Live logbøger uden demo</strong>
+                            <p>Åbn samme side uden demo-parametre, så du ser den almindelige version.</p>
+                            <div class="demo-mini-actions">
+                                <a class="mini-btn" href="/modules/egenkontrol/logbooks.html?form=corrective">Live visning</a>
+                            </div>
+                        </article>
+
+                        <article class="demo-mini-card">
+                            <strong>Afvigelser og rapporter</strong>
+                            <p>Send brugeren direkte til de vigtigste visningssider i egenkontrollen.</p>
+                            <div class="demo-mini-actions">
+                                <a class="mini-btn" href="/modules/egenkontrol/afvigelser.html?demo=1">Afvigelser demo</a>
+                                <a class="mini-btn" href="/modules/egenkontrol/rapporter.html?demo=1">Rapporter demo</a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section" id="egenkontrol">
+                <div class="section-head">
+                    <div>
+                        <h2>Egenkontrol & dokumentation</h2>
+                        <p>
+                            Kernen i platformen. Her vises siderne som dokumenterer drift, fejl, opfølgning og kontrol,
+                            så du kan demonstrere den direkte værdi for fødevarevirksomheder.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="category-grid">
+                    <article class="category-card">
+                        <div class="category-head">
+                            <div>
+                                <h3>Daglig egenkontrol</h3>
+                                <p>Vis hvordan brugeren arbejder i den daglige drift med rutiner, afvigelser, rapporter og logbøger.</p>
+                            </div>
+                            <div class="category-icon">🧼</div>
+                        </div>
+
+                        <div class="module-list">
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Dashboard</span>
+                                        <span class="module-file">index.html</span>
+                                        <span class="pill pill-live">Live</span>
+                                    </div>
+                                    <div class="module-desc">Samlet overblik over drift, dagens opgaver, alarmer og status.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/dashboard">Åbn side</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Rutiner</span>
+                                        <span class="module-file">rutiner.html</span>
+                                        <span class="pill pill-live">Live</span>
+                                    </div>
+                                    <div class="module-desc">Daglige, ugentlige og tilbagevendende opgaver til egenkontrol.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/egenkontrol/rutiner.html">Åbn side</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Afvigelser</span>
+                                        <span class="module-file">afvigelser.html</span>
+                                        <span class="pill pill-live">Live</span>
+                                    </div>
+                                    <div class="module-desc">Registrering, forklaring og opfølgning på fejl og afvigelser.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/egenkontrol/afvigelser.html">Åbn side</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Rapporter</span>
+                                        <span class="module-file">rapporter.html</span>
+                                        <span class="pill pill-live">Live</span>
+                                    </div>
+                                    <div class="module-desc">Dokumentation og samlet historik til kontrol og ledelse.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/egenkontrol/rapporter.html">Åbn side</a>
+                                    <a class="mini-btn" href="/modules/egenkontrol/rapporter.html?demo=1">Demo</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Logbøger</span>
+                                        <span class="module-file">logbooks.html</span>
+                                        <span class="pill pill-demo">Demo</span>
+                                    </div>
+                                    <div class="module-desc">Samlet registrering af sporbarhed, kassation, vedligehold og korrigerende handlinger.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/egenkontrol/logbooks.html">Åbn side</a>
+                                    <a class="mini-btn" href="/modules/egenkontrol/logbooks.html?form=corrective&demo=1">Demo korrigerende</a>
+                                    <a class="mini-btn" href="/modules/egenkontrol/logbooks.html?form=registration&demo=1">Demo registrering</a>
+                                    <a class="mini-btn" href="/modules/egenkontrol/logbooks.html?form=waste&demo=1">Demo kassering</a>
+                                </div>
+                            </article>
+                        </div>
+                    </article>
+
+                    <article class="category-card">
+                        <div class="category-head">
+                            <div>
+                                <h3>Onboarding, viden og opsætning</h3>
+                                <p>Vis hvordan nye kunder og medarbejdere kommer hurtigt i gang og får systemet sat korrekt op.</p>
+                            </div>
+                            <div class="category-icon">🎓</div>
+                        </div>
+
+                        <div class="module-list">
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Onboarding</span>
+                                        <span class="module-file">onboarding.html</span>
+                                        <span class="pill pill-live">Live</span>
+                                    </div>
+                                    <div class="module-desc">Trin-for-trin opsætning af virksomhed, lokationer og kontrolstruktur.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/egenkontrol/onboarding.html">Åbn side</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Risikoanalyse</span>
+                                        <span class="module-file">risikoanalyse.html</span>
+                                        <span class="pill pill-live">Live</span>
+                                    </div>
+                                    <div class="module-desc">Grundlaget for automatiske rutiner, målepunkter og kontrolprogrammer.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/egenkontrol/risikoanalyse.html">Åbn side</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Akademi</span>
+                                        <span class="module-file">akademi.html</span>
+                                        <span class="pill pill-live">Live</span>
+                                    </div>
+                                    <div class="module-desc">Læring, SOP’er, træning, certifikater og medarbejderudvikling.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/egenkontrol/akademi.html">Åbn side</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Ferielukket / lukkedage</span>
+                                        <span class="module-file">kommende funktion</span>
+                                        <span class="pill pill-build">Bygges</span>
+                                    </div>
+                                    <div class="module-desc">Knappen til at slå lukkedage og ferieperioder til og fra i egenkontrollen.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="#demo-flow">Vis plan</a>
+                                </div>
+                            </article>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="section" id="drift">
+                <div class="section-head">
+                    <div>
+                        <h2>Drift, køkken og produktion</h2>
+                        <p>
+                            De sider der viser den praktiske drift i virksomheden. Her kan du demonstrere, at Madkontrollen Pro
+                            ikke kun er et kontrolsystem, men et samlet driftsværktøj.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="category-grid">
+                    <article class="category-card">
+                        <div class="category-head">
+                            <div>
+                                <h3>Mad, råvarer og planlægning</h3>
+                                <p>Vis sammenhængen mellem menu, opskrifter, lager, events og indkøb.</p>
+                            </div>
+                            <div class="category-icon">🍽️</div>
+                        </div>
+
+                        <div class="module-list">
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Menu / retter</span>
+                                        <span class="module-file">menu.html</span>
+                                        <span class="pill pill-demo">Demo</span>
+                                    </div>
+                                    <div class="module-desc">Præsentation af menuer og retter, også med fremtidig bestillingsvisning.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/menu/menu.html">Åbn side</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Opskrifter</span>
+                                        <span class="module-file">recipes.html</span>
+                                        <span class="pill pill-demo">Demo</span>
+                                    </div>
+                                    <div class="module-desc">Struktur for opskrifter, kalkulation og råvareforbrug.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/menu/recipes.html">Åbn side</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Råvarer</span>
+                                        <span class="module-file">ingredients.html</span>
+                                        <span class="pill pill-demo">Demo</span>
+                                    </div>
+                                    <div class="module-desc">Oversigt over ingredienser, enheder, allergener og lagerkobling.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/menu/ingredients.html">Åbn side</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Leverandører</span>
+                                        <span class="module-file">suppliers.html</span>
+                                        <span class="pill pill-demo">Demo</span>
+                                    </div>
+                                    <div class="module-desc">Leverandørdata, aftaler, sporbarhed og dokumentation.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/menu/suppliers.html">Åbn side</a>
+                                </div>
+                            </article>
+                        </div>
+                    </article>
+
+                    <article class="category-card">
+                        <div class="category-head">
+                            <div>
+                                <h3>Selskaber og indkøb</h3>
+                                <p>Vis hvordan platformen kan udvides til drift, salg og planlægning ud over egenkontrollen.</p>
+                            </div>
+                            <div class="category-icon">📦</div>
+                        </div>
+
+                        <div class="module-list">
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Selskabsplanlægning</span>
+                                        <span class="module-file">events.html</span>
+                                        <span class="pill pill-demo">Demo</span>
+                                    </div>
+                                    <div class="module-desc">Planlæg events, selskaber og ordrer med kobling til menu og produktion.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/menu/events.html">Åbn side</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Indkøb</span>
+                                        <span class="module-file">purchases.html</span>
+                                        <span class="pill pill-demo">Demo</span>
+                                    </div>
+                                    <div class="module-desc">Registrér indkøb og bind dem sammen med leverandører, bilag og økonomi.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="/modules/menu/purchases.html">Åbn side</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Kalkulation & bestilling</span>
+                                        <span class="module-file">kommende flow</span>
+                                        <span class="pill pill-build">Bygges</span>
+                                    </div>
+                                    <div class="module-desc">Vis fremtidig kobling mellem kalkulation, bestilling og skærmbaseret menuvalg.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="#demo-flow">Vis plan</a>
+                                </div>
+                            </article>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="section" id="business">
+                <div class="section-head">
+                    <div>
+                        <h2>Forretning, automation og vækst</h2>
+                        <p>
+                            De moduler der gør platformen større end klassisk egenkontrol: økonomi, AI, hjemmesider,
+                            support og automatiseret drift.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="category-grid">
+                    <article class="category-card">
+                        <div class="category-head">
+                            <div>
+                                <h3>Økonomi & bilag</h3>
+                                <p>Her kan du demonstrere, at Madkontrollen Pro også kan blive virksomhedens administrative motor.</p>
+                            </div>
+                            <div class="category-icon">💼</div>
+                        </div>
+
+                        <div class="module-list">
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Accounting modul</span>
+                                        <span class="module-file">kommende modul</span>
+                                        <span class="pill pill-build">V1</span>
+                                    </div>
+                                    <div class="module-desc">Bilag, bogføring, moms, godkendelse og klar-til-revisor struktur.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="#demo-flow">Vis plan</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Bon-AI</span>
+                                        <span class="module-file">arkitektur</span>
+                                        <span class="pill pill-idea">AI</span>
+                                    </div>
+                                    <div class="module-desc">Scanner bonner, foreslår konti og lærer virksomhedens bilagsmønstre.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="#demo-flow">Vis plan</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">POS-system</span>
+                                        <span class="module-file">kommende modul</span>
+                                        <span class="pill pill-build">Planlagt</span>
+                                    </div>
+                                    <div class="module-desc">Skat-compliant salg, kassesystem og sammenhæng med menu og accounting.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="#demo-flow">Vis plan</a>
+                                </div>
+                            </article>
+                        </div>
+                    </article>
+
+                    <article class="category-card">
+                        <div class="category-head">
+                            <div>
+                                <h3>AI, support og hjemmeside</h3>
+                                <p>Vis platformens fremtidige vækstspor og hvorfor den er mere end en standard SaaS-løsning.</p>
+                            </div>
+                            <div class="category-icon">🤖</div>
+                        </div>
+
+                        <div class="module-list">
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Connector / AI-support</span>
+                                        <span class="module-file">arkitektur</span>
+                                        <span class="pill pill-build">Bygges</span>
+                                    </div>
+                                    <div class="module-desc">Kobling til databasen og fremtidig support-assistent til kunder.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="#demo-flow">Vis plan</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">SEO hjemmeside generator</span>
+                                        <span class="module-file">kommende modul</span>
+                                        <span class="pill pill-idea">Vækst</span>
+                                    </div>
+                                    <div class="module-desc">Autogenerer enkle hjemmesider, landingssider og SEO-indhold til kunder.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="#demo-flow">Vis plan</a>
+                                </div>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-main">
+                                    <div class="module-top">
+                                        <span class="module-name">Auto-genererede rutiner</span>
+                                        <span class="module-file">AI flow</span>
+                                        <span class="pill pill-build">Næste skridt</span>
+                                    </div>
+                                    <div class="module-desc">Genererer temperaturkontrol, modtagekontrol, rengøringsprogram og lukkerutiner ud fra risikoanalyse.</div>
+                                </div>
+                                <div class="module-actions">
+                                    <a class="mini-btn" href="#demo-flow">Vis plan</a>
+                                </div>
+                            </article>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="section" id="demo-flow">
+                <div class="section-head">
+                    <div>
+                        <h2>Forslag til demo-flow</h2>
+                        <p>
+                            Brug dette flow når du demonstrerer systemet. Så får du fortalt en stærk historie i den rigtige rækkefølge.
+                        </p>
+                    </div>
+                </div>
+
+                <article class="timeline-card">
+                    <div class="demo-flow-toolbar">
+                        <div class="demo-flow-progress">
+                            <div class="demo-flow-progress-track" aria-hidden="true">
+                                <div id="demoFlowProgressFill" class="demo-flow-progress-fill"></div>
+                            </div>
+                            <span id="demoFlowProgressLabel" class="demo-flow-progress-label">Trin 1 af 4</span>
+                        </div>
+
+                        <div class="demo-flow-actions">
+                            <button id="demoFlowStartBtn" class="btn btn-secondary" type="button">Start flow</button>
+                            <button id="demoFlowNextBtn" class="btn btn-primary" type="button">Næste trin</button>
+                            <button id="demoFlowResetBtn" class="btn btn-secondary" type="button">Nulstil</button>
+                        </div>
+                    </div>
+
+                    <div class="timeline-grid">
+                        <div class="timeline-step" data-flow-step="1">
+                            <strong>1. Start med dashboard</strong>
+                            <p>Vis at kunden får ét samlet overblik med status, opgaver, alarmer og dokumentation.</p>
+
+                            <div class="timeline-step-meta">
+                                <span class="timeline-step-badge">Kerne</span>
+                            </div>
+
+                            <div class="timeline-step-links">
+                                <a class="flow-link" href="/dashboard" target="_blank" rel="noopener">Åbn dashboard</a>
+                                <button class="flow-link" type="button" data-flow-complete="1">Markér udført</button>
+                            </div>
+                        </div>
+
+                        <div class="timeline-step" data-flow-step="2">
+                            <strong>2. Gå til egenkontrol</strong>
+                            <p>Vis rutiner, afvigelser, rapporter og logbøger som den daglige kernefunktion.</p>
+
+                            <div class="timeline-step-meta">
+                                <span class="timeline-step-badge">Egenkontrol</span>
+                            </div>
+
+                            <div class="timeline-step-links">
+                                <a class="flow-link" href="/modules/egenkontrol/rutiner.html" target="_blank" rel="noopener">Rutiner</a>
+                                <a class="flow-link" href="/modules/egenkontrol/afvigelser.html" target="_blank" rel="noopener">Afvigelser</a>
+                                <button class="flow-link" type="button" data-flow-complete="2">Markér udført</button>
+                            </div>
+                        </div>
+
+                        <div class="timeline-step" data-flow-step="3">
+                            <strong>3. Vis onboarding</strong>
+                            <p>Forklar hvordan virksomheden kommer hurtigt i gang og hvordan risikoanalyse danner grundlag.</p>
+
+                            <div class="timeline-step-meta">
+                                <span class="timeline-step-badge">Opsætning</span>
+                            </div>
+
+                            <div class="timeline-step-links">
+                                <a class="flow-link" href="/modules/egenkontrol/onboarding.html" target="_blank" rel="noopener">Onboarding</a>
+                                <a class="flow-link" href="/modules/egenkontrol/risikoanalyse.html" target="_blank" rel="noopener">Risikoanalyse</a>
+                                <button class="flow-link" type="button" data-flow-complete="3">Markér udført</button>
+                            </div>
+                        </div>
+
+                        <div class="timeline-step" data-flow-step="4">
+                            <strong>4. Slut med visionen</strong>
+                            <p>Vis accounting, POS, Bon-AI, connector og auto-genererede rutiner som næste vækstlag.</p>
+
+                            <div class="timeline-step-meta">
+                                <span class="timeline-step-badge">Vision</span>
+                            </div>
+
+                            <div class="timeline-step-links">
+                                <a class="flow-link" href="/modules/business/vision.html" target="_blank" rel="noopener">Åbn vision-side</a>
+                                <button class="flow-link" type="button" data-flow-complete="4">Markér udført</button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <div class="footer-space"></div>
+        </main>
+    </div>
+
+    <script>
+        (function initDemoFlow() {
+            const STORAGE_KEY = "mkp_demo_flow_state_v1";
+            const totalSteps = 4;
+
+            const progressFillEl = document.getElementById("demoFlowProgressFill");
+            const progressLabelEl = document.getElementById("demoFlowProgressLabel");
+            const startBtn = document.getElementById("demoFlowStartBtn");
+            const nextBtn = document.getElementById("demoFlowNextBtn");
+            const resetBtn = document.getElementById("demoFlowResetBtn");
+
+            const stepEls = Array.from(document.querySelectorAll("[data-flow-step]"));
+            const completeBtns = Array.from(document.querySelectorAll("[data-flow-complete]"));
+            const scrollBtns = Array.from(document.querySelectorAll("[data-scroll-target]"));
+
+            const defaultState = {
+                currentStep: 1,
+                completed: []
+            };
+
+            function loadState() {
+                try {
+                    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+                    if (!parsed || typeof parsed !== "object") return { ...defaultState };
+
+                    const currentStep = Number(parsed.currentStep || 1);
+                    const completed = Array.isArray(parsed.completed)
+                        ? parsed.completed.map((x) => Number(x)).filter((n) => n >= 1 && n <= totalSteps)
+                        : [];
+
+                    return {
+                        currentStep: Math.min(Math.max(currentStep, 1), totalSteps),
+                        completed: [...new Set(completed)]
+                    };
+                } catch (error) {
+                    return { ...defaultState };
+                }
+            }
+
+            function saveState(state) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            }
+
+            function render(state) {
+                const completedCount = state.completed.length;
+                const progress = Math.max(1, state.currentStep) / totalSteps;
+
+                if (progressFillEl) {
+                    progressFillEl.style.width = `${Math.round(progress * 100)}%`;
+                }
+
+                if (progressLabelEl) {
+                    progressLabelEl.textContent = `Trin ${state.currentStep} af ${totalSteps}`;
+                }
+
+                stepEls.forEach((el) => {
+                    const step = Number(el.getAttribute("data-flow-step") || 0);
+                    el.classList.toggle("is-active", step === state.currentStep);
+                    el.classList.toggle("is-complete", state.completed.includes(step));
+                });
+
+                if (nextBtn) {
+                    nextBtn.textContent = state.currentStep >= totalSteps ? "Flow færdigt" : "Næste trin";
+                    nextBtn.disabled = state.currentStep >= totalSteps && completedCount >= totalSteps;
+                }
+            }
+
+            function setStep(step, state) {
+                state.currentStep = Math.min(Math.max(step, 1), totalSteps);
+                saveState(state);
+                render(state);
+            }
+
+            function completeStep(step, state) {
+                if (!state.completed.includes(step)) {
+                    state.completed.push(step);
+                }
+
+                if (step >= state.currentStep && step < totalSteps) {
+                    state.currentStep = step + 1;
+                }
+
+                saveState(state);
+                render(state);
+            }
+
+            const state = loadState();
+            render(state);
+
+            startBtn?.addEventListener("click", () => {
+                setStep(1, state);
+                document.getElementById("demo-flow")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+
+            nextBtn?.addEventListener("click", () => {
+                if (state.currentStep < totalSteps) {
+                    setStep(state.currentStep + 1, state);
+                }
+            });
+
+            resetBtn?.addEventListener("click", () => {
+                state.currentStep = 1;
+                state.completed = [];
+                saveState(state);
+                render(state);
+            });
+
+            completeBtns.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const step = Number(btn.getAttribute("data-flow-complete") || 0);
+                    if (!step) return;
+                    completeStep(step, state);
+                });
+            });
+
+            scrollBtns.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const targetId = btn.getAttribute("data-scroll-target");
+                    if (!targetId) return;
+                    document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
+

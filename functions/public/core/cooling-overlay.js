@@ -11,7 +11,7 @@
 import app from "/core/firebase-config.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { getFirestore, collection, doc, addDoc, setDoc, deleteDoc, getDoc, onSnapshot, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, setDoc, getDoc, onSnapshot, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const LS_KEY        = "mk_active_cooling_runs";   // array
 const LS_KEY_LEGACY = "mk_active_cooling_run";    // old single-run key
@@ -104,6 +104,8 @@ async function writeRunToFirestore(run) {
         const db = getFirestore(app);
         await setDoc(doc(db, "activeCoolingRuns", run.runId), {
             ...run,
+            active: true,
+            archived: false,
             // Write both companyId and organizationId so security rules match regardless of profile field name
             organizationId: run.companyId,
             _syncedAt: serverTimestamp()
@@ -122,9 +124,15 @@ function deleteRun(runId) {
 async function deleteRunFromFirestore(runId) {
     try {
         const db = getFirestore(app);
-        await deleteDoc(doc(db, "activeCoolingRuns", runId));
+        await setDoc(doc(db, "activeCoolingRuns", runId), {
+            active: false,
+            archived: true,
+            status: "inactive",
+            archivedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        }, { merge: true });
     } catch (e) {
-        console.warn("[cooling] Firestore delete failed:", e);
+        console.warn("[cooling] Firestore archive failed:", e);
     }
 }
 
@@ -792,7 +800,7 @@ export function initCoolingOverlay() {
 
             firestoreUnsub = onSnapshot(q, (snapshot) => {
                 const fsRuns  = snapshot.docs.map(d => d.data());
-                const fsRaw   = fsRuns.filter(r => r?.startedAt && getElapsedMs(r.startedAt) < 6 * 3600000);
+                const fsRaw   = fsRuns.filter(r => r?.startedAt && r.active !== false && r.archived !== true && getElapsedMs(r.startedAt) < 6 * 3600000);
                 console.log("[cooling] onSnapshot fired — docs:", snapshot.docs.length, "valid:", fsRaw.length);
 
                 // Merge: keep local runs that are <90s old and not yet confirmed by Firestore

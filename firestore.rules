@@ -69,6 +69,15 @@ service cloud.firestore {
         userRole() in ['owner', 'hq_admin', 'location_manager', 'admin'];
     }
 
+    function canManageRoutineTemplateForLocation(orgId, locationId) {
+      return userExists() &&
+        sameOrganization(orgId) &&
+        (
+          userRole() in ['owner', 'hq_admin', 'location_manager', 'location_admin', 'admin'] ||
+          (userRole() == 'manager' && hasLocationAccess(locationId))
+        );
+    }
+
     function isOrgAdmin(orgId) {
       return sameOrganization(orgId) && isAdmin();
     }
@@ -83,7 +92,8 @@ service cloud.firestore {
         userRole() == 'super-admin' &&
         request.auth.token.email in [
           'mn@aroid.dk',
-          'michael@madkontrollen.dk'
+          'michael@madkontrollen.dk',
+          'mn@madkontrollen.dk'
         ];
     }
 
@@ -106,6 +116,82 @@ service cloud.firestore {
 
     function validUserCreate(userId) {
       return signedIn() && request.auth.uid == userId;
+    }
+
+    function safeRoutineTemplateUpdateFields() {
+      return [
+        'status',
+        'paused',
+        'active',
+        'isActive',
+        'enabled',
+        'pauseState',
+        'pausedAt',
+        'pausedBy',
+        'pausedByName',
+        'resumedAt',
+        'resumedBy',
+        'resumedByName',
+        'frequency',
+        'frequencyType',
+        'frequencyDays',
+        'interval_days',
+        'scheduleConfig',
+        'updatedAt',
+        'updatedBy',
+        'updatedByName'
+      ];
+    }
+
+    function canSafelyUpdateRoutineTemplate() {
+      return isSuperAdmin() || (
+        canManageRoutineTemplateForLocation(orgIdFromData(resource.data), resource.data.locationId) &&
+        sameOrgAndLocation(orgIdFromData(resource.data), resource.data.locationId) &&
+        unchangedOrganization() &&
+        unchangedLocation() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(safeRoutineTemplateUpdateFields())
+      );
+    }
+
+    // ---- Company pause / lock (platform-admin controlled) ----
+    function companyLockField(companyId, field, fallback) {
+      return get(/databases/$(database)/documents/companies/$(companyId)).data.get(field, fallback);
+    }
+    function isCompanyLocked(companyId) {
+      return companyId != null &&
+        exists(/databases/$(database)/documents/companies/$(companyId)) &&
+        (
+          companyLockField(companyId, 'registrationWriteLocked', false) == true ||
+          companyLockField(companyId, 'accessStatus', 'active') == 'locked' ||
+          companyLockField(companyId, 'accessStatus', 'active') == 'archived'
+        );
+    }
+    function companyLockedFromDateKey(companyId) {
+      return (companyId != null && exists(/databases/$(database)/documents/companies/$(companyId)))
+        ? companyLockField(companyId, 'lockedFromDateKey', '')
+        : '';
+    }
+    function lockCompanyId(data) {
+      return data.companyId != null ? data.companyId : orgIdFromData(data);
+    }
+    // Runtime writes are blocked when the company is locked; super-admins always pass.
+    function canWriteCompanyRuntime(companyId) {
+      return isSuperAdmin() || !isCompanyLocked(companyId);
+    }
+    function canWriteRuntimeData(data) {
+      return canWriteCompanyRuntime(lockCompanyId(data));
+    }
+    // Historical reads are NEVER blocked by the lock (customers keep seeing history up to lock date).
+    function canReadHistoricalCompanyDoc(companyId) {
+      return true;
+    }
+    // The lock-control fields on companies/{id} may only be changed by super-admins.
+    function companyLockControlFieldsUnchanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'billingStatus', 'accessStatus', 'registrationWriteLocked', 'lockedAt', 'lockedFromDateKey',
+        'lockedReason', 'lockedNote', 'lockedByUid', 'lockedByEmail', 'unlockedAt', 'unlockedByUid',
+        'unlockedByEmail', 'archivedAt', 'archivedByUid', 'archivedReason', 'archived'
+      ]) == false;
     }
 
     match /users/{userId} {
@@ -134,7 +220,10 @@ service cloud.firestore {
       allow get: if sameOrganization(companyId) || isSuperAdmin();
       allow list: if (userExists() && isEmployee()) || isSuperAdmin();
       allow create: if signedIn();
-      allow update: if isOrgAdmin(companyId);
+      // Super-admins manage lock fields (pause/reopen/archive). Org-admins may only update other
+      // fields, only while NOT locked, and may never touch the lock-control fields themselves.
+      allow update: if isSuperAdmin() ||
+        (isOrgAdmin(companyId) && !isCompanyLocked(companyId) && companyLockControlFieldsUnchanged());
       allow delete: if false;
     }
 
@@ -166,6 +255,207 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /companies/{companyId}/locations/{locationId}/routine_overrides/{overrideId} {
+      allow read: if sameOrgAndLocation(companyId, locationId) || isSuperAdmin();
+      allow create: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow update: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        resource.data.companyId == companyId &&
+        resource.data.locationId == locationId &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow delete: if false;
+    }
+
+    match /companies/{companyId}/locations/{locationId}/pos_products/{productId} {
+      allow read: if sameOrgAndLocation(companyId, locationId) || isSuperAdmin();
+      allow create: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow update: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        resource.data.companyId == companyId &&
+        resource.data.locationId == locationId &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow delete: if false;
+    }
+
+    match /companies/{companyId}/locations/{locationId}/pos_audit_log/{auditId} {
+      allow read: if sameOrgAndLocation(companyId, locationId) || isSuperAdmin();
+      allow create: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow update, delete: if false;
+    }
+
+    match /companies/{companyId}/locations/{locationId}/pos_sales/{saleId} {
+      allow read: if sameOrgAndLocation(companyId, locationId) || isSuperAdmin();
+      allow create: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow update: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        resource.data.companyId == companyId &&
+        resource.data.locationId == locationId &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow delete: if false;
+    }
+
+    match /companies/{companyId}/locations/{locationId}/pos_cash_sessions/{sessionId} {
+      allow read: if sameOrgAndLocation(companyId, locationId) || isSuperAdmin();
+      allow create: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow update: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        resource.data.companyId == companyId &&
+        resource.data.locationId == locationId &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow delete: if false;
+    }
+
+    match /companies/{companyId}/locations/{locationId}/pos_receipt_sequences/{sequenceId} {
+      allow read: if sameOrgAndLocation(companyId, locationId) || isSuperAdmin();
+      allow create: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow update: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        resource.data.companyId == companyId &&
+        resource.data.locationId == locationId &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow delete: if false;
+    }
+
+    match /companies/{companyId}/locations/{locationId}/pos_payment_reconciliations/{reconciliationId} {
+      allow read: if sameOrgAndLocation(companyId, locationId) || isSuperAdmin();
+      allow create: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow update: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        resource.data.companyId == companyId &&
+        resource.data.locationId == locationId &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow delete: if false;
+    }
+
+    match /companies/{companyId}/locations/{locationId}/pos_payment_sessions/{sessionId} {
+      allow read: if sameOrgAndLocation(companyId, locationId) || isSuperAdmin();
+      allow create: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow update: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        resource.data.companyId == companyId &&
+        resource.data.locationId == locationId &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow delete: if false;
+    }
+
+    match /companies/{companyId}/locations/{locationId}/pos_payments/{paymentId} {
+      allow read: if sameOrgAndLocation(companyId, locationId) || isSuperAdmin();
+      allow create: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow update: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        resource.data.companyId == companyId &&
+        resource.data.locationId == locationId &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow delete: if false;
+    }
+
+    match /companies/{companyId}/locations/{locationId}/pos_settings/{settingsId} {
+      allow read: if sameOrgAndLocation(companyId, locationId) || isSuperAdmin();
+      allow create: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow update: if (
+        (sameOrgAndLocation(companyId, locationId) && isEmployee()) ||
+        isSuperAdmin()
+      ) &&
+        resource.data.companyId == companyId &&
+        resource.data.locationId == locationId &&
+        request.resource.data.companyId == companyId &&
+        request.resource.data.locationId == locationId &&
+        canWriteCompanyRuntime(companyId);
+      allow delete: if false;
+    }
+
     match /locations/{locationId} {
       allow read: if isSuperAdmin() || (
         userExists() &&
@@ -183,15 +473,15 @@ service cloud.firestore {
 
     match /task_templates/{templateId} {
       allow read: if true;
-      allow create: if true;
-      allow update: if true;
+      allow create: if canWriteRuntimeData(request.resource.data);
+      allow update: if canSafelyUpdateRoutineTemplate() && canWriteRuntimeData(resource.data);
       allow delete: if false;
     }
 
     match /verification_templates/{templateId} {
       allow read: if true;
-      allow create: if true;
-      allow update: if true;
+      allow create: if canWriteRuntimeData(request.resource.data);
+      allow update: if canSafelyUpdateRoutineTemplate() && canWriteRuntimeData(resource.data);
       allow delete: if false;
     }
 
@@ -227,7 +517,7 @@ service cloud.firestore {
 
       allow list: if (userExists() && isEmployee()) || isSuperAdmin();
 
-      allow create: if (userExists() && isEmployee()) || isSuperAdmin();
+      allow create: if ((userExists() && isEmployee()) || isSuperAdmin()) && canWriteRuntimeData(request.resource.data);
 
       allow update: if isSuperAdmin() || (
         isEmployee() &&
@@ -240,7 +530,8 @@ service cloud.firestore {
         (
           resource.data.locationId == null ||
           request.resource.data.locationId == resource.data.locationId
-        )
+        ) &&
+        canWriteRuntimeData(resource.data)
       );
 
       allow delete: if false;
@@ -257,7 +548,7 @@ service cloud.firestore {
     match /task_entries/{entryId} {
       allow get: if canReadOrgLocation(orgIdFromData(resource.data), resource.data.locationId) || isSuperAdmin();
       allow list: if (userExists() && isEmployee()) || isSuperAdmin();
-      allow create: if (userExists() && isEmployee()) || isSuperAdmin();
+      allow create: if ((userExists() && isEmployee()) || isSuperAdmin()) && canWriteRuntimeData(request.resource.data);
       allow update: if isSuperAdmin();
       allow delete: if false;
     }
@@ -265,8 +556,8 @@ service cloud.firestore {
     match /daily_runs/{runId} {
       allow get: if canReadOrgLocation(orgIdFromData(resource.data), resource.data.locationId) || isSuperAdmin();
       allow list: if (userExists() && isEmployee()) || isSuperAdmin();
-      allow create: if (userExists() && isEmployee()) || isSuperAdmin();
-      allow update: if (sameOrgAndLocation(orgIdFromData(resource.data), resource.data.locationId) && isEmployee() && unchangedOrganization() && unchangedLocation()) || isSuperAdmin();
+      allow create: if ((userExists() && isEmployee()) || isSuperAdmin()) && canWriteRuntimeData(request.resource.data);
+      allow update: if ((sameOrgAndLocation(orgIdFromData(resource.data), resource.data.locationId) && isEmployee() && unchangedOrganization() && unchangedLocation()) || isSuperAdmin()) && canWriteRuntimeData(resource.data);
       allow delete: if false;
     }
 
@@ -295,8 +586,8 @@ service cloud.firestore {
     match /equipment/{equipmentId} {
       allow get: if canReadOrgLocation(orgIdFromData(resource.data), resource.data.locationId);
       allow list: if userExists() && isEmployee();
-      allow create: if isOrgAdmin(orgIdFromData(request.resource.data)) && hasLocationAccess(request.resource.data.locationId);
-      allow update: if isOrgAdmin(orgIdFromData(resource.data)) && hasLocationAccess(resource.data.locationId) && unchangedOrganization() && unchangedLocation();
+      allow create: if isOrgAdmin(orgIdFromData(request.resource.data)) && hasLocationAccess(request.resource.data.locationId) && canWriteRuntimeData(request.resource.data);
+      allow update: if isOrgAdmin(orgIdFromData(resource.data)) && hasLocationAccess(resource.data.locationId) && unchangedOrganization() && unchangedLocation() && canWriteRuntimeData(resource.data);
       allow delete: if false;
     }
 
@@ -446,7 +737,8 @@ service cloud.firestore {
         (
           request.resource.data.companyId == userDoc().data.companyId ||
           request.resource.data.companyId == userDoc().data.organizationId
-        )
+        ) &&
+        canWriteRuntimeData(request.resource.data)
       );
       allow update: if isSuperAdmin() || (
         isEmployee() &&
@@ -459,7 +751,8 @@ service cloud.firestore {
         (
           resource.data.locationId == null ||
           request.resource.data.locationId == resource.data.locationId
-        )
+        ) &&
+        canWriteRuntimeData(resource.data)
       );
       allow delete: if false;
     }
@@ -475,23 +768,23 @@ service cloud.firestore {
     match /daily_reports/{reportId} {
       allow get: if canReadOrgLocation(orgIdFromData(resource.data), resource.data.locationId) || isSuperAdmin();
       allow list: if (userExists() && isEmployee()) || isSuperAdmin();
-      allow create: if (sameOrgAndLocation(orgIdFromData(request.resource.data), request.resource.data.locationId) && isEmployee()) || isSuperAdmin();
-      allow update: if sameOrgAndLocation(orgIdFromData(resource.data), resource.data.locationId) && isAdmin() && unchangedOrganization() && unchangedLocation();
+      allow create: if ((sameOrgAndLocation(orgIdFromData(request.resource.data), request.resource.data.locationId) && isEmployee()) || isSuperAdmin()) && canWriteRuntimeData(request.resource.data);
+      allow update: if sameOrgAndLocation(orgIdFromData(resource.data), resource.data.locationId) && isAdmin() && unchangedOrganization() && unchangedLocation() && canWriteRuntimeData(resource.data);
       allow delete: if false;
     }
 
     match /inventory_items/{itemId} {
       allow get: if canReadOrgLocation(orgIdFromData(resource.data), resource.data.locationId);
       allow list: if userExists() && isEmployee();
-      allow create: if sameOrgAndLocation(orgIdFromData(request.resource.data), request.resource.data.locationId) && isEmployee();
-      allow update: if sameOrgAndLocation(orgIdFromData(resource.data), resource.data.locationId) && isEmployee() && unchangedOrganization() && unchangedLocation();
+      allow create: if sameOrgAndLocation(orgIdFromData(request.resource.data), request.resource.data.locationId) && isEmployee() && canWriteRuntimeData(request.resource.data);
+      allow update: if sameOrgAndLocation(orgIdFromData(resource.data), resource.data.locationId) && isEmployee() && unchangedOrganization() && unchangedLocation() && canWriteRuntimeData(resource.data);
       allow delete: if false;
     }
 
     match /inventory_transactions/{transactionId} {
       allow get: if canReadOrgLocation(orgIdFromData(resource.data), resource.data.locationId);
       allow list: if userExists() && isEmployee();
-      allow create: if sameOrgAndLocation(orgIdFromData(request.resource.data), request.resource.data.locationId) && isEmployee();
+      allow create: if sameOrgAndLocation(orgIdFromData(request.resource.data), request.resource.data.locationId) && isEmployee() && canWriteRuntimeData(request.resource.data);
       allow update: if false;
       allow delete: if false;
     }
@@ -499,8 +792,8 @@ service cloud.firestore {
     match /inventory_alerts/{alertId} {
       allow get: if canReadOrgLocation(orgIdFromData(resource.data), resource.data.locationId);
       allow list: if userExists() && isEmployee();
-      allow create: if sameOrgAndLocation(orgIdFromData(request.resource.data), request.resource.data.locationId) && isEmployee();
-      allow update: if sameOrgAndLocation(orgIdFromData(resource.data), resource.data.locationId) && isEmployee() && unchangedOrganization() && unchangedLocation();
+      allow create: if sameOrgAndLocation(orgIdFromData(request.resource.data), request.resource.data.locationId) && isEmployee() && canWriteRuntimeData(request.resource.data);
+      allow update: if sameOrgAndLocation(orgIdFromData(resource.data), resource.data.locationId) && isEmployee() && unchangedOrganization() && unchangedLocation() && canWriteRuntimeData(resource.data);
       allow delete: if false;
     }
 
@@ -512,6 +805,13 @@ service cloud.firestore {
     match /workflow_state/{stateId} {
       allow read: if userExists();
       allow write: if isEmployee();
+    }
+
+    // Platform-admin audit trail (e.g. admin_preview_company). Super-admin only, append-only.
+    match /platform_admin_audit/{auditId} {
+      allow get, list: if isSuperAdmin();
+      allow create: if isSuperAdmin();
+      allow update, delete: if false;
     }
 
     // Active cooling runs — stored while a run is in progress, deleted on finish/abort.
@@ -531,21 +831,15 @@ service cloud.firestore {
           request.resource.data.companyId == userDoc().data.organizationId ||
           request.resource.data.organizationId == userDoc().data.companyId ||
           request.resource.data.organizationId == userDoc().data.organizationId
-        ));
+        ) && canWriteRuntimeData(request.resource.data));
       allow update: if isSuperAdmin() ||
         (isEmployee() && (
           resource.data.companyId == userDoc().data.companyId ||
           resource.data.companyId == userDoc().data.organizationId ||
           resource.data.organizationId == userDoc().data.companyId ||
           resource.data.organizationId == userDoc().data.organizationId
-        ));
-      allow delete: if isSuperAdmin() ||
-        (isEmployee() && (
-          resource.data.companyId == userDoc().data.companyId ||
-          resource.data.companyId == userDoc().data.organizationId ||
-          resource.data.organizationId == userDoc().data.companyId ||
-          resource.data.organizationId == userDoc().data.organizationId
-        ));
+        ) && canWriteRuntimeData(resource.data));
+      allow delete: if false;
     }
 
     // Active hot holding runs — stored while a run is in progress, deleted on finish/abort.
@@ -559,17 +853,20 @@ service cloud.firestore {
           request.resource.data.companyId == userOrgId() ||
           request.resource.data.organizationId == userOrgId()
         ) &&
-        hasLocationAccess(request.resource.data.locationId)
+        hasLocationAccess(request.resource.data.locationId) &&
+        canWriteRuntimeData(request.resource.data)
       );
 
-      allow update, delete: if isSuperAdmin() || (
+      allow update: if isSuperAdmin() || (
         userExists() &&
         isEmployee() &&
         (
           resource.data.companyId == userOrgId() ||
           resource.data.organizationId == userOrgId()
-        )
+        ) &&
+        canWriteRuntimeData(resource.data)
       );
+      allow delete: if false;
     }
 
     match /seo_generator_configs/{docId} {
@@ -627,27 +924,34 @@ service cloud.firestore {
     }
 
     // ─── CRM MODULE COLLECTIONS ──────────────────────────────────────────────
+    // INTERIM (deny-by-default): `prospects` and `cvr_enrichment_jobs` are GLOBAL,
+    // admin-imported collections with NO per-company scoping. The previous `isEmployee()`
+    // read rule let ANY logged-in user list the shared lead set across all tenants.
+    // Until customer CRM data is migrated to a company-scoped collection (e.g.
+    // companies/{companyId}/crm_prospects with entitlement + sameOrgAndLocation rules),
+    // restrict ALL access to platform/super-admin only. Do NOT loosen this back to
+    // isEmployee()/isAdmin() without first scoping the data by company/location.
 
     match /prospects/{cvrId} {
-      allow get: if isSuperAdmin() || (isEmployee() && userExists());
-      allow list: if isSuperAdmin() || (isEmployee() && userExists());
-      allow create: if isSuperAdmin() || (isAdmin() && userExists());
-      allow update: if isSuperAdmin() || (isAdmin() && userExists());
+      allow get: if isSuperAdmin();
+      allow list: if isSuperAdmin();
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin();
       allow delete: if false;
     }
 
     match /cvr_enrichment_jobs/{jobId} {
-      allow get: if isSuperAdmin() || (isAdmin() && userExists());
-      allow list: if isSuperAdmin() || (isAdmin() && userExists());
-      allow create: if isSuperAdmin() || (isAdmin() && userExists());
-      allow update: if isSuperAdmin() || (isAdmin() && userExists());
+      allow get: if isSuperAdmin();
+      allow list: if isSuperAdmin();
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin();
       allow delete: if false;
 
       match /items/{cvrId} {
-        allow get: if isSuperAdmin() || (isAdmin() && userExists());
-        allow list: if isSuperAdmin() || (isAdmin() && userExists());
-        allow create: if isSuperAdmin() || (isAdmin() && userExists());
-        allow update: if isSuperAdmin() || (isAdmin() && userExists());
+        allow get: if isSuperAdmin();
+        allow list: if isSuperAdmin();
+        allow create: if isSuperAdmin();
+        allow update: if isSuperAdmin();
         allow delete: if false;
       }
     }

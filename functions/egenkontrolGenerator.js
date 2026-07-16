@@ -9,6 +9,8 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 const { Timestamp } = admin.firestore;
 
+const { shouldSkipEquipmentBoundRoutineWithoutEquipment } = require("./equipmentRoutineGuard");
+
 /**
  * Generate dateKey in YYYY-MM-DD format for a given date in a specific timezone
  * @param {Date} date - Date object
@@ -484,6 +486,26 @@ async function createTaskInstancesForDate({ dateKey, locationId = null, timeZone
 
             for (const templateDoc of templatesSnapshot.docs) {
                 const template = { id: templateDoc.id, ...templateDoc.data() };
+
+                // Equipment-bound routines must carry a concrete unit — never spawn instances for
+                // legacy equipment templates that lack equipment. Process routines (nedkøling,
+                // 3-timers, varmholdelse, modtagekontrol ...) are unaffected.
+                if (shouldSkipEquipmentBoundRoutineWithoutEquipment(template)) {
+                    summary.blockedCount++;
+                    summary.blocked.push({
+                        templateId: template.id,
+                        title: template.title || template.name,
+                        reason: "skipped_missing_equipment"
+                    });
+                    console.warn("[egenkontrol generator skipped equipment-bound routine without equipment]", {
+                        companyId: template.companyId,
+                        locationId: template.locationId,
+                        routineType: template.routineType || template.templateKey,
+                        templateKey: template.templateKey,
+                        title: template.title || template.name
+                    });
+                    continue;
+                }
 
                 if (!shouldGenerateForDate(template, date, timeZone)) {
                     summary.notScheduledCount++;

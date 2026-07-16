@@ -1,0 +1,117 @@
+<svg viewBox="0 0 1200 280" xmlns="http://www.w3.org/2000/svg">
+  
+ <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" style="width: 100%; max-width: 1200px;">
+  <defs>
+    <style>
+      :root {
+        --awning-primary: #4a7c59;
+        --awning-secondary: #f5e6d3;
+        --awning-dark: #2d5a3d;
+        --awning-border: #3d6647;
+      }
+    </style>
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="10" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Gradient for 3D effect -->
+    <linearGradient id="stripeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fff;stop-opacity:0.3" />
+      <stop offset="50%" style="stop-color:#fff;stop-opacity:0" />
+      <stop offset="100%" style="stop-color:#000;stop-opacity:0.15" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main awning group with shadow -->
+  <g filter="url(#shadow)">
+    <!-- Back edge (darker) -->
+    <path d="M 150 200 L 1050 200 L 1070 220 L 130 220 Z" fill="var(--awning-dark)" opacity="0.8"/>
+    
+    <!-- Top surface with stripes -->
+    <g id="stripes">
+      <!-- Stripe 1 (cream) -->
+      <path d="M 130 220 L 150 200 L 230 200 L 210 220 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 2 (green) -->
+      <path d="M 210 220 L 230 200 L 310 200 L 290 220 Z" fill="var(--awning-primary)"/>
+      <!-- Stripe 3 (cream) -->
+      <path d="M 290 220 L 310 200 L 390 200 L 370 220 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 4 (green) -->
+      <path d="M 370 220 L 390 200 L 470 200 L 450 220 Z" fill="var(--awning-primary)"/>
+      <!-- Stripe 5 (cream) -->
+      <path d="M 450 220 L 470 200 L 550 200 L 530 220 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 6 (green) -->
+      <path d="M 530 220 L 550 200 L 630 200 L 610 220 Z" fill="var(--awning-primary)"/>
+      <!-- Stripe 7 (cream) -->
+      <path d="M 610 220 L 630 200 L 710 200 L 690 220 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 8 (green) -->
+      <path d="M 690 220 L 710 200 L 790 200 L 770 220 Z" fill="var(--awning-primary)"/>
+      <!-- Stripe 9 (cream) -->
+      <path d="M 770 220 L 790 200 L 870 200 L 850 220 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 10 (green) -->
+      <path d="M 850 220 L 870 200 L 950 200 L 930 220 Z" fill="var(--awning-primary)"/>
+      <!-- Stripe 11 (cream) -->
+      <path d="M 930 220 L 950 200 L 1030 200 L 1010 220 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 12 (green) -->
+      <path d="M 1010 220 L 1030 200 L 1050 200 L 1070 220 Z" fill="var(--awning-primary)"/>
+    </g>
+    
+    <!-- Gradient overlay for 3D effect -->
+    <path d="M 130 220 L 150 200 L 1050 200 L 1070 220 Z" fill="url(#stripeGradient)"/>
+    
+    <!-- Front face with stripes -->
+    <g id="frontStripes">
+      <!-- Stripe 1 (cream) -->
+      <path d="M 130 220 L 210 220 L 210 360 Q 210 370 200 370 L 140 370 Q 130 370 130 360 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 2 (green) -->
+      <path d="M 210 220 L 290 220 L 290 360 Q 290 370 280 370 L 220 370 Q 210 370 210 360 Z" fill="var(--awning-primary)"/>
+      <!-- Stripe 3 (cream) -->
+      <path d="M 290 220 L 370 220 L 370 360 Q 370 370 360 370 L 300 370 Q 290 370 290 360 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 4 (green) -->
+      <path d="M 370 220 L 450 220 L 450 360 Q 450 370 440 370 L 380 370 Q 370 370 370 360 Z" fill="var(--awning-primary)"/>
+      <!-- Stripe 5 (cream) -->
+      <path d="M 450 220 L 530 220 L 530 360 Q 530 370 520 370 L 460 370 Q 450 370 450 360 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 6 (green) -->
+      <path d="M 530 220 L 610 220 L 610 360 Q 610 370 600 370 L 540 370 Q 530 370 530 360 Z" fill="var(--awning-primary)"/>
+      <!-- Stripe 7 (cream) -->
+      <path d="M 610 220 L 690 220 L 690 360 Q 690 370 680 370 L 620 370 Q 610 370 610 360 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 8 (green) -->
+      <path d="M 690 220 L 770 220 L 770 360 Q 770 370 760 370 L 700 370 Q 690 370 690 360 Z" fill="var(--awning-primary)"/>
+      <!-- Stripe 9 (cream) -->
+      <path d="M 770 220 L 850 220 L 850 360 Q 850 370 840 370 L 780 370 Q 770 370 770 360 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 10 (green) -->
+      <path d="M 850 220 L 930 220 L 930 360 Q 930 370 920 370 L 860 370 Q 850 370 850 360 Z" fill="var(--awning-primary)"/>
+      <!-- Stripe 11 (cream) -->
+      <path d="M 930 220 L 1010 220 L 1010 360 Q 1010 370 1000 370 L 940 370 Q 930 370 930 360 Z" fill="var(--awning-secondary)"/>
+      <!-- Stripe 12 (green) -->
+      <path d="M 1010 220 L 1070 220 L 1070 360 Q 1070 370 1060 370 L 1020 370 Q 1010 370 1010 360 Z" fill="var(--awning-primary)"/>
+    </g>
+    
+    <!-- Scalloped bottom edge -->
+    <path d="M 130 360 Q 140 375 150 370 Q 160 365 170 370 Q 180 375 190 370 Q 200 365 210 360 
+              M 210 360 Q 220 375 230 370 Q 240 365 250 370 Q 260 375 270 370 Q 280 365 290 360
+              M 290 360 Q 300 375 310 370 Q 320 365 330 370 Q 340 375 350 370 Q 360 365 370 360
+              M 370 360 Q 380 375 390 370 Q 400 365 410 370 Q 420 375 430 370 Q 440 365 450 360
+              M 450 360 Q 460 375 470 370 Q 480 365 490 370 Q 500 375 510 370 Q 520 365 530 360
+              M 530 360 Q 540 375 550 370 Q 560 365 570 370 Q 580 375 590 370 Q 600 365 610 360
+              M 610 360 Q 620 375 630 370 Q 640 365 650 370 Q 660 375 670 370 Q 680 365 690 360
+              M 690 360 Q 700 375 710 370 Q 720 365 730 370 Q 740 375 750 370 Q 760 365 770 360
+              M 770 360 Q 780 375 790 370 Q 800 365 810 370 Q 820 375 830 370 Q 840 365 850 360
+              M 850 360 Q 860 375 870 370 Q 880 365 890 370 Q 900 375 910 370 Q 920 365 930 360
+              M 930 360 Q 940 375 950 370 Q 960 365 970 370 Q 980 375 990 370 Q 1000 365 1010 360
+              M 1010 360 Q 1020 375 1030 370 Q 1040 365 1050 370 Q 1060 375 1070 370" 
+          stroke="var(--awning-border)" stroke-width="2" fill="none"/>
+    
+    <!-- Border outline -->
+    <path d="M 150 200 L 1050 200 L 1070 220 L 1070 360 Q 1070 370 1060 370 L 140 370 Q 130 370 130 360 L 130 220 Z" 
+          stroke="var(--awning-border)" stroke-width="3" fill="none"/>
+  </g>
+</svg>

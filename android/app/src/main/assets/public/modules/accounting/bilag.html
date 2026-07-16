@@ -1,0 +1,381 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bilag indbakke | Madkontrollen Pro</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- (CSS unchanged, omitted for brevity) -->
+    <style>
+        /* ... your CSS here ... */
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <div class="container">
+            <header class="topbar">
+                <div class="topbar-inner">
+                    <div class="brand">
+                        <div class="brand-mark">🧾</div>
+                        <span>Madkontrollen Pro · Accounting / Bilag</span>
+                    </div>
+
+                    <nav class="nav">
+                        <a href="/dashboard">Dashboard</a>
+                        <a href="/modules/accounting/bilag.html" class="active">Bilag indbakke</a>
+                        <a href="/modules/accounting/bilag-godkend.html">Godkendelse</a>
+                        <a href="/modules/accounting/bilag-historik.html">Historik</a>
+                    </nav>
+                </div>
+            </header>
+
+            <section class="hero">
+                <div class="hero-card">
+                    <span class="eyebrow">Bon-AI workflow</span>
+                    <h1>Bilag indbakke med OCR, match og bogføringskladde</h1>
+                    <p>
+                        Her lander alle bilag først. Systemet simulerer bon-AI flowet:
+                        upload → OCR → felt-parser → leverandørmatch → regelmotor → AI fallback → confidence score.
+                        Klar til at sende videre til godkendelse og senere historik.
+                    </p>
+
+                    <div class="hero-actions">
+                        <button class="btn btn-primary" id="seedDemoBtn">Indlæs demo-bilag</button>
+                        <a class="btn btn-secondary" href="/modules/accounting/bilag-godkend.html">Gå til godkendelse</a>
+                    </div>
+                </div>
+
+                <aside class="stats-card">
+                    <div>
+                        <div class="stat-label">Status lige nu</div>
+                        <div style="font-size:1.2rem;font-weight:800;">Accounting v1 · Bon-AI</div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat">
+                            <div class="stat-label">I indbakke</div>
+                            <div class="stat-value" id="statInbox">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Afventer godkendelse</div>
+                            <div class="stat-value" id="statPending">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Godkendt</div>
+                            <div class="stat-value" id="statApproved">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Lav confidence</div>
+                            <div class="stat-value" id="statLowConfidence">0</div>
+                        </div>
+                    </div>
+
+                    <div class="quick-note">
+                        Tip: Bilag med lav confidence eller AI fallback bør altid gennemgås manuelt, før de sendes videre til kladden.
+                    </div>
+                </aside>
+            </section>
+
+            <section class="panel toolbar">
+                <input class="field" id="searchInput" type="search" placeholder="Søg leverandør, beløb, bilags-id eller konto..." />
+
+                <select id="statusFilter">
+                    <option value="all">Alle statusser</option>
+                    <option value="uploaded">Kun uploadet</option>
+                    <option value="processing">Kun under behandling</option>
+                    <option value="ready_for_review">Klar til review</option>
+                    <option value="awaiting_approval">Afventer godkendelse</option>
+                    <option value="approved">Godkendt</option>
+                </select>
+
+                <select id="confidenceFilter">
+                    <option value="all">Alle confidence</option>
+                    <option value="high">Høj (85-100)</option>
+                    <option value="medium">Mellem (60-84)</option>
+                    <option value="low">Lav (0-59)</option>
+                </select>
+
+                <select id="sourceFilter">
+                    <option value="all">Alle kilder</option>
+                    <option value="email">E-mail</option>
+                    <option value="mobile">Mobil upload</option>
+                    <option value="pos">POS</option>
+                    <option value="dragdrop">Drag & drop</option>
+                </select>
+
+                <button class="btn btn-secondary" id="resetBtn">Nulstil demo-data</button>
+            </section>
+
+            <section class="panel list-panel">
+                <div class="list-head">
+                    <div>
+                        <h2>Bilag indbakke</h2>
+                        <p>Bilag bliver automatisk analyseret og sendt videre til godkendelse, når de er klar.</p>
+                    </div>
+                    <a class="btn btn-primary" href="/modules/accounting/bilag-godkend.html">Åbn godkendelsesliste</a>
+                </div>
+
+                <div class="receipt-list" id="receiptList"></div>
+
+                <div class="footer-note">
+                    Demo frontend v1 bruger localStorage som midlertidig state.
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const STORAGE_KEY = "mkp_accounting_v1";
+
+        function createDemoReceipts() {
+            return [
+                // ... (demo data unchanged, omitted for brevity)
+            ];
+        }
+
+        function getStore() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) return JSON.parse(raw);
+
+            const initial = { receipts: createDemoReceipts() };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+            return initial;
+        }
+
+        function saveStore(store) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+        }
+
+        function resetStore() {
+            const store = { receipts: createDemoReceipts() };
+            saveStore(store);
+            return store;
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat("da-DK", {
+                style: "currency",
+                currency: "DKK"
+            }).format(Number(value || 0));
+        }
+
+        function statusLabel(status) {
+            const map = {
+                uploaded: "Uploadet",
+                processing: "Behandles",
+                ready_for_review: "Klar til review",
+                awaiting_approval: "Afventer godkendelse",
+                approved: "Godkendt"
+            };
+            return map[status] || status;
+        }
+
+        function statusChipClass(status) {
+            if (status === "approved") return "chip-green";
+            if (status === "awaiting_approval" || status === "ready_for_review") return "chip-blue";
+            if (status === "processing" || status === "uploaded") return "chip-amber";
+            return "";
+        }
+
+        function supplierMatchLabel(value) {
+            const map = {
+                exact: "Leverandørmatch: eksakt",
+                strong: "Leverandørmatch: stærk",
+                medium: "Leverandørmatch: mellem",
+                none: "Leverandørmatch: ingen",
+                waiting: "Leverandørmatch: afventer"
+            };
+            return map[value] || value;
+        }
+
+        function engineLabel(item) {
+            if (item.ruleEngine === "matched_previous_purchase") return "Regelmotor: tidligere køb";
+            if (item.ruleEngine === "category_rule") return "Regelmotor: kategoriregel";
+            if (item.ruleEngine === "ai_assisted") return "AI fallback brugt";
+            if (item.ruleEngine === "failed") return "Regelmotor fejlede";
+            if (item.ruleEngine === "waiting") return "Regelmotor afventer";
+            return item.ruleEngine;
+        }
+
+        function filterReceipts(receipts) {
+            const q = document.getElementById("searchInput").value.trim().toLowerCase();
+            const status = document.getElementById("statusFilter").value;
+            const confidence = document.getElementById("confidenceFilter").value;
+            const source = document.getElementById("sourceFilter").value;
+
+            return receipts.filter(item => {
+                const haystack = [
+                    item.id,
+                    item.supplier,
+                    item.accountSuggestion,
+                    item.accountNo,
+                    item.paymentMethod,
+                    item.total
+                ].join(" ").toLowerCase();
+
+                const matchesQuery = !q || haystack.includes(q);
+                const matchesStatus = status === "all" || item.status === status;
+                const matchesSource = source === "all" || item.source === source;
+
+                let matchesConfidence = true;
+                if (confidence === "high") matchesConfidence = item.confidence >= 85;
+                if (confidence === "medium") matchesConfidence = item.confidence >= 60 && item.confidence < 85;
+                if (confidence === "low") matchesConfidence = item.confidence < 60;
+
+                return matchesQuery && matchesStatus && matchesSource && matchesConfidence;
+            });
+        }
+
+        function updateStats(receipts) {
+            document.getElementById("statInbox").textContent = receipts.filter(r => ["uploaded", "processing", "ready_for_review"].includes(r.status)).length;
+            document.getElementById("statPending").textContent = receipts.filter(r => r.status === "awaiting_approval").length;
+            document.getElementById("statApproved").textContent = receipts.filter(r => r.status === "approved").length;
+            document.getElementById("statLowConfidence").textContent = receipts.filter(r => r.confidence < 60).length;
+        }
+
+        function moveToApproval(id) {
+            const store = getStore();
+            const receipt = store.receipts.find(r => r.id === id);
+            if (!receipt) return;
+
+            receipt.status = "awaiting_approval";
+            saveStore(store);
+            render();
+        }
+
+        function markApproved(id) {
+            const store = getStore();
+            const receipt = store.receipts.find(r => r.id === id);
+            if (!receipt) return;
+
+            receipt.status = "approved";
+            receipt.approvedAt = new Date().toLocaleString("da-DK");
+            saveStore(store);
+            render();
+        }
+
+        function render() {
+            const store = getStore();
+            const receipts = store.receipts;
+            updateStats(receipts);
+
+            const filtered = filterReceipts(receipts);
+            const list = document.getElementById("receiptList");
+
+            if (!filtered.length) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Ingen bilag matcher filtrene</h3>
+                        <p>Prøv en anden søgning eller nulstil demo-data.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = filtered.map(item => `
+                <article class="receipt-card">
+                    <div class="receipt-thumb">🧾</div>
+
+                    <div class="receipt-main">
+                        <h3>${item.supplier}</h3>
+
+                        <div class="meta-row">
+                            <span class="chip ${statusChipClass(item.status)}">${statusLabel(item.status)}</span>
+                            <span class="chip">${item.id}</span>
+                            <span class="chip">${item.source.toUpperCase()}</span>
+                            <span class="chip ${item.aiFallback ? "chip-amber" : "chip-green"}">${item.aiFallback ? "AI fallback" : "Regelmotor"}</span>
+                        </div>
+
+                        <p class="receipt-sub">
+                            Dato: <strong>${item.date}</strong> · Uploadet: <strong>${item.uploadedAt}</strong> ·
+                            Total: <strong>${formatMoney(item.total)}</strong> · Moms: <strong>${formatMoney(item.vat)}</strong><br>
+                            ${supplierMatchLabel(item.supplierMatch)} · ${engineLabel(item)}
+                        </p>
+
+                        <p class="receipt-sub" style="margin-top:10px;">
+                            Konto-forslag: <strong>${item.accountNo} · ${item.accountSuggestion}</strong><br>
+                            Betaling: <strong>${item.paymentMethod}</strong> · OCR: <strong>${item.ocrStatus}</strong> · Parser: <strong>${item.parserStatus}</strong>
+                        </p>
+
+                        <div class="card-actions">
+                            ${item.status !== "awaiting_approval" && item.status !== "approved" ? `
+                                <button class="mini-btn primary" data-action="moveToApproval" data-id="${item.id}">Send til godkendelse</button>
+                            ` : ""}
+
+                            ${item.status !== "approved" ? `
+                                <button class="mini-btn" data-action="markApproved" data-id="${item.id}">Godkend direkte</button>
+                            ` : ""}
+
+                            <a class="mini-btn" href="/modules/accounting/bilag-godkend.html">Åbn godkendelse</a>
+                            <a class="mini-btn warn" href="/modules/accounting/bilag-historik.html">Se historik</a>
+                        </div>
+                    </div>
+
+                    <div class="receipt-side">
+                        <div class="score-box">
+                            <div class="score-top">
+                                <div class="score-label">Confidence score</div>
+                                <div class="score-value">${item.confidence}%</div>
+                            </div>
+                            <div class="score-bar">
+                                <div class="score-fill" style="width:${item.confidence}%;"></div>
+                            </div>
+                            <div style="margin-top:10px;color:var(--acc-muted);font-size:.9rem;">
+                                ${item.note}
+                            </div>
+                        </div>
+
+                        <div class="draft-box">
+                            <div class="score-label">Bogføringskladde</div>
+                            <div class="draft-lines">
+                                ${item.draftLines.map(line => `
+                                    <div class="draft-line">
+                                        <span>${line.label}</span>
+                                        <strong>${line.amount}</strong>
+                                    </div>
+                                `).join("")}
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `).join("");
+
+            // Attach event listeners for dynamic buttons
+            document.querySelectorAll('[data-action="moveToApproval"]').forEach(btn => {
+                btn.addEventListener("click", function() {
+                    moveToApproval(this.getAttribute("data-id"));
+                });
+            });
+            document.querySelectorAll('[data-action="markApproved"]').forEach(btn => {
+                btn.addEventListener("click", function() {
+                    markApproved(this.getAttribute("data-id"));
+                });
+            });
+        }
+
+        document.getElementById("searchInput").addEventListener("input", render);
+        document.getElementById("statusFilter").addEventListener("change", render);
+        document.getElementById("confidenceFilter").addEventListener("change", render);
+        document.getElementById("sourceFilter").addEventListener("change", render);
+
+        document.getElementById("resetBtn").addEventListener("click", () => {
+            resetStore();
+            render();
+        });
+
+        document.getElementById("seedDemoBtn").addEventListener("click", () => {
+            resetStore();
+            render();
+        });
+
+        render();
+    </script>
+</body>
+</html>
+

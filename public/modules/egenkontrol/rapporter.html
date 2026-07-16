@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow">
     <title>Rapporter | Madkontrollen Pro</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -461,6 +462,23 @@
             }
         }
 
+        .report-filter-summary{
+            background:#f4f8f4;
+            border:1px solid #d7e3d7;
+            border-radius:10px;
+            padding:12px 14px;
+            margin:0 0 14px;
+            font-size:13px;
+            line-height:1.6;
+            color:#243f26;
+        }
+        .report-filter-summary .filter-summary-title{
+            font-weight:800;
+            font-size:15px;
+            margin-bottom:6px;
+            color:#1f4727;
+        }
+
         @media print{
             body{
                 background:#fff;
@@ -470,8 +488,20 @@
             .hero,
             .reports-toolbar,
             .report-actions,
+            .report-pagination,
+            #entriesPagination,
             .print-note{
                 display:none !important;
+            }
+            .report-filter-summary{
+                display:block !important;
+                break-after:avoid;
+            }
+            .report-category-block{
+                break-before:page;
+            }
+            .report-category-block:first-of-type{
+                break-before:auto;
             }
             .page-shell,
             .container,
@@ -531,8 +561,9 @@
                             <p>Filtrér handlinger og afvigelser for den ønskede periode.</p>
                         </div>
                         <div class="report-actions">
-                            <button class="btn btn-secondary" id="resetFiltersBtn" type="button">Nulstil filtre</button>
-                            <button class="btn btn-primary" id="printReportBtn" type="button">Print / gem som PDF</button>
+                            <button class="btn btn-secondary" id="resetFiltersBtn" type="button">Nulstil filter</button>
+                            <button class="btn btn-secondary" id="printReportBtn" type="button">Print / gem som PDF</button>
+                            <button class="btn btn-primary" id="printSelectionBtn" type="button">Udskriv valgt som PDF</button>
                         </div>
                     </div>
                     <div class="reports-toolbar">
@@ -541,18 +572,51 @@
                             <option value="today">I dag</option>
                             <option value="7days">Seneste 7 dage</option>
                             <option value="30days">Seneste 30 dage</option>
+                            <option value="90days">Seneste 3 måneder</option>
                             <option value="all">Hele perioden</option>
                         </select>
+                        <select id="dateTypeFilter">
+                            <option value="registration">Registreringsdato</option>
+                            <option value="performed">Udført dato</option>
+                            <option value="created">Oprettet dato</option>
+                        </select>
+                        <input type="date" id="fromDateFilter" title="Fra dato" />
+                        <input type="date" id="toDateFilter" title="Til dato" />
                         <select id="statusFilter">
-                            <option value="all">Alle statusser</option>
-                            <option value="completed">Fuldført</option>
+                            <option value="all">Alle</option>
+                            <option value="completed">Udført</option>
+                            <option value="not_performed">Ikke udført</option>
+                            <option value="deviations">Afvigelser</option>
                             <option value="overdue">Gået over tid</option>
-                            <option value="failed">Afvigelse</option>
-                            <option value="not_in_use">Ikke i brug</option>
                             <option value="cleaning_required">Mangler rengøring</option>
+                            <option value="not_in_use">Ikke i brug</option>
                         </select>
                         <select id="categoryFilter">
                             <option value="all">Alle kategorier</option>
+                        </select>
+                        <select id="reportCategoryFilter" title="Rapportkategori (styrer hvad der vises og udskrives)">
+                            <option value="all">Alle kategorier (samlet)</option>
+                            <option value="haccp">HACCP / risikoanalyse</option>
+                            <option value="temperature">Temperatur (alle)</option>
+                            <option value="cold_storage">Køl/frost (walk-in)</option>
+                            <option value="freezer">Fryser</option>
+                            <option value="fridge">Køleskab</option>
+                            <option value="heating">Opvarmning</option>
+                            <option value="cooling_down">Nedkøling</option>
+                            <option value="hot_holding">Varmholdelse</option>
+                            <option value="cleaning">Rengøring</option>
+                            <option value="goods_receiving">Modtagekontrol</option>
+                            <option value="deviations">Afvigelser</option>
+                            <option value="daily_reports">Dagsrapporter</option>
+                            <option value="documentation">Dokumentation (samtlige)</option>
+                        </select>
+                        <select id="equipmentFilter" title="Udstyr / enhed">
+                            <option value="all">Alt udstyr</option>
+                        </select>
+                        <select id="pageSizeFilter" title="Antal pr. side">
+                            <option value="25">25 pr. side</option>
+                            <option value="50">50 pr. side</option>
+                            <option value="100">100 pr. side</option>
                         </select>
                         <select id="sortFilter">
                             <option value="newest">Nyeste først</option>
@@ -572,8 +636,9 @@
                 <section class="report-preview" id="reportPreview">
                     <div id="reportPrintRoot">
                         <div class="print-only"><strong>Madkontrollen Pro · Rapport og dokumentation</strong></div>
+                        <div id="reportFilterSummary" class="report-filter-summary"></div>
                         <div class="preview-head">
-                            <div><h2 class="preview-title">Rapport over handlinger og dokumentation</h2><p class="preview-text" id="previewText">Viser alle registreringer, målinger, kommentarer og afvigelser for den valgte periode.</p></div>
+                            <div><h2 class="preview-title">Rapport over handlinger og dokumentation</h2><p class="preview-text" id="previewText">Viser alle registreringer, målinger, kommentarer og afvigelser for den valgte periode.</p><div class="preview-text" id="authority-report-loading-text" style="display:none;font-style:italic;color:#2e7d32;margin-top:6px;"></div></div>
                             <div class="report-actions"><button class="btn btn-secondary" id="previewPrintBtn" type="button">Print</button><button class="btn btn-primary" id="previewPdfBtn" type="button">Gem som PDF</button></div>
                         </div>
                         <div class="report-meta-grid">
@@ -588,17 +653,25 @@
                             <div class="authority-head"><div><h3>Myndighedsrapport (HACCP &amp; Logs)</h3><p>Samlet dokumentation til kontrolbesøg: HACCP, temperaturhistorik, varmholdelse, afvigelser, rengøringsplan og modtagekontrol i én printklar rapport.</p></div><div id="authorityBadge" class="authority-badge">Myndighedsrapport</div></div>
                             <div class="authority-welcome"><strong>Velkommen til virksomhedens samlede egenkontrol-dokumentation</strong><p>Denne rapport er udarbejdet for at give et klart og gennemsigtigt overblik over vores aktive risikoanalyse, daglige registreringer, temperaturlogs, rengøringskontroller, modtagekontrol og korrigerende handlinger. Formålet er at gøre dokumentationen let at gennemgå og vise, at egenkontrollen anvendes aktivt i den daglige drift.</p></div>
                             <div class="authority-grid">
-                                <article class="authority-card"><h4>1. Lovpligtig Risikoanalyse (HACCP)</h4><p>Seneste gældende HACCP-snapshot med kritiske punkter og kontrolkrav.</p><div class="authority-meta" id="authorityHaccpMeta"></div><div class="authority-welcome" id="authorityHaccpIntro" style="margin-top:8px;"></div><ul class="authority-list" id="authorityHaccpList"></ul></article>
-                                <article class="authority-card"><h4>2. Aktive temperaturlogs, sidste 3 måneder</h4><p>Daglige målinger for køl, frost og walk-ins samt dokumenteret frekvens.</p><div class="authority-meta" id="authorityTempMeta"></div><ul class="authority-list" id="authorityTempList"></ul></article>
-                                <article class="authority-card"><h4>3. Dokumentation for varmholdelse</h4><p>Målinger for servering og varmholdte fødevarer, hvor grænsen er minimum 65°C.</p><div class="authority-meta" id="authorityHotMeta"></div><ul class="authority-list" id="authorityHotList"></ul></article>
-                                <article class="authority-card"><h4>4. Afvigelsesrapporter og korrigerende handlinger</h4><p>Viser at systemet reagerer, når noget går galt, og hvad der konkret blev gjort.</p><div class="authority-meta" id="authorityDeviationMeta"></div><ul class="authority-list" id="authorityDeviationList"></ul></article>
-                                <article class="authority-card"><h4>5. Rengøringsplan og daglig kontrol</h4><p>Overordnet rengøringsplan for områderne og dagens dokumenterede udførelse.</p><div class="authority-meta" id="authorityCleaningMeta"></div><ul class="authority-list" id="authorityCleaningList"></ul></article>
-                                <article class="authority-card"><h4>6. Modtagekontrol</h4><p>Log over varemodtagelse med temperatur, emballage og leveringskontrol.</p><div class="authority-meta" id="authorityReceivingMeta"></div><ul class="authority-list" id="authorityReceivingList"></ul></article>
+                                <article class="authority-card report-category-block" data-report-category="haccp"><h4>1. Lovpligtig Risikoanalyse (HACCP)</h4><p>Seneste gældende HACCP-snapshot med kritiske punkter og kontrolkrav.</p><div class="authority-meta" id="authorityHaccpMeta"></div><div class="authority-welcome" id="authorityHaccpIntro" style="margin-top:8px;"></div><ul class="authority-list" id="authorityHaccpList"></ul></article>
+                                <article class="authority-card report-category-block" data-report-category="temperature"><h4>2. Aktive temperaturlogs, sidste 3 måneder</h4><p>Daglige målinger for køl, frost og walk-ins samt dokumenteret frekvens.</p><div class="authority-meta" id="authorityTempMeta"></div><ul class="authority-list" id="authorityTempList"></ul></article>
+                                <article class="authority-card report-category-block" data-report-category="hot_holding"><h4>3. Dokumentation for varmholdelse</h4><p>Målinger for servering og varmholdte fødevarer, hvor grænsen er minimum 65°C.</p><div class="authority-meta" id="authorityHotMeta"></div><ul class="authority-list" id="authorityHotList"></ul></article>
+                                <article class="authority-card report-category-block" data-report-category="deviations"><h4>4. Afvigelsesrapporter og korrigerende handlinger</h4><p>Viser at systemet reagerer, når noget går galt, og hvad der konkret blev gjort.</p><div class="authority-meta" id="authorityDeviationMeta"></div><ul class="authority-list" id="authorityDeviationList"></ul></article>
+                                <article class="authority-card report-category-block" data-report-category="cleaning"><h4>5. Rengøringsplan og daglig kontrol</h4><p>Overordnet rengøringsplan for områderne og dagens dokumenterede udførelse.</p><div class="authority-meta" id="authorityCleaningMeta"></div><ul class="authority-list" id="authorityCleaningList"></ul></article>
+                                <article class="authority-card report-category-block" data-report-category="goods_receiving"><h4>6. Modtagekontrol</h4><p>Log over varemodtagelse med temperatur, emballage og leveringskontrol.</p><div class="authority-meta" id="authorityReceivingMeta"></div><ul class="authority-list" id="authorityReceivingList"></ul></article>
                             </div>
-                            <div class="authority-actions"><a class="btn btn-secondary" href="/modules/egenkontrol/risikoanalyse.html">Åbn risikoanalyse</a><a class="btn btn-secondary" href="/modules/egenkontrol/afvigelser.html?filter=all">Åbn afvigelser</a></div>
+                            <div class="authority-actions"><a class="btn btn-secondary" href="/modules/egenkontrol/risikoanalyse.html">Åbn risikoanalyse</a><a class="btn btn-secondary" href="/modules/egenkontrol/logbooks.html">Åbn logbøger</a><a class="btn btn-secondary" href="/modules/egenkontrol/afvigelser.html?filter=all">Åbn afvigelser</a></div>
                         </section>
 
-                        <div class="report-section"><h3>Samtlige handlinger</h3><div class="entries-list" id="entriesTableBody"></div></div>
+                        <div class="report-section report-category-block" data-report-category="documentation">
+                            <h3>Samtlige handlinger</h3>
+                            <div class="entries-list" id="entriesTableBody"></div>
+                            <div class="report-pagination" id="entriesPagination" style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap;">
+                                <button class="btn btn-secondary" id="entriesPrevBtn" type="button">← Forrige</button>
+                                <span id="entriesPageInfo" style="font-size:13px;color:#52605a;">Viser 0-0 af 0</span>
+                                <button class="btn btn-secondary" id="entriesNextBtn" type="button">Næste →</button>
+                            </div>
+                        </div>
                         <div class="report-section"><h3>Afvigelser og alerts</h3><div class="alert-list" id="alertsList"></div></div>
                         <div class="print-note">Brug “Print / gem som PDF” og vælg derefter “Gem som PDF” i browserens print-dialog.</div>
                     </div>
@@ -632,13 +705,14 @@
         limit
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const SETTINGS = { companyId: "", companyLegacyId: "", unitId: "", locationId: "", locationLegacyId: "", currentUserId: "", companyDisplayName: "", companyName: "", locationDisplayName: "", locationName: "", profileAddress: "" };
+    const SETTINGS = { companyId: "", companyLegacyId: "", unitId: "", locationId: "", locationLegacyId: "", linkedLegacyCompanyId: "", linkedLegacyLocationId: "", currentUserId: "", companyDisplayName: "", companyName: "", locationDisplayName: "", locationName: "", profileAddress: "" };
     const PROFILE_KEY = "mkp_egenkontrol_company_profile_v1";
     const LOCATION_KEY = "mkp_selected_locationId";
     const params = new URLSearchParams(window.location.search);
     const requestedView = String(params.get("view") || "").trim().toLowerCase();
     const reportMode = String(params.get("mode") || "").trim().toLowerCase();
     const AUTHORITY_MODE = reportMode === "authority";
+    const DEBUG_REPORTS = params.get("debug") === "1"; // gate verbose per-entry/per-title logs
     const reportId = String(params.get("reportId") || "").trim();
 
     await loadLayout();
@@ -648,6 +722,9 @@
     const statusFilter = document.getElementById("statusFilter");
     const categoryFilter = document.getElementById("categoryFilter");
     const sortFilter = document.getElementById("sortFilter");
+    const dateTypeFilter = document.getElementById("dateTypeFilter");
+    const fromDateFilter = document.getElementById("fromDateFilter");
+    const toDateFilter = document.getElementById("toDateFilter");
     const summaryEntriesEl = document.getElementById("summaryEntries");
     const summaryCompletedEl = document.getElementById("summaryCompleted");
     const summaryFailedEl = document.getElementById("summaryFailed");
@@ -755,6 +832,32 @@
         SETTINGS.locationLegacyId = SETTINGS.locationId.replace(/_/g, "-");
     }
 
+    // Derive a linked LEGACY scope from restored masterdata (read-only). Restored equipment/
+    // task_templates carry restoredFromCompanyId/restoredFromLocationId pointing at the legacy
+    // scope. Reports then merge legacy + canonical so the full history is shown — without copying
+    // any task_entries into the canonical scope (which the routines page reads).
+    async function resolveLinkedLegacyScope() {
+        SETTINGS.linkedLegacyCompanyId = "";
+        SETTINGS.linkedLegacyLocationId = "";
+        if (!SETTINGS.companyId || !SETTINGS.locationId) return;
+        try {
+            for (const col of ["equipment", "task_templates"]) {
+                const snap = await getDocs(query(collection(db, col), where("locationId", "==", SETTINGS.locationId), limit(5)));
+                const hit = snap.docs
+                    .map(d => d.data())
+                    .find(x => x.restoredFromCompanyId && x.restoredFromLocationId && x.restoredFromLocationId !== SETTINGS.locationId);
+                if (hit) {
+                    SETTINGS.linkedLegacyCompanyId = String(hit.restoredFromCompanyId).trim();
+                    SETTINGS.linkedLegacyLocationId = String(hit.restoredFromLocationId).trim();
+                    console.log("[rapporter linked legacy scope]", { companyId: SETTINGS.linkedLegacyCompanyId, locationId: SETTINGS.linkedLegacyLocationId, via: col });
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn("[rapporter] resolveLinkedLegacyScope failed:", e?.message || e);
+        }
+    }
+
     async function loadLiveProfileNames() {
         if (!SETTINGS.companyId || !SETTINGS.locationId) return;
 
@@ -783,11 +886,21 @@
             { companyField: "companyId", companyValue: SETTINGS.companyId, locationValue: SETTINGS.locationId },
             { companyField: "organizationId", companyValue: SETTINGS.companyId, locationValue: SETTINGS.locationId },
             { companyField: "companyId", companyValue: SETTINGS.companyLegacyId, locationValue: SETTINGS.locationLegacyId },
-            { companyField: "organizationId", companyValue: SETTINGS.companyLegacyId, locationValue: SETTINGS.locationLegacyId }
+            { companyField: "organizationId", companyValue: SETTINGS.companyLegacyId, locationValue: SETTINGS.locationLegacyId },
+            // Linked LEGACY scope (derived from restored masterdata): merge so the full history shows.
+            { companyField: "companyId", companyValue: SETTINGS.linkedLegacyCompanyId, locationValue: SETTINGS.linkedLegacyLocationId },
+            { companyField: "organizationId", companyValue: SETTINGS.linkedLegacyCompanyId, locationValue: SETTINGS.linkedLegacyLocationId }
         ];
 
+        // MERGE all non-empty scope variants (canonical + linked legacy), dedup by doc id.
+        // Returns the union — e.g. Aroi-D's report shows both canonical AND legacy task_entries.
+        const merged = new Map();
+        const seenScope = new Set();
         for (const variant of scopeVariants) {
             if (!variant.companyValue || !variant.locationValue) continue;
+            const scopeKey = variant.companyField + "|" + variant.companyValue + "|" + variant.locationValue;
+            if (seenScope.has(scopeKey)) continue;
+            seenScope.add(scopeKey);
 
             try {
                 const filters = [
@@ -805,10 +918,7 @@
 
                 const q = query(collection(db, collectionName), ...filters);
                 const snapshot = await getDocs(q);
-
-                if (!snapshot.empty) {
-                    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                }
+                snapshot.docs.forEach(d => { if (!merged.has(d.id)) merged.set(d.id, { id: d.id, ...d.data() }); });
             } catch (error) {
                 const isPermissionError =
                     error?.code === "permission-denied" ||
@@ -816,14 +926,14 @@
 
                 if (collectionName === "logbook_entries" && isPermissionError) {
                     console.warn(`Springer ${collectionName} over (mangler adgang)`);
-                    return [];
+                    continue;
                 }
 
                 console.warn(`Scoped query fejlede for ${collectionName}:`, error);
             }
         }
 
-        return [];
+        return Array.from(merged.values());
     }
 
     function escapeHtml(v) {
@@ -913,6 +1023,76 @@
             e?.taskInstance?.updatedAt ||
             null
         );
+    }
+
+    function prettyPersonName(value = "") {
+        const text = String(value || "").trim();
+        if (!text) return "";
+        if (isCompanyLikePersonName(text)) return "";
+        if (!text.includes("@")) return text;
+        return text
+            .split("@")[0]
+            .replace(/[._-]+/g, " ")
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+            .join(" ");
+    }
+
+    function normalizePersonCompare(value = "") {
+        return String(value || "")
+            .trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, "");
+    }
+
+    function isCompanyLikePersonName(value = "") {
+        const normalized = normalizePersonCompare(value);
+        if (!normalized) return false;
+        return [
+            SETTINGS.companyDisplayName,
+            SETTINGS.companyName,
+            SETTINGS.locationDisplayName,
+            SETTINGS.locationName,
+            SETTINGS.companyId,
+            SETTINGS.locationId
+        ].some((candidate) => {
+            const normalizedCandidate = normalizePersonCompare(candidate);
+            return normalizedCandidate && normalized === normalizedCandidate;
+        });
+    }
+
+    function firstPresent(...values) {
+        return values.find((value) => value !== undefined && value !== null && String(value).trim() !== "");
+    }
+
+    function getEntryCreatedByName(e = {}) {
+        return prettyPersonName(firstPresent(
+            e.createdByName,
+            e.createdByEmail,
+            e.taskInstanceCreatedByName,
+            e.taskInstance?.createdByName,
+            e.taskInstance?.createdByEmail,
+            ""
+        )) || "—";
+    }
+
+    function getEntryCompletedByName(e = {}) {
+        return prettyPersonName(firstPresent(
+            e.completedByName,
+            e.performedByName,
+            e.responsibleName,
+            e.completedByEmail,
+            e.taskInstanceCompletedByName,
+            e.taskInstance?.completedByName,
+            e.taskInstance?.lastCompletedByName,
+            e.taskInstance?.completedByEmail,
+            e.taskInstance?.updatedByName,
+            ""
+        )) || "—";
     }
 
     function getAlertCreatedAt(a) {
@@ -1007,7 +1187,7 @@
 
     function resolveInitialPeriodValue() {
         const allowed = new Set(["today", "7days", "30days", "90days", "all"]);
-        const fallback = AUTHORITY_MODE ? "90days" : "today";
+        const fallback = "90days";
         return allowed.has(requestedView) ? requestedView : fallback;
     }
 
@@ -1183,7 +1363,7 @@
         const an = String(e.areaName || "").trim();
         if (sl) return sl;
         if (mn && an) return `${mn} i ${an}`;
-        return mn || an || e.equipmentName || "—";
+        return mn || an || e.equipmentName || e.unitName || "Udstyr ikke angivet";
     }
 
     function getEntryRiskReference(e) {
@@ -1214,6 +1394,37 @@
         return thumbs ? `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">${thumbs}</div>` : "";
     }
 
+    function isCoolingReportEntry(e) {
+        return resolveCategory(e) === "Nedkøling";
+    }
+
+    function getCoolingFoodItem(e = {}) {
+        return String(
+            e?.foodItem ||
+            e?.productName ||
+            e?.coolingData?.foodItem ||
+            e?.coolingData?.productName ||
+            e?.contextFields?.foodItem ||
+            e?.contextFields?.productName ||
+            ""
+        ).trim() || "Ikke angivet";
+    }
+
+    function getEntryPerformerName(e = {}) {
+        return String(
+            e?.performedByName ||
+            e?.completedByName ||
+            e?.completedByNameResolved ||
+            e?.responsibleName ||
+            e?.userName ||
+            e?.userEmail ||
+            e?.performedByUid ||
+            e?.completedBy ||
+            e?.createdBy ||
+            ""
+        ).trim() || "Ukendt bruger";
+    }
+
     function buildDeviationDetails(e) {
         const isDeviation = e?.resultStatus === "deviation" || e?.status === "deviation";
         if (!isDeviation) return null;
@@ -1224,8 +1435,8 @@
         const startTemp = evaluation.startTemp ?? coolingData.startTemp ?? null;
         const endTemp = evaluation.endTemp ?? coolingData.endTemp ?? null;
         const durationMinutes = evaluation.durationMinutes ?? coolingData.coolingDuration ?? coolingData.durationMinutes ?? null;
-        const productName = String(coolingData.productName || e?.productName || "").trim();
-        const responsibleName = String(e?.completedByName || e?.responsibleName || "").trim();
+        const productName = getCoolingFoodItem(e);
+        const responsibleName = getEntryPerformerName(e);
         const startedAt = coolingData.startedAt || e?.startedAt || null;
         const finishedAt = coolingData.finishedAt || e?.finishedAt || null;
 
@@ -1235,9 +1446,7 @@
 
         const lines = [];
 
-        if (productName) {
-            lines.push(`<strong>Produkt:</strong> ${escapeHtml(productName)}`);
-        }
+        lines.push(`<strong>Fødevare:</strong> ${escapeHtml(productName)}`);
 
         if (startTemp !== null && endTemp !== null) {
             lines.push(`<strong>Temperatur:</strong> Start ${startTemp}°C → Slut ${endTemp}°C`);
@@ -1259,9 +1468,7 @@
             lines.push(`<strong>Årsag:</strong> ${escapeHtml(failureReason)}`);
         }
 
-        if (responsibleName) {
-            lines.push(`<strong>Ansvarlig:</strong> ${escapeHtml(responsibleName)}`);
-        }
+        lines.push(`<strong>Udført af:</strong> ${escapeHtml(responsibleName)}`);
 
         if (startedAt) {
             lines.push(`<strong>Startet:</strong> ${escapeHtml(formatDateTime(startedAt))}`);
@@ -1284,6 +1491,13 @@
         const ai = String(e.beskrivelse || "").trim();
         const risk = getEntryRiskReference(e);
         const areaType = String(e.areaType || "").trim();
+        const method = e?.method || e?.coolingMethodLabel || e?.coolingData?.coolingMethodLabel || e?.coolingData?.coolingMethod || "";
+
+        if (isCoolingReportEntry(e)) {
+            parts.push(`Fødevare: ${getCoolingFoodItem(e)}`);
+            if (method) parts.push(`Metode: ${method}`);
+            parts.push(`Udført af: ${getEntryPerformerName(e)}`);
+        }
 
         if (note) parts.push(note);
         if (ai && ai !== note) parts.push(`AI: ${ai}`);
@@ -1393,18 +1607,28 @@
         const measurement = getMeasurementLabel(e);
         const comment = buildEntryComment(e);
         const product =
+            e?.foodItem ||
             e?.productName ||
+            e?.coolingData?.foodItem ||
             e?.coolingData?.productName ||
             e?.heatingData?.productName ||
             e?.contextFields?.productName ||
             "";
+        const isCooling = isCoolingReportEntry(e);
 
         if (title && title !== "Rutine") lines.push(`<strong>Rutine:</strong> ${escapeHtml(title)}`);
         if (area && area !== "—") lines.push(`<strong>Område/udstyr:</strong> ${escapeHtml(area)}`);
-        if (product) lines.push(`<strong>Produkt:</strong> ${escapeHtml(product)}`);
+        if (isCooling) {
+            lines.push(`<strong>Fødevare:</strong> ${escapeHtml(product || "Ikke angivet")}`);
+            lines.push(`<strong>Udført af:</strong> ${escapeHtml(getEntryPerformerName(e))}`);
+        } else if (product) {
+            lines.push(`<strong>Produkt:</strong> ${escapeHtml(product)}`);
+        }
         if (measurement && measurement !== "—") lines.push(`<strong>Måling:</strong> ${escapeHtml(measurement)}`);
         if (comment && comment !== "—") lines.push(`<strong>Dokumentation:</strong> ${escapeHtml(comment)}`);
         lines.push(`<strong>Status:</strong> ${escapeHtml(getEntryStatusLabel(e))}`);
+        if (!isCooling) lines.push(`<strong>Udført af:</strong> ${escapeHtml(getEntryCompletedByName(e))}`);
+        lines.push(`<strong>Oprettet af:</strong> ${escapeHtml(getEntryCreatedByName(e))}`);
 
         return lines.join("<br>");
     }
@@ -1453,6 +1677,65 @@
         return `/modules/egenkontrol/afvigelser.html?${params.toString()}`;
     }
 
+    // Deviation status helpers — a resolved/cancelled/closed deviation is "handled", not "open".
+    // Used to keep resolved recalls out of the active deviation list (history is preserved, nothing deleted).
+    function normalizeDeviationStatus(value) {
+        return String(value || "").trim().toLowerCase();
+    }
+
+    function isResolvedDeviation(item = {}) {
+        const status = normalizeDeviationStatus(
+            item.status ||
+            item.deviationStatus ||
+            item.state ||
+            item.workflowStatus ||
+            item.resolutionStatus
+        );
+
+        if (
+            status === "løst" ||
+            status === "loest" ||
+            status === "resolved" ||
+            status === "closed" ||
+            status === "lukket" ||
+            status === "annulleret" ||
+            status === "annuleret" ||
+            status === "cancelled" ||
+            status === "canceled" ||
+            status === "done" ||
+            status === "completed"
+        ) {
+            return true;
+        }
+
+        return Boolean(
+            item.resolvedAt ||
+            item.closedAt ||
+            item.cancelledAt ||
+            item.annulledAt ||
+            item.completedAt ||
+            item.handledAt
+        );
+    }
+
+    function isOpenDeviation(item = {}) {
+        return !isResolvedDeviation(item);
+    }
+
+    function hasDeviationAction(item = {}) {
+        return Boolean(
+            item.correctiveAction ||
+            item.correctionAction ||
+            item.action ||
+            item.handling ||
+            item.handledAt ||
+            item.resolvedAt ||
+            item.closedAt ||
+            item.completedAt ||
+            isResolvedDeviation(item)
+        );
+    }
+
     function getAuthorityDeviationItems(authorityEntries, authorityAlerts) {
         const entryItems = authorityEntries
             .filter(isAuthorityDeviationEntry)
@@ -1460,7 +1743,7 @@
 
         const alertItems = authorityAlerts.map((alert) => ({ sourceType: "alert", item: alert }));
         const deviationItems = allDeviations
-            .filter((item) => alertMatchesPeriod(item, "90days"))
+            .filter((item) => alertMatchesPeriod(item, periodFilter.value, fromDateFilter.value, toDateFilter.value))
             .map((item) => ({ sourceType: "deviation", item }));
 
         return [...alertItems, ...deviationItems, ...entryItems];
@@ -1504,9 +1787,76 @@
         return "Hele perioden";
     }
 
-    function entryMatchesPeriod(entry, periodValue) {
+    function toFilterDateKey(v) {
+        if (!v) return "";
+        if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+        // normalizeDateValue handles Firestore Timestamp, {seconds} objects, Date, string and number.
+        const d = normalizeDateValue(v);
+        if (!d || isNaN(d.getTime())) return "";
+        return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Copenhagen", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+    }
+
+    // SINGLE SOURCE OF TRUTH for which date a report entry belongs to, per date-type.
+    // Used by filtering, sorting AND display so they can never disagree.
+    // - registration: the day the entry was logged for (dateKey first) — default for authority docs
+    // - performed:    when it was actually carried out (completedAt first), no createdAt fallback
+    // - created:      when the record was created
+    function resolveEntryDateValueByType(entry = {}, dateType = "registration") {
+        if (dateType === "created") {
+            return firstPresent(
+                entry.createdAt, entry.createdAtClient, entry.entryCreatedAt, entry.taskInstance?.createdAt
+            ) ?? null;
+        }
+        if (dateType === "performed") {
+            return firstPresent(
+                entry.completedAt, entry.completedAtClient, entry.performedAt, entry.documentedAt, entry.taskInstance?.completedAt
+            ) ?? null;
+        }
+        // registration (default)
+        return firstPresent(
+            entry.dateKey, entry.documentedAt, entry.performedAt, entry.completedAt
+        ) ?? null;
+    }
+
+    // Resolve the date-key (YYYY-MM-DD) a report entry is filtered on, based on the selected date type.
+    function getEntryFilterDate(entry = {}, dateType = "registration") {
+        return toFilterDateKey(resolveEntryDateValueByType(entry, dateType));
+    }
+
+    function getActiveDateTypeLabel(dateType = "registration") {
+        if (dateType === "performed") return "Udført dato";
+        if (dateType === "created") return "Oprettet dato";
+        return "Registreringsdato";
+    }
+
+    // Human-readable date for the active date-type. Performed shows time; the others show the day.
+    function formatEntryActiveDate(entry = {}, dateType = "registration") {
+        const raw = resolveEntryDateValueByType(entry, dateType);
+        const key = toFilterDateKey(raw);
+        if (!key) return "—";
+        const [y, m, d] = key.split("-");
+        const dmy = `${d}-${m}-${y}`;
+        if (dateType !== "performed") return dmy;
+        const dd = normalizeDateValue(raw);
+        if (!dd) return dmy;
+        const hh = String(dd.getHours()).padStart(2, "0");
+        const mi = String(dd.getMinutes()).padStart(2, "0");
+        return `${dmy} ${hh}:${mi}`;
+    }
+
+    function entryMatchesPeriod(entry, periodValue, dateType = "registration", fromDate = "", toDate = "") {
+        // Membership date: the selected date-type, but if that field is missing (e.g. a not-yet-
+        // performed entry filtered by "Udført dato"), fall back to dateKey so it still belongs to
+        // its scheduled day instead of silently dropping out of every period.
+        const key = getEntryFilterDate(entry, dateType) || toFilterDateKey(entry?.dateKey);
+        // Explicit from/to range takes priority over the period preset.
+        if (fromDate || toDate) {
+            if (!key) return false;
+            if (fromDate && key < fromDate) return false;
+            if (toDate && key > toDate) return false;
+            return true;
+        }
         if (periodValue === "all") return true;
-        const key = resolveEntryDateKey(entry);
         if (!key) return false;
         if (periodValue === "today") return key === getTodayKey();
         if (periodValue === "7days") return key >= getDateKeyForDaysAgo(6);
@@ -1515,27 +1865,142 @@
         return true;
     }
 
-    function alertMatchesPeriod(alert, periodValue) {
-        if (periodValue === "all") return true;
+    function alertMatchesPeriod(alert, periodValue, fromDate = "", toDate = "") {
         const key = resolveAlertDateKey(alert);
+        if (fromDate || toDate) {
+            if (!key) return false;
+            if (fromDate && key < fromDate) return false;
+            if (toDate && key > toDate) return false;
+            return true;
+        }
+        if (periodValue === "all") return true;
         if (!key) return false;
         if (periodValue === "today") return key === getTodayKey();
         if (periodValue === "7days") return key >= getDateKeyForDaysAgo(6);
         if (periodValue === "30days") return key >= getDateKeyForDaysAgo(29);
         if (periodValue === "90days") return key >= getDateKeyForDaysAgo(89);
         return true;
+    }
+
+    // Safety filter for legacy bad data: a cold/freezer temperature row with NO concrete equipment
+    // reference is a generic mis-generated entry and must be hidden from the report (never deleted).
+    // Legacy bad data: a cold/freezer temperature row with NO concrete equipment/unit is a generic
+    // mis-generated entry and must be hidden everywhere (never deleted). NOTE: deliberately does NOT
+    // match bare "køl"/"koel" so valid process routines (nedkøling, 3-timers regel uden køl/varme) stay.
+    function hasConcreteColdEquipmentRef(entry = {}) {
+        const rawValues = [
+            entry.equipmentId, entry.unitId, entry.equipmentName, entry.unitName,
+            entry.machineName, entry.specificLabel, entry.areaName, entry.areaLabel,
+            entry.equipment?.id, entry.equipment?.name, entry.unit?.id, entry.unit?.name,
+            entry.answers?.equipmentId, entry.answers?.equipmentName, entry.answers?.unitId,
+            entry.answers?.unitName, entry.answers?.areaName, entry.answers?.areaLabel
+        ];
+        return rawValues.some((value) => {
+            const text = String(value || "").trim();
+            if (!text) return false;
+            if (text === "—" || text === "-") return false;
+            if (text.toLowerCase() === "ukendt") return false;
+            if (text.toLowerCase() === "udstyr ikke angivet") return false;
+            return true;
+        });
+    }
+
+    function isColdTemperatureEntry(entry = {}) {
+        const haystack = [
+            entry.title, entry.taskTitle, entry.routineTitle, entry.routineType,
+            entry.templateKey, entry.templateTitle, entry.category, entry.subCategory
+        ].filter(Boolean).join(" ").toLowerCase();
+        return (
+            haystack.includes("fryser") || haystack.includes("freezer") || haystack.includes("frost") ||
+            haystack.includes("køleskab") || haystack.includes("koeleskab") || haystack.includes("koleskab") ||
+            haystack.includes("fridge") || haystack.includes("refrigerator") || haystack.includes("cold_storage")
+        );
+    }
+
+    function shouldHideGenericColdTemperatureEntry(entry = {}) {
+        return isColdTemperatureEntry(entry) && !hasConcreteColdEquipmentRef(entry);
+    }
+
+    // BROAD equipment-bound filter — mirrors functions/equipmentRoutineGuard.js (single source of truth).
+    // Hides ALL equipment-bound routines without a concrete unit (varmeskab, pålægsmaskine, komfur, ovn,
+    // friture, køledisk, opvaskemaskine, isterningemaskine, softice, røgeovn, rasteskab + køl/frys).
+    // PROCESS routines (nedkøling, opvarmning, 3-timers, modtagekontrol, adskillelse, personlig hygiejne,
+    // varmholdelse) are NEVER hidden. Deliberately NO bare "køl"/"koel".
+    function hasConcreteEquipmentRef(entry = {}) {
+        const rawValues = [
+            entry.equipmentId, entry.unitId, entry.equipmentName, entry.unitName,
+            entry.machineName, entry.specificLabel, entry.areaName, entry.areaLabel,
+            entry.equipment?.id, entry.equipment?.name, entry.unit?.id, entry.unit?.name,
+            entry.answers?.equipmentId, entry.answers?.equipmentName, entry.answers?.unitId,
+            entry.answers?.unitName, entry.answers?.areaName, entry.answers?.areaLabel
+        ];
+        return rawValues.some((value) => {
+            const text = String(value || "").trim();
+            if (!text) return false;
+            if (text === "—" || text === "-") return false;
+            if (text.toLowerCase() === "ukendt") return false;
+            if (text.toLowerCase() === "udstyr ikke angivet") return false;
+            if (text.toLowerCase() === "default") return false;
+            return true;
+        });
+    }
+
+    function isEquipmentBoundRoutine(entry = {}) {
+        const haystack = [
+            entry.title, entry.taskTitle, entry.routineTitle, entry.routineType,
+            entry.templateKey, entry.templateTitle, entry.category, entry.subCategory, entry.equipmentType
+        ].filter(Boolean).join(" ").toLowerCase();
+
+        const excludedProcess =
+            haystack.includes("nedkøling") || haystack.includes("nedkoeling") ||
+            haystack.includes("opvarmning") || haystack.includes("genopvarmning") ||
+            haystack.includes("3-timers") || haystack.includes("tre_timers") || haystack.includes("tre-timers") ||
+            haystack.includes("modtagekontrol") || haystack.includes("varemodtagelse") ||
+            haystack.includes("adskillelse") || haystack.includes("personlig hygiejne") ||
+            haystack.includes("varmholdelse") || haystack.includes("hot_holding") || haystack.includes("hot-holding");
+        if (excludedProcess) return false;
+
+        return (
+            haystack.includes("køleskab") || haystack.includes("koeleskab") || haystack.includes("koleskab") || haystack.includes("fridge") ||
+            haystack.includes("fryser") || haystack.includes("freezer") || haystack.includes("frost") ||
+            haystack.includes("køledisk") || haystack.includes("koeledisk") || haystack.includes("koledisk") ||
+            haystack.includes("kølerum") || haystack.includes("koelerum") || haystack.includes("frostrum") ||
+            haystack.includes("varmeskab") ||
+            haystack.includes("opvaskemaskine") || haystack.includes("dishwasher") ||
+            haystack.includes("isterningemaskine") || haystack.includes("ismaskine") || haystack.includes("softice") ||
+            haystack.includes("pålægsmaskine") || haystack.includes("paalaegsmaskine") || haystack.includes("palaegsmaskine") || haystack.includes("slicer") ||
+            haystack.includes("komfur") || haystack.includes("stove") ||
+            haystack.includes("ovn") || haystack.includes("oven") ||
+            haystack.includes("friture") || haystack.includes("fryer") ||
+            haystack.includes("røgeovn") || haystack.includes("roegeovn") || haystack.includes("smoke oven") ||
+            haystack.includes("rasteskab") || haystack.includes("proofing")
+        );
+    }
+
+    function shouldHideEquipmentBoundRoutineWithoutEquipment(entry = {}) {
+        return isEquipmentBoundRoutine(entry) && !hasConcreteEquipmentRef(entry);
     }
 
     function getAuthorityEntries() {
-        return allEntries.filter(e => entryMatchesPeriod(e, "90days"));
+        // Use the SAME report-category + equipment filter as the entries list, so the authority
+        // blocks (temperature card, hot-holding, cleaning…) never show more than what is filtered to.
+        const reportCat = reportCategoryValue();
+        const equip = (document.getElementById("equipmentFilter")?.value) || "all";
+        return allEntries.filter(e =>
+            !shouldHideGenericColdTemperatureEntry(e) &&
+            !shouldHideEquipmentBoundRoutineWithoutEquipment(e) &&
+            entryMatchesPeriod(e, periodFilter.value, dateTypeFilter.value, fromDateFilter.value, toDateFilter.value) &&
+            matchesReportCategory(e, reportCat) &&
+            (equip === "all" || getEntryEquipmentKey(e) === equip)
+        );
     }
 
     function getAuthorityAlerts() {
-        return allAlerts.filter(a => alertMatchesPeriod(a, "90days"));
+        return allAlerts.filter(a => alertMatchesPeriod(a, periodFilter.value, fromDateFilter.value, toDateFilter.value));
     }
 
     function getAuthorityLogbookEntries() {
-        return allLogbookEntries.filter(e => entryMatchesPeriod(e, "90days"));
+        return allLogbookEntries.filter(e => entryMatchesPeriod(e, periodFilter.value, dateTypeFilter.value, fromDateFilter.value, toDateFilter.value));
     }
 
     function buildPill(label, value) {
@@ -1684,6 +2149,14 @@
         const haccpControlPoints = Array.isArray(activeHaccpSnapshot?.controlPoints) ? activeHaccpSnapshot.controlPoints : [];
         const locName = SETTINGS.locationDisplayName || SETTINGS.locationName || SETTINGS.profileAddress || SETTINGS.profileCompanyName || SETTINGS.companyName || SETTINGS.locationId || SETTINGS.companyId || "";
 
+        console.log("[authority report generation]", {
+            companyId: SETTINGS.companyId,
+            locationId: SETTINGS.locationId,
+            entries: authorityEntries.length,
+            alerts: authorityAlerts.length,
+            logs: authorityLogs.length,
+            haccpControlPoints: haccpControlPoints.length
+        });
         console.log("[report temperature counts]", {
             measurements: tempMeasurementEntries.length,
             completed: tempMeasurementEntries.filter(isCompletedReportEntry).length,
@@ -1732,11 +2205,11 @@
                 buildPill("Målinger", tempMeasurementEntries.length),
                 buildPill("Fuldført", within),
                 buildPill("Ikke relevant", tempNotRelevantEntries.length),
-                buildPill("Periode", "3 måneder")
+                buildPill("Periode", getPeriodLabel(periodFilter.value))
             ].join("");
         }
 
-        renderAuthorityList(authorityTempListEl, tempMeasurementEntries.slice(0, 12), (e) => {
+        renderAuthorityList(authorityTempListEl, tempMeasurementEntries, (e) => {
             const deviationDetails = buildDeviationDetails(e);
             if (deviationDetails) {
                 return `<div style="background:#fff3e0;border-left:3px solid #ff9800;padding:8px 10px;margin:4px 0;border-radius:4px;">
@@ -1757,31 +2230,49 @@
             ].join("");
         }
 
-        renderAuthorityList(authorityHotListEl, hotMeasurementEntries.slice(0, 10), (e) => renderAuthorityEntryDetail(e));
+        renderAuthorityList(authorityHotListEl, hotMeasurementEntries, (e) => renderAuthorityEntryDetail(e));
+
+        // Split active (open) vs resolved/cancelled/closed. Resolved recalls must leave the active list
+        // and count as handled — history preserved, nothing deleted. Counts use String() so 0 → "0", not "—".
+        const openDeviationItems = deviationItems.filter(({ item }) => isOpenDeviation(item));
+        const resolvedDeviationItems = deviationItems.filter(({ item }) => isResolvedDeviation(item));
+        const handledDeviationCount = deviationItems.filter(({ item }) => hasDeviationAction(item)).length;
 
         if (authorityDeviationMetaEl) {
             authorityDeviationMetaEl.innerHTML = [
-                buildPill("Afvigelser", deviationItems.length),
-                buildPill("Med handling", resolvedAlerts.length),
-                buildPill("Åbne", deviationItems.filter(({ item }) => String(item.status || "") === "open" || String(item.status || "") === "in_progress").length)
+                buildPill("Afvigelser", String(deviationItems.length)),
+                buildPill("Med handling", String(handledDeviationCount)),
+                buildPill("Åbne", String(openDeviationItems.length))
             ].join("");
         }
 
-        renderAuthorityList(authorityDeviationListEl, deviationItems.slice(0, 12), renderAuthorityDeviationItem);
+        // Active list = ONLY open deviations; resolved/cancelled/closed render in a separate
+        // "Lukkede og annullerede afvigelser" history block below (same formatter → PDF/print follows).
+        if (authorityDeviationListEl) {
+            const openHtml = openDeviationItems.length
+                ? openDeviationItems.map(i => `<li>${renderAuthorityDeviationItem(i)}</li>`).join("")
+                : `<li class="authority-empty">Ingen åbne afvigelser i perioden.</li>`;
+            const resolvedHtml = resolvedDeviationItems.length
+                ? `<li class="authority-subhead" style="list-style:none;margin-top:12px;font-weight:700;color:#2e7d32;">Lukkede og annullerede afvigelser (${resolvedDeviationItems.length})</li>`
+                  + resolvedDeviationItems.map(i => `<li>${renderAuthorityDeviationItem(i)}</li>`).join("")
+                : "";
+            authorityDeviationListEl.innerHTML = openHtml + resolvedHtml;
+        }
 
         if (authorityCleaningMetaEl) {
             const planCount = cleaningPlanItems.length;
-            const doneToday = cleaningEntries.filter(e => e.dateKey === getTodayKey() && isCompletedReportEntry(e)).length;
+            // Count completions within the SAME filtered period as the rest of the report.
+            const doneInPeriod = cleaningEntries.filter(isCompletedReportEntry).length;
             authorityCleaningMetaEl.innerHTML = [
-                buildPill("Planpunkter i dag", planCount),
+                buildPill("Planpunkter", planCount),
                 buildPill("Rengøring registreret", cleaningEntries.length),
-                buildPill("Fuldført i dag", doneToday)
+                buildPill("Fuldført", doneInPeriod)
             ].join("");
         }
 
         renderAuthorityList(
             authorityCleaningListEl,
-            (cleaningPlanItems.length ? cleaningPlanItems : cleaningEntries).slice(0, 12),
+            (cleaningPlanItems.length ? cleaningPlanItems : cleaningEntries),
             (item) => {
                 const title = item.taskTitle || item.title || item.name || "Rengøringspunkt";
                 const area = getEntryAreaLabel(item) || item.equipmentName || item.areaName || "Område ikke angivet";
@@ -1794,13 +2285,13 @@
             authorityReceivingMetaEl.innerHTML = [
                 buildPill("Task-registreringer", receivingTaskEntries.length),
                 buildPill("Logbogsposter", receivingLogs.length),
-                buildPill("Periode", "3 måneder")
+                buildPill("Periode", getPeriodLabel(periodFilter.value))
             ].join("");
         }
 
         renderAuthorityList(
             authorityReceivingListEl,
-            [...receivingTaskEntries, ...receivingLogs].slice(0, 12),
+            [...receivingTaskEntries, ...receivingLogs],
             (item) => {
                 if (item.logType) {
                     const created = formatDateTime(item.createdAt || item.createdAtClient || item.dateKey);
@@ -2020,10 +2511,7 @@
 
     function getTaskDisplayTitle(task) {
         const title = resolveTaskTitle(task);
-        console.log("[title resolver]", {
-            input: task,
-            resolved: title
-        });
+        if (DEBUG_REPORTS) console.log("[title resolver]", { input: task, resolved: title });
         return title || "Rutine";
     }
 
@@ -2181,7 +2669,7 @@
                 skipped++;
             }
 
-            if (entry.taskInstanceId || entry.taskId || instance) {
+            if (DEBUG_REPORTS && (entry.taskInstanceId || entry.taskId || instance)) {
                 console.log("[report date fallback]", {
                     taskId: entry.taskInstanceId || entry.taskId || entry.id,
                     resolvedCreatedAt: getEntryCreatedAt(entry),
@@ -2398,9 +2886,14 @@
     function getFilteredEntries() {
         const term = searchInput.value.trim().toLowerCase();
         const period = periodFilter.value;
+        const dateType = dateTypeFilter.value;
+        const fromDate = fromDateFilter.value;
+        const toDate = toDateFilter.value;
         const status = statusFilter.value;
         const category = categoryFilter.value;
         const sort = sortFilter.value;
+        const reportCat = reportCategoryValue();
+        const equip = (document.getElementById("equipmentFilter")?.value) || "all";
 
         const filtered = allEntries.filter(e => {
             const hay = [
@@ -2420,12 +2913,30 @@
             ].join(" ").toLowerCase();
 
             const matchSearch = !term || hay.includes(term);
-            const matchPeriod = entryMatchesPeriod(e, period);
+            const matchPeriod = entryMatchesPeriod(e, period, dateType, fromDate, toDate);
             const reportStatus = getReportEntryStatus(e);
-            const matchStatus = status === "all" || (status === "overdue" ? isEntryDocumentedAsOverdue(e) : reportStatus === status);
+            let matchStatus;
+            if (status === "all") {
+                matchStatus = true;
+            } else if (status === "completed") {
+                matchStatus = isCompletedReportEntry(e);
+            } else if (status === "not_performed") {
+                // Genuinely missing work — exclude completed and "ikke relevant i dag".
+                matchStatus = !isCompletedReportEntry(e) && !isNotRelevantEntry(e);
+            } else if (status === "deviations") {
+                matchStatus = reportStatus === "failed" || e.actionType === "auto_overdue" || !!buildDeviationDetails(e);
+            } else if (status === "overdue") {
+                matchStatus = isEntryDocumentedAsOverdue(e);
+            } else {
+                matchStatus = reportStatus === status;
+            }
             const matchCategory = category === "all" || normalizeEntryCategory(e) === category;
+            const matchReportCat = matchesReportCategory(e, reportCat);
+            const matchEquip = equip === "all" || getEntryEquipmentKey(e) === equip;
+            const notGenericCold = !shouldHideGenericColdTemperatureEntry(e);
+            const notEquipmentBoundWithoutEquipment = !shouldHideEquipmentBoundRoutineWithoutEquipment(e);
 
-            return matchSearch && matchPeriod && matchStatus && matchCategory;
+            return matchSearch && matchPeriod && matchStatus && matchCategory && matchReportCat && matchEquip && notGenericCold && notEquipmentBoundWithoutEquipment;
         });
 
         filtered.sort((a, b) => {
@@ -2458,19 +2969,15 @@
                 a.status
             ].join(" ").toLowerCase();
 
-            return (!term || hay.includes(term)) && alertMatchesPeriod(a, period);
+            return (!term || hay.includes(term)) && alertMatchesPeriod(a, period, fromDateFilter.value, toDateFilter.value);
         });
     }
 
+    // Sort on the SAME date the active filter/display uses, so order matches what is shown.
     function extractComparableDate(item) {
-        const dv = getEntryHandledAt(item) || getEntryCreatedAt(item);
-
-        if (dv?.toDate) return dv.toDate().getTime();
-
-        if (dv) {
-            const p = new Date(dv).getTime();
-            if (!isNaN(p)) return p;
-        }
+        const dv = resolveEntryDateValueByType(item, dateTypeFilter.value);
+        const d = normalizeDateValue(dv);
+        if (d) return d.getTime();
 
         if (item.dateKey) {
             const p = new Date(`${item.dateKey}T00:00:00`).getTime();
@@ -2502,12 +3009,58 @@
         }
     }
 
+    function isKpiDebugEnabled() {
+        if (params.get("debug") === "1" || params.get("kpiDebug") === "1") return true;
+        const role = String((getProfile() || {}).role || "").toLowerCase();
+        return role === "owner" || role === "super-admin" || role === "superadmin" || role === "platform" || role === "admin";
+    }
+
     function updateSummary(entries, alerts) {
-        summaryEntriesEl.textContent = String(entries.length);
-        summaryCompletedEl.textContent = String(entries.filter(isCompletedReportEntry).length);
-        summaryFailedEl.textContent = String(entries.filter(e => getReportEntryStatus(e) === "failed" || e.actionType === "auto_overdue").length);
-        summaryCleaningEl.textContent = String(entries.filter(e => getReportEntryStatus(e) === "cleaning_required").length);
-        summaryAlertsEl.textContent = String(alerts.length);
+        // KPI cards summarise the selected PERIOD (all VALID task_entries), independent of the list's
+        // narrowing filters (search/status/category/equipment) — this matches the card sub-label
+        // "Alle handlinger i den valgte periode". The entries/alerts args (the fully-filtered list set)
+        // are intentionally NOT used for the headline counts; the list below still uses them.
+        // Invalid equipment-bound rows without equipment are excluded; alerts/deviations are NOT counted
+        // as registrations (they live in allAlerts and the Afvigelser/Åbne alerts cards).
+        const period = periodFilter.value;
+        const dateType = dateTypeFilter.value;
+        const fromDate = fromDateFilter.value;
+        const toDate = toDateFilter.value;
+
+        const periodEntries = allEntries.filter(e => entryMatchesPeriod(e, period, dateType, fromDate, toDate));
+        const validEntriesInPeriod = periodEntries.filter(e =>
+            !shouldHideGenericColdTemperatureEntry(e) && !shouldHideEquipmentBoundRoutineWithoutEquipment(e)
+        );
+        const hiddenEquipmentBoundWithoutEquipment = periodEntries.length - validEntriesInPeriod.length;
+
+        const completedEntries = validEntriesInPeriod.filter(isCompletedReportEntry).length;
+        const deviationEntries = validEntriesInPeriod.filter(e => getReportEntryStatus(e) === "failed" || e.actionType === "auto_overdue").length;
+        const missingCleaning = validEntriesInPeriod.filter(e => getReportEntryStatus(e) === "cleaning_required").length;
+
+        // Alerts are period-scoped (independent of the search term) so "Åbne alerts" matches the period.
+        const periodAlerts = allAlerts.filter(a => alertMatchesPeriod(a, period, fromDate, toDate));
+        const openAlerts = periodAlerts.length;
+
+        summaryEntriesEl.textContent = String(validEntriesInPeriod.length);
+        summaryCompletedEl.textContent = String(completedEntries);
+        summaryFailedEl.textContent = String(deviationEntries);
+        summaryCleaningEl.textContent = String(missingCleaning);
+        summaryAlertsEl.textContent = String(openAlerts);
+
+        // Temporary KPI transparency log — dev/admin mode only (?debug=1 / ?kpiDebug=1 or admin/owner role).
+        if (isKpiDebugEnabled()) {
+            console.info("[rapport KPI debug]", {
+                rawEntries: allEntries.length,
+                periodEntries: periodEntries.length,
+                hiddenEquipmentBoundWithoutEquipment,
+                validEntriesInPeriod: validEntriesInPeriod.length,
+                completedEntries,
+                deviationEntries,
+                missingCleaning,
+                openAlerts,
+                periodLabel: getPeriodLabel(period)
+            });
+        }
     }
 
     function updateMeta(entries) {
@@ -2521,18 +3074,40 @@
     }
 
     function renderEntries(entries) {
+        const canonicalEntries = allEntries.filter(e => e.locationId === SETTINGS.locationId).length;
+        const legacyEntries = SETTINGS.linkedLegacyLocationId
+            ? allEntries.filter(e => e.locationId === SETTINGS.linkedLegacyLocationId).length
+            : 0;
+        console.log("[authority report summary]", {
+            canonicalEntries,
+            legacyEntries,
+            mergedEntries: allEntries.length,
+            renderedEntries: entries.length
+        });
+
         if (!entries.length) {
             entriesTableBody.innerHTML = `<div class="report-empty">Ingen registreringer matcher de valgte filtre.</div>`;
+            updateEntriesPagination(0, 0, 0, 1);
             return;
         }
 
-        entriesTableBody.innerHTML = entries.map(e => {
+        const pageSize = getPageSize();
+        const total = entries.length;
+        const totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (entriesCurrentPage > totalPages) entriesCurrentPage = totalPages;
+        if (entriesCurrentPage < 1) entriesCurrentPage = 1;
+        const startIdx = (entriesCurrentPage - 1) * pageSize;
+        const pageItems = entries.slice(startIdx, startIdx + pageSize);
+        updateEntriesPagination(startIdx + 1, startIdx + pageItems.length, total, totalPages);
+
+        entriesTableBody.innerHTML = pageItems.map(e => {
             const statusLabel = getEntryStatusLabel(e);
             const comment = buildEntryComment(e);
             const deviationDetails = buildDeviationDetails(e);
             const area = getEntryAreaLabel(e);
             const cat = resolveCategory(e);
-            const doneBy = e.completedByName || "—";
+            const doneBy = isCoolingReportEntry(e) ? getEntryPerformerName(e) : getEntryCompletedByName(e);
+            const createdBy = getEntryCreatedByName(e);
             const created = formatDateTime(getEntryCreatedAt(e));
             const handled = formatDateTime(getEntryHandledAt(e));
             const risk = getEntryRiskReference(e);
@@ -2561,10 +3136,12 @@
                             </div>
                         ` : ""}
                         <div class="entry-detail-grid">
+                            <div style="grid-column:1 / -1;color:#1565c0;"><strong>${escapeHtml(getActiveDateTypeLabel(dateTypeFilter.value))}:</strong> ${escapeHtml(formatEntryActiveDate(e, dateTypeFilter.value))}</div>
                             <div><strong>Oprettet:</strong> ${escapeHtml(created)}</div>
                             <div><strong>Håndteret:</strong> ${escapeHtml(handled)}</div>
                             <div><strong>Kategori:</strong> ${escapeHtml(cat)}</div>
                             <div><strong>Måling:</strong> ${escapeHtml(getMeasurementLabel(e))}</div>
+                            <div><strong>Oprettet af:</strong> ${escapeHtml(createdBy)}</div>
                             <div><strong>Udført af:</strong> ${escapeHtml(doneBy)}</div>
                         </div>
                         ${comment && !deviationDetails ? `<div class="entry-comment">${escapeHtml(comment)}</div>` : ""}
@@ -2620,6 +3197,7 @@
     }
 
     function renderReport() {
+        if (!equipmentFilterPopulated) { populateEquipmentFilter(); equipmentFilterPopulated = true; }
         const filteredEntries = getFilteredEntries();
         const filteredAlerts = getFilteredAlerts();
         updateSummary(filteredEntries, filteredAlerts);
@@ -2627,22 +3205,170 @@
         renderEntries(filteredEntries);
         renderAlerts(filteredAlerts);
         renderAuthorityReport();
+        applyReportCategoryView();
+        buildFilterSummary(filteredEntries.length);
     }
 
     function resetFilters() {
         searchInput.value = "";
         periodFilter.value = resolveInitialPeriodValue();
+        dateTypeFilter.value = "registration";
+        fromDateFilter.value = "";
+        toDateFilter.value = "";
         statusFilter.value = "all";
         categoryFilter.value = "all";
         sortFilter.value = "newest";
+        const rcf = document.getElementById("reportCategoryFilter"); if (rcf) rcf.value = "all";
+        const eqf = document.getElementById("equipmentFilter"); if (eqf) eqf.value = "all";
+        const psf = document.getElementById("pageSizeFilter"); if (psf) psf.value = "25";
+        entriesCurrentPage = 1;
         renderReport();
     }
 
-    function bindEvents() {
-        [searchInput, periodFilter, statusFilter, categoryFilter, sortFilter].forEach(el => {
-            el.addEventListener("input", renderReport);
-            el.addEventListener("change", renderReport);
+    // ===== Report category center: gating, pagination, filter-summary, print =====
+    let entriesCurrentPage = 1;
+    let equipmentFilterPopulated = false;
+
+    function reportCategoryValue() {
+        return (document.getElementById("reportCategoryFilter")?.value) || "all";
+    }
+    function getPageSize() {
+        return parseInt(document.getElementById("pageSizeFilter")?.value || "25", 10) || 25;
+    }
+    function getEntryEquipmentName(e = {}) {
+        return e.equipmentName || e.unitName || e.machineName || e.specificLabel || "Udstyr ikke angivet";
+    }
+    function getEntryEquipmentKey(e = {}) {
+        return String(e.equipmentId || e.unitId || e.equipmentName || e.unitName || e.machineName || "").trim();
+    }
+
+    // Map a single entry to the report taxonomy.
+    function classifyReportEntryCategory(e = {}) {
+        const k = [e.routineType, e.canonicalTaskKey, e.templateKey, e.taskType, e.title, e.taskTitle, e.category].join(" ").toLowerCase();
+        if (k.includes("fryser_temp") || k.includes("freezer")) return "freezer";
+        if (k.includes("koeleskab_temp") || k.includes("koleskab_temp") || k.includes("fridge")) return "fridge";
+        if (k.includes("koledisk") || k.includes("walk") || k.includes("kølerum") || k.includes("koelerum")) return "cold_storage";
+        if (k.includes("varmeskab") || k.includes("varmhold") || k.includes("hot_holding") || k.includes("hot-holding")) return "hot_holding";
+        if (k.includes("nedkoel") || k.includes("nedkøl") || k.includes("cooling")) return "cooling_down";
+        if (k.includes("opvarm") || k.includes("genopvarm") || k.includes("heating")) return "heating";
+        if (k.includes("temperatur")) return "temperature";
+        if (k.includes("rengør") || k.includes("rengor") || k.includes("clean")) return "cleaning";
+        if (k.includes("varemodtag") || k.includes("modtage") || k.includes("receiving")) return "goods_receiving";
+        return "documentation";
+    }
+    function matchesReportCategory(e, cat) {
+        if (cat === "all" || cat === "documentation" || cat === "haccp" || cat === "daily_reports") return true;
+        const c = classifyReportEntryCategory(e);
+        if (cat === "temperature") return ["temperature", "fridge", "freezer", "cold_storage", "hot_holding", "cooling_down", "heating"].includes(c);
+        return c === cat;
+    }
+
+    // Which report blocks are visible for a given category.
+    function blocksForCategory(cat) {
+        if (cat === "all") return null;
+        if (["temperature", "cold_storage", "freezer", "fridge", "heating", "cooling_down"].includes(cat)) return ["temperature", "documentation"];
+        if (cat === "hot_holding") return ["hot_holding", "documentation"];
+        if (cat === "cleaning") return ["cleaning", "documentation"];
+        if (cat === "goods_receiving") return ["goods_receiving", "documentation"];
+        if (cat === "deviations") return ["deviations"];
+        if (cat === "haccp") return ["haccp"];
+        return ["documentation"];
+    }
+    function applyReportCategoryView() {
+        const cat = reportCategoryValue();
+        document.body.setAttribute("data-report-category", cat);
+        const show = blocksForCategory(cat);
+        document.querySelectorAll(".report-category-block").forEach((block) => {
+            const bc = block.getAttribute("data-report-category");
+            block.style.display = (!show || show.includes(bc)) ? "" : "none";
         });
+    }
+
+    function populateEquipmentFilter() {
+        const sel = document.getElementById("equipmentFilter");
+        if (!sel) return;
+        const map = new Map();
+        allEntries.forEach((e) => {
+            if (shouldHideGenericColdTemperatureEntry(e)) return;
+            if (shouldHideEquipmentBoundRoutineWithoutEquipment(e)) return;
+            const key = getEntryEquipmentKey(e);
+            if (key) map.set(key, getEntryEquipmentName(e));
+        });
+        const cur = sel.value;
+        const opts = Array.from(map.entries()).sort((a, b) => String(a[1]).localeCompare(String(b[1]), "da"));
+        sel.innerHTML = `<option value="all">Alt udstyr</option>` +
+            opts.map(([k, n]) => `<option value="${escapeHtml(k)}">${escapeHtml(n)}</option>`).join("");
+        sel.value = Array.from(map.keys()).includes(cur) ? cur : "all";
+    }
+
+    function updateEntriesPagination(from, to, total, totalPages) {
+        const info = document.getElementById("entriesPageInfo");
+        const prev = document.getElementById("entriesPrevBtn");
+        const next = document.getElementById("entriesNextBtn");
+        if (info) info.textContent = `Viser ${from}-${to} af ${total}`;
+        if (prev) prev.disabled = entriesCurrentPage <= 1;
+        if (next) next.disabled = entriesCurrentPage >= (totalPages || 1);
+    }
+
+    const REPORT_CATEGORY_LABELS = {
+        all: "Alle kategorier", haccp: "HACCP / risikoanalyse", temperature: "Temperaturregistreringer",
+        cold_storage: "Køl/frost (walk-in)", freezer: "Frostregistreringer", fridge: "Køleregistreringer",
+        heating: "Opvarmning", cooling_down: "Nedkøling", hot_holding: "Varmholdelse", cleaning: "Rengøring",
+        goods_receiving: "Modtagekontrol", deviations: "Afvigelser", daily_reports: "Dagsrapporter",
+        documentation: "Dokumentation (samtlige)"
+    };
+    function buildFilterSummary(shownCount) {
+        const el = document.getElementById("reportFilterSummary");
+        if (!el) return;
+        const cat = reportCategoryValue();
+        const equipSel = document.getElementById("equipmentFilter");
+        const equipLabel = equipSel && equipSel.value !== "all" ? (equipSel.options[equipSel.selectedIndex]?.text || "") : "Alt udstyr";
+        const from = fromDateFilter.value, to = toDateFilter.value;
+        const period = (from || to) ? `${from || "…"} → ${to || "…"}` : getPeriodLabel(periodFilter.value);
+        const company = SETTINGS.companyDisplayName || SETTINGS.companyName || SETTINGS.companyId || "—";
+        const cvr = SETTINGS.cvr || SETTINGS.companyCvr || "";
+        const loc = SETTINGS.profileAddress || SETTINGS.locationName || SETTINGS.locationId || "—";
+        el.innerHTML = `
+            <div class="filter-summary-title">Dokumentation: ${escapeHtml(REPORT_CATEGORY_LABELS[cat] || cat)}</div>
+            <div class="filter-summary-line"><strong>Firma:</strong> ${escapeHtml(company)}${cvr ? ` · <strong>CVR:</strong> ${escapeHtml(cvr)}` : ""}</div>
+            <div class="filter-summary-line"><strong>Lokation:</strong> ${escapeHtml(loc)}</div>
+            <div class="filter-summary-line"><strong>Periode:</strong> ${escapeHtml(period)}</div>
+            <div class="filter-summary-line"><strong>Udstyr/filter:</strong> ${escapeHtml(equipLabel)}</div>
+            <div class="filter-summary-line"><strong>Viser ${shownCount} registreringer</strong></div>
+            <div class="filter-summary-line"><strong>Genereret:</strong> ${escapeHtml(getNowLabel())}</div>
+        `;
+    }
+
+    // Print only the currently selected category (view is already gated). Restores after print.
+    function printCurrentReportSelection() {
+        const cat = reportCategoryValue();
+        const prev = document.body.getAttribute("data-print-category");
+        document.body.setAttribute("data-print-category", cat);
+        const restore = () => {
+            if (prev === null) document.body.removeAttribute("data-print-category");
+            else document.body.setAttribute("data-print-category", prev);
+            window.removeEventListener("afterprint", restore);
+        };
+        window.addEventListener("afterprint", restore);
+        window.print();
+        setTimeout(restore, 1500);
+    }
+
+    function bindEvents() {
+        [searchInput, periodFilter, dateTypeFilter, fromDateFilter, toDateFilter, statusFilter, categoryFilter, sortFilter].forEach(el => {
+            el.addEventListener("input", () => { entriesCurrentPage = 1; renderReport(); });
+            el.addEventListener("change", () => { entriesCurrentPage = 1; renderReport(); });
+        });
+        ["reportCategoryFilter", "equipmentFilter", "pageSizeFilter"].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener("change", () => { entriesCurrentPage = 1; renderReport(); });
+        });
+        const prevBtn = document.getElementById("entriesPrevBtn");
+        const nextBtn = document.getElementById("entriesNextBtn");
+        if (prevBtn) prevBtn.addEventListener("click", () => { entriesCurrentPage = Math.max(1, entriesCurrentPage - 1); renderReport(); });
+        if (nextBtn) nextBtn.addEventListener("click", () => { entriesCurrentPage = entriesCurrentPage + 1; renderReport(); });
+        const printSelBtn = document.getElementById("printSelectionBtn");
+        if (printSelBtn) printSelBtn.addEventListener("click", printCurrentReportSelection);
 
         resetFiltersBtn.addEventListener("click", resetFilters);
 
@@ -2674,6 +3400,7 @@
 
     async function loadReportDataAfterAuth() {
         await loadLiveProfileNames();
+        await resolveLinkedLegacyScope();
 
         if (reportId) {
             console.log("[daily report load]", {
@@ -2742,6 +3469,51 @@
         renderReport();
     }
 
+    // ---- Authority-report loader: rotating "spasmager" texts (UI only) ----
+    const rapportTekster = [
+        "Indsamler data fra køleskabene...",
+        "Tørrer krummerne af serveren...",
+        "Tæller bakterier (bare rolig, der er 0)...",
+        "Snitter graferne og hakker tabellerne...",
+        "Vasker de digitale hænder inden servering...",
+        "Gør rapporten klar til Smiley-kontrollen...",
+        "Dobbelt-tjekker at intet er brændt på...",
+        "Anretter dine KPI'er på et sølvfad...",
+        "Leder efter den forsvundne kuglepen...",
+        "Brygger en kop kaffe til serveren, mens den tænker..."
+    ];
+
+    let rapportLoaderTextIndex = 0;
+    let rapportLoaderTextInterval = null;
+
+    function startAuthorityReportLoadingTexts() {
+        const element = document.getElementById("authority-report-loading-text");
+        if (!element) return;
+
+        if (rapportLoaderTextInterval) {
+            clearInterval(rapportLoaderTextInterval);
+            rapportLoaderTextInterval = null;
+        }
+
+        rapportLoaderTextIndex = 0;
+        element.style.display = "";
+        element.textContent = rapportTekster[rapportLoaderTextIndex];
+
+        rapportLoaderTextInterval = setInterval(() => {
+            rapportLoaderTextIndex = (rapportLoaderTextIndex + 1) % rapportTekster.length;
+            element.textContent = rapportTekster[rapportLoaderTextIndex];
+        }, 4000);
+    }
+
+    function stopAuthorityReportLoadingTexts() {
+        if (rapportLoaderTextInterval) {
+            clearInterval(rapportLoaderTextInterval);
+            rapportLoaderTextInterval = null;
+        }
+        const element = document.getElementById("authority-report-loading-text");
+        if (element) element.style.display = "none";
+    }
+
     async function init() {
         if (AUTHORITY_MODE) {
             periodFilter.innerHTML = `
@@ -2776,12 +3548,15 @@
                     ).trim();
                     resolveSettingsFromProfile(profile, user);
                     console.log("[rapporter scope resolved]", SETTINGS);
+                    if (AUTHORITY_MODE) startAuthorityReportLoadingTexts();
                     await loadReportDataAfterAuth();
                 } catch (err) {
                     console.error(err);
                     previewTextEl.textContent = "Rapporten kunne ikke hentes.";
                     entriesTableBody.innerHTML = `<div class="report-empty">Kunne ikke hente rapportdata.</div>`;
                     alertsList.innerHTML = `<div class="report-empty">Kunne ikke hente afvigelser.</div>`;
+                } finally {
+                    stopAuthorityReportLoadingTexts();
                 }
             },
             onSignedOut: () => {

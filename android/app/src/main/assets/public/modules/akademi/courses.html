@@ -1,0 +1,847 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kurser | Madkontrollen Pro</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        :root{
+            --bg:#f4f7f3;
+            --panel:#ffffff;
+            --panel-soft:#f8fbf8;
+            --text:#182118;
+            --muted:#667267;
+            --border:#d9e4d9;
+            --green:#2e7d32;
+            --green-dark:#1f5a23;
+            --green-soft:#e8f5e9;
+            --blue:#1565c0;
+            --blue-soft:#e8f2ff;
+            --orange:#ef6c00;
+            --orange-soft:#fff2e8;
+            --red:#c62828;
+            --red-soft:#fdecec;
+            --purple:#6f42c1;
+            --purple-soft:#f3e8ff;
+            --shadow-soft:0 10px 30px rgba(24,33,24,.08);
+            --shadow-card:0 14px 40px rgba(31,90,35,.10);
+            --radius-xl:24px;
+            --radius-lg:18px;
+            --radius-md:14px;
+        }
+
+        body{
+            background:
+                radial-gradient(circle at top right, rgba(46,125,50,.08), transparent 22%),
+                radial-gradient(circle at left top, rgba(21,101,192,.07), transparent 18%),
+                var(--bg);
+            color:var(--text);
+        }
+
+        .page-shell{
+            padding:24px 0 44px;
+        }
+
+        .app-layout{
+            display:grid;
+            grid-template-columns:280px minmax(0, 1fr);
+            gap:24px;
+            align-items:start;
+        }
+
+        .page-content{
+            min-width:0;
+        }
+
+        .hero{
+            position:relative;
+            overflow:hidden;
+            border:1px solid rgba(46,125,50,.10);
+            border-radius:32px;
+            padding:32px;
+            background:linear-gradient(135deg, rgba(31,90,35,.97) 0%, rgba(46,125,50,.92) 55%, rgba(92,173,98,.90) 100%);
+            color:#fff;
+            box-shadow:var(--shadow-card);
+            margin-bottom:24px;
+        }
+
+        .hero::before{
+            content:"";
+            position:absolute;
+            top:-30px;
+            right:-20px;
+            width:220px;
+            height:220px;
+            border-radius:50%;
+            background:rgba(255,255,255,.08);
+        }
+
+        .hero-inner{
+            position:relative;
+            z-index:1;
+            display:grid;
+            grid-template-columns:minmax(0, 1.4fr) minmax(280px, .8fr);
+            gap:22px;
+            align-items:center;
+        }
+
+        .hero-kicker{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:8px 12px;
+            border-radius:999px;
+            background:rgba(255,255,255,.14);
+            font-size:13px;
+            font-weight:800;
+            margin-bottom:14px;
+        }
+
+        .hero h1{
+            margin:0 0 10px;
+            font-size:clamp(28px, 4vw, 42px);
+            line-height:1.03;
+            letter-spacing:-.03em;
+        }
+
+        .hero p{
+            margin:0;
+            color:rgba(255,255,255,.90);
+            line-height:1.65;
+            font-size:15px;
+            max-width:760px;
+        }
+
+        .hero-stats{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:14px;
+        }
+
+        .hero-stat{
+            background:rgba(255,255,255,.12);
+            border:1px solid rgba(255,255,255,.14);
+            border-radius:20px;
+            padding:18px;
+        }
+
+        .hero-stat-label{
+            display:block;
+            font-size:13px;
+            color:rgba(255,255,255,.76);
+            margin-bottom:8px;
+        }
+
+        .hero-stat-value{
+            display:block;
+            font-size:28px;
+            font-weight:800;
+            letter-spacing:-.03em;
+        }
+
+        .hero-stat small{
+            display:block;
+            margin-top:8px;
+            color:rgba(255,255,255,.78);
+            line-height:1.45;
+        }
+
+        .panel{
+            background:var(--panel);
+            border:1px solid var(--border);
+            border-radius:var(--radius-xl);
+            box-shadow:var(--shadow-soft);
+        }
+
+        .section{
+            margin-bottom:24px;
+        }
+
+        .section-head{
+            display:flex;
+            align-items:end;
+            justify-content:space-between;
+            gap:16px;
+            margin-bottom:16px;
+            flex-wrap:wrap;
+        }
+
+        .section-head h2{
+            margin:0;
+            font-size:24px;
+            letter-spacing:-.02em;
+        }
+
+        .section-head p{
+            margin:6px 0 0;
+            color:var(--muted);
+        }
+
+        .results-count{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:10px 14px;
+            border-radius:999px;
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+            color:var(--muted);
+            font-size:13px;
+            font-weight:800;
+        }
+
+        .toolbar{
+            display:grid;
+            grid-template-columns:minmax(0, 1.2fr) 180px 180px 180px;
+            gap:14px;
+            padding:18px;
+        }
+
+        .toolbar input,
+        .toolbar select{
+            width:100%;
+            min-height:48px;
+            border:1px solid var(--border);
+            border-radius:14px;
+            background:#fff;
+            color:var(--text);
+            padding:0 14px;
+            font:inherit;
+            outline:none;
+        }
+
+        .toolbar input:focus,
+        .toolbar select:focus{
+            border-color:#a9cda9;
+            box-shadow:0 0 0 4px rgba(46,125,50,.08);
+        }
+
+        .overview-grid{
+            display:grid;
+            grid-template-columns:repeat(4, minmax(0, 1fr));
+            gap:16px;
+        }
+
+        .overview-card{
+            padding:20px;
+        }
+
+        .overview-card .label{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            font-size:13px;
+            font-weight:700;
+            color:var(--muted);
+            margin-bottom:10px;
+        }
+
+        .overview-card .value{
+            font-size:34px;
+            font-weight:800;
+            line-height:1;
+            letter-spacing:-.04em;
+            margin-bottom:10px;
+        }
+
+        .overview-card .sub{
+            color:var(--muted);
+            font-size:14px;
+            line-height:1.5;
+        }
+
+        .courses-grid{
+            display:grid;
+            grid-template-columns:repeat(3, minmax(0, 1fr));
+            gap:18px;
+        }
+
+        .course-card{
+            padding:20px;
+            display:flex;
+            flex-direction:column;
+            gap:16px;
+        }
+
+        .course-top{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:14px;
+        }
+
+        .course-icon{
+            width:54px;
+            height:54px;
+            border-radius:16px;
+            display:grid;
+            place-items:center;
+            font-size:24px;
+            flex-shrink:0;
+        }
+
+        .course-title{
+            margin:0 0 8px;
+            font-size:20px;
+            letter-spacing:-.02em;
+        }
+
+        .course-desc{
+            margin:0;
+            color:var(--muted);
+            line-height:1.6;
+            font-size:14px;
+        }
+
+        .badge{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:8px 12px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:800;
+            white-space:nowrap;
+        }
+
+        .badge.green{ background:var(--green-soft); color:var(--green-dark); }
+        .badge.blue{ background:var(--blue-soft); color:var(--blue); }
+        .badge.orange{ background:var(--orange-soft); color:var(--orange); }
+        .badge.red{ background:var(--red-soft); color:var(--red); }
+        .badge.purple{ background:var(--purple-soft); color:var(--purple); }
+
+        .meta-row{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+        }
+
+        .meta-pill{
+            padding:8px 10px;
+            border-radius:12px;
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+            color:var(--muted);
+            font-size:13px;
+            font-weight:700;
+        }
+
+        .progress-wrap{
+            display:grid;
+            gap:8px;
+        }
+
+        .progress-line{
+            width:100%;
+            height:10px;
+            background:#edf3ed;
+            border-radius:999px;
+            overflow:hidden;
+        }
+
+        .progress-line > span{
+            display:block;
+            height:100%;
+            border-radius:999px;
+            background:linear-gradient(90deg, #2e7d32 0%, #5eb667 100%);
+        }
+
+        .progress-text{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            color:var(--muted);
+            font-size:13px;
+            font-weight:700;
+        }
+
+        .card-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            margin-top:auto;
+        }
+
+        .btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-height:44px;
+            padding:0 16px;
+            border-radius:12px;
+            border:1px solid transparent;
+            text-decoration:none;
+            cursor:pointer;
+            font:inherit;
+            font-weight:800;
+            transition:.2s ease;
+        }
+
+        .btn-primary{
+            background:var(--green);
+            color:#fff;
+        }
+
+        .btn-secondary{
+            background:#fff;
+            color:var(--text);
+            border-color:var(--border);
+        }
+
+        .btn:hover{
+            transform:translateY(-1px);
+        }
+
+        .empty-state{
+            display:none;
+            padding:26px;
+            border-radius:20px;
+            border:1px dashed var(--border);
+            background:var(--panel-soft);
+            text-align:center;
+            color:var(--muted);
+            font-weight:700;
+        }
+
+        @media (max-width: 1200px){
+            .hero-inner{
+                grid-template-columns:1fr;
+            }
+
+            .overview-grid,
+            .courses-grid{
+                grid-template-columns:repeat(2, minmax(0, 1fr));
+            }
+
+            .toolbar{
+                grid-template-columns:1fr 1fr;
+            }
+        }
+
+        @media (max-width: 920px){
+            .app-layout{
+                grid-template-columns:1fr;
+            }
+
+            .overview-grid,
+            .courses-grid,
+            .hero-stats{
+                grid-template-columns:1fr;
+            }
+
+            .toolbar{
+                grid-template-columns:1fr;
+            }
+
+            .hero{
+                padding:26px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="headerMount"></div>
+
+    <main class="page-shell">
+        <div class="container app-layout">
+            <div id="sidebarMount"></div>
+
+            <section class="page-content">
+                <section class="hero">
+                    <div class="hero-inner">
+                        <div>
+                            <div class="hero-kicker">📚 Akademi / Kurser</div>
+                            <h1>Kursusbibliotek til onboarding, egenkontrol og daglig drift</h1>
+                            <p>
+                                Saml praktiske forløb ét sted og giv medarbejdere præcis den træning, de har brug for.
+                                Her kan du styre indhold, status, fremdrift og opfølgning på tværs af hele virksomheden.
+                            </p>
+                        </div>
+
+                        <div class="hero-stats">
+                            <div class="hero-stat">
+                                <span class="hero-stat-label">Aktive kurser</span>
+                                <span class="hero-stat-value">12</span>
+                                <small>Klar til nye og eksisterende medarbejdere.</small>
+                            </div>
+
+                            <div class="hero-stat">
+                                <span class="hero-stat-label">Påbegyndt</span>
+                                <span class="hero-stat-value">7</span>
+                                <small>Forløb der er i gang lige nu.</small>
+                            </div>
+
+                            <div class="hero-stat">
+                                <span class="hero-stat-label">Gennemførte</span>
+                                <span class="hero-stat-value">29</span>
+                                <small>Kurser afsluttet de seneste 30 dage.</small>
+                            </div>
+
+                            <div class="hero-stat">
+                                <span class="hero-stat-label">Skal fornys</span>
+                                <span class="hero-stat-value">4</span>
+                                <small>Kurser der kræver genopfriskning snart.</small>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="panel toolbar">
+                        <input type="search" id="courseSearch" placeholder="Søg efter kursus, emne eller nøgleord..." />
+                        <select id="categoryFilter">
+                            <option value="all">Alle kategorier</option>
+                            <option value="onboarding">Onboarding</option>
+                            <option value="egenkontrol">Egenkontrol</option>
+                            <option value="hygiejne">Hygiejne</option>
+                            <option value="ledelse">Ledelse</option>
+                        </select>
+                        <select id="levelFilter">
+                            <option value="all">Alle niveauer</option>
+                            <option value="basis">Basis</option>
+                            <option value="øvet">Øvet</option>
+                            <option value="avanceret">Avanceret</option>
+                        </select>
+                        <select id="statusFilter">
+                            <option value="all">Alle statusser</option>
+                            <option value="påbegyndt">Påbegyndt</option>
+                            <option value="klar">Klar til start</option>
+                            <option value="færdig">Færdig</option>
+                            <option value="prioritet">Prioritet</option>
+                        </select>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="overview-grid">
+                        <article class="panel overview-card">
+                            <div class="label">👥 Tildelte pladser</div>
+                            <div class="value">96</div>
+                            <div class="sub">Fordelt på roller, afdelinger og nye ansatte.</div>
+                        </article>
+
+                        <article class="panel overview-card">
+                            <div class="label">▶️ Starter i dag</div>
+                            <div class="value">5</div>
+                            <div class="sub">Planlagte kursusstarter i dag.</div>
+                        </article>
+
+                        <article class="panel overview-card">
+                            <div class="label">🕒 Gns. varighed</div>
+                            <div class="value">34 min</div>
+                            <div class="sub">Praktiske korte forløb der er nemme at gennemføre.</div>
+                        </article>
+
+                        <article class="panel overview-card">
+                            <div class="label">🏅 Beståelsesrate</div>
+                            <div class="value">91%</div>
+                            <div class="sub">Andel af quizzer og evalueringer der bestås første gang.</div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="section-head">
+                        <div>
+                            <h2>Alle kurser</h2>
+                            <p>Filtrer kurser efter kategori, niveau og status.</p>
+                        </div>
+                        <div class="results-count" id="resultsCount">Viser 6 kurser</div>
+                    </div>
+
+                    <div class="courses-grid" id="coursesGrid">
+                        <article class="panel course-card"
+                            data-title="Onboarding for nye medarbejdere"
+                            data-description="Introduktion til arbejdsplads, hygiejne, uniform, ansvar og daglige rutiner."
+                            data-category="onboarding"
+                            data-level="basis"
+                            data-status="påbegyndt">
+                            <div class="course-top">
+                                <div class="course-icon" style="background:var(--green-soft);">👋</div>
+                                <span class="badge green">Påbegyndt</span>
+                            </div>
+                            <div>
+                                <h3 class="course-title">Onboarding for nye medarbejdere</h3>
+                                <p class="course-desc">Introduktion til arbejdsplads, hygiejne, uniform, ansvar og daglige rutiner.</p>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-pill">Onboarding</span>
+                                <span class="meta-pill">Basis</span>
+                                <span class="meta-pill">35 min</span>
+                            </div>
+                            <div class="progress-wrap">
+                                <div class="progress-text"><span>Fremdrift</span><span>62%</span></div>
+                                <div class="progress-line"><span style="width:62%"></span></div>
+                            </div>
+                            <div class="card-actions">
+                                <button type="button" class="btn btn-primary">Fortsæt</button>
+                                <button type="button" class="btn btn-secondary">Redigér</button>
+                            </div>
+                        </article>
+
+                        <article class="panel course-card"
+                            data-title="HACCP og kritiske kontrolpunkter"
+                            data-description="Farer, kontrolpunkter, dokumentation og korrekt handling ved afvigelser."
+                            data-category="egenkontrol"
+                            data-level="øvet"
+                            data-status="klar">
+                            <div class="course-top">
+                                <div class="course-icon" style="background:var(--blue-soft);">🧪</div>
+                                <span class="badge blue">Klar til start</span>
+                            </div>
+                            <div>
+                                <h3 class="course-title">HACCP og kritiske kontrolpunkter</h3>
+                                <p class="course-desc">Farer, kontrolpunkter, dokumentation og korrekt handling ved afvigelser.</p>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-pill">Egenkontrol</span>
+                                <span class="meta-pill">Øvet</span>
+                                <span class="meta-pill">50 min</span>
+                            </div>
+                            <div class="progress-wrap">
+                                <div class="progress-text"><span>Fremdrift</span><span>0%</span></div>
+                                <div class="progress-line"><span style="width:0%"></span></div>
+                            </div>
+                            <div class="card-actions">
+                                <button type="button" class="btn btn-primary">Start</button>
+                                <button type="button" class="btn btn-secondary">Se indhold</button>
+                            </div>
+                        </article>
+
+                        <article class="panel course-card"
+                            data-title="Rengøring og dokumentation"
+                            data-description="Renhold, rengøring, desinfektion og korrekt logning i systemet."
+                            data-category="hygiejne"
+                            data-level="basis"
+                            data-status="færdig">
+                            <div class="course-top">
+                                <div class="course-icon" style="background:var(--orange-soft);">🧼</div>
+                                <span class="badge orange">Færdig</span>
+                            </div>
+                            <div>
+                                <h3 class="course-title">Rengøring og dokumentation</h3>
+                                <p class="course-desc">Renhold, rengøring, desinfektion og korrekt logning i systemet.</p>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-pill">Hygiejne</span>
+                                <span class="meta-pill">Basis</span>
+                                <span class="meta-pill">28 min</span>
+                            </div>
+                            <div class="progress-wrap">
+                                <div class="progress-text"><span>Fremdrift</span><span>100%</span></div>
+                                <div class="progress-line"><span style="width:100%"></span></div>
+                            </div>
+                            <div class="card-actions">
+                                <button type="button" class="btn btn-primary">Se certifikat</button>
+                                <button type="button" class="btn btn-secondary">Tag igen</button>
+                            </div>
+                        </article>
+
+                        <article class="panel course-card"
+                            data-title="Temperaturkontrol i praksis"
+                            data-description="Køl, frost, varmholdelse og modtagekontrol med fokus på daglige målinger."
+                            data-category="egenkontrol"
+                            data-level="basis"
+                            data-status="påbegyndt">
+                            <div class="course-top">
+                                <div class="course-icon" style="background:#eef7ff;">🌡️</div>
+                                <span class="badge green">Påbegyndt</span>
+                            </div>
+                            <div>
+                                <h3 class="course-title">Temperaturkontrol i praksis</h3>
+                                <p class="course-desc">Køl, frost, varmholdelse og modtagekontrol med fokus på daglige målinger.</p>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-pill">Egenkontrol</span>
+                                <span class="meta-pill">Basis</span>
+                                <span class="meta-pill">22 min</span>
+                            </div>
+                            <div class="progress-wrap">
+                                <div class="progress-text"><span>Fremdrift</span><span>35%</span></div>
+                                <div class="progress-line"><span style="width:35%"></span></div>
+                            </div>
+                            <div class="card-actions">
+                                <button type="button" class="btn btn-primary">Fortsæt</button>
+                                <button type="button" class="btn btn-secondary">Se indhold</button>
+                            </div>
+                        </article>
+
+                        <article class="panel course-card"
+                            data-title="Allergener og sikker servering"
+                            data-description="Forebyg fejl ved mærkning, krydskontaminering og dialog om allergener."
+                            data-category="hygiejne"
+                            data-level="øvet"
+                            data-status="klar">
+                            <div class="course-top">
+                                <div class="course-icon" style="background:#fff4df;">⚠️</div>
+                                <span class="badge blue">Klar til start</span>
+                            </div>
+                            <div>
+                                <h3 class="course-title">Allergener og sikker servering</h3>
+                                <p class="course-desc">Forebyg fejl ved mærkning, krydskontaminering og dialog om allergener.</p>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-pill">Hygiejne</span>
+                                <span class="meta-pill">Øvet</span>
+                                <span class="meta-pill">30 min</span>
+                            </div>
+                            <div class="progress-wrap">
+                                <div class="progress-text"><span>Fremdrift</span><span>0%</span></div>
+                                <div class="progress-line"><span style="width:0%"></span></div>
+                            </div>
+                            <div class="card-actions">
+                                <button type="button" class="btn btn-primary">Start</button>
+                                <button type="button" class="btn btn-secondary">Se indhold</button>
+                            </div>
+                        </article>
+
+                        <article class="panel course-card"
+                            data-title="Lederens kontrolbesøg og opfølgning"
+                            data-description="Auditforberedelse, afvigelseshåndtering og dokumentation overfor myndigheder."
+                            data-category="ledelse"
+                            data-level="avanceret"
+                            data-status="prioritet">
+                            <div class="course-top">
+                                <div class="course-icon" style="background:#f3e8ff;">📋</div>
+                                <span class="badge red">Prioritet</span>
+                            </div>
+                            <div>
+                                <h3 class="course-title">Lederens kontrolbesøg og opfølgning</h3>
+                                <p class="course-desc">Auditforberedelse, afvigelseshåndtering og dokumentation overfor myndigheder.</p>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-pill">Ledelse</span>
+                                <span class="meta-pill">Avanceret</span>
+                                <span class="meta-pill">45 min</span>
+                            </div>
+                            <div class="progress-wrap">
+                                <div class="progress-text"><span>Fremdrift</span><span>0%</span></div>
+                                <div class="progress-line"><span style="width:0%"></span></div>
+                            </div>
+                            <div class="card-actions">
+                                <button type="button" class="btn btn-primary">Start</button>
+                                <button type="button" class="btn btn-secondary">Planlæg</button>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="empty-state" id="emptyState">
+                        Ingen kurser matcher de valgte filtre.
+                    </div>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        async function loadSharedPartials(){
+            const mounts = [
+                { id: "headerMount", path: "/components/header.html" },
+                { id: "sidebarMount", path: "/components/sidebar.html" }
+            ];
+
+            await Promise.all(mounts.map(async (item) => {
+                const mount = document.getElementById(item.id);
+                if (!mount) return;
+
+                try{
+                    const response = await fetch(item.path, { cache: "no-store" });
+                    if (!response.ok) throw new Error("Kunne ikke hente " + item.path);
+                    mount.innerHTML = await response.text();
+                }catch(error){
+                    console.warn(error);
+                }
+            }));
+
+            const activeLink = document.querySelector('.sidebar a[href="/modules/akademi/courses.html"]');
+            if(activeLink){
+                activeLink.classList.add("active");
+            }
+        }
+
+        function setupCourseFilters(){
+            const searchInput = document.getElementById("courseSearch");
+            const categoryFilter = document.getElementById("categoryFilter");
+            const levelFilter = document.getElementById("levelFilter");
+            const statusFilter = document.getElementById("statusFilter");
+            const cards = Array.from(document.querySelectorAll(".course-card"));
+            const emptyState = document.getElementById("emptyState");
+            const resultsCount = document.getElementById("resultsCount");
+
+            function normalize(value){
+                return (value || "")
+                    .toString()
+                    .toLowerCase()
+                    .trim()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "");
+            }
+
+            function applyFilters(){
+                const search = normalize(searchInput.value);
+                const category = normalize(categoryFilter.value);
+                const level = normalize(levelFilter.value);
+                const status = normalize(statusFilter.value);
+
+                let visibleCount = 0;
+
+                cards.forEach((card) => {
+                    const title = normalize(card.dataset.title);
+                    const description = normalize(card.dataset.description);
+                    const cardCategory = normalize(card.dataset.category);
+                    const cardLevel = normalize(card.dataset.level);
+                    const cardStatus = normalize(card.dataset.status);
+
+                    const searchableText = [
+                        title,
+                        description,
+                        cardCategory,
+                        cardLevel,
+                        cardStatus
+                    ].join(" ");
+
+                    const matchesSearch = !search || searchableText.includes(search);
+                    const matchesCategory = category === "all" || cardCategory === category;
+                    const matchesLevel = level === "all" || cardLevel === level;
+                    const matchesStatus = status === "all" || cardStatus === status;
+
+                    const visible = matchesSearch && matchesCategory && matchesLevel && matchesStatus;
+
+                    card.style.display = visible ? "" : "none";
+
+                    if(visible){
+                        visibleCount++;
+                    }
+                });
+
+                emptyState.style.display = visibleCount === 0 ? "block" : "none";
+
+                if(resultsCount){
+                    resultsCount.textContent = `Viser ${visibleCount} kurs${visibleCount === 1 ? "us" : "er"}`;
+                }
+            }
+
+            [searchInput, categoryFilter, levelFilter, statusFilter].forEach((element) => {
+                element.addEventListener("input", applyFilters);
+                element.addEventListener("change", applyFilters);
+            });
+
+            applyFilters();
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await loadSharedPartials();
+            setupCourseFilters();
+        });
+    </script>
+</body>
+</html>

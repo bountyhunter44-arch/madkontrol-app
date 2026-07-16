@@ -1,0 +1,2051 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Logbøger | Madkontrollen Pro</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        :root{
+            --bg:#f4f7f3;
+            --panel:#ffffff;
+            --panel-soft:#f8fbf8;
+            --text:#182118;
+            --muted:#667267;
+            --border:#d9e4d9;
+            --green:#2e7d32;
+            --green-dark:#1f5a23;
+            --green-soft:#e8f5e9;
+            --blue:#1565c0;
+            --blue-soft:#e3f2fd;
+            --amber:#b26a00;
+            --amber-soft:#fff4e5;
+            --red:#c62828;
+            --red-soft:#fdecec;
+            --shadow:0 18px 40px rgba(24,33,24,0.08);
+            --shadow-soft:0 10px 28px rgba(24,33,24,0.06);
+            --radius-xl:24px;
+            --radius-lg:18px;
+            --radius-md:14px;
+        }
+
+        *{ box-sizing:border-box; }
+
+        body{
+            margin:0;
+            font-family:"Inter", sans-serif;
+            background:var(--bg);
+            color:var(--text);
+        }
+
+        .page-shell{
+            min-height:100vh;
+            background:
+                radial-gradient(circle at top right, rgba(46,125,50,0.08), transparent 22%),
+                radial-gradient(circle at left center, rgba(21,101,192,0.06), transparent 18%),
+                var(--bg);
+        }
+
+        .container{
+            width:min(1440px, calc(100% - 32px));
+            margin:0 auto;
+        }
+
+        .page-header{
+            padding:30px 0 18px;
+        }
+
+        .hero{
+            display:grid;
+            grid-template-columns:minmax(0, 1.35fr) minmax(320px, 0.65fr);
+            gap:22px;
+            align-items:stretch;
+        }
+
+        .hero-card,
+        .hero-side,
+        .table-card,
+        .form-card,
+        .overview-card,
+        .logbook-card{
+            background:var(--panel);
+            border:1px solid var(--border);
+            box-shadow:var(--shadow-soft);
+        }
+
+        .hero-card,
+        .hero-side,
+        .table-card,
+        .form-card{
+            border-radius:var(--radius-xl);
+        }
+
+        .hero-card{
+            padding:28px;
+            position:relative;
+            overflow:hidden;
+            box-shadow:var(--shadow);
+        }
+
+        .hero-card::after{
+            content:"";
+            position:absolute;
+            inset:auto -40px -60px auto;
+            width:220px;
+            height:220px;
+            border-radius:50%;
+            background:radial-gradient(circle, rgba(46,125,50,0.14) 0%, rgba(46,125,50,0.02) 58%, transparent 72%);
+            pointer-events:none;
+        }
+
+        .eyebrow{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:8px 12px;
+            border-radius:999px;
+            background:var(--green-soft);
+            color:var(--green-dark);
+            font-size:12px;
+            font-weight:800;
+            letter-spacing:.04em;
+            text-transform:uppercase;
+        }
+
+        .hero h1{
+            margin:16px 0 10px;
+            font-size:clamp(28px, 4vw, 42px);
+            line-height:1.08;
+        }
+
+        .hero p{
+            margin:0;
+            max-width:760px;
+            color:var(--muted);
+            font-size:15px;
+            line-height:1.7;
+        }
+
+        .hero-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:12px;
+            margin-top:24px;
+        }
+
+        .btn{
+            appearance:none;
+            border:none;
+            border-radius:14px;
+            padding:13px 18px;
+            font:inherit;
+            font-weight:700;
+            cursor:pointer;
+            transition:transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease, border-color .18s ease, opacity .18s ease;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;
+            text-decoration:none;
+        }
+
+        .btn:hover{ transform:translateY(-1px); }
+
+        .btn:disabled{
+            opacity:.65;
+            cursor:not-allowed;
+            transform:none;
+        }
+
+        .btn-primary{
+            background:linear-gradient(135deg, var(--green) 0%, #388e3c 100%);
+            color:#fff;
+            box-shadow:0 14px 28px rgba(46,125,50,0.22);
+        }
+
+        .btn-secondary{
+            background:#fff;
+            color:var(--text);
+            border:1px solid var(--border);
+        }
+
+        .btn-small{
+            min-height:42px;
+            padding:10px 14px;
+            border-radius:12px;
+            font-size:14px;
+        }
+
+        .hero-side{
+            padding:22px;
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+            gap:16px;
+        }
+
+        .hero-side-title{
+            font-size:13px;
+            font-weight:800;
+            text-transform:uppercase;
+            letter-spacing:.04em;
+            color:var(--muted);
+        }
+
+        .hero-side-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:12px;
+        }
+
+        .metric-card{
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+            border-radius:16px;
+            padding:16px;
+        }
+
+        .metric-card strong{
+            display:block;
+            font-size:26px;
+            line-height:1;
+            margin-bottom:8px;
+        }
+
+        .metric-card span{
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.5;
+        }
+
+        .toolbar{
+            margin:16px 0 24px;
+            display:grid;
+            grid-template-columns:minmax(0, 1.2fr) 220px 220px 180px;
+            gap:14px;
+        }
+
+        .toolbar input,
+        .toolbar select,
+        .form-grid input,
+        .form-grid textarea{
+            width:100%;
+            min-height:50px;
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:12px 14px;
+            background:#fff;
+            font:inherit;
+            color:var(--text);
+            outline:none;
+            transition:border-color .18s ease, box-shadow .18s ease;
+        }
+
+        .toolbar input:focus,
+        .toolbar select:focus,
+        .form-grid input:focus,
+        .form-grid textarea:focus{
+            border-color:#9dc8a0;
+            box-shadow:0 0 0 4px rgba(46,125,50,0.08);
+        }
+
+        .form-grid textarea{
+            min-height:100px;
+            resize:vertical;
+        }
+
+        .section{
+            margin:20px 0 28px;
+        }
+
+        .section-head{
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap:16px;
+            margin-bottom:16px;
+        }
+
+        .section-head h2{
+            margin:0;
+            font-size:28px;
+            line-height:1.1;
+        }
+
+        .section-head p{
+            margin:6px 0 0;
+            color:var(--muted);
+            font-size:14px;
+            line-height:1.6;
+        }
+
+        .logbook-grid{
+            display:grid;
+            grid-template-columns:repeat(3, minmax(0, 1fr));
+            gap:16px;
+        }
+
+        .logbook-card{
+            border-radius:22px;
+            padding:20px;
+            display:flex;
+            flex-direction:column;
+            gap:16px;
+            cursor:pointer;
+            transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+        }
+
+        .logbook-card:hover{
+            transform:translateY(-2px);
+            box-shadow:0 16px 30px rgba(24,33,24,0.08);
+        }
+
+        .logbook-card.active{
+            border-color:#a6d4aa;
+            box-shadow:0 16px 30px rgba(46,125,50,0.10);
+            background:linear-gradient(180deg, #ffffff 0%, #fbfefb 100%);
+        }
+
+        .logbook-top{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:16px;
+        }
+
+        .logbook-icon{
+            width:52px;
+            height:52px;
+            border-radius:16px;
+            display:grid;
+            place-items:center;
+            font-size:24px;
+            background:var(--green-soft);
+        }
+
+        .logbook-count{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:8px 12px;
+            border-radius:999px;
+            background:var(--blue-soft);
+            color:var(--blue);
+            font-size:12px;
+            font-weight:800;
+            white-space:nowrap;
+        }
+
+        .logbook-card h3{
+            margin:0;
+            font-size:18px;
+            line-height:1.3;
+        }
+
+        .logbook-card p{
+            margin:8px 0 0;
+            color:var(--muted);
+            font-size:14px;
+            line-height:1.6;
+        }
+
+        .logbook-tags{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+
+        .chip{
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            padding:8px 10px;
+            border-radius:999px;
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+            color:var(--muted);
+            font-size:12px;
+            font-weight:700;
+        }
+
+        .logbook-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            margin-top:auto;
+        }
+
+        .overview-grid{
+            display:grid;
+            grid-template-columns:repeat(4, minmax(0, 1fr));
+            gap:16px;
+        }
+
+        .overview-card{
+            border-radius:20px;
+            padding:20px;
+        }
+
+        .overview-label{
+            color:var(--muted);
+            font-size:13px;
+            font-weight:700;
+            margin-bottom:10px;
+        }
+
+        .overview-value{
+            font-size:34px;
+            font-weight:800;
+            line-height:1;
+            margin-bottom:10px;
+        }
+
+        .overview-note{
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.6;
+        }
+
+        .overview-card.success .overview-value{ color:var(--green); }
+        .overview-card.warning .overview-value{ color:var(--amber); }
+        .overview-card.danger .overview-value{ color:var(--red); }
+        .overview-card.info .overview-value{ color:var(--blue); }
+
+        .content-grid{
+            display:grid;
+            grid-template-columns:minmax(0, 1.1fr) minmax(390px, .9fr);
+            gap:20px;
+            align-items:start;
+        }
+
+        .table-card{
+            overflow:hidden;
+            box-shadow:var(--shadow);
+        }
+
+        .table-toolbar,
+        .form-head{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:12px;
+            padding:18px 20px;
+            border-bottom:1px solid var(--border);
+            background:linear-gradient(180deg, #ffffff 0%, #fbfdfb 100%);
+        }
+
+        .table-toolbar h3,
+        .form-head h3{
+            margin:0;
+            font-size:20px;
+        }
+
+        .table-toolbar p,
+        .form-head p{
+            margin:5px 0 0;
+            color:var(--muted);
+            font-size:13px;
+        }
+
+        .table-wrap{
+            width:100%;
+            overflow:auto;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            min-width:1080px;
+        }
+
+        thead th{
+            text-align:left;
+            font-size:12px;
+            text-transform:uppercase;
+            letter-spacing:.04em;
+            color:var(--muted);
+            padding:15px 16px;
+            background:#f8fbf8;
+            border-bottom:1px solid var(--border);
+            vertical-align:top;
+        }
+
+        tbody td{
+            padding:16px;
+            border-bottom:1px solid var(--border);
+            vertical-align:top;
+            font-size:14px;
+        }
+
+        tbody tr:hover{
+            background:#fbfdfb;
+        }
+
+        .entry-title{
+            font-weight:700;
+            color:var(--text);
+            margin-bottom:4px;
+        }
+
+        .entry-sub{
+            color:var(--muted);
+            font-size:12px;
+            line-height:1.5;
+        }
+
+        .status-badge{
+            display:inline-flex;
+            align-items:center;
+            gap:7px;
+            padding:7px 10px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:800;
+            white-space:nowrap;
+        }
+
+        .status-ok{
+            background:var(--green-soft);
+            color:var(--green-dark);
+        }
+
+        .status-warning{
+            background:var(--amber-soft);
+            color:var(--amber);
+        }
+
+        .status-danger{
+            background:var(--red-soft);
+            color:var(--red);
+        }
+
+        .status-info{
+            background:var(--blue-soft);
+            color:var(--blue);
+        }
+
+        .action-stack{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+
+        .ghost-btn{
+            appearance:none;
+            border:1px solid var(--border);
+            background:#fff;
+            color:var(--text);
+            border-radius:10px;
+            padding:8px 10px;
+            font:inherit;
+            font-size:12px;
+            font-weight:700;
+            cursor:pointer;
+        }
+
+        .ghost-btn:hover{
+            border-color:#b7cab8;
+            background:#f9fcf9;
+        }
+
+        .form-card{
+            overflow:hidden;
+            position:sticky;
+            top:20px;
+            box-shadow:var(--shadow);
+        }
+
+        .form-body{
+            padding:20px;
+        }
+
+        .form-type-tabs{
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+            margin-bottom:18px;
+        }
+
+        .tab-btn{
+            appearance:none;
+            border:1px solid var(--border);
+            background:#fff;
+            color:var(--text);
+            border-radius:999px;
+            padding:10px 14px;
+            font:inherit;
+            font-size:13px;
+            font-weight:700;
+            cursor:pointer;
+            transition:all .18s ease;
+        }
+
+        .tab-btn.active{
+            background:var(--green-soft);
+            color:var(--green-dark);
+            border-color:#b8dcbc;
+        }
+
+        .form-panel{
+            display:none;
+        }
+
+        .form-panel.active{
+            display:block;
+        }
+
+        .form-grid{
+            display:grid;
+            grid-template-columns:1fr;
+            gap:16px;
+        }
+
+        .field-group{
+            display:grid;
+            gap:8px;
+        }
+
+        .field-group label{
+            font-size:13px;
+            font-weight:800;
+            color:var(--text);
+        }
+
+        .required{
+            color:var(--red);
+        }
+
+        .inline-grid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:12px;
+        }
+
+        .triple-grid{
+            display:grid;
+            grid-template-columns:repeat(3, minmax(0, 1fr));
+            gap:12px;
+        }
+
+        .segmented{
+            display:grid;
+            grid-template-columns:repeat(3, 1fr);
+            border:1px solid var(--border);
+            border-radius:14px;
+            overflow:hidden;
+            background:#fff;
+        }
+
+        .segmented button{
+            appearance:none;
+            border:none;
+            border-right:1px solid var(--border);
+            padding:13px 14px;
+            font:inherit;
+            font-weight:700;
+            background:#fff;
+            cursor:pointer;
+        }
+
+        .segmented button:last-child{
+            border-right:none;
+        }
+
+        .segmented button.selected{
+            background:var(--green-soft);
+            color:var(--green-dark);
+        }
+
+        .choice-list{
+            display:grid;
+            gap:0;
+            border:1px solid var(--border);
+            border-radius:14px;
+            overflow:hidden;
+        }
+
+        .choice-item{
+            appearance:none;
+            width:100%;
+            border:none;
+            border-bottom:1px solid var(--border);
+            background:#fff;
+            padding:14px 16px;
+            text-align:left;
+            font:inherit;
+            font-weight:600;
+            cursor:pointer;
+        }
+
+        .choice-item:last-child{
+            border-bottom:none;
+        }
+
+        .choice-item.active{
+            background:var(--green-soft);
+            color:var(--green-dark);
+        }
+
+        .photo-row{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+        }
+
+        .photo-btn{
+            min-height:46px;
+            padding:10px 14px;
+            border-radius:12px;
+        }
+
+        .form-footer{
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            padding-top:18px;
+        }
+
+        .empty-state,
+        .save-message{
+            padding:18px 20px;
+            color:var(--muted);
+            font-size:14px;
+        }
+
+        .save-message{
+            margin-bottom:16px;
+            border-radius:14px;
+            display:none;
+        }
+
+        .save-message.success{
+            display:block;
+            background:var(--green-soft);
+            color:var(--green-dark);
+            border:1px solid #cfe8d2;
+        }
+
+        .save-message.error{
+            display:block;
+            background:var(--red-soft);
+            color:var(--red);
+            border:1px solid #f2c9c9;
+        }
+
+        .hidden{
+            display:none !important;
+        }
+
+        .footer-space{
+            height:32px;
+        }
+
+        @media (max-width:1260px){
+            .hero{
+                grid-template-columns:1fr;
+            }
+
+            .toolbar{
+                grid-template-columns:1fr 1fr;
+            }
+
+            .logbook-grid{
+                grid-template-columns:repeat(2, minmax(0, 1fr));
+            }
+
+            .overview-grid{
+                grid-template-columns:repeat(2, minmax(0, 1fr));
+            }
+
+            .content-grid{
+                grid-template-columns:1fr;
+            }
+
+            .form-card{
+                position:static;
+            }
+        }
+
+        @media (max-width:760px){
+            .container{
+                width:min(100% - 20px, 100%);
+            }
+
+            .page-header{
+                padding-top:20px;
+            }
+
+            .toolbar{
+                grid-template-columns:1fr;
+            }
+
+            .logbook-grid,
+            .overview-grid,
+            .hero-side-grid,
+            .inline-grid,
+            .triple-grid{
+                grid-template-columns:1fr;
+            }
+
+            .hero-card,
+            .hero-side,
+            .table-card,
+            .form-card,
+            .overview-card,
+            .logbook-card{
+                border-radius:18px;
+            }
+
+            .section-head,
+            .table-toolbar,
+            .form-head{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+
+            .hero-actions .btn,
+            .logbook-actions .btn{
+                width:100%;
+            }
+
+            .segmented{
+                grid-template-columns:1fr;
+            }
+
+            .segmented button{
+                border-right:none;
+                border-bottom:1px solid var(--border);
+            }
+
+            .segmented button:last-child{
+                border-bottom:none;
+            }
+        }
+    </style>
+</head>
+<body data-page="logbooks">
+    <div id="headerMount"></div>
+
+    <main class="page-shell">
+        <div class="container app-layout">
+            <div id="sidebarMount"></div>
+
+            <section class="page-content">
+                <header class="page-header">
+                <section class="hero">
+                    <div class="hero-card">
+                        <span class="eyebrow">📚 Dokumentation & logbøger</span>
+                        <h1>Logbøger bygget til drift, kontrol og hurtig registrering</h1>
+                        <p>
+                            Her samles virksomhedens logbøger i ét moderne overblik. Medarbejdere kan hurtigt registrere
+                            sporbarhed, modtagelse, kassation, korrigerende handlinger og produktion, mens ledelsen får
+                            bedre historik, hurtigere opfølgning og stærkere dokumentation.
+                        </p>
+
+                        <div class="hero-actions">
+                            <button class="btn btn-primary" id="heroNewEntryBtn">➕ Ny logregistrering</button>
+                            <button class="btn btn-secondary" id="refreshDataBtn">🔄 Opdatér data</button>
+                            <button class="btn btn-secondary" type="button">📄 Eksportér rapport</button>
+                        </div>
+                    </div>
+
+                    <aside class="hero-side">
+                        <div class="hero-side-title">Dagens overblik</div>
+
+                        <div class="hero-side-grid">
+                            <div class="metric-card">
+                                <strong id="metricActiveLogbooks">6</strong>
+                                <span>Aktive logbøger</span>
+                            </div>
+                            <div class="metric-card">
+                                <strong id="metricMonthEntries">0</strong>
+                                <span>Registreringer denne måned</span>
+                            </div>
+                            <div class="metric-card">
+                                <strong id="metricNeedsFollowup">0</strong>
+                                <span>Kræver opfølgning</span>
+                            </div>
+                            <div class="metric-card">
+                                <strong id="metricDocumentationRate">0%</strong>
+                                <span>Dokumentationsgrad</span>
+                            </div>
+                        </div>
+                    </aside>
+                </section>
+
+                <div class="toolbar">
+                    <input type="search" id="searchInput" placeholder="Søg efter logbog, produkt, batch, medarbejder eller notat..." />
+                    <select id="typeFilter">
+                        <option value="all">Alle typer</option>
+                        <option value="corrective">Korrigerende handling</option>
+                        <option value="registration">Registrering</option>
+                        <option value="waste">Kassering</option>
+                        <option value="traceability">Sporbarhed</option>
+                        <option value="production">Produktionslog</option>
+                        <option value="maintenance">Vedligehold</option>
+                    </select>
+                    <select id="statusFilter">
+                        <option value="all">Alle statuser</option>
+                        <option value="ok">OK</option>
+                        <option value="warning">Afventer</option>
+                        <option value="danger">Afvigelse</option>
+                        <option value="info">Lukket</option>
+                    </select>
+                    <select id="sortFilter">
+                        <option value="newest">Seneste først</option>
+                        <option value="oldest">Ældste først</option>
+                    </select>
+                </div>
+            </header>
+
+            <section class="section">
+                <div class="section-head">
+                    <div>
+                        <h2>Logbogstyper</h2>
+                        <p>Hurtig adgang til de vigtigste registreringer i den daglige drift.</p>
+                    </div>
+                </div>
+
+                <div class="logbook-grid" id="logbookGrid"></div>
+            </section>
+
+            <section class="section">
+                <div class="overview-grid">
+                    <article class="overview-card success">
+                        <div class="overview-label">OK registreringer</div>
+                        <div class="overview-value" id="metricOkEntries">0</div>
+                        <div class="overview-note">Registreringer uden fejl eller opfølgende krav.</div>
+                    </article>
+
+                    <article class="overview-card warning">
+                        <div class="overview-label">Afventer opfølgning</div>
+                        <div class="overview-value" id="metricWarningEntries">0</div>
+                        <div class="overview-note">Poster der kræver handling, dokumentation eller vurdering.</div>
+                    </article>
+
+                    <article class="overview-card danger">
+                        <div class="overview-label">Afvigelser</div>
+                        <div class="overview-value" id="metricDangerEntries">0</div>
+                        <div class="overview-note">Poster hvor fejl, kassation eller korrigerende handling er registreret.</div>
+                    </article>
+
+                    <article class="overview-card info">
+                        <div class="overview-label">Lukkede sager</div>
+                        <div class="overview-value" id="metricClosedEntries">0</div>
+                        <div class="overview-note">Poster der er afsluttet og dokumenteret færdigt.</div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="content-grid">
+                    <div class="table-card">
+                        <div class="table-toolbar">
+                            <div>
+                                <h3>Seneste registreringer</h3>
+                                <p>Alle logposter samlet i én oversigt med status, handling og dokumentation.</p>
+                            </div>
+                            <div class="action-stack">
+                                <button class="ghost-btn" id="refreshEntriesBtn">Opdatér</button>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Tidspunkt</th>
+                                        <th>Logbog</th>
+                                        <th>Produkt / udstyr</th>
+                                        <th>Batch / lot</th>
+                                        <th>Registrering</th>
+                                        <th>Fejl / handling</th>
+                                        <th>Ansvarlig</th>
+                                        <th>Status</th>
+                                        <th>Handlinger</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="entriesTableBody"></tbody>
+                            </table>
+                            <div class="empty-state hidden" id="emptyEntriesState">Ingen registreringer fundet endnu.</div>
+                        </div>
+                    </div>
+
+                    <aside class="form-card">
+                        <div class="form-head">
+                            <div>
+                                <h3>Ny logregistrering</h3>
+                                <p>Vælg logbogstype og udfyld formularen.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-body">
+                            <div id="saveMessage" class="save-message"></div>
+
+                            <div class="form-type-tabs" id="formTabs">
+                                <button class="tab-btn active" data-form="corrective">Korrigerende handling</button>
+                                <button class="tab-btn" data-form="registration">Registrering</button>
+                                <button class="tab-btn" data-form="waste">Kassering</button>
+                                <button class="tab-btn" data-form="traceability">Sporbarhed</button>
+                                <button class="tab-btn" data-form="production">Produktion</button>
+                                <button class="tab-btn" data-form="maintenance">Vedligehold</button>
+                            </div>
+
+                            <div class="form-panel active" id="form-corrective">
+                                <form class="form-grid" data-log-form="corrective">
+                                    <div class="field-group">
+                                        <label>Ansvarlig navn <span class="required">*</span></label>
+                                        <input type="text" name="responsibleName" placeholder="Indtast navn..." required />
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Fotodokumentation af berørt vare / skriv leverandør <span class="required">*</span></label>
+                                        <input type="text" name="supplierOrPhotoNote" placeholder="Indtast leverandør, beskrivelse eller reference..." required />
+                                    </div>
+
+                                    <div class="photo-row">
+                                        <button class="btn btn-secondary photo-btn" type="button">📷 Tag billede</button>
+                                        <button class="btn btn-secondary photo-btn" type="button">＋ Tilføj bilag</button>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Berørte varer <span class="required">*</span></label>
+                                        <textarea name="affectedGoods" placeholder="Beskriv hvilke varer der er berørt..." required></textarea>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Antal eller vægt modtaget af varerne</label>
+                                        <input type="text" name="quantityReceived" placeholder="Fx 12 kg, 3 kasser eller 8 stk." />
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Er varen anvendt <span class="required">*</span></label>
+                                        <div class="segmented" data-segmented="wasUsed">
+                                            <button type="button" data-value="Ja">Ja</button>
+                                            <button type="button" data-value="Nej">Nej</button>
+                                            <button type="button" data-value="Måske">Måske</button>
+                                        </div>
+                                        <input type="hidden" name="wasUsed" required />
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Korrigerende handling <span class="required">*</span></label>
+                                        <div class="choice-list" data-choice-list="correctiveActionChoice">
+                                            <button class="choice-item" type="button" data-value="Varerne er returneret">Varerne er returneret</button>
+                                            <button class="choice-item" type="button" data-value="Varerne er destrueret">Varerne er destrueret</button>
+                                            <button class="choice-item" type="button" data-value="Andet, indtast bemærkning">Andet, indtast bemærkning</button>
+                                        </div>
+                                        <input type="hidden" name="correctiveActionChoice" required />
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Bemærkning til ovenstående</label>
+                                        <textarea name="comment" placeholder="Indtast bemærkning..."></textarea>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Evt. justering af procedure fremadrettet</label>
+                                        <textarea name="futureProcedureAdjustment" placeholder="Beskriv ændring i arbejdsgang eller procedure..."></textarea>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Status</label>
+                                        <select name="status">
+                                            <option value="danger">Afvigelse</option>
+                                            <option value="warning">Afventer</option>
+                                            <option value="info">Lukket</option>
+                                            <option value="ok">OK</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-footer">
+                                        <button class="btn btn-secondary" type="reset">Nulstil</button>
+                                        <button class="btn btn-primary" type="submit">Godkend</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="form-panel" id="form-registration">
+                                <form class="form-grid" data-log-form="registration">
+                                    <div class="field-group">
+                                        <label>Ansvarlig navn <span class="required">*</span></label>
+                                        <input type="text" name="responsibleName" placeholder="Indtast navn..." required />
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Råvarer <span class="required">*</span></label>
+                                        <input type="text" name="rawMaterial" placeholder="Indtast råvare..." required />
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Lot nr. <span class="required">*</span></label>
+                                        <input type="text" name="lotNumber" placeholder="Indtast lotnummer..." required />
+                                    </div>
+
+                                    <div class="photo-row">
+                                        <button class="btn btn-secondary photo-btn" type="button">📷 Tag billede</button>
+                                        <button class="btn btn-secondary photo-btn" type="button">＋ Tilføj bilag</button>
+                                    </div>
+
+                                    <div class="inline-grid">
+                                        <div class="field-group">
+                                            <label>Produktionsdato <span class="required">*</span></label>
+                                            <input type="date" name="productionDate" required />
+                                        </div>
+                                        <div class="field-group">
+                                            <label>Produktionsenhed</label>
+                                            <input type="text" name="productionUnit" placeholder="Indtast enhed..." />
+                                        </div>
+                                    </div>
+
+                                    <div class="inline-grid">
+                                        <div class="field-group">
+                                            <label>Leveringsenhed <span class="required">*</span></label>
+                                            <input type="text" name="deliveryUnit" placeholder="Fx kasse, bøtte, pose..." required />
+                                        </div>
+                                        <div class="field-group">
+                                            <label>Holdbarhed i dage <span class="required">*</span></label>
+                                            <input type="number" name="shelfLifeDays" placeholder="Fx 5" required />
+                                        </div>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Kok</label>
+                                        <input type="text" name="chefName" placeholder="Indtast navn..." />
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Status</label>
+                                        <select name="status">
+                                            <option value="ok">OK</option>
+                                            <option value="warning">Afventer</option>
+                                            <option value="danger">Afvigelse</option>
+                                            <option value="info">Lukket</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-footer">
+                                        <button class="btn btn-secondary" type="reset">Nulstil</button>
+                                        <button class="btn btn-primary" type="submit">Godkend</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="form-panel" id="form-waste">
+                                <form class="form-grid" data-log-form="waste">
+                                    <div class="field-group">
+                                        <label>Ansvarlig navn <span class="required">*</span></label>
+                                        <input type="text" name="responsibleName" placeholder="Indtast navn..." required />
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Hvilken mad er modtaget</label>
+                                        <textarea name="receivedFood" placeholder="Indtast beskrivelse af modtaget mad..."></textarea>
+                                    </div>
+
+                                    <div class="inline-grid">
+                                        <div class="field-group">
+                                            <label>Mad modtaget klokken <span class="required">*</span></label>
+                                            <input type="time" name="receivedTime" required />
+                                        </div>
+                                        <div class="field-group">
+                                            <label>Mad kasseret klokken <span class="required">*</span></label>
+                                            <input type="time" name="discardedTime" required />
+                                        </div>
+                                    </div>
+
+                                    <div class="inline-grid">
+                                        <div class="field-group">
+                                            <label>Årsag til kassering</label>
+                                            <input type="text" name="discardReason" placeholder="Fx for høj temperatur..." />
+                                        </div>
+                                        <div class="field-group">
+                                            <label>Antal / vægt kasseret</label>
+                                            <input type="text" name="discardedAmount" placeholder="Fx 4 kg eller 2 bakker..." />
+                                        </div>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Status</label>
+                                        <select name="status">
+                                            <option value="danger">Afvigelse</option>
+                                            <option value="warning">Afventer</option>
+                                            <option value="ok">OK</option>
+                                            <option value="info">Lukket</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-footer">
+                                        <button class="btn btn-secondary" type="reset">Nulstil</button>
+                                        <button class="btn btn-primary" type="submit">Godkend</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="form-panel" id="form-traceability">
+                                <form class="form-grid" data-log-form="traceability">
+                                    <div class="field-group">
+                                        <label>Ansvarlig navn <span class="required">*</span></label>
+                                        <input type="text" name="responsibleName" placeholder="Indtast navn..." required />
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Produkt <span class="required">*</span></label>
+                                        <input type="text" name="productName" placeholder="Indtast produkt..." required />
+                                    </div>
+
+                                    <div class="inline-grid">
+                                        <div class="field-group">
+                                            <label>Lotnummer <span class="required">*</span></label>
+                                            <input type="text" name="lotNumber" placeholder="Indtast lotnummer..." required />
+                                        </div>
+                                        <div class="field-group">
+                                            <label>Leverandør <span class="required">*</span></label>
+                                            <input type="text" name="supplierName" placeholder="Indtast leverandør..." required />
+                                        </div>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Sporingsnotat</label>
+                                        <textarea name="traceNote" placeholder="Beskriv sporingsoplysninger..."></textarea>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Status</label>
+                                        <select name="status">
+                                            <option value="ok">OK</option>
+                                            <option value="warning">Afventer</option>
+                                            <option value="danger">Afvigelse</option>
+                                            <option value="info">Lukket</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-footer">
+                                        <button class="btn btn-secondary" type="reset">Nulstil</button>
+                                        <button class="btn btn-primary" type="submit">Gem log</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="form-panel" id="form-production">
+                                <form class="form-grid" data-log-form="production">
+                                    <div class="field-group">
+                                        <label>Ansvarlig navn <span class="required">*</span></label>
+                                        <input type="text" name="responsibleName" placeholder="Indtast navn..." required />
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Produktionsnavn <span class="required">*</span></label>
+                                        <input type="text" name="productionName" placeholder="Indtast produktionsnavn..." required />
+                                    </div>
+
+                                    <div class="triple-grid">
+                                        <div class="field-group">
+                                            <label>Dato</label>
+                                            <input type="date" name="productionDate" />
+                                        </div>
+                                        <div class="field-group">
+                                            <label>Antal</label>
+                                            <input type="number" name="quantity" placeholder="0" />
+                                        </div>
+                                        <div class="field-group">
+                                            <label>Enhed</label>
+                                            <input type="text" name="unit" placeholder="stk, kg..." />
+                                        </div>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Bemærkning</label>
+                                        <textarea name="note" placeholder="Indtast bemærkning..."></textarea>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Status</label>
+                                        <select name="status">
+                                            <option value="ok">OK</option>
+                                            <option value="warning">Afventer</option>
+                                            <option value="danger">Afvigelse</option>
+                                            <option value="info">Lukket</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-footer">
+                                        <button class="btn btn-secondary" type="reset">Nulstil</button>
+                                        <button class="btn btn-primary" type="submit">Gem log</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="form-panel" id="form-maintenance">
+                                <form class="form-grid" data-log-form="maintenance">
+                                    <div class="field-group">
+                                        <label>Ansvarlig navn <span class="required">*</span></label>
+                                        <input type="text" name="responsibleName" placeholder="Indtast navn..." required />
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Udstyr <span class="required">*</span></label>
+                                        <input type="text" name="equipmentName" placeholder="Fx Køleskab 2" required />
+                                    </div>
+
+                                    <div class="inline-grid">
+                                        <div class="field-group">
+                                            <label>Fejltype</label>
+                                            <input type="text" name="errorType" placeholder="Fx pakning, kompressor..." />
+                                        </div>
+                                        <div class="field-group">
+                                            <label>Placering</label>
+                                            <input type="text" name="locationName" placeholder="Fx køkken, lager..." />
+                                        </div>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Beskrivelse</label>
+                                        <textarea name="description" placeholder="Beskriv fejlen og eventuel handling..."></textarea>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label>Status</label>
+                                        <select name="status">
+                                            <option value="warning">Afventer</option>
+                                            <option value="danger">Afvigelse</option>
+                                            <option value="info">Lukket</option>
+                                            <option value="ok">OK</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-footer">
+                                        <button class="btn btn-secondary" type="reset">Nulstil</button>
+                                        <button class="btn btn-primary" type="submit">Gem log</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+                <div class="footer-space"></div>
+            </section>
+        </div>
+    </main>
+
+    <script type="module">
+        import { setupAuthGate } from "/core/auth.js";
+        import { loadLayout } from "/core/layout.js";
+        import { db } from "/core/firebase-config.js";
+        import {
+            collection,
+            addDoc,
+            getDocs,
+            query,
+            where,
+            orderBy,
+            limit,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const COMPANY_ID = "madkontrollen-default";
+        const UNIT_ID = "unit-1";
+        const LOCATION_ID = "location-1";
+
+        const LOGBOOK_DEFINITIONS = {
+            corrective: {
+                title: "Korrigerende handling / fejl",
+                icon: "⚠️",
+                description: "Samlet logbog til fejlregistrering, kontaktperson, aftaler og dokumenteret handling ved afvigelser.",
+                tags: ["Afvigelse", "Handling", "Opfølgning"]
+            },
+            registration: {
+                title: "Registrering",
+                icon: "📄",
+                description: "Bruges til råvarer, lotnummer, produktionsdato, leveringsenhed, holdbarhed og køkkenregistrering.",
+                tags: ["Råvarer", "Lotnr.", "Holdbarhed"]
+            },
+            waste: {
+                title: "Modtagelse og kassering af mad",
+                icon: "🗑️",
+                description: "Registrér hvilken mad der er modtaget, hvad der er kasseret, og hvornår det skete.",
+                tags: ["Kassation", "Tidspunkt", "Modtagelse"]
+            },
+            traceability: {
+                title: "Sporbarhed",
+                icon: "🔎",
+                description: "Registrering af lotnummer, leverandør, produkt og sporingsoplysninger for hurtig dokumentation.",
+                tags: ["Lotnummer", "Leverandør", "Produkt"]
+            },
+            production: {
+                title: "Produktionslog",
+                icon: "🏭",
+                description: "Overblik over produktion, antal, dato, produkt og interne registreringer i køkken eller produktion.",
+                tags: ["Produktion", "Antal", "Dato"]
+            },
+            maintenance: {
+                title: "Vedligeholdelseslog / fejlrapport",
+                icon: "🛠️",
+                description: "Registrér fejl på udstyr, servicebesøg, notater og korrigerende handlinger ved tekniske problemer.",
+                tags: ["Udstyr", "Fejlrapport", "Service"]
+            }
+        };
+
+        const state = {
+            activeForm: "corrective",
+            entries: []
+        };
+
+        const elements = {
+            logbookGrid: document.getElementById("logbookGrid"),
+            entriesTableBody: document.getElementById("entriesTableBody"),
+            emptyEntriesState: document.getElementById("emptyEntriesState"),
+            saveMessage: document.getElementById("saveMessage"),
+            searchInput: document.getElementById("searchInput"),
+            typeFilter: document.getElementById("typeFilter"),
+            statusFilter: document.getElementById("statusFilter"),
+            sortFilter: document.getElementById("sortFilter"),
+            refreshDataBtn: document.getElementById("refreshDataBtn"),
+            refreshEntriesBtn: document.getElementById("refreshEntriesBtn"),
+            heroNewEntryBtn: document.getElementById("heroNewEntryBtn"),
+            metricMonthEntries: document.getElementById("metricMonthEntries"),
+            metricNeedsFollowup: document.getElementById("metricNeedsFollowup"),
+            metricDocumentationRate: document.getElementById("metricDocumentationRate"),
+            metricOkEntries: document.getElementById("metricOkEntries"),
+            metricWarningEntries: document.getElementById("metricWarningEntries"),
+            metricDangerEntries: document.getElementById("metricDangerEntries"),
+            metricClosedEntries: document.getElementById("metricClosedEntries"),
+            metricActiveLogbooks: document.getElementById("metricActiveLogbooks")
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function toJsDate(dateValue) {
+            if (!dateValue) return null;
+
+            if (typeof dateValue?.toDate === "function") {
+                const converted = dateValue.toDate();
+                return Number.isNaN(converted.getTime()) ? null : converted;
+            }
+
+            if (dateValue instanceof Date) {
+                return Number.isNaN(dateValue.getTime()) ? null : dateValue;
+            }
+
+            const converted = new Date(dateValue);
+            return Number.isNaN(converted.getTime()) ? null : converted;
+        }
+
+        function formatDate(dateValue) {
+            const date = toJsDate(dateValue);
+            if (!date) return "-";
+
+            return new Intl.DateTimeFormat("da-DK", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }).format(date);
+        }
+
+        function formatTime(dateValue) {
+            const date = toJsDate(dateValue);
+            if (!date) return "-";
+
+            return new Intl.DateTimeFormat("da-DK", {
+                hour: "2-digit",
+                minute: "2-digit"
+            }).format(date);
+        }
+
+        function getStatusLabel(status) {
+            switch (status) {
+                case "danger": return "Afvigelse";
+                case "warning": return "Afventer";
+                case "info": return "Lukket";
+                case "ok":
+                default: return "OK";
+            }
+        }
+
+        function getEntryPrimaryProduct(entry) {
+            return entry.productName
+                || entry.equipmentName
+                || entry.rawMaterial
+                || entry.productionName
+                || entry.receivedFood
+                || entry.affectedGoods
+                || "-";
+        }
+
+        function getEntryBatch(entry) {
+            return entry.lotNumber
+                || entry.referenceCode
+                || entry.fields?.lotNumber
+                || entry.fields?.referenceCode
+                || "-";
+        }
+
+        function getEntryRegistration(entry) {
+            return entry.registrationText || "-";
+        }
+
+        function getEntryAction(entry) {
+            return entry.actionText || "-";
+        }
+
+        function getMonthKey(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+        }
+
+        function getEntrySortTime(entry) {
+            const createdAt = toJsDate(entry.createdAt);
+            if (createdAt) return createdAt.getTime();
+
+            const createdAtClient = toJsDate(entry.createdAtClient);
+            if (createdAtClient) return createdAtClient.getTime();
+
+            return 0;
+        }
+
+        function buildLogbookCards() {
+            const counts = {};
+            for (const key of Object.keys(LOGBOOK_DEFINITIONS)) {
+                counts[key] = 0;
+            }
+
+            for (const entry of state.entries) {
+                if (counts[entry.logType] !== undefined) {
+                    counts[entry.logType] += 1;
+                }
+            }
+
+            elements.logbookGrid.innerHTML = Object.entries(LOGBOOK_DEFINITIONS)
+                .map(([key, def]) => `
+                    <article class="logbook-card ${state.activeForm === key ? "active" : ""}" data-form="${key}">
+                        <div class="logbook-top">
+                            <div class="logbook-icon">${def.icon}</div>
+                            <span class="logbook-count">${counts[key] || 0} rapporter</span>
+                        </div>
+                        <div>
+                            <h3>${escapeHtml(def.title)}</h3>
+                            <p>${escapeHtml(def.description)}</p>
+                        </div>
+                        <div class="logbook-tags">
+                            ${def.tags.map(tag => `<span class="chip">${escapeHtml(tag)}</span>`).join("")}
+                        </div>
+                        <div class="logbook-actions">
+                            <button class="btn btn-primary btn-small js-open-form" data-form="${key}" type="button">Udfør log</button>
+                        </div>
+                    </article>
+                `)
+                .join("");
+
+            elements.metricActiveLogbooks.textContent = String(Object.keys(LOGBOOK_DEFINITIONS).length);
+
+            document.querySelectorAll(".js-open-form").forEach(btn => {
+                btn.addEventListener("click", event => {
+                    event.stopPropagation();
+                    activateForm(btn.dataset.form);
+                    document.querySelector(".form-card")?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+                });
+            });
+
+            document.querySelectorAll(".logbook-card").forEach(card => {
+                card.addEventListener("click", () => {
+                    activateForm(card.dataset.form);
+                    document.querySelector(".form-card")?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+                });
+            });
+        }
+
+        function updateMetrics() {
+            const now = new Date();
+            const currentMonthKey = getMonthKey(now);
+
+            const okCount = state.entries.filter(entry => entry.status === "ok").length;
+            const warningCount = state.entries.filter(entry => entry.status === "warning").length;
+            const dangerCount = state.entries.filter(entry => entry.status === "danger").length;
+            const closedCount = state.entries.filter(entry => entry.status === "info").length;
+            const monthCount = state.entries.filter(entry => {
+                const date = toJsDate(entry.createdAt) || toJsDate(entry.createdAtClient);
+                return date && getMonthKey(date) === currentMonthKey;
+            }).length;
+
+            const documented = state.entries.filter(entry => {
+                const hasResponsible = !!entry.responsibleName;
+                const hasProduct = !!getEntryPrimaryProduct(entry) && getEntryPrimaryProduct(entry) !== "-";
+                return hasResponsible && hasProduct;
+            }).length;
+
+            const documentationRate = state.entries.length
+                ? Math.round((documented / state.entries.length) * 100)
+                : 0;
+
+            elements.metricMonthEntries.textContent = String(monthCount);
+            elements.metricNeedsFollowup.textContent = String(warningCount + dangerCount);
+            elements.metricDocumentationRate.textContent = `${documentationRate}%`;
+            elements.metricOkEntries.textContent = String(okCount);
+            elements.metricWarningEntries.textContent = String(warningCount);
+            elements.metricDangerEntries.textContent = String(dangerCount);
+            elements.metricClosedEntries.textContent = String(closedCount);
+        }
+
+        function getFilteredEntries() {
+            const searchValue = elements.searchInput.value.trim().toLowerCase();
+            const typeValue = elements.typeFilter.value;
+            const statusValue = elements.statusFilter.value;
+            const sortValue = elements.sortFilter.value;
+
+            let entries = [...state.entries];
+
+            if (typeValue !== "all") {
+                entries = entries.filter(entry => entry.logType === typeValue);
+            }
+
+            if (statusValue !== "all") {
+                entries = entries.filter(entry => entry.status === statusValue);
+            }
+
+            if (searchValue) {
+                entries = entries.filter(entry => {
+                    const haystack = [
+                        entry.logTitle,
+                        entry.productName,
+                        entry.equipmentName,
+                        entry.rawMaterial,
+                        entry.productionName,
+                        entry.receivedFood,
+                        entry.affectedGoods,
+                        entry.lotNumber,
+                        entry.referenceCode,
+                        entry.registrationText,
+                        entry.actionText,
+                        entry.responsibleName,
+                        JSON.stringify(entry.fields || {})
+                    ]
+                        .join(" ")
+                        .toLowerCase();
+
+                    return haystack.includes(searchValue);
+                });
+            }
+
+            entries.sort((a, b) => {
+                const aTime = getEntrySortTime(a);
+                const bTime = getEntrySortTime(b);
+                return sortValue === "oldest" ? aTime - bTime : bTime - aTime;
+            });
+
+            return entries;
+        }
+
+        function renderEntries() {
+            const filteredEntries = getFilteredEntries();
+            updateMetrics();
+
+            if (!filteredEntries.length) {
+                elements.entriesTableBody.innerHTML = "";
+                elements.emptyEntriesState.classList.remove("hidden");
+                return;
+            }
+
+            elements.emptyEntriesState.classList.add("hidden");
+
+            elements.entriesTableBody.innerHTML = filteredEntries.map(entry => `
+                <tr>
+                    <td>
+                        <div class="entry-title">${escapeHtml(formatDate(entry.createdAt || entry.createdAtClient))}</div>
+                        <div class="entry-sub">${escapeHtml(formatTime(entry.createdAt || entry.createdAtClient))}</div>
+                    </td>
+                    <td>
+                        <div class="entry-title">${escapeHtml(entry.logTitle || "-")}</div>
+                        <div class="entry-sub">${escapeHtml(entry.subtitle || "")}</div>
+                    </td>
+                    <td>
+                        <div class="entry-title">${escapeHtml(getEntryPrimaryProduct(entry))}</div>
+                        <div class="entry-sub">${escapeHtml(entry.secondaryText || "")}</div>
+                    </td>
+                    <td>
+                        <div class="entry-title">${escapeHtml(getEntryBatch(entry))}</div>
+                        <div class="entry-sub">${escapeHtml(entry.batchSubText || "")}</div>
+                    </td>
+                    <td>
+                        <div class="entry-title">${escapeHtml(getEntryRegistration(entry))}</div>
+                        <div class="entry-sub">${escapeHtml(entry.registrationSubText || "")}</div>
+                    </td>
+                    <td>
+                        <div class="entry-title">${escapeHtml(getEntryAction(entry))}</div>
+                        <div class="entry-sub">${escapeHtml(entry.actionSubText || "")}</div>
+                    </td>
+                    <td>
+                        <div class="entry-title">${escapeHtml(entry.responsibleName || "-")}</div>
+                        <div class="entry-sub">${escapeHtml(entry.roleLabel || "Medarbejder")}</div>
+                    </td>
+                    <td><span class="status-badge status-${escapeHtml(entry.status || "ok")}">● ${escapeHtml(getStatusLabel(entry.status))}</span></td>
+                    <td>
+                        <div class="action-stack">
+                            <button class="ghost-btn" type="button">Vis</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        function showMessage(message, type = "success") {
+            elements.saveMessage.textContent = message;
+            elements.saveMessage.className = `save-message ${type}`;
+        }
+
+        function clearMessage() {
+            elements.saveMessage.textContent = "";
+            elements.saveMessage.className = "save-message";
+        }
+
+        function activateForm(formName) {
+            state.activeForm = formName;
+
+            document.querySelectorAll(".tab-btn").forEach(btn => {
+                btn.classList.toggle("active", btn.dataset.form === formName);
+            });
+
+            document.querySelectorAll(".form-panel").forEach(panel => {
+                panel.classList.toggle("active", panel.id === `form-${formName}`);
+            });
+
+            document.querySelectorAll(".logbook-card").forEach(card => {
+                card.classList.toggle("active", card.dataset.form === formName);
+            });
+
+            clearMessage();
+        }
+
+        function setupTabs() {
+            document.querySelectorAll(".tab-btn").forEach(btn => {
+                btn.addEventListener("click", () => activateForm(btn.dataset.form));
+            });
+        }
+
+        function setupSegmentedControls() {
+            document.querySelectorAll("[data-segmented]").forEach(group => {
+                const hiddenInputName = group.dataset.segmented;
+                const hiddenInput = group.parentElement.querySelector(`input[name="${hiddenInputName}"]`);
+
+                group.querySelectorAll("button").forEach(button => {
+                    button.addEventListener("click", () => {
+                        group.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
+                        button.classList.add("selected");
+                        if (hiddenInput) {
+                            hiddenInput.value = button.dataset.value || "";
+                        }
+                    });
+                });
+            });
+        }
+
+        function setupChoiceLists() {
+            document.querySelectorAll("[data-choice-list]").forEach(list => {
+                const hiddenInputName = list.dataset.choiceList;
+                const hiddenInput = list.parentElement.querySelector(`input[name="${hiddenInputName}"]`);
+
+                list.querySelectorAll(".choice-item").forEach(item => {
+                    item.addEventListener("click", () => {
+                        list.querySelectorAll(".choice-item").forEach(i => i.classList.remove("active"));
+                        item.classList.add("active");
+                        if (hiddenInput) {
+                            hiddenInput.value = item.dataset.value || item.textContent.trim();
+                        }
+                    });
+                });
+            });
+        }
+
+        function buildEntryFromForm(logType, values) {
+            const definition = LOGBOOK_DEFINITIONS[logType];
+
+            // Get user's companyId and locationId from session
+            const userCompanyId = sessionStorage.getItem("mkp_user_companyId") || COMPANY_ID;
+            const userLocationId = sessionStorage.getItem("mkp_selected_locationId") || LOCATION_ID;
+
+            const common = {
+                companyId: userCompanyId,
+                organizationId: userCompanyId, // For security rules compatibility
+                unitId: UNIT_ID,
+                locationId: userLocationId,
+                logType,
+                logTitle: definition.title,
+                responsibleName: values.responsibleName || "",
+                status: values.status || "ok",
+                fields: values,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                createdAtClient: new Date().toISOString(),
+                roleLabel: "Medarbejder"
+            };
+
+            switch (logType) {
+                case "corrective":
+                    return {
+                        ...common,
+                        productName: values.affectedGoods || "",
+                        secondaryText: values.supplierOrPhotoNote || "",
+                        referenceCode: "",
+                        subtitle: "Opfølgning på afvigelse",
+                        registrationText: values.wasUsed ? `Vare anvendt: ${values.wasUsed}` : "Handling registreret",
+                        registrationSubText: values.quantityReceived || "",
+                        actionText: values.correctiveActionChoice || values.comment || "Korrigerende handling registreret",
+                        actionSubText: values.futureProcedureAdjustment || ""
+                    };
+
+                case "registration":
+                    return {
+                        ...common,
+                        rawMaterial: values.rawMaterial || "",
+                        productName: values.rawMaterial || "",
+                        lotNumber: values.lotNumber || "",
+                        subtitle: "Registrering af råvare",
+                        secondaryText: values.productionUnit || "",
+                        batchSubText: values.productionDate || "",
+                        registrationText: values.deliveryUnit || "Registreret",
+                        registrationSubText: values.shelfLifeDays ? `Holdbarhed: ${values.shelfLifeDays} dage` : "",
+                        actionText: values.chefName ? `Kok: ${values.chefName}` : "Ingen bemærkning",
+                        actionSubText: ""
+                    };
+
+                case "waste":
+                    return {
+                        ...common,
+                        receivedFood: values.receivedFood || "",
+                        productName: values.receivedFood || "",
+                        subtitle: "Modtagelse og kassering",
+                        registrationText: values.receivedTime ? `Modtaget: ${values.receivedTime}` : "Modtaget",
+                        registrationSubText: values.discardedTime ? `Kasseret: ${values.discardedTime}` : "",
+                        actionText: values.discardReason || "Kassering registreret",
+                        actionSubText: values.discardedAmount || ""
+                    };
+
+                case "traceability":
+                    return {
+                        ...common,
+                        productName: values.productName || "",
+                        lotNumber: values.lotNumber || "",
+                        subtitle: "Sporing af vare",
+                        secondaryText: values.supplierName || "",
+                        registrationText: "Sporbarhed registreret",
+                        registrationSubText: values.supplierName || "",
+                        actionText: values.traceNote || "Ingen bemærkning",
+                        actionSubText: ""
+                    };
+
+                case "production":
+                    return {
+                        ...common,
+                        productionName: values.productionName || "",
+                        productName: values.productionName || "",
+                        subtitle: "Produktionslog",
+                        secondaryText: values.unit || "",
+                        registrationText: values.quantity ? `${values.quantity} ${values.unit || ""}`.trim() : "Produktion registreret",
+                        registrationSubText: values.productionDate || "",
+                        actionText: values.note || "Ingen bemærkning",
+                        actionSubText: ""
+                    };
+
+                case "maintenance":
+                    return {
+                        ...common,
+                        equipmentName: values.equipmentName || "",
+                        productName: values.equipmentName || "",
+                        subtitle: "Fejlrapport / vedligehold",
+                        secondaryText: values.locationName || "",
+                        registrationText: values.errorType || "Fejl registreret",
+                        registrationSubText: values.locationName || "",
+                        actionText: values.description || "Ingen beskrivelse",
+                        actionSubText: ""
+                    };
+
+                default:
+                    return common;
+            }
+        }
+
+        async function loadEntries() {
+            try {
+                // Get user's companyId and locationId from session
+                const userCompanyId = sessionStorage.getItem("mkp_user_companyId");
+                const userLocationId = sessionStorage.getItem("mkp_selected_locationId");
+
+                if (!userCompanyId || !userLocationId) {
+                    console.warn("Missing user companyId or locationId");
+                    state.entries = [];
+                    buildLogbookCards();
+                    renderEntries();
+                    showMessage("Log ind for at se logbogsposter.", "error");
+                    return;
+                }
+
+                const entriesRef = collection(db, "logbook_entries");
+                const q = query(
+                    entriesRef,
+                    where("companyId", "==", userCompanyId),
+                    where("locationId", "==", userLocationId),
+                    orderBy("createdAt", "desc"),
+                    limit(100)
+                );
+                const snapshot = await getDocs(q);
+
+                state.entries = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                buildLogbookCards();
+                renderEntries();
+                clearMessage();
+            } catch (error) {
+                console.error("Fejl ved hentning af logbogsposter:", error);
+
+                // Fallback without orderBy if index doesn't exist
+                try {
+                    const userCompanyId = sessionStorage.getItem("mkp_user_companyId");
+                    const userLocationId = sessionStorage.getItem("mkp_selected_locationId");
+
+                    const entriesRef = collection(db, "logbook_entries");
+                    const q = query(
+                        entriesRef,
+                        where("companyId", "==", userCompanyId),
+                        where("locationId", "==", userLocationId)
+                    );
+                    const snapshot = await getDocs(q);
+                    
+                    state.entries = snapshot.docs
+                        .map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }))
+                        .sort((a, b) => getEntrySortTime(b) - getEntrySortTime(a))
+                        .slice(0, 100);
+
+                    buildLogbookCards();
+                    renderEntries();
+                    showMessage("Logbogsposter hentet (uden sortering). Opret Firestore index for bedre performance.", "success");
+                } catch (fallbackError) {
+                    console.error("Fallback fejlede også:", fallbackError);
+                    state.entries = [];
+                    buildLogbookCards();
+                    renderEntries();
+                    showMessage("Kunne ikke hente logbogsposter. Tjek dine rettigheder.", "error");
+                }
+            }
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            clearMessage();
+
+            const form = event.currentTarget;
+            const logType = form.dataset.logForm;
+            const submitButton = form.querySelector('button[type="submit"]');
+            const defaultSubmitText = submitButton.textContent;
+
+            try {
+                if (!form.reportValidity()) {
+                    return;
+                }
+
+                submitButton.disabled = true;
+                submitButton.textContent = "Gemmer...";
+
+                const formData = new FormData(form);
+                const values = Object.fromEntries(formData.entries());
+                const payload = buildEntryFromForm(logType, values);
+
+                await addDoc(collection(db, "logbook_entries"), payload);
+
+                form.reset();
+                form.querySelectorAll(".choice-item").forEach(item => item.classList.remove("active"));
+                form.querySelectorAll("[data-segmented] button").forEach(button => button.classList.remove("selected"));
+                form.querySelectorAll('input[type="hidden"]').forEach(input => input.value = "");
+
+                showMessage("Logregistrering gemt i Firestore.", "success");
+                await loadEntries();
+            } catch (error) {
+                console.error("Fejl ved gemning:", error);
+                showMessage(`Kunne ikke gemme logregistreringen. ${error.message || ""}`.trim(), "error");
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = defaultSubmitText;
+            }
+        }
+
+        function setupForms() {
+            document.querySelectorAll("form[data-log-form]").forEach(form => {
+                form.addEventListener("submit", handleFormSubmit);
+                form.addEventListener("reset", () => {
+                    setTimeout(() => {
+                        form.querySelectorAll(".choice-item").forEach(item => item.classList.remove("active"));
+                        form.querySelectorAll("[data-segmented] button").forEach(button => button.classList.remove("selected"));
+                        form.querySelectorAll('input[type="hidden"]').forEach(input => input.value = "");
+                        clearMessage();
+                    }, 0);
+                });
+            });
+        }
+
+        function setupFilters() {
+            [elements.searchInput, elements.typeFilter, elements.statusFilter, elements.sortFilter].forEach(control => {
+                control.addEventListener("input", renderEntries);
+                control.addEventListener("change", renderEntries);
+            });
+        }
+
+        function setupGlobalActions() {
+            elements.refreshDataBtn.addEventListener("click", loadEntries);
+            elements.refreshEntriesBtn.addEventListener("click", loadEntries);
+            elements.heroNewEntryBtn.addEventListener("click", () => {
+                document.querySelector(".form-card")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            });
+        }
+
+        // Initialize layout and auth
+        setupAuthGate({
+            appName: "Madkontrollen Pro - Logbøger",
+            onAuthenticated: async ({ user, profile }) => {
+                // Load sidebar and header
+                await loadLayout(profile);
+
+                // Initialize page
+                buildLogbookCards();
+                setupTabs();
+                setupSegmentedControls();
+                setupChoiceLists();
+                setupForms();
+                setupFilters();
+                setupGlobalActions();
+                await loadEntries();
+            },
+            onSignedOut: async () => {
+                // Clear entries on logout
+                state.entries = [];
+                renderEntries();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -35,6 +35,7 @@ export async function saveOnboardingAndStartCheckout(payload) {
                 cloudinaryAssets: payload.sections ? extractCloudinaryAssetsFromSections(payload.sections, payload.checks) : []
             },
             billingPlan: payload.billingPlan || "monthly",
+            selectedModules: payload.selectedModules || ["egenkontrol"],
             companyId: payload.companyId,
             locationId: payload.locationId,
             // Include full onboarding data for backend to save

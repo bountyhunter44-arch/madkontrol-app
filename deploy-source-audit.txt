@@ -1,0 +1,209 @@
+﻿# Deploy Source Audit - 2026-06-10
+
+Formaal: status-audit af .deploy-* mapper som midlertidige deploy-kilder. Ingen kode er aendret, ingen deploy er koert, ingen mapper er slettet.
+
+Vigtig konklusion
+- .deploy-* mapperne fungerer i praksis som hotfix snapshots, men flere fungerende live-aendringer er IKKE flyttet tilbage til de rigtige source-mapper.
+- Seneste live hotfix for Nedkoeling food/udfoert-af findes kun i .deploy-cooling-food-performer-hotfix-20260610_1335.
+- Stabile history-cache aendringer findes i .deploy-card-history-cache-hotfix-20260610_1015 og nyere snapshots, men main har ikke samme latestEntryCache implementation.
+- Fejlede pause/reactivate frontend hotfixes findes i .deploy-pause-auth-hotfix-20260610_1215, .deploy-pause-auth-raw-hotfix-20260610_1235 og ogsaa i rutiner.html i .deploy-pause-auth-backend-hotfix-20260610_1245. De maa ikke kopieres blindt.
+- Backend pause auth verifyIdToken findes kun i .deploy-pause-auth-backend-hotfix-20260610_1245/functions/modules/egenkontrol/routines.js. Den er ukendt/ikke bekraeftet som samlet flow, fordi frontend-flowet stadig fejlede.
+
+Rigtige source-mapper der skal eje aendringer fremover
+- Frontend Egenkontrol: public/modules/egenkontrol/
+- Backend Egenkontrol: functions/modules/egenkontrol/
+- Core/shared frontend: public/core/
+- Rapporter/dokumentation: docs/modules/egenkontrol/
+- functions/index.js kun naar eksisterende callable stadig ligger der og ikke kan flyttes i samme hotfix.
+
+Main/source status for centrale filer
+- public/modules/egenkontrol/rutiner.html: findes, men matcher ingen stabil deploy-kilde. Har ikke latestEntryCache; har kun buildLatestActivityEntryFromTask.
+- public/modules/egenkontrol/rapporter.html: findes, men mangler Nedkoeling foodItem/Foedevare formatter fra seneste deploy.
+- public/modules/egenkontrol/routineCardsResolver.js: findes i main som untracked source; mangler i alle undersoegte .deploy-* mapper.
+- public/core/cooling-overlay.js: findes, men mangler foodItem/performedBy mapping fra seneste deploy.
+- functions/modules/egenkontrol/routines.js: findes i main, men har ikke backend pause resolveCallableAuth/verifyIdToken hotfix.
+- functions/index.js: findes, men mangler saveRoutineTask cooling food/performedBy whitelist fra seneste deploy.
+
+Deploy-kilder
+
+1. .deploy-compare-clean-20260610_081117
+Status: CLEAN/BASE REFERENCE
+Relevante filer ift. main: rutiner.html, rapporter.html, cooling-overlay.js, functions/index.js afviger; functions/modules/egenkontrol/routines.js og routineCardsResolver.js mangler.
+Fungerende aendringer: ingen kendt som slut-hotfix.
+Kun i .deploy og risikerer at blive tabt: baseline til diff, ikke en feature.
+Fejlet: nej.
+Anbefaling: Behold midlertidigt som tidlig clean reference; kan arkiveres senere naar golden source er genetableret.
+
+2. .deploy-hotfix-20260610_081117
+Status: TIDLIG HOTFIX / OVERSKREVET
+Relevante filer ift. main: rutiner.html, rapporter.html, cooling-overlay.js, functions/modules/egenkontrol/routines.js, functions/index.js afviger; routineCardsResolver.js mangler.
+Fungerende aendringer: tidlige save/cooling aendringer, men ikke latestEntryCache og ikke food/udfoert-af.
+Kun i .deploy og risikerer at blive tabt: tidlige saveRoutineTask/cooling-diffs kan vaere forloebere, men er superseded af nyere kilder.
+Fejlet: ikke markeret fejlet, men for gammel til at bruge som master.
+Anbefaling: Arkiver/slet senere efter nyere stabile patches er flyttet til source.
+
+3. .deploy-cooling-hotfix-20260610_0829
+Status: TIDLIG COOLING HOTFIX / OVERSKREVET
+Relevante filer ift. main: rutiner.html, rapporter.html, cooling-overlay.js, routines.js, functions/index.js afviger; routineCardsResolver.js mangler.
+Fungerende aendringer: tidlig cooling/saveRoutineTask rettelse.
+Kun i .deploy og risikerer at blive tabt: forloebere til senere cooling-history fix.
+Fejlet: ikke kendt som direkte fejlet, men erstattet.
+Anbefaling: Arkiver/slet senere efter audit mod seneste stable.
+
+4. .deploy-cooling-history-hotfix-20260610_0855
+Status: COOLING HISTORY HOTFIX / DELVIST ERSTATTET
+Relevante filer ift. main: rutiner.html, rapporter.html, cooling-overlay.js, routines.js, functions/index.js afviger; routineCardsResolver.js mangler.
+Fungerende aendringer: Nedkoeling historik-query/match for card history var del af denne serie, men latestEntryCache kom senere.
+Kun i .deploy og risikerer at blive tabt: cooling history matching hvis ikke inkluderet i .deploy-card-history-cache eller seneste food-performer-kilde.
+Fejlet: ikke markeret fejlet, men ikke seneste stabile.
+Anbefaling: Brug ikke som master; sammenlign mod .deploy-card-history-cache-hotfix-20260610_1015 hvis der skal rekonstrueres.
+
+5. .deploy-card-history-hotfix-20260610_0938
+Status: CARD HISTORY HOTFIX / ERSTATTET AF CACHE-HOTFIX
+Relevante filer ift. main: rutiner.html, rapporter.html, cooling-overlay.js, routines.js, functions/index.js afviger; routineCardsResolver.js mangler.
+Fungerende aendringer: buildLatestActivityEntryFromTask/latestEntry render efter save, men uden latestEntryCache.
+Kun i .deploy og risikerer at blive tabt: mellemliggende history renderer.
+Fejlet: ikke fejlet, men superseded.
+Anbefaling: Arkiver/slet senere efter cache-hotfix er flyttet til source.
+
+6. .deploy-card-history-cache-hotfix-20260610_1015
+Status: STABIL REFERENCE
+Relevante filer ift. main: rutiner.html, rapporter.html, cooling-overlay.js, routines.js, functions/index.js afviger; routineCardsResolver.js mangler.
+Fungerende aendringer: latestEntryCache/historik, Seneste aktivitet, Vis historik, Nedkoeling-historik. Indeholder ikke fejlet pause frontend raw-auth.
+Tilbagefoert til rigtig source: nej, main mangler latestEntryCache implementation.
+Kun i .deploy og risikerer at blive tabt: stable card history cache og tilhoerende query/merge logik.
+Fejlet: nej.
+Anbefaling: Brug som historik-stabil reference ved merge til rigtige mapper. Ikke som permanent source.
+
+7. .deploy-modules-index-hotfix-20260610_1055
+Status: STABIL/UKENDT MODULES INDEX SNAPSHOT
+Relevante filer ift. main: samme centrale Egenkontrol-filer som cache-hotfix afviger; routineCardsResolver.js mangler.
+Fungerende aendringer: latestEntryCache er til stede; ingen pause raw-auth.
+Tilbagefoert til rigtig source: nej.
+Kun i .deploy og risikerer at blive tabt: mulig modules-index/hosting snapshot, men ingen unik Egenkontrol-diff observeret i de undersoegte filer ift. cache-hotfix.
+Fejlet: ikke kendt.
+Anbefaling: Arkiver efter at have bekraeftet om den kun adskiller sig uden for Egenkontrol.
+
+8. .deploy-egenkontrol-ui-hotfix-20260610_1125
+Status: UKENDT / IKKE SENEST STABIL, TIDLIGERE EKSKLUDERET FRA ROLLBACK
+Relevante filer ift. main: rutiner.html, rapporter.html, cooling-overlay.js, routines.js, functions/index.js afviger; routineCardsResolver.js mangler.
+Fungerende aendringer: latestEntryCache findes. Kitchen-sorting/report-filter signaturer findes i denne kilde.
+Tilbagefoert til rigtig source: delvist/ukendt; main har noget rapport/filter/udfoert-af kode, men matcher ikke denne kilde.
+Kun i .deploy og risikerer at blive tabt: koekkensortering/rapportfiltre hvis de faktisk virkede.
+Fejlet: ikke direkte fejlet, men var eksplicit ikke medtaget i rollback til stabil rutiner-base.
+Anbefaling: MANUAL_REVIEW. Split diff op i egen isoleret patch senere; maa ikke flettes sammen med history eller pause-auth.
+
+9. .deploy-pause-auth-hotfix-20260610_1215
+Status: FEJLET FRONTEND PAUSE AUTH
+Relevante filer ift. main: rutiner.html plus standard snapshot-filer afviger.
+Fungerende aendringer: latestEntryCache findes fordi den bygger paa stabil base.
+Fejlet aendring: frontend helper/callRoutinePauseCallable med getIdToken/httpsCallable gav stadig 401.
+Tilbagefoert til rigtig source: nej, og skal ikke tilbagefoeres.
+Kun i .deploy og risikerer at blive tabt: kun fejlet pause-frontend-forsog; boer tabes/arkiveres.
+Anbefaling: Arkiver/slet senere. Kopier ikke rutiner.html herfra.
+
+10. .deploy-pause-auth-raw-hotfix-20260610_1235
+Status: FEJLET FRONTEND RAW PAUSE AUTH
+Relevante filer ift. main: rutiner.html plus standard snapshot-filer afviger.
+Fungerende aendringer: latestEntryCache findes fordi den bygger paa stabil base.
+Fejlet aendring: raw fetch/callRoutinePauseCallable med token debug gav stadig 401.
+Tilbagefoert til rigtig source: nej, og skal ikke tilbagefoeres.
+Kun i .deploy og risikerer at blive tabt: fejlet raw frontend auth-hack.
+Anbefaling: Arkiver/slet senere. Kopier ikke rutiner.html herfra.
+
+11. .deploy-pause-auth-backend-hotfix-20260610_1245
+Status: BLANDET / BACKEND UKENDT, FRONTEND FEJLET
+Relevante filer ift. main: rutiner.html, functions/modules/egenkontrol/routines.js plus snapshot-filer afviger.
+Fungerende aendringer: latestEntryCache findes i rutiner.html, men rutiner.html indeholder ogsaa fejlet raw pause frontend.
+Backend aendring: functions/modules/egenkontrol/routines.js har resolveCallableAuth og admin.auth().verifyIdToken fallback for Authorization header.
+Fejlet aendring: frontend raw pause auth er med i samme deploy-kilde og maa ikke med i golden source.
+Tilbagefoert til rigtig source: nej.
+Kun i .deploy og risikerer at blive tabt: backend verifyIdToken helper, hvis vi beslutter at bevare den efter isoleret test.
+Anbefaling: KEEP_ONLY_IF_BACKEND_FIX. Udtraek kun routines.js-diffen til separat branch/kilde og test pause/reactivate isoleret. Kopier ikke rutiner.html herfra.
+
+12. .deploy-cooling-food-performer-hotfix-20260610_1335
+Status: SENEST DEPLOYET HOTFIX / STABIL KANDIDAT
+Relevante filer ift. main: rutiner.html, rapporter.html, cooling-overlay.js, functions/index.js afviger; routines.js snapshot afviger men blev ikke aendret til dette hotfix; routineCardsResolver.js mangler.
+Fungerende aendringer: latestEntryCache fra stabil base + Nedkoeling foodItem/udfoert-af hotfix.
+Tilbagefoert til rigtig source: nej. Main mangler foodItem/performedBy mapping i cooling-overlay, rutiner, rapporter og saveRoutineTask whitelist.
+Kun i .deploy og risikerer at blive tabt: seneste live hotfix for Nedkoeling food/udfoert-af.
+Fejlet: nej, deploy lykkedes. Manuelt browser-testresultat ikke registreret i denne audit.
+Anbefaling: Dette er den vigtigste kilde at flytte tilbage til rigtige mapper, men kun de fire faktiske hotfix-filer/diffs: public/core/cooling-overlay.js, public/modules/egenkontrol/rutiner.html, public/modules/egenkontrol/rapporter.html, functions/index.js.
+
+Fungerende aendringer og hvor de bor
+
+A. latestEntryCache/historik
+- Findes stabilt i .deploy-card-history-cache-hotfix-20260610_1015 og nyere snapshots.
+- Ikke tilbagefoert til main/rigtig source: main har ikke latestEntryCache.
+- Flyt til: public/modules/egenkontrol/rutiner.html.
+- Brug .deploy-card-history-cache-hotfix-20260610_1015 som ren reference, eller .deploy-cooling-food-performer-hotfix-20260610_1335 hvis food-hotfix skal kombineres.
+
+B. Nedkoeling food/udfoert-af
+- Findes kun i .deploy-cooling-food-performer-hotfix-20260610_1335.
+- Ikke tilbagefoert til main/rigtig source.
+- Flyt til:
+  - public/core/cooling-overlay.js: send foodItem/productName/performedByUid/performedByName videre.
+  - public/modules/egenkontrol/rutiner.html: vis Foedevare og Udfoert af i Seneste aktivitet/Vis historik; send foodItem ved startCoolingRun.
+  - public/modules/egenkontrol/rapporter.html: vis Foedevare og Udfoert af i rapport/authority details.
+  - functions/index.js: saveRoutineTask whitelist for cooling task_entries, indtil saveRoutineTask flyttes til functions/modules/egenkontrol/.
+
+C. Koekkenlogisk sortering / rapportfiltre
+- Signaturer ses i .deploy-egenkontrol-ui-hotfix-20260610_1125.
+- Status: ukendt/ikke senest stabil; tidligere eksplicit ikke medtaget i rollback.
+- Ikke merge blindt. Lav separat audit/diff og isoleret patch senere.
+- Flyt til public/modules/egenkontrol/rutiner.html og public/modules/egenkontrol/rapporter.html kun efter manuel vurdering.
+
+D. Backend routines auth
+- Kun specifik pause/reactivate backend verifyIdToken helper findes i .deploy-pause-auth-backend-hotfix-20260610_1245/functions/modules/egenkontrol/routines.js.
+- Status: ukendt, fordi samlet flow stadig fejlede med frontend raw-auth og ikke blev bekraeftet 200.
+- Maa kun bevares som separat isoleret backend-test. Frontend raw-auth fra samme kilde skal fjernes/udelades.
+- Flyt eventuelt til functions/modules/egenkontrol/routines.js efter isoleret test, ikke sammen med historik/cooling.
+
+E. Fejlede pause/reactivate frontend forsog
+- .deploy-pause-auth-hotfix-20260610_1215: FEJLET.
+- .deploy-pause-auth-raw-hotfix-20260610_1235: FEJLET.
+- .deploy-pause-auth-backend-hotfix-20260610_1245/rutiner.html: indeholder FEJLET raw frontend.
+- Skal ikke tilbagefoeres til public/modules/egenkontrol/rutiner.html.
+
+Forslag til merge/restore-plan, uden at koere den nu
+1. Opret ny ren arbejdsgren eller kontrolleret patch-arbejde fra main, men skriv til rigtige source-mapper, ikke .deploy-*.
+2. Start med latestEntryCache:
+   - diff .deploy-card-history-cache-hotfix-20260610_1015/public/modules/egenkontrol/rutiner.html mod main public/modules/egenkontrol/rutiner.html
+   - overfoer kun history/cache/query/render-delen.
+3. Laeg derefter Nedkoeling food/udfoert-af ovenpaa:
+   - diff .deploy-cooling-food-performer-hotfix-20260610_1335 mod .deploy-card-history-cache-hotfix-20260610_1015 for de fire filer.
+   - overfoer kun disse fire hotfix-diffs til rigtige mapper.
+4. Kør checks foer deploy:
+   - node --check public/core/cooling-overlay.js
+   - inline script-check public/modules/egenkontrol/rutiner.html
+   - inline script-check public/modules/egenkontrol/rapporter.html
+   - node --check functions/index.js
+5. Hold pause/reactivate ude af denne merge. Lav separat test-kilde for backend routines auth, uden frontend raw-auth.
+6. Lav separat audit for .deploy-egenkontrol-ui-hotfix-20260610_1125, hvis koekkenlogisk sortering/rapportfiltre skal bevares.
+
+Forslag til senere arkivering/sletning, IKKE udført nu
+Kan sandsynligvis arkiveres/slettes efter source-merge:
+- .deploy-hotfix-20260610_081117
+- .deploy-cooling-hotfix-20260610_0829
+- .deploy-cooling-history-hotfix-20260610_0855
+- .deploy-card-history-hotfix-20260610_0938
+- .deploy-modules-index-hotfix-20260610_1055 hvis ingen unik ikke-Egenkontrol diff findes
+
+Behold midlertidigt som reference indtil merge er fuldfoert:
+- .deploy-compare-clean-20260610_081117
+- .deploy-card-history-cache-hotfix-20260610_1015
+- .deploy-cooling-food-performer-hotfix-20260610_1335
+
+Fejlede/skal arkiveres som fejlede forsog:
+- .deploy-pause-auth-hotfix-20260610_1215
+- .deploy-pause-auth-raw-hotfix-20260610_1235
+
+Manuel vurdering foer arkivering/sletning:
+- .deploy-egenkontrol-ui-hotfix-20260610_1125: mulig koekkenlogisk sortering/rapportfiltre.
+- .deploy-pause-auth-backend-hotfix-20260610_1245: udtraek kun backend routines.js diff hvis backend verifyIdToken skal testes/bevares.
+
+Audit-artefakt
+- Denne rapport: deploy-source-audit.txt
+- Ingen kodefiler aendret af denne audit.
+- Ingen deploy koert.
+- Ingen delete/reset/stash/commit koert.

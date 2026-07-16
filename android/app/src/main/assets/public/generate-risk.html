@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Generate Risk Analysis</title>
+</head>
+<body>
+    <h1>Åbn Browser Console (F12)</h1>
+    <p>Kør denne kommando i console:</p>
+    <pre>generateRisk('onboarding_test-kinesiske-mur', 'onboarding_test-kinesiske-mur__main')</pre>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+        const configResponse = await fetch("/firebase-config.json", { cache: "no-store" });
+        const firebaseConfig = await configResponse.json();
+
+        const app = initializeApp(firebaseConfig);
+        const functions = getFunctions(app, 'us-central1');
+
+        window.generateRisk = async function(companyId, locationId) {
+            console.log(`🔍 Generating risk analysis for ${companyId}/${locationId}`);
+            
+            try {
+                const manualGenerateRiskAnalysis = httpsCallable(functions, 'manualGenerateRiskAnalysis');
+                const result = await manualGenerateRiskAnalysis({ companyId, locationId });
+                
+                console.log('✅ SUCCESS!');
+                console.log('Control Points:', result.data.controlPointsGenerated);
+                console.log('Path:', result.data.path);
+                console.log('\n🎉 Gå til risikoanalyse.html for at se resultatet!');
+                
+                return result.data;
+            } catch (error) {
+                console.error('❌ ERROR:', error.code, error.message);
+                throw error;
+            }
+        };
+
+        console.log('✅ Ready! Kør: generateRisk("companyId", "locationId")');
+        console.log('Eksempel: generateRisk("onboarding_test-kinesiske-mur", "onboarding_test-kinesiske-mur__main")');
+    </script>
+</body>
+</html>

@@ -61,6 +61,13 @@ function buildIndexHtml({ domain, businessName, description }) {
   <meta name="description" content="${escapeHtml(metaDescription)}">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="${escapeHtml(canonical)}">
+  <meta property="og:title" content="${escapeHtml(title)}">
+  <meta property="og:description" content="${escapeHtml(metaDescription)}">
+  <meta property="og:url" content="${escapeHtml(canonical)}">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${escapeHtml(title)}">
+  <meta name="twitter:description" content="${escapeHtml(metaDescription)}">
 </head>
 <body>
   <main>

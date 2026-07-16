@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Critical status icon">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <circle cx="64" cy="64" r="56" fill="#ef4444" filter="url(#shadow)"/>
+  <circle cx="46" cy="50" r="6" fill="#4d1111"/>
+  <circle cx="82" cy="50" r="6" fill="#4d1111"/>
+  <path d="M42 84c6-8 13-12 22-12 9 0 16 4 22 12" fill="none" stroke="#4d1111" stroke-width="6" stroke-linecap="round" transform="rotate(180 64 78)"/>
+  <path d="M35 35l10 6" stroke="#4d1111" stroke-width="5" stroke-linecap="round"/>
+  <path d="M93 35l-10 6" stroke="#4d1111" stroke-width="5" stroke-linecap="round"/>
+</svg>

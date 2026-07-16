@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dataudtræk | Madkontrollen Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .export-shell{display:grid;gap:16px}
+    .export-card{background:#fff;border:1px solid #dbe8db;border-radius:18px;box-shadow:0 10px 24px rgba(16,33,16,.06)}
+    .export-head{padding:22px;display:grid;gap:10px}
+    .export-head h1{margin:0;font-size:28px}
+    .export-head p{margin:0;color:#596859;line-height:1.6}
+    .export-banner{display:none;margin:0 22px 18px;padding:14px 16px;border-radius:14px;border:1px solid #f0d29a;background:#fff7e8;color:#6f4700;font-weight:700}
+    .export-banner.show{display:block}
+    .export-controls{padding:18px 22px;border-top:1px solid #e2ece2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end}
+    .export-controls label{display:grid;gap:6px;font-size:12px;font-weight:800;color:#405040}
+    .export-controls input{min-height:42px;border:1px solid #d7e3d7;border-radius:10px;padding:9px 11px;font:inherit}
+    .export-actions{padding:0 22px 22px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .export-actions .btn{width:100%;min-height:44px}
+    .export-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:0 22px 22px}
+    .export-kpi{border:1px solid #dbe8db;background:#f8fbf8;border-radius:14px;padding:14px}
+    .export-kpi strong{display:block;font-size:26px;margin-bottom:6px}
+    .export-kpi span{color:#657365;font-size:13px}
+    .export-status{padding:14px 22px;color:#596859;border-top:1px solid #e2ece2}
+    .export-status.error{color:#b3261e}
+    .export-status.success{color:#1f6b2a}
+    .export-table-wrap{overflow:auto}
+    .export-table{width:100%;min-width:860px;border-collapse:collapse}
+    .export-table th,.export-table td{padding:12px 14px;border-top:1px solid #e2ece2;text-align:left;font-size:13px;vertical-align:top}
+    .export-table th{background:#f8fbf8;color:#596859;text-transform:uppercase;letter-spacing:.03em;font-size:11px}
+    .muted{color:#667266}
+    @media(max-width:980px){.export-controls,.export-actions,.export-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:640px){.export-controls,.export-actions,.export-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body data-page="data-export">
+  <div id="headerMount"></div>
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+      <section class="page-content">
+        <div class="export-shell">
+          <article class="export-card">
+            <div class="export-head">
+              <h1>Dataudtræk ved opsigelse</h1>
+              <p>Hent virksomhedens dokumentation i læsbare formater før adgang ophører. Eksporten er scoped til aktiv virksomhed og lokation.</p>
+              <p class="muted" id="scopeLine">Indlæser kontekst...</p>
+            </div>
+            <div class="export-banner" id="cancellationBanner"></div>
+            <div class="export-controls">
+              <label>Fra dato<input id="fromDate" type="date"></label>
+              <label>Til dato<input id="toDate" type="date"></label>
+              <button class="btn btn-secondary" id="reloadBtn" type="button">Genindlæs data</button>
+              <button class="btn btn-secondary" id="printSummaryBtn" type="button">Åbn PDF-visning</button>
+            </div>
+            <div class="export-actions">
+              <button class="btn btn-primary" data-export-format="csv" type="button">Download CSV</button>
+              <button class="btn btn-primary" data-export-format="xlsx" type="button">Download Excel/XLSX</button>
+              <button class="btn btn-primary" data-export-format="pdf" type="button">Download PDF</button>
+              <button class="btn btn-primary" data-export-format="json" type="button">Download JSON arkiv</button>
+            </div>
+            <div class="export-grid">
+              <div class="export-kpi"><strong id="kpiEntries">0</strong><span>Rutineposter</span></div>
+              <div class="export-kpi"><strong id="kpiTemperatures">0</strong><span>Temperaturmålinger</span></div>
+              <div class="export-kpi"><strong id="kpiDeviations">0</strong><span>Afvigelser og handlinger</span></div>
+              <div class="export-kpi"><strong id="kpiMedia">0</strong><span>Mediehenvisninger</span></div>
+            </div>
+            <div class="export-status" id="statusLine">Klar.</div>
+          </article>
+
+          <article class="export-card">
+            <div class="export-head">
+              <h2 style="margin:0">Eksportindhold</h2>
+              <p>CSV henter separate filer: entries.csv, deviations.csv, temperatures.csv og media.csv. Excel samler data i sheets: Oversigt, Rutiner, Temperaturer, Afvigelser, HACCP og Billeder.</p>
+            </div>
+            <div class="export-table-wrap">
+              <table class="export-table">
+                <thead><tr><th>Datatype</th><th>Antal</th><th>Indhold</th></tr></thead>
+                <tbody id="summaryRows"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import { loadLayout } from "/core/layout.js";
+    import { db } from "/core/firebase-config.js";
+    import { resolvePrettyCompanyInfo } from "/core/prettyName.js";
+    import {
+      addDoc,
+      collection,
+      doc,
+      getDoc,
+      getDocs,
+      limit,
+      query,
+      serverTimestamp,
+      where
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const SCHEMA_VERSION = "1.0.0";
+    const OWNER_ADMIN_ROLES = new Set(["owner", "admin", "hq_admin", "location_manager"]);
+    const state = {
+      user: null,
+      profile: null,
+      companyId: "",
+      locationId: "",
+      pretty: null,
+      archive: null,
+      loading: false
+    };
+
+    const el = {
+      fromDate: document.getElementById("fromDate"),
+      toDate: document.getElementById("toDate"),
+      reloadBtn: document.getElementById("reloadBtn"),
+      printSummaryBtn: document.getElementById("printSummaryBtn"),
+      scopeLine: document.getElementById("scopeLine"),
+      statusLine: document.getElementById("statusLine"),
+      cancellationBanner: document.getElementById("cancellationBanner"),
+      summaryRows: document.getElementById("summaryRows"),
+      kpiEntries: document.getElementById("kpiEntries"),
+      kpiTemperatures: document.getElementById("kpiTemperatures"),
+      kpiDeviations: document.getElementById("kpiDeviations"),
+      kpiMedia: document.getElementById("kpiMedia")
+    };
+
+    function setStatus(message, type = "") {
+      el.statusLine.textContent = message;
+      el.statusLine.className = `export-status ${type}`.trim();
+    }
+
+    function clean(value) {
+      return String(value || "").trim();
+    }
+
+    function resolveLocationId(profile = {}) {
+      return clean(
+        sessionStorage.getItem("mkp_selected_locationId") ||
+        profile.primaryLocationId ||
+        profile.locationId ||
+        (Array.isArray(profile.locationIds) ? profile.locationIds[0] : "")
+      );
+    }
+
+    function isAllowedRole(profile = {}) {
+      return OWNER_ADMIN_ROLES.has(clean(profile.role).toLowerCase());
+    }
+
+    function toDate(value) {
+      if (!value) return null;
+      if (typeof value?.toDate === "function") return value.toDate();
+      if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+      if (typeof value === "object" && typeof value.seconds === "number") return new Date(value.seconds * 1000);
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function iso(value) {
+      const date = toDate(value);
+      return date ? date.toISOString() : "";
+    }
+
+    function fmt(value) {
+      const date = toDate(value);
+      if (!date) return "-";
+      return new Intl.DateTimeFormat("da-DK", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(date);
+    }
+
+    function dateKey(date) {
+      return date.toISOString().slice(0, 10);
+    }
+
+    function setDefaultDates() {
+      const now = new Date();
+      const from = new Date(now);
+      from.setFullYear(from.getFullYear() - 5);
+      el.fromDate.value = dateKey(from);
+      el.toDate.value = dateKey(now);
+    }
+
+    function getRange() {
+      const from = el.fromDate.value ? new Date(`${el.fromDate.value}T00:00:00`) : null;
+      const to = el.toDate.value ? new Date(`${el.toDate.value}T23:59:59.999`) : null;
+      return { from, to, fromLabel: el.fromDate.value || "", toLabel: el.toDate.value || "" };
+    }
+
+    function getRecordDate(record = {}) {
+      return toDate(record.createdAt) ||
+        toDate(record.completedAt) ||
+        toDate(record.handledAt) ||
+        toDate(record.updatedAt) ||
+        toDate(record.date) ||
+        (record.dateKey ? toDate(`${record.dateKey}T12:00:00`) : null);
+    }
+
+    function inRange(record, range) {
+      const date = getRecordDate(record);
+      if (!date) return true;
+      if (range.from && date < range.from) return false;
+      if (range.to && date > range.to) return false;
+      return true;
+    }
+
+    function serialize(value) {
+      if (value === null || value === undefined) return value;
+      if (typeof value?.toDate === "function") return value.toDate().toISOString();
+      if (value instanceof Date) return value.toISOString();
+      if (Array.isArray(value)) return value.map(serialize);
+      if (typeof value === "object") {
+        return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, serialize(item)]));
+      }
+      return value;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function firstText(...values) {
+      for (const value of values) {
+        const text = clean(value);
+        if (text) return text;
+      }
+      return "";
+    }
+
+    async function getDocument(pathParts) {
+      try {
+        const snap = await getDoc(doc(db, ...pathParts));
+        return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+      } catch (error) {
+        console.warn("[data-export] doc read failed", pathParts.join("/"), error);
+        return null;
+      }
+    }
+
+    async function getScopedCollection(collectionName, options = {}) {
+      const rows = [];
+      const companyId = state.companyId;
+      const locationId = state.locationId;
+      const variants = [
+        [where("companyId", "==", companyId), where("locationId", "==", locationId)],
+        [where("organizationId", "==", companyId), where("locationId", "==", locationId)]
+      ];
+
+      for (const constraints of variants) {
+        try {
+          const snap = await getDocs(query(collection(db, collectionName), ...constraints, limit(options.limit || 1000)));
+          snap.docs.forEach((item) => rows.push({ id: item.id, ...item.data() }));
+          if (rows.length) break;
+        } catch (error) {
+          console.warn(`[data-export] ${collectionName} query failed`, error);
+        }
+      }
+
+      return rows;
+    }
+
+    async function getRiskAnalysisCurrent() {
+      return getDocument(["companies", state.companyId, "locations", state.locationId, "risk_analysis", "current"]);
+    }
+
+    function extractMediaReferences(records = [], sourceType = "") {
+      const refs = [];
+      records.forEach((record) => {
+        const base = {
+          sourceType,
+          sourceId: record.id || record.taskInstanceId || record.taskId || "",
+          date: iso(record.createdAt || record.updatedAt || record.completedAt),
+          title: record.title || record.taskTitle || record.logTitle || record.name || ""
+        };
+
+        (Array.isArray(record.photoUrls) ? record.photoUrls : []).forEach((url) => {
+          refs.push({ ...base, url, publicId: "", mediaType: "photoUrl" });
+        });
+
+        (Array.isArray(record.cloudinaryAssets) ? record.cloudinaryAssets : []).forEach((asset) => {
+          refs.push({
+            ...base,
+            url: asset.secureUrl || asset.optimizedUrl || asset.url || "",
+            publicId: asset.publicId || asset.cloudinaryPublicId || "",
+            mediaType: "cloudinary"
+          });
+        });
+
+        ["imageUrl", "photoUrl", "secureUrl", "beforeImageUrl", "afterImageUrl"].forEach((key) => {
+          if (record[key]) refs.push({ ...base, url: record[key], publicId: "", mediaType: key });
+        });
+      });
+      return refs.filter((item) => item.url || item.publicId);
+    }
+
+    function buildTemperatureRows(entries = []) {
+      return entries
+        .filter((entry) => entry.measurementValue !== undefined && entry.measurementValue !== null && entry.measurementValue !== "")
+        .map((entry) => ({
+          date: iso(entry.createdAt || entry.completedAt),
+          title: entry.taskTitle || entry.title || entry.routineType || "",
+          routineType: entry.routineType || entry.templateKey || "",
+          value: entry.measurementValue,
+          unit: entry.measurementUnit || entry.unit || "",
+          status: entry.status || "",
+          responsibleName: entry.completedByName || entry.responsibleName || entry.employeeName || "",
+          note: entry.note || entry.comment || ""
+        }));
+    }
+
+    function normalizeDeviationRows(deviations = [], alerts = []) {
+      const fromDeviations = deviations.map((item) => ({
+        id: item.id || "",
+        date: iso(item.createdAt || item.handledAt || item.updatedAt),
+        title: item.title || item.taskTitle || item.type || "Afvigelse",
+        description: item.description || item.note || item.comment || "",
+        correctiveAction: item.correctiveAction || item.actionText || item.resolution || item.handling || "",
+        status: item.status || "",
+        responsibleName: item.responsibleName || item.completedByName || item.handledByName || "",
+        source: "deviations"
+      }));
+
+      const fromAlerts = alerts
+        .filter((item) => String(item.alertType || item.type || "").toLowerCase().includes("deviation") || item.correctiveAction || item.requiresAction)
+        .map((item) => ({
+          id: item.id || "",
+          date: iso(item.createdAt || item.updatedAt),
+          title: item.title || item.alertTitle || item.type || "Korrigerende handling",
+          description: item.description || item.alertDescription || item.note || "",
+          correctiveAction: item.correctiveAction || item.actionText || "",
+          status: item.status || "",
+          responsibleName: item.responsibleName || item.completedByName || "",
+          source: "alerts"
+        }));
+
+      return [...fromDeviations, ...fromAlerts];
+    }
+
+    async function loadArchive() {
+      if (!isAllowedRole(state.profile)) {
+        setStatus("Kun owner/admin kan eksportere hele dokumentationsarkivet.", "error");
+        disableExportButtons(true);
+        return;
+      }
+
+      state.loading = true;
+      setStatus("Indlæser dokumentation...");
+
+      const range = getRange();
+      const [
+        company,
+        location,
+        riskAnalysis,
+        haccpSnapshotsRaw,
+        taskEntriesRaw,
+        taskInstancesRaw,
+        deviationsRaw,
+        alertsRaw,
+        logbookEntriesRaw,
+        mediaAssetsRaw
+      ] = await Promise.all([
+        getDocument(["companies", state.companyId]),
+        getDocument(["companies", state.companyId, "locations", state.locationId]),
+        getRiskAnalysisCurrent(),
+        getScopedCollection("haccp_snapshots", { limit: 200 }),
+        getScopedCollection("task_entries", { limit: 3000 }),
+        getScopedCollection("task_instances", { limit: 3000 }),
+        getScopedCollection("deviations", { limit: 1000 }),
+        getScopedCollection("alerts", { limit: 1000 }),
+        getScopedCollection("logbook_entries", { limit: 1000 }),
+        getScopedCollection("media_assets", { limit: 2000 })
+      ]);
+
+      const taskEntries = taskEntriesRaw.filter((item) => inRange(item, range));
+      const taskInstances = taskInstancesRaw.filter((item) => inRange(item, range));
+      const deviations = deviationsRaw.filter((item) => inRange(item, range));
+      const alerts = alertsRaw.filter((item) => inRange(item, range));
+      const logbookEntries = logbookEntriesRaw.filter((item) => inRange(item, range));
+      const mediaAssets = mediaAssetsRaw.filter((item) => inRange(item, range));
+      const haccpSnapshots = haccpSnapshotsRaw.filter((item) => inRange(item, range));
+      const temperatures = buildTemperatureRows(taskEntries);
+      const correctiveActions = normalizeDeviationRows(deviations, alerts);
+      const mediaReferences = [
+        ...mediaAssets.map((item) => ({
+          sourceType: item.moduleType || "media_assets",
+          sourceId: item.itemId || item.taskInstanceId || item.id || "",
+          date: iso(item.createdAt || item.createdAtClient),
+          title: item.assetName || item.moduleType || "Bilag",
+          url: item.secureUrl || item.optimizedUrl || item.url || "",
+          publicId: item.publicId || "",
+          mediaType: item.assetType || "media_asset"
+        })),
+        ...extractMediaReferences(taskEntries, "task_entries"),
+        ...extractMediaReferences(deviations, "deviations"),
+        ...extractMediaReferences(logbookEntries, "logbook_entries")
+      ];
+
+      state.archive = serialize({
+        schemaVersion: SCHEMA_VERSION,
+        exportedAtClient: new Date().toISOString(),
+        dateRange: { from: range.fromLabel, to: range.toLabel },
+        companyId: state.companyId,
+        locationId: state.locationId,
+        companyPrettyName: state.pretty?.displayCompany || state.pretty?.companyName || "",
+        locationPrettyName: state.pretty?.displayLocation || state.pretty?.locationName || "",
+        companyMetadata: company,
+        locationMetadata: location,
+        riskAnalysisCurrent: riskAnalysis,
+        haccpSnapshots,
+        taskEntries,
+        taskInstanceSummaries: taskInstances,
+        deviations,
+        correctiveActions,
+        logbookEntries,
+        mediaReferences,
+        audit: {
+          generatedBy: state.user?.uid || "",
+          generatedByEmail: state.user?.email || "",
+          generatedByRole: state.profile?.role || "",
+          generatedAt: new Date().toISOString()
+        }
+      });
+
+      updateUi();
+      setStatus("Data er indlæst og klar til eksport.", "success");
+      state.loading = false;
+    }
+
+    function updateUi() {
+      const archive = state.archive;
+      if (!archive) return;
+
+      el.kpiEntries.textContent = String(archive.taskEntries.length);
+      el.kpiTemperatures.textContent = String(archive.mediaReferences ? archive.taskEntries.filter((item) => item.measurementValue !== undefined && item.measurementValue !== null && item.measurementValue !== "").length : 0);
+      el.kpiDeviations.textContent = String(archive.correctiveActions.length);
+      el.kpiMedia.textContent = String(archive.mediaReferences.length);
+
+      const rows = [
+        ["Company metadata", archive.companyMetadata ? 1 : 0, "Virksomhedsnavn, abonnement, timestamps og metadata"],
+        ["Location metadata", archive.locationMetadata ? 1 : 0, "Lokation, adresse, kontaktdata og metadata"],
+        ["riskAnalysis/current", archive.riskAnalysisCurrent ? 1 : 0, "Aktiv risikoanalyse"],
+        ["haccp_snapshots", archive.haccpSnapshots.length, "HACCP snapshots og kontrolpunkter"],
+        ["task_entries", archive.taskEntries.length, "Udførte kontroller, noter og ansvarlige"],
+        ["task_instances", archive.taskInstanceSummaries.length, "Planlagte rutiner og statusoversigt"],
+        ["deviations/corrective", archive.correctiveActions.length, "Afvigelser og korrigerende handlinger"],
+        ["media", archive.mediaReferences.length, "Billeder, Cloudinary public IDs og links"]
+      ];
+
+      el.summaryRows.innerHTML = rows.map(([name, count, description]) => `
+        <tr><td>${escapeHtml(name)}</td><td>${escapeHtml(count)}</td><td>${escapeHtml(description)}</td></tr>
+      `).join("");
+    }
+
+    function disableExportButtons(disabled) {
+      document.querySelectorAll("[data-export-format], #reloadBtn, #printSummaryBtn").forEach((button) => {
+        button.disabled = disabled;
+      });
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? "");
+      return /[",\n\r;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    }
+
+    function toCsv(rows, columns) {
+      const header = columns.map((column) => csvEscape(column.label)).join(";");
+      const body = rows.map((row) => columns.map((column) => csvEscape(column.value(row))).join(";")).join("\n");
+      return `${header}\n${body}`;
+    }
+
+    function downloadBlob(filename, blob) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 500);
+    }
+
+    function filePrefix() {
+      const from = el.fromDate.value || "fra";
+      const to = el.toDate.value || "til";
+      return `madkontrollen_${state.companyId}_${state.locationId}_${from}_${to}`;
+    }
+
+    function entryRows() {
+      return (state.archive?.taskEntries || []).map((item) => ({
+        date: iso(item.createdAt || item.completedAt),
+        taskTitle: item.taskTitle || item.title || "",
+        routineType: item.routineType || item.templateKey || "",
+        status: item.status || "",
+        measurementValue: item.measurementValue ?? "",
+        measurementUnit: item.measurementUnit || "",
+        responsibleName: item.completedByName || item.responsibleName || item.employeeName || "",
+        note: item.note || item.comment || ""
+      }));
+    }
+
+    function haccpRows() {
+      const snapshots = state.archive?.haccpSnapshots || [];
+      const current = state.archive?.riskAnalysisCurrent || {};
+      const currentPoints = Array.isArray(current.controlPoints) ? current.controlPoints : [];
+      const snapshotPoints = snapshots.flatMap((snapshot) =>
+        (Array.isArray(snapshot.controlPoints) ? snapshot.controlPoints : []).map((point) => ({ snapshotId: snapshot.id, ...point }))
+      );
+      return [...currentPoints.map((point) => ({ source: "current", ...point })), ...snapshotPoints];
+    }
+
+    function mediaRows() {
+      return state.archive?.mediaReferences || [];
+    }
+
+    async function logExport(format) {
+      const range = getRange();
+      const archive = state.archive || {};
+      await addDoc(collection(db, "export_audits"), {
+        exportedBy: state.user?.uid || "",
+        exportedByEmail: state.user?.email || "",
+        exportedAt: serverTimestamp(),
+        exportFormat: format,
+        dateRange: { from: range.fromLabel, to: range.toLabel },
+        companyId: state.companyId,
+        organizationId: state.companyId,
+        locationId: state.locationId,
+        schemaVersion: SCHEMA_VERSION,
+        recordCounts: {
+          taskEntries: archive.taskEntries?.length || 0,
+          taskInstances: archive.taskInstanceSummaries?.length || 0,
+          temperatures: buildTemperatureRows(archive.taskEntries || []).length,
+          deviations: archive.deviations?.length || 0,
+          correctiveActions: archive.correctiveActions?.length || 0,
+          haccpSnapshots: archive.haccpSnapshots?.length || 0,
+          mediaReferences: archive.mediaReferences?.length || 0
+        }
+      });
+    }
+
+    async function ensureArchive() {
+      if (!state.archive) await loadArchive();
+      if (!state.archive) throw new Error("Dataarkiv er ikke indlæst.");
+    }
+
+    async function exportCsv() {
+      await ensureArchive();
+      const archive = state.archive;
+      const columns = {
+        entries: [
+          { label: "date", value: (r) => r.date },
+          { label: "taskTitle", value: (r) => r.taskTitle },
+          { label: "routineType", value: (r) => r.routineType },
+          { label: "status", value: (r) => r.status },
+          { label: "responsibleName", value: (r) => r.responsibleName },
+          { label: "note", value: (r) => r.note }
+        ],
+        deviations: [
+          { label: "date", value: (r) => r.date },
+          { label: "title", value: (r) => r.title },
+          { label: "description", value: (r) => r.description },
+          { label: "correctiveAction", value: (r) => r.correctiveAction },
+          { label: "status", value: (r) => r.status },
+          { label: "responsibleName", value: (r) => r.responsibleName }
+        ],
+        temperatures: [
+          { label: "date", value: (r) => r.date },
+          { label: "title", value: (r) => r.title },
+          { label: "value", value: (r) => r.value },
+          { label: "unit", value: (r) => r.unit },
+          { label: "status", value: (r) => r.status },
+          { label: "responsibleName", value: (r) => r.responsibleName }
+        ],
+        media: [
+          { label: "date", value: (r) => r.date },
+          { label: "sourceType", value: (r) => r.sourceType },
+          { label: "sourceId", value: (r) => r.sourceId },
+          { label: "title", value: (r) => r.title },
+          { label: "url", value: (r) => r.url },
+          { label: "publicId", value: (r) => r.publicId }
+        ]
+      };
+
+      await logExport("csv");
+      downloadBlob("entries.csv", new Blob([toCsv(entryRows(), columns.entries)], { type: "text/csv;charset=utf-8" }));
+      downloadBlob("deviations.csv", new Blob([toCsv(archive.correctiveActions, columns.deviations)], { type: "text/csv;charset=utf-8" }));
+      downloadBlob("temperatures.csv", new Blob([toCsv(buildTemperatureRows(archive.taskEntries), columns.temperatures)], { type: "text/csv;charset=utf-8" }));
+      downloadBlob("media.csv", new Blob([toCsv(mediaRows(), columns.media)], { type: "text/csv;charset=utf-8" }));
+    }
+
+    async function exportJson() {
+      await ensureArchive();
+      const json = JSON.stringify(state.archive, null, 2);
+      await logExport("json");
+      downloadBlob(`${filePrefix()}_archive.json`, new Blob([json], { type: "application/json;charset=utf-8" }));
+    }
+
+    async function exportXlsx() {
+      await ensureArchive();
+      if (!window.XLSX) throw new Error("Excel-biblioteket kunne ikke indlæses. Prøv igen eller brug CSV/JSON.");
+
+      const archive = state.archive;
+      const wb = window.XLSX.utils.book_new();
+      const addSheet = (name, rows) => window.XLSX.utils.book_append_sheet(wb, window.XLSX.utils.json_to_sheet(rows), name);
+      addSheet("Oversigt", [
+        { Felt: "Virksomhed", Værdi: archive.companyPrettyName },
+        { Felt: "Lokation", Værdi: archive.locationPrettyName },
+        { Felt: "Periode fra", Værdi: archive.dateRange.from },
+        { Felt: "Periode til", Værdi: archive.dateRange.to },
+        { Felt: "Rutiner", Værdi: archive.taskEntries.length },
+        { Felt: "Temperaturer", Værdi: buildTemperatureRows(archive.taskEntries).length },
+        { Felt: "Afvigelser", Værdi: archive.correctiveActions.length },
+        { Felt: "Billeder", Værdi: archive.mediaReferences.length }
+      ]);
+      addSheet("Rutiner", entryRows());
+      addSheet("Temperaturer", buildTemperatureRows(archive.taskEntries));
+      addSheet("Afvigelser", archive.correctiveActions);
+      addSheet("HACCP", haccpRows().map((item) => ({
+        source: item.source || item.snapshotId || "",
+        title: item.title || item.name || "",
+        type: item.type || item.classification || "",
+        routineKey: item.routineKey || item.key || item.id || "",
+        control: item.control || item.controlRequirement || item.description || "",
+        criticalLimit: item.criticalLimit || ""
+      })));
+      addSheet("Billeder", mediaRows());
+      await logExport("xlsx");
+      window.XLSX.writeFile(wb, `${filePrefix()}.xlsx`);
+    }
+
+    function buildPdfHtml() {
+      const archive = state.archive;
+      const entries = entryRows().slice(0, 500);
+      const deviations = archive.correctiveActions.slice(0, 300);
+      const haccp = haccpRows().slice(0, 150);
+      const temperatures = buildTemperatureRows(archive.taskEntries).slice(0, 300);
+
+      const table = (headers, rows) => `
+        <table>
+          <thead><tr>${headers.map((h) => `<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>
+          <tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table>
+      `;
+
+      return `<!DOCTYPE html>
+        <html lang="da"><head><meta charset="UTF-8"><title>Madkontrollen dataudtræk</title>
+        <style>
+          body{font-family:Arial,sans-serif;color:#172017;margin:28px;line-height:1.45}
+          h1,h2{margin-bottom:8px} .meta{color:#536153;margin-bottom:18px}
+          table{width:100%;border-collapse:collapse;margin:12px 0 22px;font-size:11px}
+          th,td{border:1px solid #ccd9cc;padding:6px;text-align:left;vertical-align:top}
+          th{background:#eef5ee}
+          @media print{button{display:none} body{margin:16px}}
+        </style></head><body>
+        <button onclick="window.print()">Gem som PDF</button>
+        <h1>Samlet dokumentation - Madkontrollen Pro</h1>
+        <div class="meta">
+          Virksomhed: ${escapeHtml(archive.companyPrettyName)}<br>
+          Lokation: ${escapeHtml(archive.locationPrettyName)}<br>
+          Periode: ${escapeHtml(archive.dateRange.from)} til ${escapeHtml(archive.dateRange.to)}<br>
+          Genereret: ${escapeHtml(fmt(new Date()))}
+        </div>
+        <h2>Kontrolpunkter / HACCP</h2>
+        ${table(["Titel", "Type", "Rutine", "Kontrol"], haccp.map((item) => [
+          item.title || item.name || "",
+          item.type || item.classification || "",
+          item.routineKey || item.key || item.id || "",
+          item.control || item.controlRequirement || item.description || ""
+        ]))}
+        <h2>Udførte kontroller</h2>
+        ${table(["Dato", "Rutine", "Status", "Ansvarlig", "Note"], entries.map((item) => [item.date, item.taskTitle, item.status, item.responsibleName, item.note]))}
+        <h2>Temperaturer</h2>
+        ${table(["Dato", "Kontrol", "Måling", "Status", "Ansvarlig"], temperatures.map((item) => [item.date, item.title, `${item.value} ${item.unit}`, item.status, item.responsibleName]))}
+        <h2>Afvigelser og korrigerende handlinger</h2>
+        ${table(["Dato", "Titel", "Beskrivelse", "Handling", "Status"], deviations.map((item) => [item.date, item.title, item.description, item.correctiveAction, item.status]))}
+        <h2>Billeder og medier</h2>
+        ${table(["Dato", "Kilde", "Titel", "Link"], mediaRows().slice(0, 300).map((item) => [item.date, item.sourceType, item.title, item.url || item.publicId]))}
+        </body></html>`;
+    }
+
+    async function exportPdf() {
+      await ensureArchive();
+      const popup = window.open("", "_blank", "noopener,noreferrer");
+      if (!popup) throw new Error("Popup blev blokeret. Tillad popups for at gemme PDF.");
+      try {
+        await logExport("pdf");
+        popup.document.open();
+        popup.document.write(buildPdfHtml());
+        popup.document.close();
+      } catch (error) {
+        popup.close();
+        throw error;
+      }
+    }
+
+    async function handleExport(format) {
+      try {
+        disableExportButtons(true);
+        setStatus(`Forbereder ${format.toUpperCase()}...`);
+        if (format === "csv") await exportCsv();
+        if (format === "json") await exportJson();
+        if (format === "xlsx") await exportXlsx();
+        if (format === "pdf") await exportPdf();
+        setStatus(`${format.toUpperCase()} eksport er oprettet og logget.`, "success");
+      } catch (error) {
+        console.error("[data-export] export failed", error);
+        setStatus(error.message || "Eksport fejlede.", "error");
+      } finally {
+        disableExportButtons(!isAllowedRole(state.profile));
+      }
+    }
+
+    function renderCancellationBanner(company = {}, profile = {}) {
+      const status = clean(company.subscriptionStatus || profile.subscriptionStatus || profile.company?.subscriptionStatus).toLowerCase();
+      const endDate = company.subscriptionEndDate || profile.subscriptionEndDate || profile.company?.subscriptionEndDate;
+      if (!["cancelling", "cancelled_pending_end"].includes(status)) {
+        el.cancellationBanner.classList.remove("show");
+        return;
+      }
+
+      el.cancellationBanner.textContent = `Husk at hente din dokumentation inden adgang ophører.${endDate ? ` Sidste adgangsdato: ${fmt(endDate)}.` : ""}`;
+      el.cancellationBanner.classList.add("show");
+    }
+
+    async function initPage({ user, profile }) {
+      state.user = user;
+      state.profile = profile || {};
+      state.companyId = clean(profile?.companyId || profile?.organizationId || sessionStorage.getItem("mkp_user_companyId"));
+      state.locationId = resolveLocationId(profile);
+
+      await loadLayout();
+      state.pretty = await resolvePrettyCompanyInfo({
+        uid: user?.uid || "",
+        userData: profile || {},
+        companyId: state.companyId,
+        locationId: state.locationId
+      });
+
+      el.scopeLine.textContent = `${state.pretty?.displayCompany || state.pretty?.companyName || state.companyId} - ${state.pretty?.displayLocation || state.pretty?.locationName || state.locationId}`;
+
+      const company = await getDocument(["companies", state.companyId]);
+      renderCancellationBanner(company || {}, profile || {});
+
+      if (!state.companyId || !state.locationId) {
+        setStatus("Mangler companyId/locationId i brugerprofilen.", "error");
+        disableExportButtons(true);
+        return;
+      }
+
+      if (!isAllowedRole(profile)) {
+        setStatus("Kun owner/admin kan eksportere hele dokumentationsarkivet.", "error");
+        disableExportButtons(true);
+        return;
+      }
+
+      await loadArchive();
+    }
+
+    el.reloadBtn.addEventListener("click", loadArchive);
+    el.printSummaryBtn.addEventListener("click", () => handleExport("pdf"));
+    document.querySelectorAll("[data-export-format]").forEach((button) => {
+      button.addEventListener("click", () => handleExport(button.dataset.exportFormat));
+    });
+
+    el.fromDate.addEventListener("change", () => { state.archive = null; });
+    el.toDate.addEventListener("change", () => { state.archive = null; });
+
+    setDefaultDates();
+    setupAuthGate({
+      appName: "Madkontrollen Pro - Dataudtræk",
+      onAuthenticated: initPage,
+      onSignedOut: () => {
+        state.archive = null;
+        setStatus("Du skal være logget ind for at eksportere data.", "error");
+        disableExportButtons(true);
+      }
+    });
+  </script>
+</body>
+</html>

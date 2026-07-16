@@ -1,0 +1,833 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <title>Opskriftskalkulation | Madkontrollen Pro</title>
+
+<meta name="description" content="Beregn kostpris, foodcost og ingrediensforbrug på opskrifter med kalkulationsmodulet i Madkontrollen Pro. Perfekt til restauranter, caféer og foodtrucks." />
+
+<meta name="robots" content="index,follow">
+
+<meta name="theme-color" content="#2e7d32">
+
+<link rel="canonical" href="https://madkontrollen.dk/modules/kalkulation/">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Opskriftskalkulation | Madkontrollen Pro">
+<meta property="og:description" content="Beregn kostpris og foodcost på dine opskrifter med Madkontrollen Pro.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://madkontrollen.dk/modules/kalkulation/">
+<meta property="og:image" content="https://madkontrollen.dk/images/og-cover.png">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Opskriftskalkulation | Madkontrollen Pro">
+<meta name="twitter:description" content="Beregn kostpris og foodcost på dine opskrifter med Madkontrollen Pro.">
+<meta name="twitter:image" content="https://madkontrollen.dk/images/og-cover.png">
+
+<!-- Schema.org -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Madkontrollen Pro",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "description": "Madkontrollen Pro er et digitalt egenkontrol- og kalkulationssystem til restauranter, caféer og fødevarevirksomheder.",
+  "url": "https://madkontrollen.dk"
+}
+</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Opskriftskalkulation | Madkontrollen Pro</title>
+  <meta name="description" content="Beregn kostpris, foodcost og ingrediensforbrug på opskrifter med kalkulationsmodulet i Madkontrollen Pro." />
+  <meta name="robots" content="index,follow" />
+  <meta name="theme-color" content="#2e7d32" />
+
+  <link rel="canonical" href="/modules/kalkulation/index.html" />
+
+  <meta property="og:title" content="Opskriftskalkulation | Madkontrollen Pro" />
+  <meta property="og:description" content="Beregn kostpris, foodcost og ingrediensforbrug på opskrifter med kalkulationsmodulet i Madkontrollen Pro." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/modules/kalkulation/index.html" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    .kalk-grid{
+      display:grid;
+      grid-template-columns:360px minmax(0,1fr);
+      gap:18px;
+      align-items:start;
+    }
+
+    .kalk-sidebar{
+      position:sticky;
+      top:96px;
+    }
+
+    .recipe-search{
+      margin-bottom:14px;
+    }
+
+    .recipe-list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .recipe-card{
+      width:100%;
+      text-align:left;
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:#fff;
+      padding:14px 16px;
+      cursor:pointer;
+      transition:0.18s ease;
+      box-shadow:var(--shadow-soft);
+    }
+
+    .recipe-card:hover{
+      transform:translateY(-1px);
+      border-color:var(--border-strong);
+    }
+
+    .recipe-card.active{
+      border-color:#b9d4bc;
+      background:linear-gradient(180deg,#ffffff 0%, #f4fbf3 100%);
+      box-shadow:0 10px 24px rgba(46,125,50,0.10);
+    }
+
+    .recipe-card-title{
+      display:block;
+      font-size:16px;
+      font-weight:800;
+      color:var(--text);
+      margin-bottom:6px;
+    }
+
+    .recipe-card-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .recipe-pill{
+      display:inline-flex;
+      align-items:center;
+      padding:7px 10px;
+      border-radius:999px;
+      background:var(--panel-2);
+      border:1px solid var(--border);
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .calc-layout{
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .recipe-hero{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .recipe-hero h2{
+      margin:0 0 8px;
+      font-size:30px;
+    }
+
+    .recipe-hero p{
+      color:var(--muted);
+      line-height:1.6;
+      max-width:760px;
+    }
+
+    .price-box{
+      min-width:220px;
+      padding:18px;
+      border-radius:20px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg,#ffffff 0%, #f9fcf9 100%);
+      box-shadow:var(--shadow-soft);
+    }
+
+    .price-box-label{
+      display:block;
+      font-size:12px;
+      font-weight:800;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:0.05em;
+      margin-bottom:8px;
+    }
+
+    .price-box-value{
+      font-size:34px;
+      font-weight:800;
+      line-height:1;
+      color:var(--text);
+    }
+
+    .price-box-sub{
+      margin-top:10px;
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .kpi-row{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:14px;
+    }
+
+    .kpi-mini{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px;
+      box-shadow:var(--shadow-soft);
+    }
+
+    .kpi-mini span{
+      display:block;
+      font-size:12px;
+      font-weight:800;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:0.04em;
+      margin-bottom:8px;
+    }
+
+    .kpi-mini strong{
+      display:block;
+      font-size:26px;
+      line-height:1;
+      color:var(--text);
+    }
+
+    .kpi-mini small{
+      display:block;
+      margin-top:8px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .ingredients-table-wrap{
+      overflow:auto;
+    }
+
+    .ingredients-table{
+      width:100%;
+      border-collapse:collapse;
+    }
+
+    .ingredients-table th,
+    .ingredients-table td{
+      padding:14px 12px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      vertical-align:top;
+    }
+
+    .ingredients-table th{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:0.04em;
+      white-space:nowrap;
+    }
+
+    .ingredients-table td{
+      color:var(--text);
+      font-size:14px;
+      line-height:1.5;
+    }
+
+    .ingredients-table tfoot td{
+      font-weight:800;
+      background:var(--panel-2);
+    }
+
+    .muted-text{
+      color:var(--muted);
+    }
+
+    .info-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+
+    .info-box{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:18px;
+      box-shadow:var(--shadow-soft);
+    }
+
+    .info-box h3{
+      margin:0 0 10px;
+      font-size:18px;
+    }
+
+    .info-box p{
+      color:var(--muted);
+      line-height:1.6;
+      margin-bottom:12px;
+    }
+
+    .info-box ul{
+      margin:0;
+      padding-left:18px;
+    }
+
+    .info-box li{
+      margin:0 0 8px;
+      line-height:1.55;
+    }
+
+    .empty-state{
+      padding:28px;
+      border:1px solid var(--border);
+      border-radius:20px;
+      background:#fff;
+      box-shadow:var(--shadow-soft);
+      color:var(--muted);
+    }
+
+    @media (max-width: 1180px){
+      .kalk-grid{
+        grid-template-columns:1fr;
+      }
+
+      .kalk-sidebar{
+        position:static;
+      }
+    }
+
+    @media (max-width: 900px){
+      .kpi-row,
+      .info-grid{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media (max-width: 700px){
+      .kpi-row,
+      .info-grid{
+        grid-template-columns:1fr;
+      }
+
+      .recipe-hero{
+        flex-direction:column;
+      }
+
+      .price-box{
+        min-width:100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="headerMount"></div>
+
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+
+      <section class="page-content">
+        <section class="hero">
+          <div class="hero-saas">
+            <div class="hero-saas-content">
+              <div class="eyebrow">Kalkulation • Opskrifter • Foodcost</div>
+              <h1 class="hero-title">Opskriftskalkulation</h1>
+              <p class="hero-text">
+                Beregn kostpris på opskrifter, se ingrediensforbrug og få et klart overblik over foodcost.
+                Denne side er fundamentet for menupriser, dækningsbidrag og stærkere drift i Madkontrollen Pro.
+              </p>
+
+              <div class="hero-chip-row">
+                <span class="chip is-live">Live beregning</span>
+                <span class="chip">Opskrifter</span>
+                <span class="chip">Ingredienser</span>
+                <span class="chip">Kostpris</span>
+                <span class="chip">Foodcost</span>
+              </div>
+            </div>
+
+            <div class="hero-saas-side">
+              <div class="stats-card">
+                <div class="stats-card-head">
+                  <h3>Overblik</h3>
+                  <span class="status-live">Klar</span>
+                </div>
+
+                <div class="stats-grid">
+                  <div class="stat-box">
+                    <span class="stat-label">Opskrifter</span>
+                    <strong id="kpiRecipes">0</strong>
+                  </div>
+
+                  <div class="stat-box">
+                    <span class="stat-label">Ingredienser</span>
+                    <strong id="kpiIngredients">0</strong>
+                  </div>
+
+                  <div class="stat-box">
+                    <span class="stat-label">Kategorier</span>
+                    <strong id="kpiCategories">0</strong>
+                  </div>
+
+                  <div class="stat-box">
+                    <span class="stat-label">Valgt opskrift</span>
+                    <strong id="kpiSelected">-</strong>
+                  </div>
+                </div>
+
+                <div class="small-muted">
+                  Denne første version viser hvordan kostpris kan beregnes direkte i frontend.
+                  Næste skridt er at koble siden til dine masterdata fra JSON og Firestore.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="kalk-grid">
+            <aside class="kalk-sidebar">
+              <div class="panel">
+                <div class="section-header" style="margin-bottom:14px;">
+                  <div>
+                    <h2 style="font-size:24px;">Opskrifter</h2>
+                    <p>Vælg en opskrift for at se kalkulationen.</p>
+                  </div>
+                </div>
+
+                <div class="recipe-search">
+                  <label class="form-label" for="recipeSearch">Søg opskrift</label>
+                  <input type="text" id="recipeSearch" placeholder="Søg fx burger eller pizza" />
+                </div>
+
+                <div id="recipeList" class="recipe-list"></div>
+              </div>
+            </aside>
+
+            <div class="calc-layout">
+              <section class="panel panel-large" id="recipeDetails">
+                <div class="empty-state">
+                  Vælg en opskrift i venstre side for at se ingredienser og kostpris.
+                </div>
+              </section>
+
+              <section class="info-grid">
+                <div class="info-box">
+                  <h3>Hvad viser siden?</h3>
+                  <p>
+                    Denne side viser kostpris på opskrifter baseret på ingredienser, mængder og indkøbspriser.
+                    Den er bygget som fundament for senere prisstyring og avanceret kalkulation.
+                  </p>
+                  <ul>
+                    <li>Kostpris pr. opskrift</li>
+                    <li>Pris pr. ingredienslinje</li>
+                    <li>Antal ingredienser i opskriften</li>
+                    <li>Klar til salgspris og foodcost % senere</li>
+                  </ul>
+                </div>
+
+                <div class="info-box">
+                  <h3>Næste skridt</h3>
+                  <p>
+                    Når denne side er godkendt, kan vi koble den til dine masterfiler og senere til Firestore,
+                    så kalkulationen bliver drevet af rigtige data og ikke kun frontend-eksempler.
+                  </p>
+                  <ul>
+                    <li>Indlæsning fra recipes.json</li>
+                    <li>Indlæsning fra ingredients.json</li>
+                    <li>Prisberegning via ingredient-suppliers.json</li>
+                    <li>Salgspris, avance og dækningsbidrag</li>
+                  </ul>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { loadLayout } from "/core/layout.js";
+
+    await loadLayout();
+
+    const recipeListEl = document.getElementById("recipeList");
+    const recipeDetailsEl = document.getElementById("recipeDetails");
+    const recipeSearchEl = document.getElementById("recipeSearch");
+
+    const kpiRecipesEl = document.getElementById("kpiRecipes");
+    const kpiIngredientsEl = document.getElementById("kpiIngredients");
+    const kpiCategoriesEl = document.getElementById("kpiCategories");
+    const kpiSelectedEl = document.getElementById("kpiSelected");
+
+    const ingredientMaster = {
+      burger_bun: { name: "Burgerbolle", baseUnit: "stk", pricePerBaseUnit: 2.83, categoryId: "bakery" },
+      beef: { name: "Oksekød", baseUnit: "g", pricePerBaseUnit: 0.082, categoryId: "meat" },
+      cheddar: { name: "Cheddar ost", baseUnit: "g", pricePerBaseUnit: 0.078, categoryId: "dairy" },
+      lettuce: { name: "Salat", baseUnit: "stk", pricePerBaseUnit: 9.50, categoryId: "vegetables" },
+      tomato: { name: "Tomat", baseUnit: "g", pricePerBaseUnit: 0.022, categoryId: "vegetables" },
+      mayonnaise: { name: "Mayonnaise", baseUnit: "g", pricePerBaseUnit: 0.035, categoryId: "sauces_dressings" },
+      potato: { name: "Kartofler", baseUnit: "g", pricePerBaseUnit: 0.0078, categoryId: "vegetables" },
+      rapeseed_oil: { name: "Rapsolie", baseUnit: "ml", pricePerBaseUnit: 0.021, categoryId: "oils_fats" },
+      salt: { name: "Salt", baseUnit: "g", pricePerBaseUnit: 0.00625, categoryId: "spices" },
+      pizza_dough: { name: "Pizzadej", baseUnit: "stk", pricePerBaseUnit: 7.00, categoryId: "bakery" },
+      mozzarella: { name: "Mozzarella", baseUnit: "g", pricePerBaseUnit: 0.066, categoryId: "dairy" },
+      olive_oil: { name: "Olivenolie", baseUnit: "ml", pricePerBaseUnit: 0.057, categoryId: "oils_fats" },
+      egg: { name: "Æg", baseUnit: "stk", pricePerBaseUnit: 1.75, categoryId: "dairy" },
+      milk: { name: "Mælk", baseUnit: "ml", pricePerBaseUnit: 0.0095, categoryId: "dairy" },
+      butter: { name: "Smør", baseUnit: "g", pricePerBaseUnit: 0.064, categoryId: "dairy" }
+    };
+
+    const recipeCategoryMaster = {
+      burgers: "Burger",
+      sides: "Tilbehør",
+      pizza: "Pizza",
+      sauces_dressings: "Saucer og dressinger",
+      breakfast: "Morgenmad"
+    };
+
+    const recipes = [
+      {
+        id: "cheeseburger",
+        name: "Cheeseburger",
+        categoryId: "burgers",
+        description: "Klassisk burger med oksekød, cheddar, salat, tomat og mayo.",
+        ingredients: [
+          { ingredientId: "burger_bun", quantity: 1, unit: "stk" },
+          { ingredientId: "beef", quantity: 150, unit: "g" },
+          { ingredientId: "cheddar", quantity: 20, unit: "g" },
+          { ingredientId: "lettuce", quantity: 0.2, unit: "stk" },
+          { ingredientId: "tomato", quantity: 40, unit: "g" },
+          { ingredientId: "mayonnaise", quantity: 15, unit: "g" }
+        ]
+      },
+      {
+        id: "fries_portion",
+        name: "Pommes frites",
+        categoryId: "sides",
+        description: "Klassisk portion pommes frites med salt.",
+        ingredients: [
+          { ingredientId: "potato", quantity: 250, unit: "g" },
+          { ingredientId: "rapeseed_oil", quantity: 10, unit: "ml" },
+          { ingredientId: "salt", quantity: 3, unit: "g" }
+        ]
+      },
+      {
+        id: "pizza_margherita",
+        name: "Pizza Margherita",
+        categoryId: "pizza",
+        description: "Pizza med tomat, mozzarella og olivenolie.",
+        ingredients: [
+          { ingredientId: "pizza_dough", quantity: 1, unit: "stk" },
+          { ingredientId: "tomato", quantity: 80, unit: "g" },
+          { ingredientId: "mozzarella", quantity: 100, unit: "g" },
+          { ingredientId: "olive_oil", quantity: 5, unit: "ml" }
+        ]
+      },
+      {
+        id: "aioli",
+        name: "Aioli",
+        categoryId: "sauces_dressings",
+        description: "Cremet aioli-basis til dip og servering.",
+        ingredients: [
+          { ingredientId: "mayonnaise", quantity: 100, unit: "g" },
+          { ingredientId: "olive_oil", quantity: 20, unit: "ml" },
+          { ingredientId: "salt", quantity: 2, unit: "g" }
+        ]
+      },
+      {
+        id: "burger_dressing",
+        name: "Burgerdressing",
+        categoryId: "sauces_dressings",
+        description: "Enkel burgerdressing til burgere og sandwiches.",
+        ingredients: [
+          { ingredientId: "mayonnaise", quantity: 120, unit: "g" },
+          { ingredientId: "tomato", quantity: 30, unit: "g" },
+          { ingredientId: "salt", quantity: 2, unit: "g" }
+        ]
+      },
+      {
+        id: "omelette",
+        name: "Omelet",
+        categoryId: "breakfast",
+        description: "Enkel omelet med æg, mælk, smør og salt.",
+        ingredients: [
+          { ingredientId: "egg", quantity: 3, unit: "stk" },
+          { ingredientId: "milk", quantity: 30, unit: "ml" },
+          { ingredientId: "butter", quantity: 10, unit: "g" },
+          { ingredientId: "salt", quantity: 2, unit: "g" }
+        ]
+      }
+    ];
+
+    let filteredRecipes = [...recipes];
+    let selectedRecipeId = recipes[0]?.id || null;
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat("da-DK", {
+        style: "currency",
+        currency: "DKK"
+      }).format(value || 0);
+    }
+
+    function formatNumber(value, decimals = 2) {
+      return new Intl.NumberFormat("da-DK", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      }).format(value || 0);
+    }
+
+    function getRecipeById(id) {
+      return recipes.find((recipe) => recipe.id === id) || null;
+    }
+
+    function getIngredientMeta(ingredientId) {
+      return ingredientMaster[ingredientId] || null;
+    }
+
+    function getIngredientLineCost(line) {
+      const ingredient = getIngredientMeta(line.ingredientId);
+      if (!ingredient) return 0;
+
+      return line.quantity * ingredient.pricePerBaseUnit;
+    }
+
+    function getRecipeTotalCost(recipe) {
+      return recipe.ingredients.reduce((sum, line) => {
+        return sum + getIngredientLineCost(line);
+      }, 0);
+    }
+
+    function getRecipeIngredientCount(recipe) {
+      return recipe.ingredients.length;
+    }
+
+    function getAverageLineCost(recipe) {
+      const count = getRecipeIngredientCount(recipe);
+      if (!count) return 0;
+      return getRecipeTotalCost(recipe) / count;
+    }
+
+    function getCategoryName(categoryId) {
+      return recipeCategoryMaster[categoryId] || categoryId || "Ukendt";
+    }
+
+    function updateKpis() {
+      const allIngredientIds = new Set();
+      recipes.forEach((recipe) => {
+        recipe.ingredients.forEach((line) => allIngredientIds.add(line.ingredientId));
+      });
+
+      kpiRecipesEl.textContent = String(recipes.length);
+      kpiIngredientsEl.textContent = String(allIngredientIds.size);
+      kpiCategoriesEl.textContent = String(Object.keys(recipeCategoryMaster).length);
+
+      const selected = getRecipeById(selectedRecipeId);
+      kpiSelectedEl.textContent = selected ? selected.name : "-";
+    }
+
+    function renderRecipeList() {
+      if (!filteredRecipes.length) {
+        recipeListEl.innerHTML = `
+          <div class="empty-state">
+            Ingen opskrifter matcher søgningen.
+          </div>
+        `;
+        return;
+      }
+
+      recipeListEl.innerHTML = filteredRecipes.map((recipe) => {
+        const totalCost = getRecipeTotalCost(recipe);
+        const isActive = recipe.id === selectedRecipeId;
+
+        return `
+          <button type="button" class="recipe-card ${isActive ? "active" : ""}" data-recipe-id="${recipe.id}">
+            <span class="recipe-card-title">${recipe.name}</span>
+            <div class="recipe-card-meta">
+              <span class="recipe-pill">${getCategoryName(recipe.categoryId)}</span>
+              <span class="recipe-pill">${recipe.ingredients.length} ingredienser</span>
+              <span class="recipe-pill">${formatCurrency(totalCost)}</span>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      recipeListEl.querySelectorAll("[data-recipe-id]").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedRecipeId = button.getAttribute("data-recipe-id");
+          renderRecipeList();
+          renderRecipeDetails();
+          updateKpis();
+        });
+      });
+    }
+
+    function renderRecipeDetails() {
+      const recipe = getRecipeById(selectedRecipeId);
+
+      if (!recipe) {
+        recipeDetailsEl.innerHTML = `
+          <div class="empty-state">
+            Vælg en opskrift for at se beregningen.
+          </div>
+        `;
+        return;
+      }
+
+      const totalCost = getRecipeTotalCost(recipe);
+      const ingredientCount = getRecipeIngredientCount(recipe);
+      const averageLineCost = getAverageLineCost(recipe);
+
+      const tableRows = recipe.ingredients.map((line) => {
+        const ingredient = getIngredientMeta(line.ingredientId);
+        const ingredientName = ingredient?.name || line.ingredientId;
+        const pricePerBaseUnit = ingredient?.pricePerBaseUnit || 0;
+        const lineCost = getIngredientLineCost(line);
+
+        return `
+          <tr>
+            <td><strong>${ingredientName}</strong></td>
+            <td>${formatNumber(line.quantity, 0)} ${line.unit}</td>
+            <td class="muted-text">${formatCurrency(pricePerBaseUnit)} / ${ingredient?.baseUnit || line.unit}</td>
+            <td><strong>${formatCurrency(lineCost)}</strong></td>
+          </tr>
+        `;
+      }).join("");
+
+      recipeDetailsEl.innerHTML = `
+        <div class="recipe-hero">
+          <div>
+            <h2>${recipe.name}</h2>
+            <p>${recipe.description || "Ingen beskrivelse angivet."}</p>
+
+            <div class="hero-chip-row" style="margin-top:16px;">
+              <span class="chip">${getCategoryName(recipe.categoryId)}</span>
+              <span class="chip">${ingredientCount} ingredienser</span>
+              <span class="chip">Kostpris beregnet live</span>
+            </div>
+          </div>
+
+          <div class="price-box">
+            <span class="price-box-label">Samlet kostpris</span>
+            <div class="price-box-value">${formatCurrency(totalCost)}</div>
+            <div class="price-box-sub">
+              Grundlag for foodcost, salgspris og dækningsbidrag.
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-row" style="margin-top:18px;">
+          <div class="kpi-mini">
+            <span>Ingredienser</span>
+            <strong>${ingredientCount}</strong>
+            <small>Antal linjer i opskriften</small>
+          </div>
+
+          <div class="kpi-mini">
+            <span>Kategori</span>
+            <strong style="font-size:20px;">${getCategoryName(recipe.categoryId)}</strong>
+            <small>Opskriftens placering i menuen</small>
+          </div>
+
+          <div class="kpi-mini">
+            <span>Gns. linjepris</span>
+            <strong>${formatCurrency(averageLineCost)}</strong>
+            <small>Pris pr. ingredienslinje i snit</small>
+          </div>
+
+          <div class="kpi-mini">
+            <span>Status</span>
+            <strong style="font-size:20px;">Klar</strong>
+            <small>Opskrift klar til videre beregning</small>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:18px; padding:0; border:none; box-shadow:none; background:transparent;">
+          <div class="section-header">
+            <div>
+              <h3 style="font-size:22px;">Ingrediensberegning</h3>
+              <p>Pris pr. ingrediens og samlet kostpris for opskriften.</p>
+            </div>
+          </div>
+
+          <div class="ingredients-table-wrap">
+            <table class="ingredients-table">
+              <thead>
+                <tr>
+                  <th>Ingrediens</th>
+                  <th>Mængde</th>
+                  <th>Pris pr. enhed</th>
+                  <th>Linjepris</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRows}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3">Samlet kostpris</td>
+                  <td>${formatCurrency(totalCost)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleSearch() {
+      const query = recipeSearchEl.value.trim().toLowerCase();
+
+      filteredRecipes = recipes.filter((recipe) => {
+        const haystack = [
+          recipe.name,
+          recipe.description,
+          getCategoryName(recipe.categoryId)
+        ].join(" ").toLowerCase();
+
+        return haystack.includes(query);
+      });
+
+      if (!filteredRecipes.some((recipe) => recipe.id === selectedRecipeId)) {
+        selectedRecipeId = filteredRecipes[0]?.id || null;
+      }
+
+      renderRecipeList();
+      renderRecipeDetails();
+      updateKpis();
+    }
+
+    recipeSearchEl.addEventListener("input", handleSearch);
+
+    renderRecipeList();
+    renderRecipeDetails();
+    updateKpis();
+  </script>
+</body>
+</html>

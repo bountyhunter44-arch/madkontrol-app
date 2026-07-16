@@ -11,7 +11,7 @@
 import app from "/core/firebase-config.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { getFirestore, collection, doc, addDoc, setDoc, deleteDoc, getDoc, onSnapshot, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, setDoc, getDoc, onSnapshot, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const LS_KEY        = "mk_active_hot_holding_runs";
 const PANEL_ID      = "mk-hot-holding-panel";
@@ -85,6 +85,8 @@ async function writeRunToFirestore(run) {
         const docRef = doc(db, "hot_holding_runs", run.runId);
         await setDoc(docRef, {
             ...run,
+            active: true,
+            archived: false,
             userId: user.uid,
             updatedAt: serverTimestamp()
         });
@@ -97,10 +99,16 @@ async function writeRunToFirestore(run) {
 async function deleteRunFromFirestore(runId) {
     try {
         const db = getFirestore(app);
-        await deleteDoc(doc(db, "hot_holding_runs", runId));
-        console.log("[hot holding] Deleted from Firestore:", runId);
+        await setDoc(doc(db, "hot_holding_runs", runId), {
+            active: false,
+            archived: true,
+            status: "inactive",
+            archivedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+        console.log("[hot holding] Archived in Firestore:", runId);
     } catch (err) {
-        console.warn("[hot holding] Firestore delete failed:", err);
+        console.warn("[hot holding] Firestore archive failed:", err);
     }
 }
 
@@ -123,6 +131,7 @@ function subscribeToFirestoreRuns() {
         
         snapshot.docs.forEach(docSnap => {
             const data = docSnap.data();
+            if (data.active === false || data.archived === true) return;
             if (!localIds.has(data.runId)) {
                 console.log("[hot holding restore] Restoring run:", data.runId);
                 upsertRun(data);

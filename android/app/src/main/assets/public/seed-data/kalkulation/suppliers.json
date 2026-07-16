@@ -1,0 +1,9 @@
+{
+    "id": "dagrofa",
+    "name": "Dagrofa Foodservice",
+    "country": "DK",
+    "type": "foodservice",
+    "currency": "DKK",
+    "active": true,
+    "sortOrder": 20
+}

@@ -1,0 +1,1232 @@
+﻿<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Salgsrapport - Madkontrollen POS</title>
+  <style>
+    :root {
+      --bg: #f3f7f1;
+      --surface: #ffffff;
+      --surface-soft: #eef5eb;
+      --text: #17311f;
+      --muted: #667466;
+      --border: #dbe7d7;
+      --green: #236a3a;
+      --green-dark: #164929;
+      --danger: #b42318;
+      --shadow: 0 16px 36px rgba(26, 54, 35, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, textarea { font: inherit; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .brand { display: grid; gap: 2px; }
+    .brand strong { font-size: 18px; }
+    .brand span, .muted { color: var(--muted); font-size: 13px; font-weight: 800; }
+    .nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .nav a, .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--green-dark);
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      padding: 9px 13px;
+    }
+    .btn.primary, .nav a[aria-current="page"] { border-color: var(--green); background: var(--green); color: #fff; }
+    .btn.danger { border-color: #f1c3bf; color: var(--danger); }
+    .btn.small { min-height: 32px; padding: 6px 9px; font-size: 12px; }
+    main { width: min(1240px, calc(100% - 32px)); margin: 0 auto; padding: 18px 0 36px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr); gap: 18px; }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .panel + .panel { margin-top: 18px; }
+    h1, h2 { margin: 0 0 12px; font-size: 20px; }
+    label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 800; }
+    input, textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      color: var(--text);
+      background: #fff;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    .toolbar, .reconcile-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-soft);
+      padding: 12px;
+    }
+    .stat span { display: block; color: var(--muted); font-size: 12px; font-weight: 900; }
+    .stat strong { display: block; margin-top: 4px; font-size: 20px; }
+    .sales-list { display: grid; gap: 8px; }
+    .sale-row, .line-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .sale-row.credit { border-color: #f1c3bf; background: #fff7f6; }
+    .payment-table-wrap { overflow-x: auto; }
+    .payment-table { width: 100%; border-collapse: collapse; min-width: 920px; }
+    .payment-table th, .payment-table td {
+      padding: 9px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+    .payment-table th { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+    .row-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .accountant-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(12, 24, 16, 0.42);
+    }
+    .accountant-modal-backdrop[hidden] { display: none; }
+    .accountant-modal {
+      width: min(720px, 100%);
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 24px 80px rgba(11, 28, 16, 0.22);
+      padding: 18px;
+    }
+    .accountant-modal h2 { margin: 0 0 12px; font-size: 22px; }
+    .accountant-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .material-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .material-options label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 8px 10px;
+    }
+    .material-options input { width: auto; min-height: auto; }
+    .accountant-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .status { min-height: 20px; margin: 10px 0 0; color: var(--muted); font-size: 13px; font-weight: 800; }
+    .status.warning { color: #835f13; }
+    .business-note {
+      display: grid;
+      gap: 4px;
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    @media (max-width: 860px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .nav { justify-content: flex-start; }
+      .grid, .toolbar, .reconcile-form, .stats, .accountant-fields, .material-options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <strong>Salgsrapport</strong>
+      <span>Betalingsudbyder-neutral POS v1</span>
+    </div>
+    <nav class="nav" aria-label="POS navigation">
+      <a href="/modules/pos/index.html">Kasse</a>
+      <a href="/modules/pos/create-product.html">Opret produkt</a>
+      <a href="/modules/pos/edit-product.html">Ret vare</a>
+      <a href="/modules/pos/delete-product.html">Slet produkter</a>
+      <a href="/modules/pos/sales-report.html" aria-current="page">Salgsrapport</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="grid">
+      <div class="panel">
+        <h1>Dagens salg</h1>
+        <div class="toolbar">
+          <label>
+            Dato
+            <input id="report-date" type="date">
+          </label>
+          <button class="btn primary" type="button" id="print-report">Print rapport</button>
+          <button class="btn" type="button" id="export-accountant">Eksportér til revisor</button>
+        </div>
+        <div id="business-note" class="business-note"></div>
+        <p class="status warning" id="legacy-warning" hidden>Rapporten indeholder ældre lokale salg. Migrér eller kontrollér data før endelig brug.</p>
+        <div class="stats">
+          <div class="stat"><span>Salg med moms</span><strong id="sales-incl">0.00 kr.</strong></div>
+          <div class="stat"><span>Salg uden moms</span><strong id="sales-excl">0.00 kr.</strong></div>
+          <div class="stat"><span>Moms 25%</span><strong id="sales-vat">0.00 kr.</strong></div>
+          <div class="stat"><span>Antal bilag</span><strong id="sales-count">0</strong></div>
+        </div>
+        <div id="sales-list" class="sales-list"></div>
+      </div>
+
+      <aside class="panel">
+        <h2>Afstem kasse</h2>
+        <div class="line-row"><span>Kontantsalg</span><strong id="cash-sales">0.00 kr.</strong></div>
+        <div id="payment-summary"></div>
+        <div class="reconcile-form" style="margin-top:14px;">
+          <label>
+            Startkasse
+            <input id="opening-cash" type="number" min="0" step="0.01" value="0">
+          </label>
+          <label>
+            Optalt kontant
+            <input id="counted-cash" type="number" min="0" step="0.01" value="0">
+          </label>
+          <label>
+            Difference
+            <input id="cash-difference" type="text" readonly value="0.00 kr.">
+          </label>
+        </div>
+        <label>
+          Note
+          <textarea id="reconcile-note" placeholder="Fx byttepenge, fejlbon eller kontant udlæg"></textarea>
+        </label>
+        <button class="btn primary" type="button" id="save-reconciliation" style="width:100%;margin-top:10px;">Gem kasseafstemning</button>
+        <p class="status">Salg slettes ikke i POS v1. Fejl rettes med kreditnota.</p>
+        <p class="status" id="status" role="status"></p>
+      </aside>
+    </section>
+
+    <section class="panel">
+      <h2>Betalingsafstemning</h2>
+      <p class="status">Ikke-kontante salg kan matches senere mod MobilePay, Zettle/PayPal Reader, kortterminal, Revolut, Wise, Stripe eller bank.</p>
+      <div class="payment-table-wrap">
+        <table class="payment-table">
+          <thead>
+            <tr>
+              <th>Dato</th>
+              <th>Bonnummer</th>
+              <th>Total</th>
+              <th>Betalingsmetode</th>
+              <th>Udbyder</th>
+              <th>Reference</th>
+              <th>Status</th>
+              <th>Handlinger</th>
+            </tr>
+          </thead>
+          <tbody id="payment-reconciliation"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="accountant-modal-backdrop" class="accountant-modal-backdrop" hidden>
+    <section class="accountant-modal" role="dialog" aria-modal="true" aria-labelledby="accountant-modal-title">
+      <h2 id="accountant-modal-title">Eksportér til revisor</h2>
+      <div class="accountant-fields">
+        <label>
+          Fra dato
+          <input id="accountant-from-date" type="date">
+        </label>
+        <label>
+          Til dato
+          <input id="accountant-to-date" type="date">
+        </label>
+      </div>
+      <div class="material-options" aria-label="Materialetyper">
+        <label><input type="checkbox" data-accountant-material="dailyReports" checked> Dagsrapporter</label>
+        <label><input type="checkbox" data-accountant-material="cashReconciliations" checked> Kasseafstemninger</label>
+        <label><input type="checkbox" data-accountant-material="salesReports" checked> Salgsrapporter</label>
+        <label><input type="checkbox" data-accountant-material="receipts" checked> Boner/bilag</label>
+        <label><input type="checkbox" data-accountant-material="creditNotes" checked> Kreditnotaer</label>
+        <label><input type="checkbox" data-accountant-material="paymentReconciliation" checked> Betalingsafstemning</label>
+      </div>
+      <div class="accountant-actions">
+        <button class="btn danger" type="button" id="accountant-cancel">Annuller</button>
+        <button class="btn primary" type="button" id="accountant-download">Hent revisorpakke</button>
+      </div>
+      <p class="status" id="accountant-status" role="status"></p>
+    </section>
+  </div>
+
+  <script type="module">
+    import { createPosStore } from "/modules/pos/pos-store.js";
+
+    window.POS_STORE_READY = createPosStore({ sourceApp: "pos" })
+      .then((store) => {
+        window.POS_STORE = store;
+        window.dispatchEvent(new CustomEvent("pos:store-ready", { detail: store }));
+        return store;
+      })
+      .catch((error) => {
+        console.warn("[pos] Firestore store fallback", error);
+        window.dispatchEvent(new CustomEvent("pos:store-ready", { detail: null }));
+        return null;
+      });
+  </script>
+
+  <script>
+    let posStore = null;
+    let allSales = [];
+
+    const DEFAULT_VAT_RATE = 0.25;
+    const BUSINESS = {
+      name: "Aroi-D",
+      cvr: "42405000",
+      address: "Hovedgaden 49",
+      postalCode: "6973",
+      city: "Ørnhøj",
+      country: "DK",
+      phone: "",
+      email: ""
+    };
+
+    const PAYMENT_METHODS = {
+      cash: ["Kontant", "manual"],
+      mobilepay: ["MobilePay", "mobilepay"],
+      zettle_reader: ["Zettle / PayPal Reader", "zettle"],
+      external_card_terminal: ["Tap to Pay / Kortterminal", "tap_to_pay"],
+      revolut: ["Revolut", "revolut"],
+      wise: ["Wise betalingslink", "wise"],
+      stripe: ["Stripe", "stripe"],
+      bank_transfer: ["Bankoverførsel", "bank"],
+      other: ["Andet", "other"]
+    };
+
+    async function refreshSales() {
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        const sourceSales = store?.cloudEnabled ? await store.listSales() : [];
+        allSales = sourceSales.map(normalizePosSaleForReport);
+      } catch (error) {
+        console.warn("[pos] Salg fra Firestore fejlede", error);
+        allSales = [];
+      }
+      renderReport();
+    }
+
+    function getDateKey(value) {
+      const date = value ? new Date(value) : new Date();
+      return date.toISOString().slice(0, 10);
+    }
+
+    function saleDateValue(sale = {}) {
+      return sale.createdAtIso || sale.createdAt || new Date().toISOString();
+    }
+
+    function money(value) {
+      return `${Number(value || 0).toFixed(2)} kr.`;
+    }
+
+    function cleanText(value) {
+      let text = String(value ?? "").trim();
+      for (let attempt = 0; attempt < 2 && /[\u00c3\u00c2\u00e2]/.test(text); attempt += 1) {
+        try {
+          const decoded = new TextDecoder("utf-8").decode(Uint8Array.from([...text].map((char) => char.charCodeAt(0) & 255)));
+          if (!decoded || decoded.includes("\ufffd") || decoded === text) break;
+          text = decoded.trim();
+        } catch {
+          break;
+        }
+      }
+      return text
+        .replace(/\u00c2\u00b7/g, "\u00b7")
+        .replace(/\u00e2\u20ac\u0153|\u00e2\u20ac\ufffd/g, "\"")
+        .replace(/\u00e2\u20ac\u2122/g, "'");
+    }
+
+    function normalizeCvr(value) {
+      return cleanText(value).replace(/\bCVR\b/gi, "").replace(/\bDK\b/gi, "").replace(/\D/g, "").slice(0, 8);
+    }
+
+    function splitAddressParts(source = {}) {
+      let address = cleanText(source.address || "");
+      let postalCode = cleanText(source.postalCode || source.zip || "");
+      let city = cleanText(source.city || "");
+      const commaMatch = address.match(/^(.+?),\s*(\d{4})\s+(.+)$/);
+      if (commaMatch) {
+        address = commaMatch[1].trim();
+        postalCode = postalCode || commaMatch[2].trim();
+        city = city || cleanText(commaMatch[3]);
+      }
+      const duplicateSuffix = [postalCode, city].filter(Boolean).join(" ");
+      if (duplicateSuffix && address.endsWith(`, ${duplicateSuffix}`)) {
+        address = address.slice(0, -(`, ${duplicateSuffix}`).length).trim();
+      }
+      return { address, postalCode, city };
+    }
+
+    function readLocalJson(key, fallback = {}) {
+      try {
+        return JSON.parse(localStorage.getItem(key) || "null") || fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function currentBusinessProfile() {
+      const localProfile = readLocalJson("pos_business_profile", {});
+      const contextProfile = posStore?.businessSnapshot || window.POS_STORE?.businessSnapshot || {};
+      return normalizeBusinessForReport({
+        ...contextProfile,
+        cvr: contextProfile.cvr || contextProfile.cvrNumber || contextProfile.vatNumber || localProfile.cvr || BUSINESS.cvr
+      }, {
+        ...BUSINESS,
+        ...localProfile
+      });
+    }
+
+    function normalizeBusinessForReport(input = {}, fallback = BUSINESS) {
+      const source = { ...fallback, ...(input || {}) };
+      const addressParts = splitAddressParts(source);
+      return {
+        name: cleanText(source.name || source.companyName || source.businessName || ""),
+        cvr: normalizeCvr(source.cvr || source.cvrNumber || source.vatNumber || source.taxId || ""),
+        address: addressParts.address,
+        postalCode: addressParts.postalCode,
+        city: addressParts.city,
+        country: cleanText(source.country || "DK"),
+        phone: cleanText(source.phone || ""),
+        email: cleanText(source.email || source.accountEmail || "")
+      };
+    }
+
+    function normalizeItemForReport(item = {}, vatRate = DEFAULT_VAT_RATE) {
+      const quantity = Number(item.quantity || 0);
+      const unitPrice = Number(item.unitPrice ?? item.price ?? 0);
+      const lineTotalIncVat = Number(item.lineTotalIncVat ?? item.lineTotalInclVat ?? (unitPrice * quantity)) || 0;
+      const lineTotalExVat = Number(item.lineTotalExVat ?? (lineTotalIncVat / (1 + vatRate))) || 0;
+      const lineVatAmount = Number(item.lineVatAmount ?? (lineTotalIncVat - lineTotalExVat)) || 0;
+      return {
+        ...item,
+        productId: item.productId || item.id || "",
+        name: cleanText(item.name || ""),
+        quantity,
+        unitPrice,
+        vatRate: Number(item.vatRate ?? vatRate) || DEFAULT_VAT_RATE,
+        lineTotalExVat,
+        lineVatAmount,
+        lineTotalIncVat,
+        lineTotalInclVat: lineTotalIncVat
+      };
+    }
+
+    function normalizePosSaleForReport(sale = {}) {
+      const isLegacy = !sale.cloudReady || !sale.businessSnapshot || !sale.receiptLabel;
+      const vatRate = Number(sale.vatSummary?.rate ?? sale.vatRate ?? DEFAULT_VAT_RATE) || DEFAULT_VAT_RATE;
+      const totalIncVat = Number(sale.totalInclVat ?? sale.totalIncVat ?? sale.totals?.totalIncVat ?? 0) || 0;
+      const subtotalExVat = Number(sale.totalExVat ?? sale.totals?.subtotalExVat ?? (totalIncVat / (1 + vatRate))) || 0;
+      const vatAmount = Number(sale.vatAmount ?? sale.totals?.vatAmount ?? (totalIncVat - subtotalExVat)) || 0;
+      const businessSnapshot = normalizeBusinessForReport(
+        sale.businessSnapshot || sale.business || {},
+        isLegacy ? currentBusinessProfile() : BUSINESS
+      );
+      const payment = getPayment(sale);
+      const items = (sale.items || []).map((item) => normalizeItemForReport(item, vatRate));
+
+      return {
+        ...sale,
+        id: sale.id || `legacy_${Date.now()}`,
+        type: sale.type || "sale",
+        status: sale.status || "active",
+        receiptNumber: sale.receiptNumber || "",
+        receiptLabel: sale.receiptLabel || sale.receiptNumber || sale.id || "",
+        createdAt: sale.createdAtIso || sale.createdAt || new Date().toISOString(),
+        createdAtIso: sale.createdAtIso || sale.createdAt || new Date().toISOString(),
+        businessSnapshot,
+        business: businessSnapshot,
+        payment,
+        paymentMethod: payment.method,
+        items,
+        totals: {
+          subtotalIncVat: Number(sale.subtotal ?? totalIncVat) || 0,
+          discountAmount: Number(sale.discountAmount || 0) || 0,
+          subtotalExVat,
+          vatAmount,
+          totalIncVat
+        },
+        vatSummary: {
+          rate: vatRate,
+          subtotalExVat,
+          vatAmount,
+          totalIncVat
+        },
+        subtotal: Number(sale.subtotal ?? totalIncVat) || 0,
+        discountAmount: Number(sale.discountAmount || 0) || 0,
+        totalInclVat: totalIncVat,
+        totalExVat: subtotalExVat,
+        vatAmount,
+        cloudReady: Boolean(sale.cloudReady && sale.businessSnapshot),
+        isLegacy
+      };
+    }
+
+    function getPayment(sale = {}) {
+      const legacyMethod = sale.payment?.method || sale.paymentMethod || "cash";
+      const method = legacyMethod === "card" ? "external_card_terminal" : legacyMethod;
+      const [label, provider] = PAYMENT_METHODS[method] || PAYMENT_METHODS.other;
+      return {
+        method,
+        provider: sale.payment?.provider || provider,
+        label,
+        externalTransactionId: sale.payment?.externalTransactionId || "",
+        settlementAccountType: sale.payment?.settlementAccountType || "",
+        settlementAccountLabel: sale.payment?.settlementAccountLabel || "",
+        reconciliationStatus: sale.payment?.reconciliationStatus || "pending",
+        settledAt: sale.payment?.settledAt || "",
+        note: sale.payment?.note || ""
+      };
+    }
+
+    function getSelectedSales() {
+      const dateKey = document.getElementById("report-date").value;
+      return allSales.filter((sale) => getDateKey(saleDateValue(sale)) === dateKey);
+    }
+
+    function getSummary(sales) {
+      return sales.reduce((summary, sale) => {
+        const totalInclVat = Number(sale.vatSummary?.totalIncVat ?? sale.totalInclVat) || 0;
+        const totalExVat = Number(sale.vatSummary?.subtotalExVat ?? sale.totalExVat) || totalInclVat / (1 + DEFAULT_VAT_RATE);
+        const vatAmount = Number(sale.vatSummary?.vatAmount ?? sale.vatAmount) || totalInclVat - totalExVat;
+        const payment = getPayment(sale);
+        summary.totalInclVat += totalInclVat;
+        summary.totalExVat += totalExVat;
+        summary.vatAmount += vatAmount;
+        summary.count += 1;
+        summary.payment[payment.method] = (summary.payment[payment.method] || 0) + totalInclVat;
+        if ((sale.affectsCashDrawer ?? payment.method === "cash") && payment.method === "cash") {
+          summary.cashDrawerAmount += totalInclVat;
+        }
+        return summary;
+      }, {
+        totalInclVat: 0,
+        totalExVat: 0,
+        vatAmount: 0,
+        count: 0,
+        cashDrawerAmount: 0,
+        payment: {}
+      });
+    }
+
+    function renderReport() {
+      const sales = getSelectedSales();
+      const summary = getSummary(sales);
+      document.getElementById("sales-incl").textContent = money(summary.totalInclVat);
+      document.getElementById("sales-excl").textContent = money(summary.totalExVat);
+      document.getElementById("sales-vat").textContent = money(summary.vatAmount);
+      document.getElementById("sales-count").textContent = String(summary.count);
+      document.getElementById("cash-sales").textContent = money(summary.cashDrawerAmount);
+      renderBusinessNote(sales);
+      renderLegacyWarning(sales);
+      renderPaymentSummary(summary.payment);
+      renderSalesList(sales);
+      renderPaymentReconciliation(sales);
+      updateReconciliation();
+    }
+
+    function renderBusinessNote(sales) {
+      const business = getReportBusiness(sales);
+      const cvrText = business.cvr ? `CVR ${business.cvr}` : "CVR mangler";
+      document.getElementById("business-note").innerHTML = `
+        <span>${escapeHtml(business.name || "Virksomhed")} - ${escapeHtml(cvrText)}</span>
+        <span>${escapeHtml([business.address, business.postalCode, business.city].filter(Boolean).join(", "))}</span>
+        ${business.cvr ? "" : '<button class="btn small" type="button" id="add-cvr-button">Tilføj CVR</button>'}
+      `;
+      document.getElementById("add-cvr-button")?.addEventListener("click", addMissingCvr);
+    }
+
+    function addMissingCvr() {
+      const value = prompt("Indtast CVR (8 cifre):", "");
+      if (value === null) return;
+      const cvr = normalizeCvr(value);
+      if (!/^\d{8}$/.test(cvr)) {
+        setStatus("CVR skal være 8 cifre.");
+        return;
+      }
+      const profile = readLocalJson("pos_business_profile", {});
+      localStorage.setItem("pos_business_profile", JSON.stringify({ ...profile, cvr }));
+      setStatus("CVR er gemt til POS-rapporten.");
+      refreshSales();
+    }
+
+    function renderLegacyWarning(sales) {
+      const warning = document.getElementById("legacy-warning");
+      if (!warning) return;
+      warning.hidden = !sales.some((sale) => sale.isLegacy);
+    }
+
+    function renderPaymentSummary(paymentTotals) {
+      const rows = Object.entries(PAYMENT_METHODS)
+        .filter(([method]) => method !== "cash")
+        .map(([method, [label]]) => `<div class="line-row"><span>${escapeHtml(label)}</span><strong>${money(paymentTotals[method] || 0)}</strong></div>`)
+        .join("");
+      document.getElementById("payment-summary").innerHTML = rows;
+    }
+
+    function renderSalesList(sales) {
+      const list = document.getElementById("sales-list");
+      if (!sales.length) {
+        list.innerHTML = '<p class="status">Ingen salg på den valgte dato.</p>';
+        return;
+      }
+      list.innerHTML = sales
+        .slice()
+        .sort((a, b) => String(saleDateValue(b)).localeCompare(String(saleDateValue(a))))
+        .map((sale) => {
+          const payment = getPayment(sale);
+          const isCredit = sale.type === "credit_note";
+          return `
+            <article class="sale-row ${isCredit ? "credit" : ""}">
+              <div>
+                <strong>${escapeHtml(sale.receiptLabel || sale.receiptNumber || sale.id)}${isCredit ? " - Kreditnota" : ""}${sale.isLegacy ? " - Legacy" : ""}</strong>
+                <div class="muted">${new Date(saleDateValue(sale)).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })} - ${escapeHtml(payment.label)}</div>
+                <div class="muted">${escapeHtml(sale.businessSnapshot?.cvr ? `CVR ${sale.businessSnapshot.cvr}` : "CVR mangler")}</div>
+                <div class="muted">${escapeHtml((sale.items || []).map((item) => `${item.quantity}x ${item.name}`).join(", "))}</div>
+              </div>
+              <div class="row-actions">
+                <strong>${money(sale.totalInclVat)}</strong>
+                ${!isCredit ? `<button class="btn small danger" type="button" data-credit-note="${escapeHtml(sale.id)}">Kreditnota</button>` : ""}
+              </div>
+            </article>
+          `;
+        })
+        .join("");
+      list.querySelectorAll("[data-credit-note]").forEach((button) => {
+        button.addEventListener("click", () => createCreditNote(button.dataset.creditNote));
+      });
+    }
+
+    function renderPaymentReconciliation(sales) {
+      const rows = sales.filter((sale) => getPayment(sale).method !== "cash");
+      const body = document.getElementById("payment-reconciliation");
+      if (!rows.length) {
+        body.innerHTML = '<tr><td colspan="8">Ingen ikke-kontante betalinger på den valgte dato.</td></tr>';
+        return;
+      }
+      body.innerHTML = rows
+        .slice()
+        .sort((a, b) => String(saleDateValue(b)).localeCompare(String(saleDateValue(a))))
+        .map((sale) => {
+          const payment = getPayment(sale);
+          return `
+            <tr>
+              <td>${new Date(saleDateValue(sale)).toLocaleDateString("da-DK")}</td>
+              <td>${escapeHtml(sale.receiptLabel || sale.receiptNumber || sale.id)}</td>
+              <td>${money(sale.totalInclVat)}</td>
+              <td>${escapeHtml(payment.label)}</td>
+              <td>${escapeHtml(payment.provider)}</td>
+              <td>${escapeHtml(payment.externalTransactionId || "-")}</td>
+              <td>${escapeHtml(payment.reconciliationStatus)}</td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn small" type="button" data-mark-matched="${escapeHtml(sale.id)}">Markér som afstemt</button>
+                  <button class="btn small" type="button" data-add-reference="${escapeHtml(sale.id)}">Tilføj reference</button>
+                  <button class="btn small" type="button" data-add-note="${escapeHtml(sale.id)}">Tilføj note</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        })
+        .join("");
+      body.querySelectorAll("[data-mark-matched]").forEach((button) => {
+        button.addEventListener("click", () => updatePaymentOnSale(button.dataset.markMatched, { reconciliationStatus: "matched", settledAt: new Date().toISOString() }, "payment_reconciled"));
+      });
+      body.querySelectorAll("[data-add-reference]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const reference = prompt("Reference / transaktions-ID:");
+          if (reference !== null) updatePaymentOnSale(button.dataset.addReference, { externalTransactionId: reference.trim() }, "payment_reference_added");
+        });
+      });
+      body.querySelectorAll("[data-add-note]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const note = prompt("Note til betalingsafstemning:");
+          if (note !== null) updatePaymentOnSale(button.dataset.addNote, { note: note.trim() }, "payment_note_added");
+        });
+      });
+    }
+
+    async function updatePaymentOnSale(saleId, paymentPatch, auditAction) {
+      const sales = allSales;
+      const sale = sales.find((item) => item.id === saleId);
+      if (!sale) return;
+      sale.payment = { ...getPayment(sale), ...paymentPatch };
+      sale.paymentMethod = sale.payment.method;
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        if (store?.cloudEnabled) {
+          await store.updateSalePayment(saleId, paymentPatch);
+          allSales = (await store.listSales()).map(normalizePosSaleForReport);
+        } else {
+          throw new Error("POS er ikke koblet til en virksomhed endnu.");
+        }
+        setStatus("Betalingsafstemning opdateret.");
+        renderReport();
+      } catch (error) {
+        setStatus(error.message || "Betalingsafstemning kunne ikke opdateres.");
+      }
+    }
+
+    function formatReceiptNumber(receiptNumber) {
+      return `BON-${String(receiptNumber).padStart(6, "0")}`;
+    }
+
+    async function createCreditNote(saleId) {
+      const sales = allSales;
+      const original = sales.find((sale) => sale.id === saleId);
+      if (!original || original.type === "credit_note") return;
+      const existing = sales.find((sale) => sale.type === "credit_note" && sale.correctionOf === saleId);
+      if (existing && !confirm("Der findes allerede en kreditnota til dette salg. Opret endnu en?")) return;
+      const reason = prompt("Årsag til kreditnota:", "Korrektion") || "Korrektion";
+      const baseCreditNote = {
+        businessSnapshot: original.businessSnapshot || original.business || currentBusinessProfile(),
+        business: original.businessSnapshot || original.business || currentBusinessProfile(),
+        type: "credit_note",
+        status: "active",
+        correctionOf: original.id,
+        creditNoteReason: reason,
+        items: (original.items || []).map((item) => ({
+          ...item,
+          quantity: -Math.abs(Number(item.quantity) || 0),
+          lineTotalExVat: -Math.abs(Number(item.lineTotalExVat) || 0),
+          lineVatAmount: -Math.abs(Number(item.lineVatAmount) || 0),
+          lineTotalIncVat: -Math.abs(Number(item.lineTotalIncVat ?? item.lineTotalInclVat) || 0),
+          lineTotalInclVat: -Math.abs(Number(item.lineTotalInclVat ?? item.lineTotalIncVat) || 0)
+        })),
+        subtotal: -Math.abs(Number(original.subtotal) || 0),
+        discountAmount: -Math.abs(Number(original.discountAmount) || 0),
+        totalInclVat: -Math.abs(Number(original.totalInclVat) || 0),
+        totalExVat: -Math.abs(Number(original.totalExVat) || 0),
+        vatAmount: -Math.abs(Number(original.vatAmount) || 0),
+        vatSummary: {
+          rate: original.vatSummary?.rate || DEFAULT_VAT_RATE,
+          subtotalExVat: -Math.abs(Number(original.vatSummary?.subtotalExVat ?? original.totalExVat) || 0),
+          vatAmount: -Math.abs(Number(original.vatSummary?.vatAmount ?? original.vatAmount) || 0),
+          totalIncVat: -Math.abs(Number(original.vatSummary?.totalIncVat ?? original.totalInclVat) || 0)
+        },
+        payment: {
+          ...getPayment(original),
+          reconciliationStatus: "pending",
+          settledAt: "",
+          note: reason
+        },
+        paymentMethod: getPayment(original).method,
+        cloudReady: true
+      };
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        if (store?.cloudEnabled) {
+          await store.createSale(baseCreditNote);
+          allSales = (await store.listSales()).map(normalizePosSaleForReport);
+        } else {
+          throw new Error("POS er ikke koblet til en virksomhed endnu.");
+        }
+        setStatus("Kreditnota oprettet. Det oprindelige salg er bevaret.");
+        renderReport();
+      } catch (error) {
+        setStatus(error.message || "Kreditnota kunne ikke oprettes.");
+      }
+    }
+
+    function updateReconciliation() {
+      const summary = getSummary(getSelectedSales());
+      const openingCash = parseFloat(document.getElementById("opening-cash").value) || 0;
+      const countedCash = parseFloat(document.getElementById("counted-cash").value) || 0;
+      const expectedCash = openingCash + summary.cashDrawerAmount;
+      const difference = countedCash - expectedCash;
+      document.getElementById("cash-difference").value = money(difference);
+      return { openingCash, countedCash, expectedCash, difference };
+    }
+
+    function getReportBusiness(sales = getSelectedSales()) {
+      const saleBusiness = sales.find((sale) => sale.businessSnapshot)?.businessSnapshot;
+      return normalizeBusinessForReport(saleBusiness || currentBusinessProfile());
+    }
+
+    function buildDailyReportPayload() {
+      const sales = getSelectedSales();
+      const summary = getSummary(sales);
+      const reconciliation = updateReconciliation();
+      const business = getReportBusiness(sales);
+      return {
+        cloudReady: true,
+        reportType: "pos_daily_sales",
+        business,
+        date: document.getElementById("report-date").value,
+        generatedAt: new Date().toISOString(),
+        summary,
+        vatSummary: {
+          rate: DEFAULT_VAT_RATE,
+          subtotalExVat: summary.totalExVat,
+          vatAmount: summary.vatAmount,
+          totalIncVat: summary.totalInclVat
+        },
+        reconciliation: {
+          ...reconciliation,
+          note: document.getElementById("reconcile-note").value.trim()
+        },
+        paymentReconciliation: sales.filter((sale) => getPayment(sale).method !== "cash").map((sale) => ({
+          saleId: sale.id,
+          receiptLabel: sale.receiptLabel || "",
+          totalInclVat: sale.vatSummary?.totalIncVat ?? sale.totalInclVat,
+          payment: getPayment(sale)
+        })),
+        sales,
+        containsLegacySales: sales.some((sale) => sale.isLegacy),
+        cvrMissing: !business.cvr
+      };
+    }
+
+    function formatDateTime(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "-";
+      return date.toLocaleString("da-DK", { dateStyle: "short", timeStyle: "short" });
+    }
+
+    function saleAmount(sale, key) {
+      if (key === "incl") return Number(sale.vatSummary?.totalIncVat ?? sale.totalInclVat) || 0;
+      if (key === "excl") return Number(sale.vatSummary?.subtotalExVat ?? sale.totalExVat) || 0;
+      return Number(sale.vatSummary?.vatAmount ?? sale.vatAmount) || 0;
+    }
+
+    function getSaleTypeLabel(sale) {
+      return sale.type === "credit_note" ? "Kreditnota" : "Salg";
+    }
+
+    function getSalesForPeriod(fromDate, toDate) {
+      return allSales.filter((sale) => {
+        const dateKey = getDateKey(saleDateValue(sale));
+        return dateKey >= fromDate && dateKey <= toDate;
+      });
+    }
+
+    function groupSalesByDate(sales) {
+      return sales.reduce((groups, sale) => {
+        const dateKey = getDateKey(saleDateValue(sale));
+        groups[dateKey] = groups[dateKey] || [];
+        groups[dateKey].push(sale);
+        return groups;
+      }, {});
+    }
+
+    function getCashReconciliationForDate(dateKey, sales) {
+      const summary = getSummary(sales);
+      if (dateKey === document.getElementById("report-date").value) {
+        return {
+          ...updateReconciliation(),
+          note: document.getElementById("reconcile-note").value.trim()
+        };
+      }
+      const reconciliation = {};
+      const openingCash = Number(reconciliation.openingCash || 0);
+      const expectedCash = Number(reconciliation.expectedCash ?? (openingCash + summary.cashDrawerAmount));
+      const countedCash = Number(reconciliation.countedCash || 0);
+      return {
+        openingCash,
+        countedCash,
+        expectedCash,
+        difference: Number(reconciliation.difference ?? (countedCash - expectedCash)),
+        note: reconciliation.note || ""
+      };
+    }
+
+    function getAccountantMaterials() {
+      return [...document.querySelectorAll("[data-accountant-material]")].reduce((materials, checkbox) => {
+        materials[checkbox.dataset.accountantMaterial] = checkbox.checked;
+        return materials;
+      }, {});
+    }
+
+    function openAccountantExportModal() {
+      const reportDate = document.getElementById("report-date").value || getDateKey(new Date());
+      document.getElementById("accountant-from-date").value = reportDate;
+      document.getElementById("accountant-to-date").value = reportDate;
+      document.getElementById("accountant-status").textContent = "";
+      document.getElementById("accountant-modal-backdrop").hidden = false;
+      document.getElementById("accountant-from-date").focus();
+    }
+
+    function closeAccountantExportModal() {
+      document.getElementById("accountant-modal-backdrop").hidden = true;
+    }
+
+    function buildAccountantPackage() {
+      const fromDate = document.getElementById("accountant-from-date").value;
+      const toDate = document.getElementById("accountant-to-date").value;
+      if (!fromDate || !toDate) throw new Error("Vælg både fra dato og til dato.");
+      if (fromDate > toDate) throw new Error("Fra dato må ikke ligge efter til dato.");
+      const materials = getAccountantMaterials();
+      if (!Object.values(materials).some(Boolean)) throw new Error("Vælg mindst én materialetype.");
+      const sales = getSalesForPeriod(fromDate, toDate)
+        .slice()
+        .sort((a, b) => String(saleDateValue(a)).localeCompare(String(saleDateValue(b))));
+      return {
+        fromDate,
+        toDate,
+        generatedAt: new Date().toISOString(),
+        business: normalizeBusinessForReport(getReportBusiness(sales)),
+        materials,
+        sales,
+        groups: groupSalesByDate(sales)
+      };
+    }
+
+    function renderPaymentDistribution(paymentTotals) {
+      const rows = Object.entries(paymentTotals)
+        .map(([method, amount]) => `<tr><td>${escapeHtml(PAYMENT_METHODS[method]?.[0] || method)}</td><td>${money(amount)}</td></tr>`)
+        .join("");
+      return rows || '<tr><td colspan="2">Ingen betalinger</td></tr>';
+    }
+
+    function renderDailyReports(packageData) {
+      return Object.entries(packageData.groups)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([dateKey, sales]) => {
+          const summary = getSummary(sales);
+          const reconciliation = getCashReconciliationForDate(dateKey, sales);
+          return `
+            <section>
+              <h2>Dagsrapport ${escapeHtml(dateKey)}</h2>
+              <table>
+                <tbody>
+                  <tr><th>Dato</th><td>${escapeHtml(dateKey)}</td></tr>
+                  <tr><th>Firmanavn</th><td>${escapeHtml(packageData.business.name || "Virksomhed")}</td></tr>
+                  <tr><th>CVR</th><td>${escapeHtml(packageData.business.cvr || "CVR mangler")}</td></tr>
+                  <tr><th>Adresse</th><td>${escapeHtml([packageData.business.address, packageData.business.postalCode, packageData.business.city].filter(Boolean).join(", "))}</td></tr>
+                  <tr><th>Salg med moms</th><td>${money(summary.totalInclVat)}</td></tr>
+                  <tr><th>Salg uden moms</th><td>${money(summary.totalExVat)}</td></tr>
+                  <tr><th>Moms 25%</th><td>${money(summary.vatAmount)}</td></tr>
+                  <tr><th>Total</th><td>${money(summary.totalInclVat)}</td></tr>
+                  <tr><th>Antal bilag</th><td>${summary.count}</td></tr>
+                </tbody>
+              </table>
+              <h3>Betalingsfordeling</h3>
+              <table><tbody>${renderPaymentDistribution(summary.payment)}</tbody></table>
+              <h3>Kasseafstemning</h3>
+              <table>
+                <tbody>
+                  <tr><th>Startkasse</th><td>${money(reconciliation.openingCash)}</td></tr>
+                  <tr><th>Kontantsalg</th><td>${money(summary.cashDrawerAmount)}</td></tr>
+                  <tr><th>Forventet kontant</th><td>${money(reconciliation.expectedCash)}</td></tr>
+                  <tr><th>Optalt kontant</th><td>${money(reconciliation.countedCash)}</td></tr>
+                  <tr><th>Difference</th><td>${money(reconciliation.difference)}</td></tr>
+                  <tr><th>Note</th><td>${escapeHtml(reconciliation.note || "-")}</td></tr>
+                </tbody>
+              </table>
+            </section>
+          `;
+        })
+        .join("") || "<section><h2>Dagsrapport</h2><p>Ingen salg i valgt periode.</p></section>";
+    }
+
+    function renderSalesReport(packageData) {
+      const rows = packageData.sales.map((sale) => {
+        const payment = getPayment(sale);
+        return `
+          <tr>
+            <td>${formatDateTime(saleDateValue(sale))}</td>
+            <td>${escapeHtml(sale.receiptLabel || sale.receiptNumber || sale.id)}</td>
+            <td>${escapeHtml(getSaleTypeLabel(sale))}</td>
+            <td>${escapeHtml(payment.label)}</td>
+            <td>${money(saleAmount(sale, "incl"))}</td>
+            <td>${money(saleAmount(sale, "excl"))}</td>
+            <td>${money(saleAmount(sale, "vat"))}</td>
+            <td>${escapeHtml(sale.status || "active")}</td>
+          </tr>
+        `;
+      }).join("");
+      return `
+        <section>
+          <h2>Salgsrapport</h2>
+          <table>
+            <thead><tr><th>Dato/tid</th><th>Bonnummer</th><th>Type</th><th>Betalingsmetode</th><th>Total inkl. moms</th><th>Total ekskl. moms</th><th>Moms</th><th>Status</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="8">Ingen salg i valgt periode.</td></tr>'}</tbody>
+          </table>
+        </section>
+      `;
+    }
+
+    function renderReceipts(packageData) {
+      const rows = packageData.sales.map((sale) => {
+        const payment = getPayment(sale);
+        const lines = (sale.items || []).map((item) => `
+          <tr>
+            <td>${escapeHtml(item.name)}</td>
+            <td>${Number(item.quantity || 0)}</td>
+            <td>${money(item.unitPrice)}</td>
+            <td>${money(item.lineVatAmount)}</td>
+            <td>${money(item.lineTotalInclVat ?? item.lineTotalIncVat)}</td>
+          </tr>
+        `).join("");
+        return `
+          <section class="receipt">
+            <h3>${escapeHtml(sale.receiptLabel || sale.receiptNumber || sale.id)}</h3>
+            <p>${formatDateTime(saleDateValue(sale))} - ${escapeHtml(packageData.business.name || "Virksomhed")} - ${escapeHtml(packageData.business.cvr ? `CVR ${packageData.business.cvr}` : "CVR mangler")}</p>
+            <table>
+              <thead><tr><th>Linje</th><th>Antal</th><th>Stk.</th><th>Moms</th><th>Total</th></tr></thead>
+              <tbody>${lines || '<tr><td colspan="5">Ingen linjer</td></tr>'}</tbody>
+            </table>
+            <table>
+              <tbody>
+                <tr><th>Betaling</th><td>${escapeHtml(payment.label)}${payment.externalTransactionId ? ` - ${escapeHtml(payment.externalTransactionId)}` : ""}</td></tr>
+                <tr><th>Moms</th><td>${money(saleAmount(sale, "vat"))}</td></tr>
+                <tr><th>Total</th><td>${money(saleAmount(sale, "incl"))}</td></tr>
+              </tbody>
+            </table>
+          </section>
+        `;
+      }).join("");
+      return `<section><h2>Boner/bilag</h2>${rows || "<p>Ingen boner/bilag i valgt periode.</p>"}</section>`;
+    }
+
+    function renderCreditNotes(packageData) {
+      const creditNotes = packageData.sales.filter((sale) => sale.type === "credit_note");
+      const rows = creditNotes.map((sale) => {
+        const original = packageData.sales.find((item) => item.id === sale.correctionOf);
+        return `
+          <tr>
+            <td>${escapeHtml(sale.receiptLabel || sale.receiptNumber || sale.id)}</td>
+            <td>${escapeHtml(original?.receiptLabel || sale.correctionOf || "-")}</td>
+            <td>${escapeHtml(sale.creditNoteReason || sale.payment?.note || "-")}</td>
+            <td>${money(saleAmount(sale, "incl"))}</td>
+            <td>${money(saleAmount(sale, "vat"))}</td>
+            <td>${formatDateTime(saleDateValue(sale))}</td>
+          </tr>
+        `;
+      }).join("");
+      return `
+        <section>
+          <h2>Kreditnotaer</h2>
+          <table>
+            <thead><tr><th>Kreditnotanummer</th><th>Original bonnummer</th><th>Årsag</th><th>Beløb</th><th>Moms</th><th>Dato/tid</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="6">Ingen kreditnotaer i valgt periode.</td></tr>'}</tbody>
+          </table>
+        </section>
+      `;
+    }
+
+    function renderPaymentReconciliationReport(packageData) {
+      const rows = packageData.sales
+        .filter((sale) => getPayment(sale).method !== "cash")
+        .map((sale) => {
+          const payment = getPayment(sale);
+          return `
+            <tr>
+              <td>${escapeHtml(payment.label)}</td>
+              <td>${escapeHtml(payment.provider)}</td>
+              <td>${escapeHtml(payment.externalTransactionId || "-")}</td>
+              <td>${escapeHtml(payment.reconciliationStatus || "pending")}</td>
+              <td>${money(saleAmount(sale, "incl"))}</td>
+            </tr>
+          `;
+        }).join("");
+      return `
+        <section>
+          <h2>Betalingsafstemning</h2>
+          <table>
+            <thead><tr><th>Betalingsmetode</th><th>Udbyder</th><th>Reference</th><th>Status</th><th>Beløb</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="5">Ingen ikke-kontante betalinger i valgt periode.</td></tr>'}</tbody>
+          </table>
+        </section>
+      `;
+    }
+
+    function renderCashReconciliations(packageData) {
+      const rows = Object.entries(packageData.groups)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([dateKey, sales]) => {
+          const summary = getSummary(sales);
+          const reconciliation = getCashReconciliationForDate(dateKey, sales);
+          return `
+            <tr>
+              <td>${escapeHtml(dateKey)}</td>
+              <td>${money(reconciliation.openingCash)}</td>
+              <td>${money(summary.cashDrawerAmount)}</td>
+              <td>${money(reconciliation.expectedCash)}</td>
+              <td>${money(reconciliation.countedCash)}</td>
+              <td>${money(reconciliation.difference)}</td>
+              <td>${escapeHtml(reconciliation.note || "-")}</td>
+            </tr>
+          `;
+        }).join("");
+      return `
+        <section>
+          <h2>Kasseafstemning</h2>
+          <table>
+            <thead><tr><th>Dato</th><th>Startkasse</th><th>Kontantsalg</th><th>Forventet kontant</th><th>Optalt kontant</th><th>Difference</th><th>Note</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="7">Ingen kasseafstemning i valgt periode.</td></tr>'}</tbody>
+          </table>
+        </section>
+      `;
+    }
+
+    function buildAccountantPackageHtml(packageData) {
+      const selected = packageData.materials;
+      const cvrText = packageData.business.cvr ? `CVR ${packageData.business.cvr}` : "CVR mangler";
+      const sections = [
+        selected.dailyReports ? renderDailyReports(packageData) : "",
+        selected.salesReports ? renderSalesReport(packageData) : "",
+        selected.receipts ? renderReceipts(packageData) : "",
+        selected.creditNotes ? renderCreditNotes(packageData) : "",
+        selected.paymentReconciliation ? renderPaymentReconciliationReport(packageData) : "",
+        selected.cashReconciliations ? renderCashReconciliations(packageData) : ""
+      ].join("");
+      return `<!doctype html>
+        <html lang="da">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Revisorpakke ${escapeHtml(packageData.fromDate)} til ${escapeHtml(packageData.toDate)}</title>
+          <style>
+            body { margin: 0; padding: 28px; color: #17231a; font-family: Arial, sans-serif; }
+            h1 { margin: 0 0 8px; font-size: 26px; }
+            h2 { margin: 28px 0 10px; font-size: 20px; page-break-after: avoid; }
+            h3 { margin: 18px 0 8px; font-size: 15px; }
+            p { margin: 4px 0 12px; }
+            table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; }
+            th, td { border: 1px solid #d6dfd3; padding: 7px; text-align: left; vertical-align: top; font-size: 12px; }
+            th { background: #eef5eb; }
+            section { break-inside: avoid; margin-bottom: 18px; }
+            .missing { color: #9a3412; font-weight: 700; }
+            @media print { body { padding: 0; } button { display: none; } }
+          </style>
+        </head>
+        <body>
+          <button type="button" onclick="window.print()">Print / gem som PDF</button>
+          <h1>Eksportér til revisor</h1>
+          <p><strong>Periode:</strong> ${escapeHtml(packageData.fromDate)} til ${escapeHtml(packageData.toDate)}</p>
+          <p><strong>Firmanavn:</strong> ${escapeHtml(packageData.business.name || "Virksomhed")} - <span class="${packageData.business.cvr ? "" : "missing"}">${escapeHtml(cvrText)}</span></p>
+          <p><strong>Adresse:</strong> ${escapeHtml([packageData.business.address, packageData.business.postalCode, packageData.business.city].filter(Boolean).join(", "))}</p>
+          <p><strong>Genereret:</strong> ${formatDateTime(packageData.generatedAt)}</p>
+          ${sections}
+        </body>
+        </html>`;
+    }
+
+    function downloadAccountantPackage() {
+      const status = document.getElementById("accountant-status");
+      try {
+        const packageData = buildAccountantPackage();
+        const reportWindow = window.open("", "_blank");
+        if (!reportWindow) {
+          status.textContent = "Browseren blokerede rapportvinduet. Tillad popups og prøv igen.";
+          return;
+        }
+        reportWindow.document.open();
+        reportWindow.document.write(buildAccountantPackageHtml(packageData));
+        reportWindow.document.close();
+        reportWindow.focus();
+        closeAccountantExportModal();
+      } catch (error) {
+        status.textContent = error.message || "Revisorpakken kunne ikke hentes.";
+      }
+    }
+
+    async function saveReconciliation() {
+      const payload = buildDailyReportPayload();
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        if (store?.cloudEnabled) {
+          await store.saveCashSession(payload.date, {
+            ...payload.reconciliation,
+            summary: payload.summary,
+            paymentReconciliation: payload.paymentReconciliation
+          });
+          setStatus("Kasseafstemning gemt i Firestore.");
+        } else {
+          throw new Error("POS er ikke koblet til en virksomhed endnu.");
+        }
+      } catch (error) {
+        setStatus(error.message || "Kasseafstemning kunne ikke gemmes.");
+      }
+    }
+
+    function setStatus(message) {
+      document.getElementById("status").textContent = message;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    allSales = [];
+    document.getElementById("report-date").value = getDateKey(new Date());
+    document.getElementById("report-date").addEventListener("change", renderReport);
+    document.getElementById("opening-cash").addEventListener("input", renderReport);
+    document.getElementById("counted-cash").addEventListener("input", renderReport);
+    document.getElementById("reconcile-note").addEventListener("input", updateReconciliation);
+    document.getElementById("save-reconciliation").addEventListener("click", saveReconciliation);
+    document.getElementById("export-accountant").addEventListener("click", openAccountantExportModal);
+    document.getElementById("accountant-cancel").addEventListener("click", closeAccountantExportModal);
+    document.getElementById("accountant-download").addEventListener("click", downloadAccountantPackage);
+    document.getElementById("accountant-modal-backdrop").addEventListener("click", (event) => {
+      if (event.target.id === "accountant-modal-backdrop") closeAccountantExportModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !document.getElementById("accountant-modal-backdrop").hidden) {
+        closeAccountantExportModal();
+      }
+    });
+    document.getElementById("print-report").addEventListener("click", () => window.print());
+    window.addEventListener("pos:store-ready", async (event) => {
+      posStore = event.detail || null;
+      await refreshSales();
+    });
+    renderReport();
+    refreshSales();
+  </script>
+</body>
+</html>
+

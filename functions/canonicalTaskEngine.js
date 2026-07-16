@@ -11,12 +11,36 @@
  */
 
 const {
+  hasConcreteEquipmentRef: sharedHasConcreteEquipmentRef,
+  isEquipmentBoundRoutine: sharedIsEquipmentBoundRoutine
+} = require("./equipmentRoutineGuard");
+
+const {
   CANONICAL_ROUTINES,
   normalizeRoutineType,
   buildCanonicalTaskKey,
   buildDisplayTitle,
   buildCanonicalRoutineFields
 } = require('./js/canonicalRoutines');
+const { buildOwnerScopeMetadata, isValidOwnerKind } = require("./lib/ownerScope");
+
+const OWNER_SCOPE_FIELDS = ["ownerKind", "ownerLabel", "isDemoScope", "scopeType"];
+
+function normalizeOwnerScopeMetadata(metadata = null) {
+  if (!metadata || typeof metadata !== "object") return {};
+  if (!isValidOwnerKind(metadata.ownerKind)) return {};
+  return buildOwnerScopeMetadata(metadata.ownerKind);
+}
+
+function buildOwnerScopePatch(existing = {}, ownerScopeMetadata = {}) {
+  const patch = {};
+  for (const field of OWNER_SCOPE_FIELDS) {
+    if (ownerScopeMetadata[field] !== undefined && existing[field] !== ownerScopeMetadata[field]) {
+      patch[field] = ownerScopeMetadata[field];
+    }
+  }
+  return patch;
+}
 
 /**
  * Derive controlType from routineType
@@ -60,16 +84,121 @@ function deriveControlType(routineType) {
   return 'simple_yes_no';
 }
 
+const EQUIPMENT_ROUTINE_TYPES = {
+  koeleskab_temperatur: ["fridge", "koeleskab"],
+  koeleskab_rengoering: ["fridge", "koeleskab"],
+  fryser_temperatur: ["freezer", "fryser"],
+  fryser_rengoering: ["freezer", "fryser"],
+  walkin_koeler_temperatur: ["walk_in_cooler", "walkin_cooler", "walkin_koeler"],
+  walkin_koeler_rengoering: ["walk_in_cooler", "walkin_cooler", "walkin_koeler"],
+  walkin_fryser_temperatur: ["walk_in_freezer", "walkin_freezer", "walkin_fryser"],
+  walkin_fryser_rengoering: ["walk_in_freezer", "walkin_freezer", "walkin_fryser"],
+  opvaskemaskine_skyllevand: ["dishwasher", "opvaskemaskine"],
+  opvaskemaskine_rengoering: ["dishwasher", "opvaskemaskine"],
+  friture_rengoering: ["fryer", "friture"],
+  paalaegsmaskine_rengoering: ["slicer", "paalaegsmaskine", "slicing_machine"],
+  softice_maskine_rengoering: ["softice_machine", "ice_machine", "ismaskine", "softice_maskine"],
+  softice_temperatur_kontrol: ["softice_machine", "ice_machine", "ismaskine", "softice_maskine"],
+  koledisk_temperatur: ["display_fridge", "refrigerated_display", "koledisk"],
+  koledisk_rengoering: ["display_fridge", "refrigerated_display", "koledisk"],
+  ovn_rengoering: ["oven", "ovn"],
+  komfur_rengoering: ["stove", "komfur"],
+  blaesekoeler_temperatur: ["blast_chiller", "blaesekoeler"],
+  blaesekoeler_rengoering: ["blast_chiller", "blaesekoeler"],
+  varmeskab_temperatur: ["warming_cabinet", "hot_cabinet", "varmeskab"],
+  varmeskab_rengoering: ["warming_cabinet", "hot_cabinet", "varmeskab"],
+  roegeovn_temperatur: ["smoke_oven", "roegeovn"],
+  roegeovn_rengoering: ["smoke_oven", "roegeovn"],
+  rasteskab_rengoering: ["proofing_cabinet", "rasteskab"]
+};
+
+function normalizeEquipmentTypeKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s-]+/g, "_");
+}
+
+function isEquipmentRoutineType(routineType) {
+  return Boolean(EQUIPMENT_ROUTINE_TYPES[normalizeRoutineType(routineType)]);
+}
+
+// ---- Defensive guard: equipment-bound routines must carry a concrete equipment unit ----
+// Authority = the canonical EQUIPMENT_ROUTINE_TYPES map (precise, routineType-based); the shared
+// keyword backstop (./equipmentRoutineGuard) covers records that lack a routineType but carry an
+// equipment-typed title. Both deliberately avoid bare "køl"/"koel" (would hit nedkøling/3-timers).
+function requiresConcreteEquipmentForRoutine(t = {}) {
+  if (t.routineType && isEquipmentRoutineType(t.routineType)) return true;
+  return sharedIsEquipmentBoundRoutine(t);
+}
+function hasConcreteEquipmentRef(t = {}) {
+  return sharedHasConcreteEquipmentRef(t);
+}
+function shouldSkipMissingEquipmentRoutine(t = {}) {
+  return requiresConcreteEquipmentForRoutine(t) && !hasConcreteEquipmentRef(t);
+}
+
+function normalizeCanonicalUnit(unit = {}) {
+  const id = String(unit.id || unit.equipmentId || unit.unitId || "").trim();
+  const type = normalizeEquipmentTypeKey(unit.type || unit.equipmentType || unit.category || "");
+  const category = normalizeEquipmentTypeKey(unit.category || unit.type || unit.equipmentType || "");
+  const name = String(unit.name || unit.displayName || unit.equipmentName || unit.unitName || "").trim();
+  return { ...unit, id, type, category, name };
+}
+
+function getRoutineTargetUnits(routineType, units = []) {
+  const normalizedRoutineType = normalizeRoutineType(routineType);
+  const allowedTypes = EQUIPMENT_ROUTINE_TYPES[normalizedRoutineType] || null;
+  if (!allowedTypes) {
+    return [{ id: "default", name: "", type: "default", category: "default" }];
+  }
+
+  const allowed = new Set(allowedTypes.map(normalizeEquipmentTypeKey));
+  return units
+    .map(normalizeCanonicalUnit)
+    .filter((unit) => unit.id && (allowed.has(unit.type) || allowed.has(unit.category)));
+}
+
+function buildCanonicalTemplateId(companyId, locationId, routineType, unit = {}) {
+  const normalizedRoutineType = normalizeRoutineType(routineType);
+  const unitId = String(unit?.id || "").trim();
+  if (isEquipmentRoutineType(normalizedRoutineType) && unitId && unitId !== "default") {
+    return `${companyId}__${locationId}__canonical__${normalizedRoutineType}__${unitId}`;
+  }
+  return `${companyId}__${locationId}__canonical__${normalizedRoutineType}`;
+}
+
+async function loadCanonicalEquipmentUnits({ db, companyId, locationId }) {
+  const equipmentSnap = await db.collection("equipment")
+    .where("companyId", "==", companyId)
+    .where("locationId", "==", locationId)
+    .get();
+
+  return equipmentSnap.docs
+    .map((doc) => {
+      const data = doc.data() || {};
+      if (data.archived || data.active === false || data.isActive === false) return null;
+      return normalizeCanonicalUnit({
+        id: data.id || doc.id,
+        name: data.name || data.displayName || data.equipmentName || "",
+        type: data.type || data.equipmentType || "",
+        category: data.category || data.type || data.equipmentType || ""
+      });
+    })
+    .filter(Boolean);
+}
+
 /**
  * Generate canonical task templates for a location
  * 
- * Creates one template per routineType (not per unit).
- * Templates are unit-agnostic - instances are unit-specific.
+ * Creates one template per routineType, scoped per equipment unit when relevant.
  * 
  * @param {object} params - { db, companyId, locationId, routineKeys? }
  * @returns {object} - { created, updated, archived, skipped }
  */
-async function generateCanonicalTaskTemplates({ db, companyId, locationId, routineKeys = null }) {
+async function generateCanonicalTaskTemplates({ db, companyId, locationId, routineKeys = null, units = null, ownerScopeMetadata = null }) {
   console.log(`[generateCanonicalTaskTemplates] START for ${companyId}/${locationId}`, {
     filterMode: routineKeys ? 'FILTERED' : 'ALL',
     routineKeysCount: routineKeys ? routineKeys.length : 'N/A'
@@ -77,6 +206,10 @@ async function generateCanonicalTaskTemplates({ db, companyId, locationId, routi
   
   const templatesRef = db.collection("task_templates");
   const todayDateKey = new Date().toISOString().slice(0, 10);
+  const targetOwnerScope = normalizeOwnerScopeMetadata(ownerScopeMetadata);
+  const equipmentUnits = Array.isArray(units)
+    ? units.map(normalizeCanonicalUnit).filter((unit) => unit.id)
+    : await loadCanonicalEquipmentUnits({ db, companyId, locationId });
   
   const stats = {
     created: 0,
@@ -115,31 +248,23 @@ async function generateCanonicalTaskTemplates({ db, companyId, locationId, routi
     }
     
     // Check if this routineType already exists
-    if (existingByRoutineType.has(routineType)) {
+    const equipmentId = String(data.equipmentId || data.unitId || data.equipmentUnit || "").trim();
+    const routineScopeKey = equipmentId ? `${routineType}__${equipmentId}` : routineType;
+
+    if (existingByRoutineType.has(routineScopeKey)) {
       // Duplicate found
-      duplicates.push({ id: doc.id, data, routineType });
+      duplicates.push({ id: doc.id, data, routineType: routineScopeKey });
     } else {
-      existingByRoutineType.set(routineType, { id: doc.id, data });
+      existingByRoutineType.set(routineScopeKey, { id: doc.id, data });
     }
   });
   
   console.log(`[generateCanonicalTaskTemplates] Found ${existingByRoutineType.size} unique routineTypes, ${duplicates.length} duplicates`);
   
-  // Archive duplicates
+  // Do not archive existing templates here. Quick onboarding must not hide existing routine cards.
   for (const dup of duplicates) {
-    const reason = "duplicate_routine_type";
-    
-    await templatesRef.doc(dup.id).update({
-      archived: true,
-      archivedReason: reason,
-      archivedAt: new Date(),
-      isActive: false,
-      active: false,
-      skippedDuplicate: true,
-      updatedAt: new Date()
-    });
-    stats.archived++;
-    console.log(`[generateCanonicalTaskTemplates] Archived duplicate: ${dup.id} (routineType: ${dup.routineType})`);
+    stats.skipped++;
+    console.warn(`[generateCanonicalTaskTemplates] Duplicate left unchanged: ${dup.id} (routineType: ${dup.routineType})`);
   }
   
   // Filter routines if routineKeys provided (quick onboarding mode)
@@ -152,78 +277,138 @@ async function generateCanonicalTaskTemplates({ db, companyId, locationId, routi
   // Generate/update canonical templates
   for (const definition of routinesToGenerate) {
     const routineType = definition.routineType;
-    const templateId = `${companyId}__${locationId}__canonical__${routineType}`;
-    const existing = existingByRoutineType.get(routineType);
-    
-    // Derive controlType from routineType
-    const controlType = deriveControlType(routineType);
-    
-    const templatePayload = {
-      templateId,
-      companyId,
-      locationId,
-      
-      // Canonical fields
-      routineType,
-      canonicalTaskKey: routineType, // Template key is just routineType (no unitId)
-      title: definition.displayTitle,
-      displayTitle: definition.displayTitle,
-      longDescription: definition.longDescription,
-      subtitle: definition.subtitle || "",
-      purpose: definition.purpose || "",
-      checkItems: definition.checkItems || [],
-      checklistItems: definition.checklistItems || [],
-      controlCheckpoints: definition.controlCheckpoints || [],
-      howToCheck: definition.howToCheck || "",
-      acceptCriteria: definition.acceptCriteria || "",
-      documentation: definition.documentation || "",
-      standardDeviationTexts: definition.standardDeviationTexts || [],
-      standardCorrectiveActions: definition.standardCorrectiveActions || [],
-      group: definition.group,
-      category: controlType === "cleaning" ? "cleaning" : definition.group,
-      controlType,
-      
-      // Frequency
-      frequencyType: "interval_days",
-      frequencyDays: definition.frequencyDays,
-      interval_days: definition.frequencyDays,
-      
-      // Schedule config
-      scheduleConfig: {
-        scheduleType: "recurring",
-        recurrenceMode: "interval_days",
-        recurrenceValue: definition.frequencyDays,
-        anchorDate: todayDateKey
-      },
-      
-      // Risk data
-      risk: definition.risk,
-      
-      // Metadata
-      templateType: "operational",
-      templateSource: "canonical_routine",
-      isActive: true,
-      isCCP: definition.group === "CCP",
-      
-      // Legacy compatibility
-      templateKey: routineType,
-      taskKey: routineType,
-      description: definition.longDescription,
-      
-      updatedAt: new Date()
-    };
-    
-    if (existing) {
-      // Update existing template with canonical data
-      await templatesRef.doc(existing.id).update(templatePayload);
-      stats.updated++;
-      console.log(`[generateCanonicalTaskTemplates] Updated: ${routineType} (${definition.displayTitle})`);
-    } else {
-      // Create new template
-      templatePayload.createdAt = new Date();
-      await templatesRef.doc(templateId).set(templatePayload);
-      stats.created++;
-      console.log(`[generateCanonicalTaskTemplates] Created: ${routineType} (${definition.displayTitle})`);
+    const targetUnits = getRoutineTargetUnits(routineType, equipmentUnits);
+
+    if (targetUnits.length === 0) {
+      console.log(`[generateCanonicalTaskTemplates] No equipment found for ${routineType}, skipping template`);
+      continue;
+    }
+
+    for (const unit of targetUnits) {
+      const templateId = buildCanonicalTemplateId(companyId, locationId, routineType, unit);
+      const unitId = unit.id && unit.id !== "default" ? unit.id : "";
+      const unitName = unitId ? unit.name : "";
+      const unitType = unitId ? unit.type : "";
+      const routineScopeKey = unitId ? `${routineType}__${unitId}` : routineType;
+
+      // Never generate a generic cold/freezer/temperature template without a concrete equipment unit.
+      if (shouldSkipMissingEquipmentRoutine({ routineType, templateKey: routineType, title: definition.displayTitle, equipmentId: unitId, unitId, equipmentName: unitName, unitName, equipmentType: unitType })) {
+        console.warn("[egenkontrol generator skipped missing equipment]", { companyId, locationId, templateKey: routineType, routineType, title: definition.displayTitle });
+        continue;
+      }
+
+      const existing = existingByRoutineType.get(routineScopeKey);
+
+      // Derive controlType from routineType
+      const controlType = deriveControlType(routineType);
+      const displayTitle = unitId
+        ? buildDisplayTitle(routineType, unitId, unitName)
+        : definition.displayTitle;
+
+      const templatePayload = {
+        templateId,
+        companyId,
+        locationId,
+
+        // Canonical fields
+        routineType,
+        routineKey: routineType,
+        canonicalTaskKey: buildCanonicalTaskKey(routineType, unitId || "default"),
+        title: displayTitle,
+        displayTitle,
+        longDescription: definition.longDescription,
+        subtitle: definition.subtitle || "",
+        purpose: definition.purpose || "",
+        checkItems: definition.checkItems || [],
+        checklistItems: definition.checklistItems || [],
+        controlCheckpoints: definition.controlCheckpoints || [],
+        howToCheck: definition.howToCheck || "",
+        acceptCriteria: definition.acceptCriteria || "",
+        documentation: definition.documentation || "",
+        standardDeviationTexts: definition.standardDeviationTexts || [],
+        standardCorrectiveActions: definition.standardCorrectiveActions || [],
+        group: definition.group,
+        category: controlType === "cleaning" ? "cleaning" : definition.group,
+        controlType,
+
+        // Equipment binding
+        unitId,
+        unitName,
+        equipmentId: unitId,
+        equipmentType: unitType,
+        equipmentName: unitName,
+
+        // Frequency
+        frequencyType: "interval_days",
+        frequencyDays: definition.frequencyDays,
+        interval_days: definition.frequencyDays,
+
+        // Schedule config
+        scheduleConfig: {
+          scheduleType: "recurring",
+          recurrenceMode: "interval_days",
+          recurrenceValue: definition.frequencyDays,
+          anchorDate: todayDateKey
+        },
+
+        // Risk data
+        risk: definition.risk,
+
+        // Metadata
+        templateType: "operational",
+        templateSource: "canonical_routine",
+        source: "quick_onboarding",
+        ...targetOwnerScope,
+        isActive: true,
+        active: true,
+        isCCP: definition.group === "CCP",
+
+        // Legacy compatibility
+        templateKey: routineType,
+        taskKey: routineType,
+        description: definition.longDescription,
+
+        updatedAt: new Date()
+      };
+
+      if (existing) {
+        const patch = buildOwnerScopePatch(existing.data, targetOwnerScope);
+        for (const field of [
+          "routineType",
+          "routineKey",
+          "canonicalTaskKey",
+          "templateKey",
+          "taskKey",
+          "unitId",
+          "unitName",
+          "equipmentId",
+          "equipmentType",
+          "equipmentName",
+          "templateType",
+          "templateSource",
+          "source"
+        ]) {
+          if (templatePayload[field] && !existing.data[field]) {
+            patch[field] = templatePayload[field];
+          }
+        }
+
+        if (Object.keys(patch).length > 0) {
+          patch.updatedAt = new Date();
+          await templatesRef.doc(existing.id).update(patch);
+          stats.updated++;
+          console.log(`[generateCanonicalTaskTemplates] Filled metadata: ${routineScopeKey} (${displayTitle})`);
+        } else {
+          stats.skipped++;
+          console.log(`[generateCanonicalTaskTemplates] Existing template left unchanged: ${routineScopeKey} (${displayTitle})`);
+        }
+      } else {
+        // Create new template
+        templatePayload.createdAt = new Date();
+        await templatesRef.doc(templateId).set(templatePayload);
+        stats.created++;
+        console.log(`[generateCanonicalTaskTemplates] Created: ${routineScopeKey} (${displayTitle})`);
+      }
     }
   }
   
@@ -250,9 +435,11 @@ async function ensureSingleTaskInstance({
   unitName = "",
   unitType = "",
   templateId = "",
-  createdBy = "system"
+  createdBy = "system",
+  ownerScopeMetadata = null
 }) {
   const instancesRef = db.collection("task_instances");
+  const targetOwnerScope = normalizeOwnerScopeMetadata(ownerScopeMetadata);
   
   // STRICT: Normalize and validate routineType
   const normalizedRoutineType = normalizeRoutineType(routineType);
@@ -260,7 +447,14 @@ async function ensureSingleTaskInstance({
     console.warn(`[ensureSingleTaskInstance] Invalid routineType: ${routineType} - SKIPPING`);
     return { instanceId: null, created: false, updated: false, archived: 0, skipped: true };
   }
-  
+
+  // Never create a generic cold/freezer/temperature instance without a concrete equipment unit.
+  const concreteUnitId = unitId && unitId !== "default" ? unitId : "";
+  if (shouldSkipMissingEquipmentRoutine({ routineType: normalizedRoutineType, templateKey: normalizedRoutineType, equipmentId: concreteUnitId, unitId: concreteUnitId, equipmentName: unitName, unitName })) {
+    console.warn("[egenkontrol generator skipped missing equipment]", { companyId, locationId, templateKey: normalizedRoutineType, routineType: normalizedRoutineType, title: unitName ? `${normalizedRoutineType} · ${unitName}` : normalizedRoutineType });
+    return { instanceId: null, created: false, updated: false, archived: 0, skipped: true, skippedMissingEquipment: true };
+  }
+
   // Get routine definition
   const definition = CANONICAL_ROUTINES.find(r => r.routineType === normalizedRoutineType);
   if (!definition) {
@@ -289,12 +483,23 @@ async function ensureSingleTaskInstance({
         skippedDuplicate: false,
         isActive: true,
         active: true,
+        ...buildOwnerScopePatch(existingData, targetOwnerScope),
         updatedAt: new Date()
       });
       
       return { instanceId, created: false, updated: true, archived: 0 };
     }
     
+    const ownerScopePatch = buildOwnerScopePatch(existingData, targetOwnerScope);
+    if (Object.keys(ownerScopePatch).length > 0) {
+      await instancesRef.doc(instanceId).update({
+        ...ownerScopePatch,
+        updatedAt: new Date()
+      });
+      console.log(`[ensureSingleTaskInstance] Updated owner scope: ${instanceId}`);
+      return { instanceId, created: false, updated: true, archived: 0 };
+    }
+
     console.log(`[ensureSingleTaskInstance] Instance already exists: ${instanceId}`);
     return { instanceId, created: false, updated: false, archived: 0 };
   }
@@ -391,6 +596,7 @@ async function ensureSingleTaskInstance({
     archived: false,
     
     // Metadata
+    ...targetOwnerScope,
     createdBy,
     createdAt: new Date(),
     updatedAt: new Date()
@@ -417,7 +623,8 @@ async function startDayForLocationCanonical({
   locationId,
   dateKey,
   createdBy = "system",
-  routineKeys = null
+  routineKeys = null,
+  ownerScopeMetadata = null
 }) {
   console.log(`[startDayForLocationCanonical] START for ${companyId}/${locationId}/${dateKey}`, {
     filterMode: routineKeys ? 'FILTERED' : 'ALL',
@@ -514,18 +721,14 @@ async function startDayForLocationCanonical({
         u.type === "friture" ||
         u.category === "fryer"
       );
-    } else if (routineType === "softicemaskine_rengoering" || routineType === "softicemaskine_temperatur" || routineType === "softice_maskine_rengoering" || routineType === "softice_temperatur_kontrol") {
+    } else if (routineType === "softice_maskine_rengoering" || routineType === "softice_temperatur_kontrol") {
       // Softice machine routines
       targetUnits = units.filter(u => 
         u.type === "softice_machine" || 
-        u.type === "softice_maskine" ||
-        u.category === "softice_machine"
-      );
-    } else if (routineType === "ismaskine_rengoering" || routineType === "ismaskine_temperatur") {
-      // Ice machine routines
-      targetUnits = units.filter(u =>
         u.type === "ice_machine" ||
         u.type === "ismaskine" ||
+        u.type === "softice_maskine" ||
+        u.category === "softice_machine" ||
         u.category === "ice_machine" ||
         u.category === "ismaskine"
       );
@@ -533,8 +736,10 @@ async function startDayForLocationCanonical({
       // Refrigerated display routines
       targetUnits = units.filter(u => 
         u.type === "refrigerated_display" || 
+        u.type === "display_fridge" ||
         u.type === "koledisk" ||
-        u.category === "refrigerated_display"
+        u.category === "refrigerated_display" ||
+        u.category === "display_fridge"
       );
     } else if (routineType === "ovn_rengoering") {
       // Oven routines
@@ -561,8 +766,10 @@ async function startDayForLocationCanonical({
       // Hot cabinet routines
       targetUnits = units.filter(u => 
         u.type === "hot_cabinet" || 
+        u.type === "warming_cabinet" ||
         u.type === "varmeskab" ||
-        u.category === "hot_cabinet"
+        u.category === "hot_cabinet" ||
+        u.category === "warming_cabinet"
       );
     } else if (routineType === "roegeovn_temperatur" || routineType === "roegeovn_rengoering") {
       // Smoke oven routines
@@ -619,8 +826,9 @@ async function startDayForLocationCanonical({
           unitId: unit.id,
           unitName: unit.name,
           unitType: unit.type,
-          templateId: `${companyId}__${locationId}__canonical__${routineType}`,
-          createdBy
+          templateId: buildCanonicalTemplateId(companyId, locationId, routineType, unit),
+          createdBy,
+          ownerScopeMetadata
         });
         
         if (result.created) stats.instancesCreated++;

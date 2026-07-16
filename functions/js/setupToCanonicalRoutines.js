@@ -339,104 +339,190 @@ function resolveCanonicalRoutineKeysFromSetup(setup) {
   return routines;
 }
 
+function toSafeIdSegment(value, fallback = "item") {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 80);
+  return normalized || fallback;
+}
+
+function toPositiveInt(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  return Math.max(0, Math.floor(number));
+}
+
+function buildEquipmentSeedKey({ companyId, locationId, type, index }) {
+  return [
+    toSafeIdSegment(companyId, "company"),
+    toSafeIdSegment(locationId, "location"),
+    toSafeIdSegment(type, "equipment"),
+    toPositiveInt(index) || 1
+  ].join("__");
+}
+
+function buildEquipmentDocumentId(seedKey) {
+  return `onboarding__${String(seedKey || "").slice(0, 170)}`;
+}
+
+function getEquipmentDefaults(type) {
+  const temperatureTypes = new Set([
+    "fridge",
+    "freezer",
+    "walk_in_cooler",
+    "walk_in_freezer",
+    "display_fridge",
+    "blast_chiller",
+    "warming_cabinet",
+    "softice_machine"
+  ]);
+  const limits = {
+    fridge: { minTemp: 0, maxTemp: 5 },
+    freezer: { minTemp: -30, maxTemp: -18 },
+    walk_in_cooler: { minTemp: 0, maxTemp: 5 },
+    walk_in_freezer: { minTemp: -30, maxTemp: -18 },
+    display_fridge: { minTemp: 0, maxTemp: 5 },
+    blast_chiller: { minTemp: 0, maxTemp: 5 },
+    warming_cabinet: { minTemp: 65, maxTemp: null },
+    softice_machine: { minTemp: 0, maxTemp: 5 }
+  };
+  const temperatureRequired = temperatureTypes.has(type);
+
+  return {
+    haccpRelevant: true,
+    routineRelevant: true,
+    temperatureRequired,
+    minTemp: limits[type]?.minTemp ?? null,
+    maxTemp: limits[type]?.maxTemp ?? null,
+    cleaningRequired: true,
+    cleaningFrequency: ["freezer", "walk_in_freezer"].includes(type) ? "monthly" : "weekly",
+    serviceRequired: true,
+    serviceFrequency: "yearly",
+    calibrationRequired: temperatureRequired,
+    calibrationFrequency: temperatureRequired ? "yearly" : ""
+  };
+}
+
 /**
  * Build equipment units from setup
  * Creates ALL equipment types
  */
-function buildEquipmentFromSetup(setup, { companyId, locationId, userId }) {
+function buildEquipmentFromSetup(setup, { companyId, locationId, userId, onboardingDraftId = "" }) {
   const equipment = [];
   const nowTs = new Date();
   
   // Helper to create equipment
-  const createEquipment = (type, name, index = null) => ({
-    id: `${type}_${index || 1}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-    name: index ? `${name} ${index}` : name,
-    type,
-    equipmentType: type,
-    category: type,
-    companyId,
-    locationId,
-    organizationId: companyId,
-    isActive: true,
-    active: true,
-    createdBy: userId,
-    createdAt: nowTs,
-    updatedAt: nowTs
-  });
+  const createEquipment = (type, name, index = 1) => {
+    const unitNumber = toPositiveInt(index) || 1;
+    const displayName = `${name} ${unitNumber}`;
+    const seedKey = buildEquipmentSeedKey({ companyId, locationId, type, index: unitNumber });
+    const equipmentId = buildEquipmentDocumentId(seedKey);
+
+    return {
+      id: equipmentId,
+      equipmentId,
+      seedKey,
+      name: displayName,
+      displayName,
+      title: displayName,
+      type,
+      equipmentType: type,
+      category: type,
+      companyId,
+      locationId,
+      organizationId: companyId,
+      active: true,
+      isActive: true,
+      unitNumber,
+      ...getEquipmentDefaults(type),
+      source: "onboarding",
+      onboardingSource: "quick_onboarding",
+      onboardingDraftId: String(onboardingDraftId || ""),
+      createdBy: userId,
+      createdByUid: userId,
+      createdAt: nowTs,
+      updatedAt: nowTs
+    };
+  };
   
   // Fridges
   for (let i = 1; i <= setup.fridgeCount; i++) {
-    equipment.push(createEquipment("fridge", "Køleskab", setup.fridgeCount > 1 ? i : null));
+    equipment.push(createEquipment("fridge", "Køleskab", i));
   }
   
   // Freezers
   for (let i = 1; i <= setup.freezerCount; i++) {
-    equipment.push(createEquipment("freezer", "Fryser", setup.freezerCount > 1 ? i : null));
+    equipment.push(createEquipment("freezer", "Fryser", i));
   }
   
   // Walk-in coolers
   for (let i = 1; i <= setup.walkinCoolerCount; i++) {
-    equipment.push(createEquipment("walkin_cooler", "Walk-in køler", setup.walkinCoolerCount > 1 ? i : null));
+    equipment.push(createEquipment("walk_in_cooler", "Walk-in køler", i));
   }
   
   // Walk-in freezers
   for (let i = 1; i <= setup.walkinFreezerCount; i++) {
-    equipment.push(createEquipment("walkin_freezer", "Walk-in fryser", setup.walkinFreezerCount > 1 ? i : null));
+    equipment.push(createEquipment("walk_in_freezer", "Walk-in fryser", i));
   }
   
   // Refrigerated displays
   for (let i = 1; i <= setup.refrigeratedDisplayCount; i++) {
-    equipment.push(createEquipment("refrigerated_display", "Køledisk", setup.refrigeratedDisplayCount > 1 ? i : null));
+    equipment.push(createEquipment("display_fridge", "Køledisk", i));
   }
   
   // Ovens
   for (let i = 1; i <= setup.ovenCount; i++) {
-    equipment.push(createEquipment("oven", "Ovn", setup.ovenCount > 1 ? i : null));
+    equipment.push(createEquipment("oven", "Ovn", i));
   }
   
   // Stoves
   for (let i = 1; i <= setup.stoveCount; i++) {
-    equipment.push(createEquipment("stove", "Komfur", setup.stoveCount > 1 ? i : null));
+    equipment.push(createEquipment("stove", "Komfur", i));
   }
   
   // Blast chillers
   for (let i = 1; i <= setup.blastChillerCount; i++) {
-    equipment.push(createEquipment("blast_chiller", "Blæsekøler", setup.blastChillerCount > 1 ? i : null));
+    equipment.push(createEquipment("blast_chiller", "Blæsekøler", i));
   }
   
   // Hot cabinets
   for (let i = 1; i <= setup.hotCabinetCount; i++) {
-    equipment.push(createEquipment("hot_cabinet", "Varmeskab", setup.hotCabinetCount > 1 ? i : null));
+    equipment.push(createEquipment("warming_cabinet", "Varmeskab", i));
   }
   
   // Proofing cabinets
   for (let i = 1; i <= setup.proofingCabinetCount; i++) {
-    equipment.push(createEquipment("proofing_cabinet", "Rasteskab", setup.proofingCabinetCount > 1 ? i : null));
+    equipment.push(createEquipment("proofing_cabinet", "Rasteskab", i));
   }
   
   // Smoke ovens
   for (let i = 1; i <= setup.smokeOvenCount; i++) {
-    equipment.push(createEquipment("smoke_oven", "Røgeovn", setup.smokeOvenCount > 1 ? i : null));
+    equipment.push(createEquipment("smoke_oven", "Røgeovn", i));
   }
   
   // Slicers
   for (let i = 1; i <= setup.slicerCount; i++) {
-    equipment.push(createEquipment("slicer", "Pålægsmaskine", setup.slicerCount > 1 ? i : null));
+    equipment.push(createEquipment("slicer", "Pålægsmaskine", i));
   }
   
   // Dishwashers
   for (let i = 1; i <= setup.dishwasherCount; i++) {
-    equipment.push(createEquipment("dishwasher", "Opvaskemaskine", setup.dishwasherCount > 1 ? i : null));
+    equipment.push(createEquipment("dishwasher", "Opvaskemaskine", i));
   }
   
   // Fryers
   for (let i = 1; i <= setup.fryerCount; i++) {
-    equipment.push(createEquipment("fryer", "Friture", setup.fryerCount > 1 ? i : null));
+    equipment.push(createEquipment("fryer", "Friture", i));
   }
   
   // Softice machines
   for (let i = 1; i <= setup.softiceMachineCount; i++) {
-    equipment.push(createEquipment("softice_machine", "Softice-maskine", setup.softiceMachineCount > 1 ? i : null));
+    equipment.push(createEquipment("softice_machine", "Softice-maskine", i));
   }
   
   return equipment;

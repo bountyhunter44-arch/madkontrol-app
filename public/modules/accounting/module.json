@@ -1,0 +1,62 @@
+{
+  "key": "accounting",
+  "moduleKey": "accounting",
+  "aliases": [
+    "bogfoering",
+    "bogforing",
+    "bogføring"
+  ],
+  "title": "Bogføringsappen",
+  "name": "Bogføringsappen",
+  "category": "Økonomi",
+  "status": "v1",
+  "entryUrl": "/modules/accounting/index.html",
+  "fallbackUrl": "/modules/accounting/bilag.html",
+  "presentationUrl": "/modules/accounting/presentation.html",
+  "landingPage": "/modules/accounting/presentation.html",
+  "entitlement": "bogforing",
+  "usesSharedLayout": false,
+  "usesAuthGate": false,
+  "standalone": true,
+  "provides": [
+    "accounting_suggestions",
+    "supplier_bills",
+    "accounting_drafts"
+  ],
+  "consumes": [
+    "company_profile",
+    "pos_cash_sessions",
+    "supplier_documents",
+    "goods_receipts",
+    "receipts"
+  ],
+  "providesContracts": [
+    "accounting.entries"
+  ],
+  "consumesContracts": [
+    "platform.context",
+    "pos.sales",
+    "receipts.documents",
+    "inventory.documents"
+  ],
+  "draftFields": [
+    "accountNumber",
+    "accountName",
+    "debit",
+    "credit",
+    "vatCode",
+    "amount",
+    "vatAmount",
+    "totalAmount",
+    "documentId",
+    "sourceModule",
+    "sourceReference",
+    "bookingStatus"
+  ],
+  "collections": [
+    "accounting_entries",
+    "accounting_suggestions",
+    "accounting_drafts"
+  ],
+  "protectedSystemsTouched": []
+}

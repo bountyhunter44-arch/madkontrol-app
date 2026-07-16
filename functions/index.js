@@ -1,4 +1,4 @@
-// Load environment variables from .env file (for local development)
+﻿// Load environment variables from .env file (for local development)
 require("dotenv").config();
 
 const functions = require("firebase-functions");
@@ -8,7 +8,7 @@ const { defineJsonSecret } = require("firebase-functions/params");
 const { logger } = require("firebase-functions");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const egenkontrol = require("./egenkontrol");
-// ✅ KUN ÉN INITIALISERING
+// âœ… KUN Ã‰N INITIALISERING
 if (!admin.apps.length) {
   admin.initializeApp();
 }
@@ -16,14 +16,29 @@ if (!admin.apps.length) {
 // IMPORTS EFTER INIT
 const { generateComprehensiveHaccp, generateTaskTemplatesFromKcps } = require("./generateComprehensiveHaccp");
 const { generateScenarioBasedHaccp } = require("./scenarioBasedHaccp");
-const processInstances = require("./processInstances");
 const { guardDangerousOperation } = require("./security/environmentGuard");
 const demoMode = require("./admin/demoMode");
 const softArchive = require("./admin/softArchive");
-const { closeDailyRun } = require("./closeDailyRun");
+const {
+  closeDailyRun,
+  startCoolingProcess,
+  addCoolingMeasurement,
+  completeCoolingProcess,
+  startReheatingProcess,
+  completeReheatingProcess,
+  disposeCoolingProcess,
+  startNewCoolingFromReheating,
+  loadActiveProcessInstances,
+  pauseEgenkontrolRoutine,
+  reactivateEgenkontrolRoutine,
+  setRoutinePauseState,
+  updateEgenkontrolRoutineFrequency
+} = require("./modules/egenkontrol");
 const { generateAndSaveEgenkontrolProgram } = require("./egenkontrol/egenkontrolGenerator");
 const provisioning = require("./provisioning");
+Object.assign(exports, require("./modules/pos"));
 const Stripe = require("stripe");
+const { OWNER_KIND, buildOwnerScopeMetadata } = require("./lib/ownerScope");
 
 // === AI RULES ===
 // Read functions/egenkontrol/operationalTemplateReference.js first
@@ -38,10 +53,7 @@ const db = admin.firestore();
 db.settings({ ignoreUndefinedProperties: true });
 const { FieldValue } = admin.firestore;
 const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
-const PEXELS_API_KEY = defineSecret("PEXELS_API_KEY");
-const GOOGLE_PLACES_API_KEY = defineSecret("GOOGLE_PLACES_API_KEY");
 const FUNCTIONS_CONFIG = defineJsonSecret("FUNCTIONS_CONFIG_EXPORT");
-const SEO_HARD_MAX_PAGES = 100;
 
 function getStripeConfig() {
   const config = FUNCTIONS_CONFIG.value();
@@ -97,7 +109,7 @@ function getStripeClient() {
   return new Stripe(secretKey, { apiVersion: "2023-10-16" });
 }
 
-// ─── STRIPE WEBHOOK ─────────────────────────────────────────────────────────
+// â”€â”€â”€ STRIPE WEBHOOK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const { onRequest } = require("firebase-functions/v2/https");
 
@@ -117,7 +129,7 @@ exports.stripeWebhook = onRequest(
       const sig = req.headers["stripe-signature"];
 
       if (!sig) {
-        console.error("❌ Missing Stripe signature");
+        console.error("âŒ Missing Stripe signature");
         return res.status(400).send("Missing signature");
       }
 
@@ -127,11 +139,11 @@ exports.stripeWebhook = onRequest(
         process.env.STRIPE_WEBHOOK_SECRET
       );
     } catch (err) {
-      console.error("❌ Webhook signature verification failed:", err.message);
+      console.error("âŒ Webhook signature verification failed:", err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    console.log("✅ Stripe event:", event.type);
+    console.log("âœ… Stripe event:", event.type);
 
     try {
       switch (event.type) {
@@ -232,7 +244,7 @@ exports.stripeWebhook = onRequest(
 
       res.status(200).send("OK");
     } catch (error) {
-      console.error("❌ Webhook handler error:", error);
+      console.error("âŒ Webhook handler error:", error);
       res.status(500).send("Server error");
     }
   }
@@ -251,27 +263,11 @@ const ADDON_CATALOG = {
 function toAsciiSlug(value, maxLen = 120) {
   return String(value || "")
     .toLowerCase()
-    .replace(/æ/g, "ae")
-    .replace(/ø/g, "oe")
-    .replace(/å/g, "aa")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, maxLen);
-}
-
-function buildSeoFolderRoute(config = {}) {
-  const citySlug = toAsciiSlug(config.citySlug || config.displayCityName || config.cityName || config.city || "by", 80) || "by";
-  const businessSlug = toAsciiSlug(config.subdomain || config.businessSlug || config.businessName || "restaurant", 120) || "restaurant";
-  const routePath = "/";
-  return {
-    citySlug,
-    businessSlug,
-    routePath,
-    outputPath: `${businessSlug}/index.html`,
-    canonicalUrl: `https://${businessSlug}.madkontrollen.dk/`
-  };
 }
 
 function toLegacyId(value) {
@@ -337,1507 +333,65 @@ function parsePageCount(value, fallback = 50) {
   if (!Number.isFinite(parsed)) return fallback;
   const rounded = Math.floor(parsed);
   if (rounded < 1) return 1;
-  if (rounded > SEO_HARD_MAX_PAGES) {
-    console.log(`[seo pagecount selected] selected=${rounded} effective=${SEO_HARD_MAX_PAGES} reason=hard_max`);
-    return SEO_HARD_MAX_PAGES;
-  }
-  console.log(`[seo pagecount selected] selected=${rounded} effective=${rounded}`);
+  if (rounded > 300) return 300;
   return rounded;
-}
-
-function normalizeSeoCtaUrl(value) {
-  const raw = sanitizeString(value || "", 500);
-  if (!raw) return "";
-  if (/^(https?:|tel:|mailto:|\/|#)/i.test(raw)) return raw;
-  if (/^[+\d\s().-]+$/.test(raw)) return `tel:${raw.replace(/\s+/g, "")}`;
-  return `https://${raw.replace(/^\/+/, "")}`;
-}
-
-function normalizeSeoCtaLabelKey(value) {
-  return sanitizeString(value || "", 160).trim().toLowerCase().replace(/\s+/g, " ");
-}
-
-function normalizeSeoCtaHrefKey(value) {
-  const href = normalizeSeoCtaUrl(value || "").trim();
-  if (/^tel:/i.test(href)) return `tel:${href.replace(/^tel:/i, "").replace(/[^\d+]/g, "")}`;
-  return href.replace(/\/+$/, "").toLowerCase();
-}
-
-function dedupeSeoCtaButtons(buttons = [], maxCount = 3) {
-  const before = Array.isArray(buttons) ? buttons.length : 0;
-  const labels = new Set();
-  const hrefs = new Set();
-  const deduped = [];
-  (Array.isArray(buttons) ? buttons : []).forEach((button) => {
-    const text = sanitizeString(button?.text || button?.label || "", 120);
-    const href = normalizeSeoCtaUrl(button?.href || button?.url || "");
-    const labelKey = normalizeSeoCtaLabelKey(text);
-    const hrefKey = normalizeSeoCtaHrefKey(href);
-    if (!labelKey || !hrefKey || labels.has(labelKey) || hrefs.has(hrefKey)) return;
-    labels.add(labelKey);
-    hrefs.add(hrefKey);
-    deduped.push({
-      text,
-      label: text,
-      href,
-      url: href,
-      kind: sanitizeString(button?.kind || "", 40)
-    });
-  });
-  const result = deduped.slice(0, maxCount);
-  console.log("[seo cta deduped]", { before, after: result.length });
-  return result;
-}
-
-function normalizeSeoCta(config = {}) {
-  const nested = config?.cta && typeof config.cta === "object" ? config.cta : {};
-  const phone = sanitizeString(config?.phone || "", 80);
-  const websiteUrl = normalizeSeoCtaUrl(config?.websiteUrl || "");
-  const subdomain = toAsciiSlug(config?.subdomain || config?.businessName || "restaurant", 120) || "restaurant";
-  const text = firstSeoValue(
-    nested.text,
-    config?.ctaText,
-    phone ? "Ring nu" : "",
-    websiteUrl ? "Besog hjemmeside" : "",
-    "Bestil nu"
-  );
-  const url = normalizeSeoCtaUrl(
-    nested.url ||
-    config?.ctaUrl ||
-    websiteUrl ||
-    (phone ? `tel:${phone.replace(/\s+/g, "")}` : "") ||
-    `https://${subdomain}.madkontrollen.dk/`
-  );
-  return {
-    enabled: nested.enabled === false ? false : Boolean(text && url),
-    text: sanitizeString(text, 120),
-    url: sanitizeString(url, 500)
-  };
-}
-
-function normalizeSeoCtaButtons(value = []) {
-  if (!Array.isArray(value)) return [];
-  const buttons = value.slice(0, 8).map((button) => {
-    const text = sanitizeString(button?.text || button?.label || "", 120);
-    const url = normalizeSeoCtaUrl(button?.href || button?.url || "");
-    const kind = sanitizeString(button?.kind || "", 40);
-    return {
-      text,
-      label: text,
-      href: url,
-      url,
-      kind
-    };
-  });
-  return dedupeSeoCtaButtons(buttons, 3);
-}
-
-function normalizeSeoGooglePlace(value = {}) {
-  const placeId = sanitizeString(value?.placeId || value?.id || "", 180);
-  return {
-    placeId,
-    name: sanitizeString(value?.name || "", 180),
-    formattedAddress: sanitizeString(value?.formattedAddress || value?.address || "", 260),
-    city: sanitizeString(value?.city || "", 120),
-    phone: sanitizeString(value?.phone || value?.formattedPhoneNumber || value?.internationalPhoneNumber || "", 80),
-    website: normalizeSeoCtaUrl(value?.website || value?.websiteUrl || ""),
-    googleMapsUrl: normalizeSeoCtaUrl(value?.googleMapsUrl || value?.url || (placeId ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}` : "")),
-    types: Array.isArray(value?.types) ? value.types.map((type) => sanitizeString(type, 80)).filter(Boolean).slice(0, 20) : [],
-    businessStatus: sanitizeString(value?.businessStatus || "", 80),
-    rating: Number.isFinite(Number(value?.rating)) ? Number(value.rating) : null,
-    userRatingsTotal: Number.isFinite(Number(value?.userRatingsTotal)) ? Number(value.userRatingsTotal) : 0,
-    photos: Array.isArray(value?.photos) ? value.photos.map((photo) => ({
-      name: normalizeGooglePhotoName(photo?.name || photo?.googlePhotoName || ""),
-      width: Number(photo?.width || photo?.widthPx) || 0,
-      height: Number(photo?.height || photo?.heightPx) || 0
-    })).filter((photo) => photo.name).slice(0, 12) : [],
-    location: value?.location && typeof value.location === "object" ? {
-      latitude: Number(value.location.latitude) || null,
-      longitude: Number(value.location.longitude) || null
-    } : null,
-    openingHours: Array.isArray(value?.openingHours) ? value.openingHours.map((line) => sanitizeString(line, 160)).filter(Boolean).slice(0, 14) : []
-  };
-}
-
-function estimateSeoJsonSizeBytes(value) {
-  try {
-    return Buffer.byteLength(JSON.stringify(value || {}), "utf8");
-  } catch (_error) {
-    return 0;
-  }
-}
-
-function sanitizeSeoFirestoreString(value, maxLen = 500) {
-  const raw = sanitizeString(value || "", maxLen);
-  if (/^data:/i.test(raw)) return "";
-  return raw;
-}
-
-function sanitizeGooglePlaceForFirestore(value = {}) {
-  const place = value && typeof value === "object" ? value : {};
-  const photos = Array.isArray(place.photos)
-    ? place.photos.slice(0, 3).map((photo) => ({
-      width: Number(photo?.width || photo?.widthPx || 0) || 0,
-      height: Number(photo?.height || photo?.heightPx || 0) || 0,
-      source: "google_place"
-    }))
-    : [];
-  return {
-    placeId: sanitizeSeoFirestoreString(place.placeId || place.id || "", 180),
-    name: sanitizeSeoFirestoreString(place.name || "", 180),
-    formattedAddress: sanitizeSeoFirestoreString(place.formattedAddress || place.address || "", 260),
-    city: sanitizeSeoFirestoreString(place.city || "", 120),
-    phone: sanitizeSeoFirestoreString(place.phone || place.formattedPhoneNumber || place.internationalPhoneNumber || "", 80),
-    website: normalizeSeoCtaUrl(place.website || place.websiteUrl || ""),
-    googleMapsUrl: normalizeSeoCtaUrl(place.googleMapsUrl || place.url || ""),
-    rating: Number.isFinite(Number(place.rating)) ? Number(place.rating) : null,
-    userRatingsTotal: Number.isFinite(Number(place.userRatingsTotal)) ? Number(place.userRatingsTotal) : 0,
-    types: Array.isArray(place.types) ? place.types.map((type) => sanitizeString(type, 80)).filter(Boolean).slice(0, 10) : [],
-    businessStatus: sanitizeSeoFirestoreString(place.businessStatus || "", 80),
-    photos
-  };
-}
-
-function sanitizeSeoConfigForFirestore(config = {}) {
-  const source = config && typeof config === "object" ? config : {};
-  const blockedKeys = new Set([
-    "raw",
-    "_raw",
-    "imageCandidates",
-    "businessImageSearchResults",
-    "selectedImages",
-    "selectedBusinessImage",
-    "placeRaw",
-    "placesRaw",
-    "placesResponse",
-    "googlePlacesRaw",
-    "googlePlaceRaw",
-    "photoReference",
-    "googlePhotoName"
-  ]);
-  const cleanValue = (value, key = "", depth = 0) => {
-    if (blockedKeys.has(key)) return undefined;
-    if (value === null || value === undefined) return value;
-    if (typeof value === "string") {
-      if (/^data:/i.test(value)) return "";
-      return value.length > 5000 ? value.slice(0, 5000) : value;
-    }
-    if (typeof value === "number" || typeof value === "boolean") return value;
-    if (Array.isArray(value)) {
-      const limit = key === "landingPages" ? SEO_HARD_MAX_PAGES : 10;
-      return value.slice(0, limit)
-        .map((item) => cleanValue(item, "", depth + 1))
-        .filter((item) => item !== undefined);
-    }
-    if (typeof value === "object") {
-      if (depth > 5) return undefined;
-      const out = {};
-      Object.entries(value).forEach(([childKey, childValue]) => {
-        const next = cleanValue(childValue, childKey, depth + 1);
-        if (next !== undefined) out[childKey] = next;
-      });
-      return out;
-    }
-    return undefined;
-  };
-  const sanitized = cleanValue(source) || {};
-  sanitized.googlePlace = sanitizeGooglePlaceForFirestore(source.googlePlace || {
-    placeId: source.googlePlaceId,
-    googleMapsUrl: source.googleMapsUrl
-  });
-  sanitized.googlePlaceId = sanitized.googlePlace.placeId || "";
-  sanitized.googleMapsUrl = sanitized.googlePlace.googleMapsUrl || "";
-  if (/^data:/i.test(String(sanitized.logoDataUrl || ""))) sanitized.logoDataUrl = "";
-  if (/^data:/i.test(String(sanitized.heroImageUrl || ""))) sanitized.heroImageUrl = "";
-  if (Array.isArray(sanitized.landingPages)) sanitized.landingPages = sanitized.landingPages.slice(0, SEO_HARD_MAX_PAGES);
-  if (Array.isArray(sanitized.ctaButtons)) sanitized.ctaButtons = sanitized.ctaButtons.slice(0, 10);
-  return sanitized;
-}
-
-function normalizeSeoTheme(value = {}) {
-  return {
-    primary: sanitizeString(value?.primary || "", 20) || "#1f7a3d",
-    secondary: sanitizeString(value?.secondary || "", 20) || "#f8f4ea",
-    accent: sanitizeString(value?.accent || "", 20) || "#b91c1c",
-    text: sanitizeString(value?.text || "", 20) || "#1f2937"
-  };
-}
-
-function sanitizeSeoLandingPages(value, limit = SEO_HARD_MAX_PAGES) {
-  return Array.isArray(value) ? value.slice(0, limit).map(p => ({
-    pageType: sanitizeString(p?.pageType || "", 80),
-    slug: sanitizeString(p?.slug || "", 180),
-    routePath: sanitizeString(p?.routePath || "", 220),
-    canonicalPath: sanitizeString(p?.canonicalPath || "", 220),
-    outputPath: sanitizeString(p?.outputPath || "", 260),
-    citySlug: sanitizeString(p?.citySlug || "", 100),
-    businessSlug: sanitizeString(p?.businessSlug || "", 120),
-    cityName: sanitizeString(p?.cityName || "", 120),
-    displayCityName: sanitizeString(p?.displayCityName || "", 120),
-    businessName: sanitizeString(p?.businessName || "", 160),
-    displayBusinessName: sanitizeString(p?.displayBusinessName || "", 160),
-    keyword: sanitizeString(p?.keyword || "", 140),
-    title: sanitizeString(p?.title || "", 220),
-    h1: sanitizeString(p?.h1 || "", 220),
-    h2: sanitizeString(p?.h2 || "", 220),
-    h3: sanitizeString(p?.h3 || "", 220),
-    metaDescription: sanitizeString(p?.metaDescription || "", 320),
-    bodyText: sanitizeString(p?.bodyText || "", 1200),
-    content: sanitizeString(p?.content || p?.bodyText || p?.metaDescription || "", 1200),
-    sections: Array.isArray(p?.sections) ? p.sections.map(s => sanitizeString(s, 40)).filter(Boolean).slice(0, 8) : []
-  })) : [];
-}
-
-function sanitizeSeoLandingPageMetadata(value, limit = SEO_HARD_MAX_PAGES) {
-  return Array.isArray(value) ? value.slice(0, limit).map((p) => ({
-    pageType: sanitizeString(p?.pageType || "", 80),
-    slug: sanitizeString(p?.slug || "", 180),
-    routePath: sanitizeString(p?.routePath || "", 220),
-    canonicalPath: sanitizeString(p?.canonicalPath || "", 220),
-    outputPath: sanitizeString(p?.outputPath || "", 260),
-    citySlug: sanitizeString(p?.citySlug || "", 100),
-    businessSlug: sanitizeString(p?.businessSlug || "", 120),
-    cityName: sanitizeString(p?.cityName || "", 120),
-    displayCityName: sanitizeString(p?.displayCityName || "", 120),
-    businessName: sanitizeString(p?.businessName || "", 160),
-    displayBusinessName: sanitizeString(p?.displayBusinessName || "", 160),
-    keyword: sanitizeString(p?.keyword || "", 140),
-    title: sanitizeString(p?.title || "", 220),
-    h1: sanitizeString(p?.h1 || "", 220),
-    metaDescription: sanitizeString(p?.metaDescription || "", 320)
-  })) : [];
-}
-
-function normalizeSeoGeneratorConfig(config = {}) {
-  const businessName = sanitizeString(config?.businessName || config?.displayBusinessName || config?.heroTitle || "Restaurant", 140) || "Restaurant";
-  const subdomain = toAsciiSlug(config?.subdomain || businessName, 120) || "restaurant";
-  const city = sanitizeString(config?.displayCityName || config?.cityName || config?.city || "Kobenhavn", 80) || "Kobenhavn";
-  const cuisineType = sanitizeString(config?.cuisineType || "Restaurant", 80) || "Restaurant";
-  const phone = sanitizeString(config?.phone || "", 80);
-  const description = sanitizeString(config?.description || config?.heroText || `${businessName} i ${city}.`, 1200);
-  const theme = normalizeSeoTheme(config?.theme || {
-    primary: config?.themePrimary,
-    secondary: config?.themeSecondary,
-    accent: config?.themeAccent,
-    text: config?.themeText
-  });
-  const googlePlace = normalizeSeoGooglePlace(config?.googlePlace || {
-    placeId: config?.googlePlaceId,
-    googleMapsUrl: config?.googleMapsUrl
-  });
-  const canonical = {
-    businessName,
-    displayBusinessName: sanitizeString(config?.displayBusinessName || businessName, 140) || businessName,
-    subdomain,
-    city,
-    cityName: city,
-    displayCityName: sanitizeString(config?.displayCityName || city, 80) || city,
-    cuisineType,
-    offerings: sanitizeString(config?.offerings || cuisineType, 240),
-    keyword: sanitizeString(config?.keyword || `${cuisineType} ${city}`, 140),
-    phone,
-    address: sanitizeString(config?.address || "", 220),
-    description,
-    heroTitle: sanitizeString(config?.heroTitle || config?.displayBusinessName || businessName, 180) || businessName,
-    heroText: sanitizeString(config?.heroText || description, 1200) || description,
-    selectedTemplate: sanitizeString(config?.selectedTemplate || config?.design || "classic", 80) || "classic",
-    design: sanitizeString(config?.design || config?.selectedTemplate || "classic", 80) || "classic",
-    logoPosition: sanitizeString(config?.logoPosition || "card", 40) || "card",
-    pageCount: parsePageCount(config?.pageCount, 50),
-    logoDataUrl: sanitizeString(config?.logoDataUrl || config?.logoUrl || "", 500000),
-    seoNarrative: sanitizeString(config?.seoNarrative || config?.heroText || description, 2000),
-    heroImageUrl: sanitizeString(config?.heroImageUrl || "", 2000),
-    websiteUrl: normalizeSeoCtaUrl(config?.websiteUrl || ""),
-    googlePlace,
-    googlePlaceId: googlePlace.placeId || "",
-    googleMapsUrl: googlePlace.googleMapsUrl || "",
-    ctaButtons: normalizeSeoCtaButtons(config?.ctaButtons),
-    theme,
-    landingPages: sanitizeSeoLandingPages(config?.landingPages),
-    cta: normalizeSeoCta({ ...config, businessName, subdomain, phone })
-  };
-  canonical.ctaText = canonical.cta.text;
-  canonical.ctaUrl = canonical.cta.url;
-  return canonical;
 }
 
 function buildSeoLandingPages(config, count) {
   const businessName = sanitizeString(config?.businessName || "Restaurant", 140) || "Restaurant";
   const cuisineType = sanitizeString(config?.cuisineType || "Restaurant", 80) || "Restaurant";
-  const city = sanitizeString(config?.displayCityName || config?.cityName || config?.city || "København", 80) || "København";
+  const city = sanitizeString(config?.city || "Kobenhavn", 80) || "Kobenhavn";
   const keyword = sanitizeString(config?.keyword || `bedste ${String(cuisineType).toLowerCase()} i ${city}`, 120);
-  const route = buildSeoFolderRoute(config);
-  const title = sanitizeString(`${businessName} | ${keyword}`, 220);
-  const metaDescription = sanitizeString(
-    `${businessName} i ${city}. ${keyword}. Book bord eller bestil online via madkontrollen.dk${route.routePath}.`,
-    320
-  );
+  const subdomain = sanitizeString(config?.subdomain || toAsciiSlug(businessName), 120);
 
-  return [{
-    sourceTitle: `${businessName} - ${keyword}`,
-    slug: `${route.citySlug}/${route.businessSlug}`,
-    citySlug: route.citySlug,
-    businessSlug: route.businessSlug,
-    cityName: city,
-    displayCityName: city,
-    businessName,
-    displayBusinessName: businessName,
-    outputPath: route.outputPath,
+  const seeds = [
     keyword,
-    title,
-    metaDescription,
-    h1: sanitizeString(`${businessName} - ${keyword}`, 220),
-    h2: sanitizeString(`Hvorfor vælge ${businessName} i ${city}?`, 220),
-    h3: sanitizeString(`Bestil ${String(cuisineType).toLowerCase()} online i ${city}`, 220),
-    canonicalPath: route.routePath
-  }];
-}
+    `${cuisineType} i ${city}`,
+    `Takeaway ${city}`,
+    `Restaurant ${city}`,
+    `Bedste ${String(cuisineType).toLowerCase()} i ${city}`,
+    `Billig ${String(cuisineType).toLowerCase()} i ${city}`,
+    `Familie restaurant i ${city}`,
+    `Online bestilling ${city}`,
+    `${cuisineType} menu i ${city}`,
+    `${subdomain}.madkontrollen.dk`
+  ];
 
-function buildSeoPublishedPages(config, count) {
-  const businessName = sanitizeString(config?.businessName || "Restaurant", 140) || "Restaurant";
-  const cuisineType = sanitizeString(config?.cuisineType || "Restaurant", 80) || "Restaurant";
-  const city = sanitizeString(config?.displayCityName || config?.cityName || config?.city || "Koebenhavn", 80) || "Koebenhavn";
-  const keyword = sanitizeString(config?.keyword || `bedste ${String(cuisineType).toLowerCase()} i ${city}`, 120);
-  const route = buildSeoFolderRoute(config);
   const pages = [];
-  const rootDescription = sanitizeString(
-    config?.description || `${businessName}. ${keyword}. Book bord eller bestil online.`,
-    800
-  );
-
-  pages.push({
-    sourceTitle: businessName,
-    slug: "root",
-    routePath: "/",
-    canonicalPath: "/",
-    pageType: "business_root",
-    citySlug: "",
-    businessSlug: route.businessSlug,
-    cityName: "",
-    displayCityName: "",
-    businessName,
-    displayBusinessName: businessName,
-    outputPath: `${route.businessSlug}/index.html`,
-    keyword,
-    title: sanitizeString(businessName, 220),
-    metaDescription: sanitizeString(rootDescription, 320),
-    h1: sanitizeString(businessName, 220),
-    h2: sanitizeString(`Velkommen til ${businessName}`, 220),
-    h3: sanitizeString(`Bestil ${String(cuisineType).toLowerCase()} online`, 220),
-    bodyText: rootDescription,
-    content: rootDescription
-  });
-
-  const landingPages = [];
-  const slugCounts = new Map();
-  const addLandingPage = (source = {}) => {
-    const displayCityName = sanitizeString(source.displayCityName || source.cityName || source.city || city, 80) || city;
-    const sourceSlug = toAsciiSlug(source.slug || source.keyword || source.sourceTitle || source.title || displayCityName, 120);
-    const citySlug = toAsciiSlug(source.citySlug || displayCityName, 80) || route.citySlug;
-    const baseSlug = sourceSlug || citySlug;
-    if (!baseSlug || baseSlug === "root") return;
-    const nextCount = (slugCounts.get(baseSlug) || 0) + 1;
-    slugCounts.set(baseSlug, nextCount);
-    const slug = nextCount > 1 ? `${baseSlug}-${nextCount}` : baseSlug;
-
-    const pageKeyword = sanitizeString(source.keyword || keyword || `${String(cuisineType).toLowerCase()} i ${displayCityName}`, 140);
-    const pageDescription = sanitizeString(
-      source.bodyText || source.content || source.metaDescription ||
-        `${businessName} i ${displayCityName}. ${pageKeyword}. Book bord eller bestil online.`,
-      800
+  for (let i = 0; i < count; i += 1) {
+    const seed = sanitizeString(seeds[i % seeds.length], 140) || `Landing side ${i + 1}`;
+    const variant = Math.floor(i / seeds.length) + 1;
+    const pageTitleSeed = `${businessName} - ${seed}${variant > 1 ? ` #${variant}` : ""}`;
+    const slugBase = toAsciiSlug(`${seed}${variant > 1 ? `-${variant}` : ""}`, 100) || `landing-side-${i + 1}`;
+    const title = sanitizeString(`${businessName} | ${seed}`, 220);
+    const metaDescription = sanitizeString(
+      `${businessName} i ${city}. ${seed}. Book bord eller bestil online via ${subdomain}.madkontrollen.dk.`,
+      320
     );
 
-    landingPages.push({
-      sourceTitle: sanitizeString(source.sourceTitle || `${businessName} i ${displayCityName}`, 220),
-      slug,
-      routePath: `/${slug}/`,
-      canonicalPath: `/${slug}/`,
-      pageType: "city_landing",
-      citySlug,
-      businessSlug: route.businessSlug,
-      cityName: displayCityName,
-      displayCityName,
-      businessName,
-      displayBusinessName: businessName,
-      outputPath: `${slug}/index.html`,
-      keyword: pageKeyword,
-      title: sanitizeString(source.title || `${businessName} i ${displayCityName}`, 220),
-      metaDescription: sanitizeString(source.metaDescription || pageDescription, 320),
-      h1: sanitizeString(source.h1 || `${businessName} i ${displayCityName}`, 220),
-      h2: sanitizeString(source.h2 || `Hvorfor vælge ${businessName} i ${displayCityName}?`, 220),
-      h3: sanitizeString(source.h3 || `Bestil ${String(cuisineType).toLowerCase()} online i ${displayCityName}`, 220),
-      bodyText: pageDescription,
-      content: pageDescription
+    pages.push({
+      sourceTitle: pageTitleSeed,
+      slug: slugBase,
+      keyword: seed,
+      title,
+      metaDescription,
+      h1: sanitizeString(`${businessName} - ${seed}`, 220),
+      h2: sanitizeString(`Hvorfor vaelge ${businessName} i ${city}?`, 220),
+      h3: sanitizeString(`Bestil ${String(cuisineType).toLowerCase()} online i ${city}`, 220),
+      canonicalPath: `/${slugBase}`
     });
-  };
-
-  const configuredLandingPages = Array.isArray(config?.landingPages) ? config.landingPages : [];
-  if (configuredLandingPages.length) {
-    configuredLandingPages.slice(0, count).forEach((page) => {
-      addLandingPage(page);
-    });
-  } else {
-    addLandingPage({ slug: route.citySlug, citySlug: route.citySlug, displayCityName: city });
   }
 
-  const result = pages.concat(landingPages.slice(0, Math.max(0, count)));
-  console.log(`[seo published pages count] selected=${count} root=1 landing=${result.length - 1} total=${result.length}`);
-  return result;
-}
-
-function firstSeoValue(...values) {
-  for (const value of values) {
-    const text = sanitizeString(value || "", 500);
-    if (text) return text;
-  }
-  return "";
-}
-
-function buildSeoAddressFromDoc(data = {}) {
-  const address = firstSeoValue(data.address, data.companyAddress, data.streetAddress);
-  const postal = firstSeoValue(data.postalCode, data.zip);
-  const city = firstSeoValue(data.city, data.by);
-  return [address, [postal, city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
-}
-
-function mapQuickIndustryToSeoCuisine(value) {
-  const raw = sanitizeString(value || "", 120);
-  const key = raw.toLowerCase();
-  const map = {
-    restaurant: "Klassisk dansk restaurant",
-    cafe: "Cafe",
-    "café": "Cafe",
-    takeaway: "Takeaway",
-    ice_shop: "Isbutik",
-    bakery: "Bageri og konditori",
-    kiosk: "Takeaway",
-    catering: "Catering",
-    other: "Restaurant"
-  };
-  return map[key] || raw || "Restaurant";
-}
-
-async function readSeoDoc(ref) {
-  try {
-    const snap = await ref.get();
-    return snap.exists ? (snap.data() || {}) : {};
-  } catch (error) {
-    logger.warn("SEO publish source read failed", { error: error?.message || String(error) });
-    return {};
-  }
-}
-
-async function buildSeoPublishConfigFromFirestore({ companyId, locationId, overrides = {}, baseConfig = {} }) {
-  const liveId = `${companyId}__${locationId}__live_profile`;
-  const [company, locationRoot, locationNested, live] = await Promise.all([
-    readSeoDoc(db.collection("companies").doc(companyId)),
-    readSeoDoc(db.collection("locations").doc(locationId)),
-    readSeoDoc(db.collection("companies").doc(companyId).collection("locations").doc(locationId)),
-    readSeoDoc(db.collection("live_user_profiles").doc(liveId))
-  ]);
-
-  const location = { ...locationRoot, ...locationNested };
-  const liveProfile = live.profile || {};
-  const merged = { ...(baseConfig || {}), ...(overrides || {}) };
-  const businessName = firstSeoValue(
-    merged.businessName,
-    liveProfile.companyName,
-    liveProfile.profileCompanyName,
-    liveProfile.name,
-    company.companyName,
-    company.name,
-    company.displayName,
-    location.companyName,
-    location.name,
-    "Restaurant"
-  );
-  const city = firstSeoValue(
-    merged.city,
-    merged.displayCityName,
-    liveProfile.city,
-    company.city,
-    location.city,
-    "Kobenhavn"
-  );
-  const cuisineType = mapQuickIndustryToSeoCuisine(firstSeoValue(
-    merged.cuisineType,
-    liveProfile.kitchenType,
-    liveProfile.businessType,
-    liveProfile.companyType,
-    company.kitchenType,
-    company.businessType,
-    company.industry,
-    location.kitchenType,
-    location.businessType,
-    "Restaurant"
-  ));
-  const offerings = firstSeoValue(
-    merged.offerings,
-    liveProfile.offerings,
-    liveProfile.description,
-    liveProfile.businessDescription,
-    company.offerings,
-    company.description,
-    company.industryText,
-    cuisineType
-  );
-  const keyword = firstSeoValue(
-    merged.keyword,
-    cuisineType && city ? `${cuisineType} ${city}` : "",
-    businessName && city ? `${businessName} ${city}` : ""
-  );
-  const description = firstSeoValue(
-    merged.description,
-    liveProfile.description,
-    liveProfile.businessDescription,
-    company.description,
-    company.industryText,
-    offerings ? `${businessName} tilbyder ${offerings}${city ? ` i ${city}` : ""}.` : ""
-  );
-  const address = firstSeoValue(
-    merged.address,
-    buildSeoAddressFromDoc(liveProfile),
-    buildSeoAddressFromDoc(company),
-    buildSeoAddressFromDoc(location)
-  );
-  const phone = firstSeoValue(
-    merged.phone,
-    liveProfile.phone,
-    liveProfile.phoneNumber,
-    liveProfile.companyPhone,
-    company.phone,
-    company.phoneNumber,
-    location.phone,
-    location.phoneNumber
-  );
-  const subdomain = toAsciiSlug(merged.subdomain || businessName, 120) || "restaurant";
-  const canonicalConfig = normalizeSeoGeneratorConfig({
-    ...merged,
-    businessName,
-    displayBusinessName: firstSeoValue(merged.displayBusinessName, businessName),
-    subdomain,
-    city,
-    cityName: city,
-    displayCityName: firstSeoValue(merged.displayCityName, city),
-    cuisineType,
-    offerings,
-    keyword,
-    phone,
-    address,
-    description
-  });
-  console.log(`SEO landing publish payload business=${canonicalConfig.businessName} title=${canonicalConfig.heroTitle} cta=${canonicalConfig.cta.enabled}:${canonicalConfig.cta.text}`);
-  console.log(`SEO CTA publish payload enabled=${canonicalConfig.cta.enabled} text=${canonicalConfig.cta.text} url=${canonicalConfig.cta.url}`);
-
-  return {
-    ...merged,
-    ...canonicalConfig
-  };
-}
-
-function getSeoGatewayInvalidateConfig() {
-  let functionsConfig = {};
-  try {
-    functionsConfig = FUNCTIONS_CONFIG.value() || {};
-  } catch (_error) {
-    functionsConfig = {};
-  }
-  if (!functionsConfig || !Object.keys(functionsConfig).length) {
-    try {
-      functionsConfig = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}") || {};
-    } catch (_error) {
-      functionsConfig = {};
-    }
-  }
-
-  const runtimeGatewayConfig = getSeoGatewayRuntimeConfig();
-  const seoGatewayConfig = {
-    ...(functionsConfig?.seo_gateway || {}),
-    ...(functionsConfig?.seoGateway || {}),
-    ...runtimeGatewayConfig
-  };
-  const configuredInvalidateUrl = String(
-    process.env.SEO_GATEWAY_INVALIDATE_URL ||
-    seoGatewayConfig.invalidate_url ||
-    seoGatewayConfig.invalidateUrl ||
-    ""
-  ).trim();
-  const configuredBaseUrl = String(
-    process.env.SEO_GATEWAY_BASE_URL ||
-    seoGatewayConfig.base_url ||
-    seoGatewayConfig.baseUrl ||
-    ""
-  ).trim();
-  const configuredRebuildUrl = String(
-    process.env.SEO_GATEWAY_REBUILD_URL ||
-    seoGatewayConfig.rebuild_url ||
-    seoGatewayConfig.rebuildUrl ||
-    ""
-  ).trim();
-  const baseUrl = (configuredInvalidateUrl || configuredBaseUrl || configuredRebuildUrl.replace(/\/internal\/rebuild-site\/?$/i, "")).replace(/\/+$/, "");
-  const token = String(
-    process.env.SEO_GATEWAY_INTERNAL_TOKEN ||
-    seoGatewayConfig.internal_token ||
-    seoGatewayConfig.internalToken ||
-    ""
-  ).trim();
-
-  if (!baseUrl || !token) {
-    const reason = !baseUrl && !token
-      ? "missing_internal_token"
-      : (!baseUrl ? "invalid_gateway_config" : "missing_internal_token");
-    return {
-      ok: false,
-      result: {
-        attempted: false,
-        reason
-      }
-    };
-  }
-
-  try {
-    const parsed = new URL(baseUrl);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return {
-        ok: false,
-        result: {
-          attempted: false,
-          reason: "invalid_config"
-        }
-      };
-    }
-  } catch (_error) {
-    return {
-      ok: false,
-      result: {
-        attempted: false,
-        reason: "invalid_config"
-      }
-    };
-  }
-
-  return { ok: true, baseUrl, token };
-}
-
-function getSeoGatewayRuntimeConfig() {
-  const HARD_FALLBACK_DEPLOY_URL = "https://seo-gateway.madkontrollen.dk/internal/deploy-site-package";
-  const HARD_FALLBACK_INTERNAL_TOKEN = "PaiE7VdZH01RFdjAf1ykYIJkwWY34icQ0";
-  const rewriteToPackageDeployUrl = (value) => {
-    const raw = String(value || "").trim();
-    if (!raw) return "";
-    if (/\/internal\/rebuild-site\/?$/i.test(raw)) {
-      return raw.replace(/\/internal\/rebuild-site\/?$/i, "/internal/deploy-site-package");
-    }
-    return raw;
-  };
-  const readPath = (source, keys = []) => keys.reduce((current, key) => (
-    current && typeof current === "object" ? current[key] : undefined
-  ), source);
-  const firstString = (...values) => values
-    .map((value) => String(value || "").trim())
-    .find(Boolean) || "";
-
-  let jsonSecretConfig = {};
-  try {
-    jsonSecretConfig = FUNCTIONS_CONFIG.value() || {};
-  } catch (_error) {
-    jsonSecretConfig = {};
-  }
-  if (!jsonSecretConfig || !Object.keys(jsonSecretConfig).length) {
-    try {
-      jsonSecretConfig = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}") || {};
-    } catch (_error) {
-      jsonSecretConfig = {};
-    }
-  }
-
-  let runtimeConfig = {};
-  try {
-    runtimeConfig = typeof functions.config === "function" ? functions.config() || {} : {};
-  } catch (_error) {
-    runtimeConfig = {};
-  }
-
-  const deployUrl = rewriteToPackageDeployUrl(firstString(
-    process.env.SEO_GATEWAY_DEPLOY_URL,
-    process.env.SEO_GATEWAY_REBUILD_URL,
-    readPath(jsonSecretConfig, ["seo_gateway", "deploy_url"]),
-    readPath(jsonSecretConfig, ["seo_gateway", "rebuild_url"]),
-    jsonSecretConfig?.["seo_gateway.deploy_url"],
-    jsonSecretConfig?.["seo_gateway.rebuild_url"],
-    readPath(runtimeConfig, ["seo_gateway", "deploy_url"]),
-    readPath(runtimeConfig, ["seo_gateway", "rebuild_url"]),
-    readPath(jsonSecretConfig, ["seoGateway", "deployUrl"]),
-    readPath(jsonSecretConfig, ["seoGateway", "rebuildUrl"]),
-    readPath(runtimeConfig, ["seoGateway", "deployUrl"]),
-    readPath(runtimeConfig, ["seoGateway", "rebuildUrl"]),
-    HARD_FALLBACK_DEPLOY_URL
-  ));
-  const internalToken = firstString(
-    process.env.SEO_GATEWAY_INTERNAL_TOKEN,
-    readPath(jsonSecretConfig, ["seo_gateway", "internal_token"]),
-    jsonSecretConfig?.["seo_gateway.internal_token"],
-    readPath(runtimeConfig, ["seo_gateway", "internal_token"]),
-    readPath(jsonSecretConfig, ["seoGateway", "internalToken"]),
-    readPath(runtimeConfig, ["seoGateway", "internalToken"]),
-    HARD_FALLBACK_INTERNAL_TOKEN
-  );
-  const baseUrl = deployUrl.replace(/\/internal\/deploy-site-package\/?$/i, "").replace(/\/+$/, "");
-
-  console.log(`[seo gateway final deployUrl] ${deployUrl}`);
-  console.log(`[seo gateway final token present] ${Boolean(internalToken)}`);
-
-  return {
-    base_url: baseUrl,
-    baseUrl,
-    rebuild_url: deployUrl,
-    rebuildUrl: deployUrl,
-    package_deploy_url: deployUrl,
-    packageDeployUrl: deployUrl,
-    deploy_site_package_url: deployUrl,
-    deploySitePackageUrl: deployUrl,
-    deploy_url: deployUrl,
-    deployUrl,
-    internal_token: internalToken,
-    internalToken
-  };
-}
-
-function extractSeoGatewayRuntimeConfig(source) {
-  const config = {
-    ...(source?.seo_gateway || {}),
-    ...(source?.seoGateway || {})
-  };
-  const flatKeys = {
-    "seo_gateway.base_url": "base_url",
-    "seo_gateway.baseUrl": "baseUrl",
-    "seo_gateway.rebuild_url": "rebuild_url",
-    "seo_gateway.rebuildUrl": "rebuildUrl",
-    "seo_gateway.internal_token": "internal_token",
-    "seo_gateway.internalToken": "internalToken",
-    "seo_gateway.invalidate_url": "invalidate_url",
-    "seo_gateway.invalidateUrl": "invalidateUrl",
-    "seo_gateway.package_deploy_url": "package_deploy_url",
-    "seo_gateway.packageDeployUrl": "packageDeployUrl",
-    "seo_gateway.deploy_site_package_url": "deploy_site_package_url",
-    "seo_gateway.deploySitePackageUrl": "deploySitePackageUrl",
-    "seo_gateway.deploy_url": "deploy_url",
-    "seo_gateway.deployUrl": "deployUrl"
-  };
-  Object.entries(flatKeys).forEach(([sourceKey, targetKey]) => {
-    if (source && Object.prototype.hasOwnProperty.call(source, sourceKey) && !config[targetKey]) {
-      config[targetKey] = source[sourceKey];
-    }
-  });
-  return config;
-}
-
-function getSeoGatewayRebuildConfig() {
-  const HARD_FALLBACK_DEPLOY_URL = "https://seo-gateway.madkontrollen.dk/internal/deploy-site-package";
-  const HARD_FALLBACK_INTERNAL_TOKEN = "PaiE7VdZH01RFdjAf1ykYIJkwWY34icQ0";
-  const seoGatewayConfig = getSeoGatewayRuntimeConfig();
-  const rebuildUrl = String(
-    process.env.SEO_GATEWAY_REBUILD_URL ||
-    seoGatewayConfig.rebuild_url ||
-    seoGatewayConfig.rebuildUrl ||
-    HARD_FALLBACK_DEPLOY_URL
-  ).trim();
-  const baseUrl = String(
-    process.env.SEO_GATEWAY_BASE_URL ||
-    seoGatewayConfig.base_url ||
-    seoGatewayConfig.baseUrl ||
-    ""
-  ).trim().replace(/\/+$/, "");
-  const token = String(
-    process.env.SEO_GATEWAY_INTERNAL_TOKEN ||
-    seoGatewayConfig.internal_token ||
-    seoGatewayConfig.internalToken ||
-    HARD_FALLBACK_INTERNAL_TOKEN
-  ).trim();
-  const url = rebuildUrl || (baseUrl ? `${baseUrl}/internal/rebuild-site` : HARD_FALLBACK_DEPLOY_URL);
-
-  console.log(`[seo gateway config] rebuild=${Boolean(url)} token=${Boolean(token)}`);
-  console.log(`[seo gateway rebuild url] ${Boolean(url)}`);
-  console.log(`[seo gateway internal token present] ${Boolean(token)}`);
-
-  if (!url) {
-    return { ok: false, reason: "invalid_gateway_config" };
-  }
-  if (!token) {
-    return { ok: false, reason: "missing_internal_token" };
-  }
-
-  try {
-    const parsed = new URL(url);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return { ok: false, reason: "invalid_gateway_config" };
-    }
-  } catch (_error) {
-    return { ok: false, reason: "invalid_gateway_config" };
-  }
-
-  return { ok: true, url, token };
-}
-
-async function triggerSeoGatewayRebuild({ domain, companyId, locationId, websiteId }) {
-  console.log("[seo function gateway rebuild requested]");
-  console.log("SEO gateway rebuild requested");
-  console.log("SEO STEP: vps rebuild start");
-  const config = getSeoGatewayRebuildConfig();
-  if (!config.ok) {
-    console.log("[seo function gateway rebuild failed]");
-    console.log("SEO gateway rebuild failed");
-    console.log(`SEO STEP: vps rebuild skipped ${config.reason}`);
-    return {
-      attempted: false,
-      ok: false,
-      rebuildOk: false,
-      reason: config.reason,
-      rebuildError: config.reason
-    };
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
-
-  try {
-    const response = await fetch(config.url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${config.token}`
-      },
-      body: JSON.stringify({
-        domain,
-        companyId,
-        locationId,
-        websiteId,
-        reason: "publish"
-      }),
-      signal: controller.signal
-    });
-
-    let responseBody = {};
-    try {
-      responseBody = await response.json();
-    } catch (_error) {
-      responseBody = {};
-    }
-
-    if (!response.ok) {
-      console.log("[seo function gateway rebuild failed]");
-      console.log("SEO gateway rebuild failed");
-      console.log("SEO STEP: vps rebuild failed");
-      return {
-        attempted: true,
-        ok: false,
-        rebuildOk: false,
-        status: response.status,
-        error: responseBody?.error || `http_${response.status}`,
-        rebuildError: responseBody?.error || `http_${response.status}`,
-        domain
-      };
-    }
-
-    console.log("[seo function gateway rebuild success]");
-    console.log("SEO gateway rebuild success");
-    console.log("SEO STEP: vps rebuild success");
-    return {
-      attempted: true,
-      ok: true,
-      rebuildOk: true,
-      domain,
-      status: response.status,
-      indexPath: sanitizeString(responseBody?.indexPath || "", 500),
-      outputDir: sanitizeString(responseBody?.outputDir || "", 500)
-    };
-  } catch (error) {
-    const rebuildError = error?.name === "AbortError" ? "timeout" : String(error?.message || "request_failed").slice(0, 180);
-    console.log("[seo function gateway rebuild failed]");
-    console.log("SEO gateway rebuild failed");
-    console.log("SEO STEP: vps rebuild failed");
-    return {
-      attempted: true,
-      ok: false,
-      rebuildOk: false,
-      status: 0,
-      error: rebuildError,
-      rebuildError,
-      domain
-    };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-function getSeoGatewayPackageDeployConfig() {
-  const HARD_FALLBACK_DEPLOY_URL = "https://seo-gateway.madkontrollen.dk/internal/deploy-site-package";
-  const HARD_FALLBACK_INTERNAL_TOKEN = "PaiE7VdZH01RFdjAf1ykYIJkwWY34icQ0";
-  const seoGatewayConfig = getSeoGatewayRuntimeConfig();
-  const deployUrl = String(
-    process.env.SEO_GATEWAY_DEPLOY_URL ||
-    process.env.SEO_GATEWAY_REBUILD_URL ||
-    process.env.SEO_GATEWAY_PACKAGE_DEPLOY_URL ||
-    seoGatewayConfig.deploy_url ||
-    seoGatewayConfig.deployUrl ||
-    seoGatewayConfig.rebuild_url ||
-    seoGatewayConfig.rebuildUrl ||
-    seoGatewayConfig.package_deploy_url ||
-    seoGatewayConfig.packageDeployUrl ||
-    seoGatewayConfig.deploy_site_package_url ||
-    seoGatewayConfig.deploySitePackageUrl ||
-    HARD_FALLBACK_DEPLOY_URL
-  ).trim();
-  const baseUrl = String(
-    process.env.SEO_GATEWAY_BASE_URL ||
-    seoGatewayConfig.base_url ||
-    seoGatewayConfig.baseUrl ||
-    ""
-  ).trim().replace(/\/+$/, "");
-  const token = String(
-    process.env.SEO_GATEWAY_INTERNAL_TOKEN ||
-    seoGatewayConfig.internal_token ||
-    seoGatewayConfig.internalToken ||
-    HARD_FALLBACK_INTERNAL_TOKEN
-  ).trim();
-  const rebuildConfig = getSeoGatewayRebuildConfig();
-  const url = (deployUrl ||
-    (baseUrl ? `${baseUrl}/internal/deploy-site-package` : "") ||
-    (rebuildConfig.ok ? rebuildConfig.url.replace(/\/internal\/rebuild-site\/?$/i, "/internal/deploy-site-package") : "") ||
-    HARD_FALLBACK_DEPLOY_URL).replace(/\/internal\/rebuild-site\/?$/i, "/internal/deploy-site-package");
-  const resolvedToken = token || rebuildConfig.token || HARD_FALLBACK_INTERNAL_TOKEN;
-
-  console.log(`[seo gateway config] packageDeploy=${Boolean(url)} rebuildFallback=${Boolean(rebuildConfig.ok)} token=${Boolean(resolvedToken)}`);
-  console.log(`[seo gateway rebuild url] ${Boolean(rebuildConfig.ok)}`);
-  console.log(`[seo gateway internal token present] ${Boolean(resolvedToken)}`);
-
-  if (!url) return { ok: false, reason: "invalid_gateway_config" };
-  if (!resolvedToken) return { ok: false, reason: "missing_internal_token" };
-  try {
-    const parsed = new URL(url);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return { ok: false, reason: "invalid_gateway_config" };
-    }
-  } catch (_error) {
-    return { ok: false, reason: "invalid_gateway_config" };
-  }
-  return { ok: true, url, token: resolvedToken };
-}
-
-function crc32Buffer(buffer) {
-  const table = crc32Buffer.table || (crc32Buffer.table = Array.from({ length: 256 }, (_, n) => {
-    let c = n;
-    for (let k = 0; k < 8; k += 1) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
-    return c >>> 0;
-  }));
-  let crc = 0xffffffff;
-  for (const byte of buffer) crc = table[(crc ^ byte) & 0xff] ^ (crc >>> 8);
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function createStoredZip(files) {
-  const localParts = [];
-  const centralParts = [];
-  let offset = 0;
-  const now = new Date();
-  const dosTime = ((now.getHours() & 31) << 11) | ((now.getMinutes() & 63) << 5) | (Math.floor(now.getSeconds() / 2) & 31);
-  const dosDate = (((now.getFullYear() - 1980) & 127) << 9) | (((now.getMonth() + 1) & 15) << 5) | (now.getDate() & 31);
-
-  Object.entries(files).forEach(([name, value]) => {
-    const safeName = String(name || "").replace(/^\/+/, "");
-    if (!safeName || safeName.includes("..") || pathIsAbsoluteLike(safeName)) {
-      throw new Error("invalid_zip_path");
-    }
-    const nameBuffer = Buffer.from(safeName, "utf8");
-    const dataBuffer = Buffer.isBuffer(value) ? value : Buffer.from(String(value ?? ""), "utf8");
-    const crc = crc32Buffer(dataBuffer);
-
-    const local = Buffer.alloc(30);
-    local.writeUInt32LE(0x04034b50, 0);
-    local.writeUInt16LE(20, 4);
-    local.writeUInt16LE(0x0800, 6);
-    local.writeUInt16LE(0, 8);
-    local.writeUInt16LE(dosTime, 10);
-    local.writeUInt16LE(dosDate, 12);
-    local.writeUInt32LE(crc, 14);
-    local.writeUInt32LE(dataBuffer.length, 18);
-    local.writeUInt32LE(dataBuffer.length, 22);
-    local.writeUInt16LE(nameBuffer.length, 26);
-    local.writeUInt16LE(0, 28);
-    localParts.push(local, nameBuffer, dataBuffer);
-
-    const central = Buffer.alloc(46);
-    central.writeUInt32LE(0x02014b50, 0);
-    central.writeUInt16LE(20, 4);
-    central.writeUInt16LE(20, 6);
-    central.writeUInt16LE(0x0800, 8);
-    central.writeUInt16LE(0, 10);
-    central.writeUInt16LE(dosTime, 12);
-    central.writeUInt16LE(dosDate, 14);
-    central.writeUInt32LE(crc, 16);
-    central.writeUInt32LE(dataBuffer.length, 20);
-    central.writeUInt32LE(dataBuffer.length, 24);
-    central.writeUInt16LE(nameBuffer.length, 28);
-    central.writeUInt16LE(0, 30);
-    central.writeUInt16LE(0, 32);
-    central.writeUInt16LE(0, 34);
-    central.writeUInt16LE(0, 36);
-    central.writeUInt32LE(0, 38);
-    central.writeUInt32LE(offset, 42);
-    centralParts.push(central, nameBuffer);
-    offset += local.length + nameBuffer.length + dataBuffer.length;
-  });
-
-  const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
-  const eocd = Buffer.alloc(22);
-  eocd.writeUInt32LE(0x06054b50, 0);
-  eocd.writeUInt16LE(0, 4);
-  eocd.writeUInt16LE(0, 6);
-  eocd.writeUInt16LE(Object.keys(files).length, 8);
-  eocd.writeUInt16LE(Object.keys(files).length, 10);
-  eocd.writeUInt32LE(centralSize, 12);
-  eocd.writeUInt32LE(offset, 16);
-  eocd.writeUInt16LE(0, 20);
-  return Buffer.concat([...localParts, ...centralParts, eocd]);
-}
-
-function pathIsAbsoluteLike(value) {
-  return /^[a-zA-Z]:/.test(value) || value.startsWith("/") || value.startsWith("\\");
-}
-
-function escapePackageHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function escapePackageXml(value) {
-  return escapePackageHtml(value).replace(/'/g, "&apos;");
-}
-
-function buildSeoPackageActionButtonList(config, domain) {
-  const phoneHref = config.phone ? normalizeSeoCtaUrl(`tel:${String(config.phone).replace(/[^\d+]/g, "")}`) : "";
-  const websiteHref = normalizeSeoCtaUrl(config.websiteUrl || "");
-  const primaryHref = normalizeSeoCtaUrl(config.cta?.url || "") || websiteHref;
-  const primaryText = sanitizeString(config.cta?.text || "Bestil nu", 120);
-  const primaryIsPhone = normalizeSeoCtaLabelKey(primaryText) === "ring nu" || /^tel:/i.test(primaryHref);
-  const primaryIsWebsite = websiteHref && normalizeSeoCtaHrefKey(primaryHref) === normalizeSeoCtaHrefKey(websiteHref);
-  const buttons = [];
-
-  if (config.cta?.enabled !== false && primaryHref) {
-    buttons.push({ text: primaryText, label: primaryText, href: primaryHref, url: primaryHref, kind: "primary" });
-  }
-  if (websiteHref && !primaryIsWebsite) {
-    buttons.push({ text: "Gå til hjemmeside", label: "Gå til hjemmeside", href: websiteHref, url: websiteHref, kind: "website" });
-  }
-  if (phoneHref && !primaryIsPhone && (!websiteHref || primaryIsWebsite)) {
-    buttons.push({ text: "Ring nu", label: "Ring nu", href: phoneHref, url: phoneHref, kind: "phone" });
-  }
-  buttons.push({ text: "Se menu", label: "Se menu", href: `https://${domain}/#menu`, url: `https://${domain}/#menu`, kind: "menu" });
-  return dedupeSeoCtaButtons([...buttons, ...(Array.isArray(config.ctaButtons) ? config.ctaButtons : [])], 3);
-}
-
-function buildSeoPackageActionButtons(config, domain) {
-  return buildSeoPackageActionButtonList(config, domain)
-    .map((button, index) => `<a class="action action-${index === 0 ? "primary" : "secondary"}" href="${escapePackageHtml(button.href)}">${escapePackageHtml(button.text || button.label)}</a>`)
-    .join("");
-}
-
-function renderSeoPackageIndex({ domain, canonicalConfig, pages }) {
-  const cfg = normalizeSeoGeneratorConfig(canonicalConfig);
-  const cssPath = "./assets/site.css";
-  const title = escapePackageHtml(cfg.heroTitle || cfg.businessName);
-  const description = escapePackageHtml(cfg.heroText || cfg.description || "");
-  const theme = cfg.theme || {};
-  const primary = escapePackageHtml(theme.primary || "#1f7a3d");
-  const accent = escapePackageHtml(theme.accent || "#b91c1c");
-  const heroImage = escapePackageHtml(cfg.heroImageUrl || "");
-  const actions = buildSeoPackageActionButtons(cfg, domain);
-  const pageCards = (pages || []).slice(0, 12).map((page) => `<article><h3>${escapePackageHtml(page.h1 || page.title || page.keyword)}</h3><p>${escapePackageHtml(page.metaDescription || page.bodyText || "")}</p></article>`).join("");
-  return `<!DOCTYPE html>
-<html lang="da">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
-  <meta name="description" content="${description}">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://${escapePackageHtml(domain)}/">
-  <link rel="stylesheet" href="${cssPath}">
-</head>
-<body style="--primary:${primary};--accent:${accent};">
-  <main>
-    <section class="hero"${heroImage ? ` style="background-image:linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.58)),url('${heroImage}')"` : ""}>
-      <div class="hero-inner">
-        <p class="eyebrow">${escapePackageHtml(cfg.cuisineType || "Restaurant")} i ${escapePackageHtml(cfg.displayCityName || cfg.city || "")}</p>
-        <h1>${title}</h1>
-        <p>${description}</p>
-        <div class="actions">${actions}</div>
-      </div>
-    </section>
-    <section class="content">
-      <section class="info">
-        <article><span>Adresse</span><strong>${escapePackageHtml(cfg.address || "")}</strong></article>
-        <article><span>Telefon</span><strong>${escapePackageHtml(cfg.phone || "")}</strong></article>
-        <article><span>Område</span><strong>${escapePackageHtml(cfg.displayCityName || cfg.city || "")}</strong></article>
-      </section>
-      <section id="about" class="panel"><h2>Om ${escapePackageHtml(cfg.businessName)}</h2><p>${escapePackageHtml(cfg.description || cfg.heroText || "")}</p></section>
-      <section id="menu" class="panel"><h2>Menu og søgninger</h2><div class="cards">${pageCards}</div></section>
-    </section>
-  </main>
-</body>
-</html>`;
-}
-
-function seoPackageCssPathForOutput(outputPath = "index.html") {
-  const cleanPath = String(outputPath || "index.html").replace(/^\/+/, "");
-  const depth = Math.max(0, cleanPath.split("/").filter(Boolean).length - 1);
-  return `${"../".repeat(depth)}assets/site.css`;
-}
-
-function renderSeoPackagePageLinks({ pages = [], currentSlug = "root" }) {
-  const links = (Array.isArray(pages) ? pages : [])
-    .filter((page) => page?.slug && page.slug !== "root" && page.slug !== currentSlug)
-    .slice(0, 24)
-    .map((page) => {
-      const href = page.routePath || `/${page.slug}/`;
-      const title = page.h1 || page.title || page.keyword || page.slug;
-      const text = page.metaDescription || page.bodyText || "";
-      return `<a class="page-link" href="${escapePackageHtml(href)}"><strong>${escapePackageHtml(title)}</strong><span>${escapePackageHtml(text)}</span></a>`;
-    })
-    .join("");
-  return links ? `<section class="panel"><h2>Flere sider</h2><div class="page-links">${links}</div></section>` : "";
-}
-
-function renderSeoPackageHtml({ domain, canonicalConfig, pages, page }) {
-  const cfg = normalizeSeoGeneratorConfig(canonicalConfig);
-  const pageDoc = page || { slug: "root", outputPath: "index.html", canonicalPath: "/" };
-  const cssPath = seoPackageCssPathForOutput(pageDoc.outputPath || "index.html");
-  const title = escapePackageHtml(pageDoc.title || cfg.heroTitle || cfg.businessName);
-  const description = escapePackageHtml(pageDoc.metaDescription || pageDoc.bodyText || cfg.heroText || cfg.description || "");
-  const h1 = escapePackageHtml(pageDoc.h1 || pageDoc.title || cfg.heroTitle || cfg.businessName);
-  const intro = escapePackageHtml(pageDoc.bodyText || pageDoc.content || pageDoc.metaDescription || cfg.description || cfg.heroText || "");
-  const theme = cfg.theme || {};
-  const primary = escapePackageHtml(theme.primary || "#1f7a3d");
-  const accent = escapePackageHtml(theme.accent || "#b91c1c");
-  const heroImage = escapePackageHtml(cfg.heroImageUrl || "");
-  const actions = buildSeoPackageActionButtons(cfg, domain);
-  const pageCards = (pages || []).filter((item) => item.slug !== "root").slice(0, 12).map((item) => `<article><h3>${escapePackageHtml(item.h1 || item.title || item.keyword)}</h3><p>${escapePackageHtml(item.metaDescription || item.bodyText || "")}</p></article>`).join("");
-  const canonicalPath = pageDoc.canonicalPath || pageDoc.routePath || "/";
-  const canonicalUrl = `https://${domain}${canonicalPath.startsWith("/") ? canonicalPath : `/${canonicalPath}`}`;
-  const pageLinks = renderSeoPackagePageLinks({ pages, currentSlug: pageDoc.slug || "root" });
-  return `<!DOCTYPE html>
-<html lang="da">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
-  <meta name="description" content="${description}">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="${escapePackageHtml(canonicalUrl)}">
-  <link rel="stylesheet" href="${cssPath}">
-</head>
-<body style="--primary:${primary};--accent:${accent};">
-  <main>
-    <section class="hero"${heroImage ? ` style="background-image:linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.58)),url('${heroImage}')"` : ""}>
-      <div class="hero-inner">
-        <p class="eyebrow">${escapePackageHtml(cfg.cuisineType || "Restaurant")} i ${escapePackageHtml(pageDoc.displayCityName || cfg.displayCityName || cfg.city || "")}</p>
-        <h1>${h1}</h1>
-        <p>${description}</p>
-        <div class="actions">${actions}</div>
-      </div>
-    </section>
-    <section class="content">
-      <section class="info">
-        <article><span>Adresse</span><strong>${escapePackageHtml(cfg.address || "")}</strong></article>
-        <article><span>Telefon</span><strong>${escapePackageHtml(cfg.phone || "")}</strong></article>
-        <article><span>Område</span><strong>${escapePackageHtml(pageDoc.displayCityName || cfg.displayCityName || cfg.city || "")}</strong></article>
-      </section>
-      <section id="about" class="panel"><h2>Om ${escapePackageHtml(cfg.businessName)}</h2><p>${intro}</p></section>
-      <section id="menu" class="panel"><h2>Menu og søgninger</h2><div class="cards">${pageCards}</div></section>
-      ${pageLinks}
-    </section>
-  </main>
-</body>
-</html>`;
-}
-
-function renderSeoPackageRobots(domain) {
-  return `User-agent: *
-Allow: /
-
-Sitemap: https://${domain}/sitemap.xml
-`;
-}
-
-function renderSeoPackageSitemap(domain, pages = []) {
-  const urls = new Set([`https://${domain}/`]);
-  pages.forEach((page) => {
-    const routePath = String(page.routePath || page.canonicalPath || "").trim();
-    if (routePath && !routePath.includes(".html")) {
-      urls.add(`https://${domain}${routePath.startsWith("/") ? routePath : `/${routePath}`}`);
-    }
-  });
-  console.log(`[seo sitemap url count] ${urls.size}`);
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[...urls].map((url) => `  <url><loc>${escapePackageXml(url)}</loc></url>`).join("\n")}
-</urlset>
-`;
-}
-
-function renderSeoPackageCss() {
-  return `body{margin:0;font-family:Inter,Arial,sans-serif;background:#fafaf8;color:#1f2937;line-height:1.6}.hero{min-height:620px;display:grid;place-items:center;text-align:center;color:#fff;padding:90px 20px;background:var(--primary);background-size:cover;background-position:center}.hero-inner{max-width:860px}.eyebrow{text-transform:uppercase;font-size:13px;letter-spacing:.08em;font-weight:900}.hero h1{font-size:clamp(36px,7vw,78px);line-height:1.02;margin:0 0 18px}.hero p{font-size:clamp(17px,2vw,23px);font-weight:650}.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}.action{display:inline-flex;align-items:center;justify-content:center;padding:14px 22px;border-radius:14px;text-decoration:none;font-weight:900}.action-primary{background:var(--accent);color:#fff}.action-secondary{background:#fff;color:var(--primary)}.content{max-width:1120px;margin:0 auto;padding:50px 20px}.info,.cards,.page-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.info article,.panel,.cards article,.page-link{background:#fff;border-radius:10px;padding:22px;box-shadow:0 8px 26px rgba(0,0,0,.06)}.page-link{display:grid;gap:8px;text-decoration:none;color:inherit}.page-link strong{color:var(--primary)}.page-link span{color:#4b5563}.info span{display:block;color:#6b7280;font-size:13px;font-weight:900;text-transform:uppercase}.panel{margin-top:22px}@media(max-width:760px){.hero{min-height:520px}.actions{flex-direction:column}.action{width:100%}}`;
-}
-
-function buildSeoSitePackage({ domain, canonicalConfig, websiteDoc }) {
-  const cfg = normalizeSeoGeneratorConfig(canonicalConfig || {});
-  const pageCount = parsePageCount(cfg.pageCount, 50);
-  console.log(`[seo pagecount selected] ${pageCount}`);
-  console.log(`[seo landingpages generated count] ${Array.isArray(cfg.landingPages) ? cfg.landingPages.length : 0}`);
-  const pages = buildSeoPublishedPages(cfg, pageCount);
-  console.log(`[seo published pages count] ${pages.length}`);
-  const rootPage = pages.find((page) => page.slug === "root") || pages[0];
-  const metadataPages = pages.filter((page) => page.slug !== "root").map((page) => ({
-    slug: page.slug,
-    title: page.title,
-    path: page.routePath || page.canonicalPath || `/${page.slug}/`,
-    url: `https://${domain}${(page.routePath || page.canonicalPath || `/${page.slug}/`).startsWith("/") ? (page.routePath || page.canonicalPath || `/${page.slug}/`) : `/${page.routePath || page.canonicalPath || `${page.slug}/`}`}`,
-    routePath: page.routePath,
-    canonicalPath: page.canonicalPath
-  }));
-  const metadata = {
-    domain,
-    generatedAt: new Date().toISOString(),
-    websiteId: sanitizeString(websiteDoc?.websiteId || websiteDoc?.id || "", 220),
-    subdomain: cfg.subdomain,
-    businessName: cfg.businessName,
-    canonicalConfig: cfg,
-    pages: metadataPages
-  };
-  const files = {
-    "index.html": renderSeoPackageHtml({
-      domain,
-      canonicalConfig: cfg,
-      pages,
-      page: { ...rootPage, slug: "root", outputPath: "index.html", routePath: "/", canonicalPath: "/" }
-    }),
-    "robots.txt": renderSeoPackageRobots(domain),
-    "sitemap.xml": renderSeoPackageSitemap(domain, pages),
-    "metadata.json": JSON.stringify(metadata, null, 2),
-    "assets/site.css": renderSeoPackageCss()
-  };
-  pages.filter((page) => page.slug !== "root").forEach((page) => {
-    const slug = toAsciiSlug(page.slug, 140) || "side";
-    const outputPath = `${slug}/index.html`;
-    files[outputPath] = renderSeoPackageHtml({
-      domain,
-      canonicalConfig: cfg,
-      pages,
-      page: { ...page, slug, outputPath, routePath: `/${slug}/`, canonicalPath: `/${slug}/` }
-    });
-  });
-  console.log(`[seo css path] ./assets/site.css`);
-  console.log(`[seo package assets] ${Object.keys(files).filter((name) => name.startsWith("assets/")).join(",")}`);
-  console.log(`[seo package pages] ${pages.length}`);
-  console.log(`[seo metadata pages count] ${metadataPages.length}`);
-  const zipPageFilesCount = Object.keys(files).filter((name) => name === "index.html" || name.endsWith("/index.html")).length;
-  console.log(`[seo zip page files count] total=${zipPageFilesCount} landing=${metadataPages.length} root=1`);
-  return files;
-}
-
-async function uploadSeoSitePackageZip({ domain, files }) {
-  try {
-    const crypto = require("crypto");
-    const zipBuffer = createStoredZip(files);
-    const checksum = crypto.createHash("sha256").update(zipBuffer).digest("hex");
-    const downloadToken = typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID()
-      : crypto.randomBytes(16).toString("hex");
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const objectPath = `seo-packages/${domain}/${timestamp}/site-package.zip`;
-    const bucket = admin.storage().bucket();
-    const file = bucket.file(objectPath);
-    await file.save(zipBuffer, {
-      resumable: false,
-      contentType: "application/zip",
-      metadata: {
-        cacheControl: "private, max-age=0, no-transform",
-        metadata: {
-          checksum,
-          domain,
-          firebaseStorageDownloadTokens: downloadToken
-        }
-      }
-    });
-    const packageUrl = `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucket.name)}/o/${encodeURIComponent(objectPath)}?alt=media&token=${encodeURIComponent(downloadToken)}`;
-    console.log("[seo package] signed url generated");
-    return {
-      ok: true,
-      packageUrl,
-      storagePath: objectPath,
-      checksum,
-      bytes: zipBuffer.length,
-      urlMode: "firebase_download_token"
-    };
-  } catch (error) {
-    console.log("[seo package] signed url failed");
-    throw error;
-  }
-}
-
-async function triggerSeoGatewayPackageDeploy({ domain, companyId, locationId, websiteId, packageUrl, checksum }) {
-  console.log("[seo package deploy attempt]");
-  if (!domain || !companyId || !locationId || !websiteId) {
-    console.log("[seo package deploy skipped]");
-    console.log("[seo package deploy skip reason] missing_site_payload");
-    return {
-      attempted: false,
-      ok: false,
-      deployOk: false,
-      reason: "missing_site_payload",
-      deployError: "missing_site_payload"
-    };
-  }
-  if (!packageUrl) {
-    console.log("[seo package deploy skipped]");
-    console.log("[seo package deploy skip reason] missing_package_url");
-    return {
-      attempted: false,
-      ok: false,
-      deployOk: false,
-      reason: "missing_package_url",
-      deployError: "missing_package_url",
-      domain
-    };
-  }
-  const config = getSeoGatewayPackageDeployConfig();
-  if (!config.ok) {
-    console.log("[seo package deploy skipped]");
-    console.log(`[seo package deploy skip reason] ${config.reason}`);
-    return { attempted: false, ok: false, deployOk: false, reason: config.reason, deployError: config.reason, domain };
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
-  try {
-    const response = await fetch(config.url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${config.token}`
-      },
-      body: JSON.stringify({
-        domain,
-        companyId,
-        locationId,
-        websiteId,
-        packageUrl,
-        checksum,
-        reason: "seo_package_publish"
-      }),
-      signal: controller.signal
-    });
-    let body = {};
-    try { body = await response.json(); } catch (_error) {}
-    if (!response.ok || !body?.ok) {
-      return {
-        attempted: true,
-        ok: false,
-        deployOk: false,
-        status: response.status,
-        error: body?.error || `http_${response.status}`,
-        deployError: body?.error || `http_${response.status}`,
-        domain
-      };
-    }
-    return {
-      attempted: true,
-      ok: true,
-      deployOk: true,
-      status: response.status,
-      domain,
-      outputDir: sanitizeString(body?.outputDir || "", 500),
-      indexPath: sanitizeString(body?.indexPath || "", 500),
-      checksum: sanitizeString(body?.checksum || checksum || "", 120)
-    };
-  } catch (error) {
-    const deployError = error?.name === "AbortError" ? "timeout" : String(error?.message || "request_failed").slice(0, 180);
-    return { attempted: true, ok: false, deployOk: false, status: 0, error: deployError, deployError, domain };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-async function invalidateSeoGatewayCache({ citySlug, businessSlug }) {
-  console.log("SEO gateway cache invalidation requested");
-  const config = getSeoGatewayInvalidateConfig();
-  if (!config.ok) {
-    console.log("SEO gateway cache invalidation failed");
-    return config.result;
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 3000);
-
-  try {
-    const response = await fetch(`${config.baseUrl}/__internal/seo-cache/invalidate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${config.token}`
-      },
-      body: JSON.stringify({ citySlug, businessSlug }),
-      signal: controller.signal
-    });
-
-    if (!response.ok) {
-      console.log("SEO gateway cache invalidation failed");
-      return {
-        attempted: true,
-        ok: false,
-        error: `http_${response.status}`
-      };
-    }
-
-    console.log("SEO gateway cache invalidation success");
-    return {
-      attempted: true,
-      ok: true
-    };
-  } catch (error) {
-    console.log("SEO gateway cache invalidation failed");
-    return {
-      attempted: true,
-      ok: false,
-      error: error?.name === "AbortError" ? "timeout" : String(error?.message || "request_failed").slice(0, 180)
-    };
-  } finally {
-    clearTimeout(timeout);
-  }
+  return pages;
 }
 
 async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activatedByUid }) {
-  const canonicalConfig = normalizeSeoGeneratorConfig(config);
-  const subdomain = sanitizeString(canonicalConfig.subdomain || "", 120);
-  const businessName = sanitizeString(canonicalConfig.businessName || "", 140);
-  const displayBusinessName = sanitizeString(canonicalConfig.displayBusinessName || canonicalConfig.businessName || "", 140);
-  const cityName = sanitizeString(canonicalConfig.displayCityName || canonicalConfig.cityName || canonicalConfig.city || "", 80);
-  const description = sanitizeString(canonicalConfig.description || "", 800);
-  const selectedTemplate = sanitizeString(canonicalConfig.selectedTemplate || "classic", 60) || "classic";
-  const pageCount = parsePageCount(canonicalConfig.pageCount, 50);
-  const logoDataUrl = sanitizeString(canonicalConfig.logoDataUrl || "", 500000);
-  const route = buildSeoFolderRoute(canonicalConfig);
-  const cta = canonicalConfig.cta;
-  const websiteCanonicalConfig = {
-    ...canonicalConfig,
-    landingPages: sanitizeSeoLandingPageMetadata(canonicalConfig.landingPages, pageCount)
-  };
-  console.log(`SEO landing website doc business=${businessName} title=${canonicalConfig.heroTitle} heroText=${canonicalConfig.heroText ? "present" : "missing"}`);
-  console.log(`SEO CTA firestore website enabled=${cta.enabled} text=${cta.text} url=${cta.url}`);
-  console.log(`[seo landingpages generated count] ${Array.isArray(canonicalConfig.landingPages) ? canonicalConfig.landingPages.length : 0}`);
+  const subdomain = sanitizeString(config?.subdomain || "", 120);
+  const businessName = sanitizeString(config?.businessName || "", 140);
+  const description = sanitizeString(config?.description || "", 800);
+  const selectedTemplate = sanitizeString(config?.selectedTemplate || "classic", 60) || "classic";
+  const pageCount = parsePageCount(config?.pageCount, 50);
+  const logoDataUrl = sanitizeString(config?.logoDataUrl || "", 500000);
 
   if (!subdomain) {
     throw new functions.https.HttpsError("invalid-argument", "Subdomaene mangler i generator-konfigurationen.");
@@ -1851,37 +405,20 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
     companyId,
     locationId,
     subdomain,
-    citySlug: route.citySlug,
-    businessSlug: route.businessSlug,
-    cityName: cityName || route.citySlug,
-    displayCityName: cityName || route.citySlug,
-    businessName: displayBusinessName || businessName || subdomain,
-    displayBusinessName: displayBusinessName || businessName || subdomain,
-    routePath: route.routePath,
-    outputPath: route.outputPath,
     template: selectedTemplate,
     brandMode: "madkontrollen_default",
     logoUrl: logoDataUrl || null,
-    config: websiteCanonicalConfig,
-    canonicalConfig: websiteCanonicalConfig,
-    heroTitle: sanitizeString(canonicalConfig.heroTitle || displayBusinessName || businessName || subdomain, 180),
-    heroText: sanitizeString(canonicalConfig.heroText || description || "Autogenereret website fra SEO-generator.", 1200),
-    heroImageUrl: sanitizeString(canonicalConfig.heroImageUrl || "", 2000) || null,
-    websiteUrl: canonicalConfig.websiteUrl || null,
-    googlePlace: canonicalConfig.googlePlace || null,
-    googlePlaceId: canonicalConfig.googlePlaceId || null,
-    googleMapsUrl: canonicalConfig.googleMapsUrl || null,
-    cta,
-    ctaEnabled: cta.enabled,
-    ctaText: cta.text || null,
-    ctaUrl: cta.url || null,
-    ctaButtons: canonicalConfig.ctaButtons || [],
-    phone: sanitizeString(canonicalConfig.phone || "", 80) || null,
-    address: sanitizeString(canonicalConfig.address || "", 220) || null,
-    themePrimary: canonicalConfig.theme.primary,
-    themeSecondary: canonicalConfig.theme.secondary,
-    themeAccent: canonicalConfig.theme.accent,
-    themeText: canonicalConfig.theme.text,
+    heroTitle: businessName || subdomain,
+    heroText: description || "Autogenereret website fra SEO-generator.",
+    heroImageUrl: sanitizeString(config?.heroImageUrl || "", 2000) || null,
+    ctaText: sanitizeString(config?.ctaText || "", 120) || null,
+    ctaUrl: sanitizeString(config?.ctaUrl || "", 500) || null,
+    phone: sanitizeString(config?.phone || "", 80) || null,
+    address: sanitizeString(config?.address || "", 220) || null,
+    themePrimary: sanitizeString(config?.theme?.primary || "", 20) || "#1f7a3d",
+    themeSecondary: sanitizeString(config?.theme?.secondary || "", 20) || "#f8f4ea",
+    themeAccent: sanitizeString(config?.theme?.accent || "", 20) || "#b91c1c",
+    themeText: sanitizeString(config?.theme?.text || "", 20) || "#1f2937",
     status: "published",
     seoPreviewEnabled: true,
     seoModuleActive: true,
@@ -1890,8 +427,7 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
     activatedBy: activatedByUid
   }, { merge: true });
 
-  const pages = buildSeoPublishedPages(canonicalConfig, pageCount);
-  console.log(`[seo published pages count] ${pages.length}`);
+  const pages = buildSeoLandingPages(config, pageCount);
   const batch = db.batch();
 
   pages.forEach((page, index) => {
@@ -1903,25 +439,14 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
       locationId,
       websiteId,
       subdomain,
-      citySlug: page.citySlug || route.citySlug,
-      businessSlug: page.businessSlug || route.businessSlug,
-      cityName: page.cityName || cityName || route.citySlug,
-      displayCityName: page.displayCityName || cityName || route.citySlug,
-      businessName: page.businessName || displayBusinessName || businessName || subdomain,
-      displayBusinessName: page.displayBusinessName || displayBusinessName || businessName || subdomain,
-      pageType: page.pageType || "city_landing",
-      routePath: page.routePath || page.canonicalPath || route.routePath,
-      outputPath: page.outputPath || route.outputPath,
       slug: page.slug,
-      url: `https://${route.businessSlug}.madkontrollen.dk${page.canonicalPath}`,
+      url: `https://${subdomain}.madkontrollen.dk/${page.slug}`,
       keyword: page.keyword,
       title: page.title,
       metaDescription: page.metaDescription,
       h1: page.h1,
       h2: page.h2,
       h3: page.h3,
-      bodyText: page.bodyText || page.content || page.metaDescription || "",
-      content: page.content || page.bodyText || page.metaDescription || "",
       canonicalPath: page.canonicalPath,
       sourceTitle: page.sourceTitle,
       ordering: index + 1,
@@ -1934,26 +459,10 @@ async function upsertWebsiteAndSeoPages({ companyId, locationId, config, activat
 
   await batch.commit();
 
-  const cacheInvalidation = await invalidateSeoGatewayCache({
-    citySlug: route.citySlug,
-    businessSlug: route.businessSlug
-  });
-
-  if (cacheInvalidation.attempted && !cacheInvalidation.ok) {
-    console.warn("SEO gateway cache invalidation failed", {
-      citySlug: route.citySlug,
-      businessSlug: route.businessSlug,
-      error: cacheInvalidation.error || "unknown"
-    });
-  }
-
   return {
     websiteId,
     generatedPages: pages.length,
-    subdomain,
-    citySlug: route.citySlug,
-    businessSlug: route.businessSlug,
-    cacheInvalidation
+    subdomain
   };
 }
 
@@ -1968,7 +477,7 @@ function sanitizeAddonKeys(raw) {
 }
 
 //
-// 🔹 SIMPLE API (temporarily commented out due to 1st Gen to 2nd Gen upgrade conflict)
+// ðŸ”¹ SIMPLE API (temporarily commented out due to 1st Gen to 2nd Gen upgrade conflict)
 //
 // exports.api = functions.https.onRequest((req, res) => {
 //   if (req.path === "/hello") {
@@ -2028,7 +537,7 @@ function sanitizeAddonKeys(raw) {
 // });
 
 //
-// 🔹 HJÆLPEFUNKTIONER
+// ðŸ”¹ HJÃ†LPEFUNKTIONER
 //
 function getDateKey() {
   const now = new Date();
@@ -2067,8 +576,21 @@ function getWeekdayFromDateKey(dateKey) {
 function normalizeDateKey(value) {
   if (!value) return null;
   const str = String(value).trim();
-  const match = str.match(/^\d{4}-\d{2}-\d{2}/);
-  return match ? match[0] : null;
+  const match = str.match(/^(\d{4})[-_](\d{2})[-_](\d{2})/);
+  return match ? `${match[1]}-${match[2]}-${match[3]}` : null;
+}
+
+function normalizeTaskInstanceDateInId(instanceId = "", dateKey = "") {
+  const id = sanitizeString(instanceId, 240);
+  const normalizedDateKey = normalizeDateKey(dateKey);
+  if (!id || !normalizedDateKey) return id;
+  return id.replace(/\d{4}[-_]\d{2}[-_]\d{2}/, normalizedDateKey);
+}
+
+function buildRoutineInstanceId(companyId = "", locationId = "", dateKey = "", identity = "") {
+  const normalizedDateKey = normalizeDateKey(dateKey) || getDateKey();
+  const identityKey = toDocSafeId(identity || "routine");
+  return `${companyId}__${locationId}__${normalizedDateKey}__${identityKey}`.slice(0, 180);
 }
 
 function sanitizeString(value, maxLen = 500) {
@@ -2087,10 +609,10 @@ function parseFrequencyConfig(template, prefix = "frequency") {
   let days = Number.isFinite(explicitDays) && explicitDays > 0 ? Math.floor(explicitDays) : 1;
 
   // Normalize named interval types to interval_days
-  if (type === "yearly" || type === "annual" || type === "aarlig" || type === "årlig") {
+  if (type === "yearly" || type === "annual" || type === "aarlig" || type === "Ã¥rlig") {
     type = "interval_days";
     days = 365;
-  } else if (type === "monthly" || type === "maanedlig" || type === "månedlig") {
+  } else if (type === "monthly" || type === "maanedlig" || type === "mÃ¥nedlig") {
     type = "interval_days";
     days = 30;
   } else if (type === "weekly" || type === "ugentlig") {
@@ -2104,10 +626,10 @@ function parseFrequencyConfig(template, prefix = "frequency") {
     } else if (legacy === "weekly" || legacy === "ugentlig") {
       type = "interval_days";
       days = 7;
-    } else if (legacy === "monthly" || legacy === "maanedlig" || legacy === "månedlig") {
+    } else if (legacy === "monthly" || legacy === "maanedlig" || legacy === "mÃ¥nedlig") {
       type = "interval_days";
       days = 30;
-    } else if (legacy === "yearly" || legacy === "annual" || legacy === "aarlig" || legacy === "årlig") {
+    } else if (legacy === "yearly" || legacy === "annual" || legacy === "aarlig" || legacy === "Ã¥rlig") {
       type = "interval_days";
       days = 365;
     } else if (legacy === "weekdays") {
@@ -2185,14 +707,14 @@ function sanitizeOnboardingProfile(profile = {}) {
     preparesColdFood: sanitizeBoolean(profile.preparesColdFood),
     preparesColdFoodDetails: sanitizeString(profile.preparesColdFoodDetails, 2000),
     preparesColdFoodCritical: sanitizeBoolean(profile.preparesColdFoodCritical),
-    // Step 4: Varmholdelse/Nedkøling
+    // Step 4: Varmholdelse/NedkÃ¸ling
     holdsHotFood: sanitizeBoolean(profile.holdsHotFood),
     holdsHotFoodDetails: sanitizeString(profile.holdsHotFoodDetails, 2000),
     holdsHotFoodCritical: sanitizeBoolean(profile.holdsHotFoodCritical),
     coolsHotFood: sanitizeBoolean(profile.coolsHotFood),
     coolsHotFoodDetails: sanitizeString(profile.coolsHotFoodDetails, 2000),
     coolsHotFoodCritical: sanitizeBoolean(profile.coolsHotFoodCritical),
-    // Step 5: Håndtering/Allergener
+    // Step 5: HÃ¥ndtering/Allergener
     handlesDifferentFoods: sanitizeBoolean(profile.handlesDifferentFoods),
     handlesDifferentFoodsDetails: sanitizeString(profile.handlesDifferentFoodsDetails, 2000),
     handlesAllergens: sanitizeBoolean(profile.handlesAllergens),
@@ -2323,7 +845,7 @@ function deriveOnboardingAnswers(profile = {}) {
   const ingredients = [];
   const serviceTypes = [];
 
-  // ── Modtagelse ──────────────────────────────────────────────────────────
+  // â”€â”€ Modtagelse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (profile.receivesChilledGoods || profile.fridgeCount > 0 || profile.antalKoeleskabe > 0 || profile.modtagerKoelevarer) {
     processes.push("receive_chilled_goods");
   }
@@ -2331,7 +853,7 @@ function deriveOnboardingAnswers(profile = {}) {
     processes.push("receive_frozen_goods");
   }
 
-  // ── Opbevaring ──────────────────────────────────────────────────────────
+  // â”€â”€ Opbevaring â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (profile.storesChilledGoods || profile.receivesChilledGoods || profile.fridgeCount > 0 || profile.antalKoeleskabe > 0) {
     processes.push("store_chilled_goods");
   }
@@ -2339,27 +861,27 @@ function deriveOnboardingAnswers(profile = {}) {
     processes.push("store_frozen_goods");
   }
 
-  // ── Tilberedning ─────────────────────────────────────────────────────────
+  // â”€â”€ Tilberedning â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (profile.preparesHotFood || profile.servesHotFood || profile.hasWarmKitchen || profile.tilberederVarmMad) {
     processes.push("cook_food");
   }
 
-  // ── Varmholdelse ─────────────────────────────────────────────────────────
+  // â”€â”€ Varmholdelse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (profile.holdsHotFood || profile.hasHotHolding || profile.varmholder) {
     processes.push("hot_hold_food");
   }
 
-  // ── Nedkøling ────────────────────────────────────────────────────────────
+  // â”€â”€ NedkÃ¸ling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (profile.coolsHotFood || profile.nedkoelerMad) {
     processes.push("cool_food");
   }
 
-  // ── Genopvarmning: kun relevant når der tilberedes OG evt. nedkøles ──────
+  // â”€â”€ Genopvarmning: kun relevant nÃ¥r der tilberedes OG evt. nedkÃ¸les â”€â”€â”€â”€â”€â”€
   if (profile.preparesHotFood || profile.servesHotFood || profile.tilberederVarmMad) {
     processes.push("reheat_food");
   }
 
-  // ── Servering koldt ──────────────────────────────────────────────────────
+  // â”€â”€ Servering koldt â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (profile.servesColdFood || profile.hasColdKitchen || profile.servererKoldMad || profile.preparesColdFood) {
     processes.push("serve_cold_food");
   }
@@ -2389,8 +911,8 @@ function deriveOnboardingAnswers(profile = {}) {
     ingredients.push("desserts");
   }
 
-  // ── Areas: afledt fra lokaleboolanerne i profilen ────────────────────────
-  const areas = ["kitchen"]; // alle lokationer har et køkken
+  // â”€â”€ Areas: afledt fra lokaleboolanerne i profilen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const areas = ["kitchen"]; // alle lokationer har et kÃ¸kken
   if (profile.hasProductionKitchen) areas.push("production_kitchen");
   if (profile.hasServingArea)       areas.push("serving_area");
   if (profile.hasDryStorage)        areas.push("dry_storage");
@@ -2453,7 +975,7 @@ function buildOnboardingSummary({ profile = {}, riskModel = {}, customerName = "
   };
 }
 
-function buildLiveUserProfilePayload({ profile = {}, riskModel = {}, companyId, locationId, userId, userEmail, summary, cloudinaryAssets, draftId, checkoutSessionId }) {
+function buildLiveUserProfilePayload({ profile = {}, riskModel = {}, companyId, locationId, userId, userEmail, summary, cloudinaryAssets, draftId, checkoutSessionId, ownerScopeMetadata = {} }) {
   const sanitizedProfile = sanitizeOnboardingProfile(profile);
   const sanitizedRiskModel = sanitizeRiskModelInput(riskModel);
   const onboardingAnswers = deriveOnboardingAnswers(sanitizedProfile);
@@ -2463,6 +985,7 @@ function buildLiveUserProfilePayload({ profile = {}, riskModel = {}, companyId, 
     companyId,
     locationId,
     organizationId: companyId,
+    ...ownerScopeMetadata,
     userId,
     userEmail: sanitizeString(userEmail, 160),
     profile: sanitizedProfile,
@@ -2478,7 +1001,7 @@ function buildLiveUserProfilePayload({ profile = {}, riskModel = {}, companyId, 
   };
 }
 
-function buildHaccpSnapshotPayload({ profile = {}, riskModel = {}, companyId, locationId, userId }) {
+function buildHaccpSnapshotPayload({ profile = {}, riskModel = {}, companyId, locationId, userId, ownerScopeMetadata = {} }) {
   const sanitizedProfile = sanitizeOnboardingProfile(profile);
   const sanitizedRiskModel = sanitizeRiskModelInput(riskModel);
   const normalizedAddress = [sanitizedProfile.address, sanitizedProfile.zip, sanitizedProfile.city]
@@ -2519,6 +1042,7 @@ function buildHaccpSnapshotPayload({ profile = {}, riskModel = {}, companyId, lo
     organizationId: companyId,
     companyId,
     locationId,
+    ...ownerScopeMetadata,
     createdBy: userId,
     companyName: sanitizedProfile.companyName,
     cvr: sanitizedProfile.cvr,
@@ -2580,13 +1104,24 @@ function removeUndefinedFields(obj) {
   return cleaned;
 }
 
-async function createHaccpSnapshotDocument({ profile = {}, riskModel = {}, companyId, locationId, userId }) {
+function buildOwnerScopeUpdatePatch(existing = {}, ownerScopeMetadata = {}) {
+  const patch = {};
+  for (const field of ["ownerKind", "ownerLabel", "isDemoScope", "scopeType"]) {
+    if (ownerScopeMetadata[field] !== undefined && existing[field] !== ownerScopeMetadata[field]) {
+      patch[field] = ownerScopeMetadata[field];
+    }
+  }
+  return patch;
+}
+
+async function createHaccpSnapshotDocument({ profile = {}, riskModel = {}, companyId, locationId, userId, ownerScopeMetadata = {} }) {
   const payload = buildHaccpSnapshotPayload({
     profile,
     riskModel,
     companyId,
     locationId,
-    userId
+    userId,
+    ownerScopeMetadata
   });
 
   // Remove undefined fields to prevent Firestore errors
@@ -2602,6 +1137,7 @@ async function createHaccpSnapshotDocument({ profile = {}, riskModel = {}, compa
     companyId,
     locationId,
     organizationId: companyId,
+    ...ownerScopeMetadata,
     personalisering: {
       antalKoeleskabe: parseInt(profile.antalKoeleskabe || 0, 10),
       antalFrysere: parseInt(profile.antalFrysere || 0, 10),
@@ -2622,7 +1158,7 @@ async function createHaccpSnapshotDocument({ profile = {}, riskModel = {}, compa
   };
 }
 
-async function upsertOnboardingAnswersDocument({ companyId, locationId, userId, liveProfilePayload }) {
+async function upsertOnboardingAnswersDocument({ companyId, locationId, userId, liveProfilePayload, ownerScopeMetadata = {} }) {
   const onboardingDocId = toDocSafeId(`${companyId}__${locationId}__onboarding`);
   const onboardingRef = db.collection("onboarding_answers").doc(onboardingDocId);
   const answers = liveProfilePayload.onboardingAnswers || {};
@@ -2631,6 +1167,7 @@ async function upsertOnboardingAnswersDocument({ companyId, locationId, userId, 
     companyId,
     locationId,
     organizationId: companyId,
+    ...ownerScopeMetadata,
     businessTypes: toArray(answers.businessTypes),
     processes: toArray(answers.processes),
     ingredients: toArray(answers.ingredients),
@@ -3004,7 +1541,7 @@ async function getExistingTaskInstanceMap({ companyId, locationId, todayKey }) {
     const organizationId = sanitizeString(data.companyId || data.organizationId, 120);
     if (companyId && organizationId && organizationId !== companyId) continue;
 
-    // Nøglen er doc.id — kompatibel med nyt templateDocId__[equipmentId__]dateKey skema
+    // NÃ¸glen er doc.id â€” kompatibel med nyt templateDocId__[equipmentId__]dateKey skema
     taskMap.set(doc.id, {
       ref: doc.ref,
       data
@@ -3113,7 +1650,7 @@ function inferProvisionedTemplateMeta(title = "", hazard = {}) {
 
   if (
     text.includes("temperatur") ||
-    text.includes("køl") ||
+    text.includes("kÃ¸l") ||
     text.includes("kol") ||
     text.includes("frys") ||
     text.includes("varmhold") ||
@@ -3138,9 +1675,9 @@ function inferProvisionedTemplateMeta(title = "", hazard = {}) {
     };
   }
 
-  if (text.includes("rengør") || text.includes("rengor") || text.includes("lukker")) {
+  if (text.includes("rengÃ¸r") || text.includes("rengor") || text.includes("lukker")) {
     return {
-      category: text.includes("lukker") ? "lukkerutine" : "rengøring",
+      category: text.includes("lukker") ? "lukkerutine" : "rengÃ¸ring",
       formType: "checklist",
       riskLevel: sanitizeString(hazard?.riskLevel || "medium", 20).toLowerCase() || "medium",
       controlPoint,
@@ -3160,33 +1697,33 @@ function inferProvisionedTemplateMeta(title = "", hazard = {}) {
 function buildProvisionedTemplateFields(formType, suppliers = []) {
   if (formType === "temperature") {
     return [
-      { key: "measurement", label: "Måling", type: "number", required: true },
+      { key: "measurement", label: "MÃ¥ling", type: "number", required: true },
       { key: "comment", label: "Kommentar", type: "textarea", required: false },
-      { key: "deviationReason", label: "Årsag ved afvigelse", type: "textarea", required: false }
+      { key: "deviationReason", label: "Ã…rsag ved afvigelse", type: "textarea", required: false }
     ];
   }
 
   if (formType === "receiving") {
     return [
-      { key: "supplier", label: "Leverandør", type: suppliers.length ? "select" : "text", required: true, options: suppliers },
+      { key: "supplier", label: "LeverandÃ¸r", type: suppliers.length ? "select" : "text", required: true, options: suppliers },
       { key: "status", label: "Status", type: "radio", required: true, options: ["OK", "Afvigelse"] },
       { key: "comment", label: "Kommentar", type: "textarea", required: false },
-      { key: "deviationReason", label: "Årsag ved afvigelse", type: "textarea", required: false }
+      { key: "deviationReason", label: "Ã…rsag ved afvigelse", type: "textarea", required: false }
     ];
   }
 
   if (formType === "checklist") {
     return [
-      { key: "completed", label: "Udført", type: "checkbox", required: false },
+      { key: "completed", label: "UdfÃ¸rt", type: "checkbox", required: false },
       { key: "comment", label: "Kommentar", type: "textarea", required: false },
-      { key: "deviationReason", label: "Årsag ved afvigelse", type: "textarea", required: false }
+      { key: "deviationReason", label: "Ã…rsag ved afvigelse", type: "textarea", required: false }
     ];
   }
 
   return [
     { key: "status", label: "Status", type: "radio", required: true, options: ["OK", "Afvigelse"] },
     { key: "comment", label: "Kommentar", type: "textarea", required: false },
-    { key: "deviationReason", label: "Årsag ved afvigelse", type: "textarea", required: false }
+    { key: "deviationReason", label: "Ã…rsag ved afvigelse", type: "textarea", required: false }
   ];
 }
 
@@ -3195,7 +1732,7 @@ function buildProvisionedTemplateAlertRules(formType, title, riskLevel) {
     return [{
       type: "measurement_out_of_range",
       severity: riskLevel === "high" ? "critical" : "warning",
-      message: `${sanitizeString(title, 160)} kræver temperaturkontrol`
+      message: `${sanitizeString(title, 160)} krÃ¦ver temperaturkontrol`
     }];
   }
 
@@ -3203,12 +1740,12 @@ function buildProvisionedTemplateAlertRules(formType, title, riskLevel) {
     type: "status_equals",
     value: "Afvigelse",
     severity: riskLevel === "high" ? "critical" : "warning",
-    message: `${sanitizeString(title, 160)} kræver handling`
+    message: `${sanitizeString(title, 160)} krÃ¦ver handling`
   }];
 }
 
 function extractTemperatureLimits(kcp) {
-  if (!kcp || !kcp.criticalLimit) return { minValue: null, maxValue: null, unit: "°C" };
+  if (!kcp || !kcp.criticalLimit) return { minValue: null, maxValue: null, unit: "Â°C" };
   
   const criticalLimit = kcp.criticalLimit;
   const category = (kcp.category || "").toLowerCase();
@@ -3216,37 +1753,37 @@ function extractTemperatureLimits(kcp) {
   
   // KCP 1: Modtagelse (Receiving) - Default to chilled goods temperature
   if (category.includes("modtagelse") || title.includes("modtagelse") || title.includes("varemodtagelse")) {
-    return { minValue: 0, maxValue: 5, unit: "°C", target: "Kølevarer" };
+    return { minValue: 0, maxValue: 5, unit: "Â°C", target: "KÃ¸levarer" };
   }
   
-  // KCP 2: Opbevaring - Køl/Frost
+  // KCP 2: Opbevaring - KÃ¸l/Frost
   if (category.includes("opbevaring") || title.includes("lager")) {
-    if (title.includes("køl") || title.includes("fridge")) {
-      return { minValue: 0, maxValue: 5, unit: "°C", target: "Køleskab" };
+    if (title.includes("kÃ¸l") || title.includes("fridge")) {
+      return { minValue: 0, maxValue: 5, unit: "Â°C", target: "KÃ¸leskab" };
     }
     if (title.includes("frost") || title.includes("frys")) {
-      return { minValue: -25, maxValue: -18, unit: "°C", target: "Fryser" };
+      return { minValue: -25, maxValue: -18, unit: "Â°C", target: "Fryser" };
     }
     // Default for storage
-    return { minValue: 0, maxValue: 5, unit: "°C", target: "Køl" };
+    return { minValue: 0, maxValue: 5, unit: "Â°C", target: "KÃ¸l" };
   }
   
   // KCP 3: Tilberedning
   if (category.includes("tilberedning") || title.includes("tilberedning") || title.includes("opvarmning")) {
-    return { minValue: 75, maxValue: 100, unit: "°C", target: "Kernetemperatur" };
+    return { minValue: 75, maxValue: 100, unit: "Â°C", target: "Kernetemperatur" };
   }
   
-  // KCP 4: Nedkøling
-  if (category.includes("nedkoeling") || title.includes("nedkøl")) {
-    return { minValue: 0, maxValue: 10, unit: "°C", target: "Sluttemperatur", timeLimit: "4 timer" };
+  // KCP 4: NedkÃ¸ling
+  if (category.includes("nedkoeling") || title.includes("nedkÃ¸l")) {
+    return { minValue: 0, maxValue: 10, unit: "Â°C", target: "Sluttemperatur", timeLimit: "4 timer" };
   }
   
   // KCP 5: Varmholdelse
   if (category.includes("varmholdelse") || title.includes("varmhold")) {
-    return { minValue: 60, maxValue: 100, unit: "°C", target: "Varmholdelse", timeLimit: "3 timer" };
+    return { minValue: 60, maxValue: 100, unit: "Â°C", target: "Varmholdelse", timeLimit: "3 timer" };
   }
   
-  return { minValue: null, maxValue: null, unit: "°C" };
+  return { minValue: null, maxValue: null, unit: "Â°C" };
 }
 
 function formatInstructions(kcp) {
@@ -3297,7 +1834,7 @@ function formatCorrectiveActions(kcp) {
   const correctiveAction = kcp.correctiveAction;
   
   if (correctiveAction.immediate) {
-    actions.push(`**Øjeblikkelig handling:** ${correctiveAction.immediate}`);
+    actions.push(`**Ã˜jeblikkelig handling:** ${correctiveAction.immediate}`);
   }
   
   if (correctiveAction.prevention) {
@@ -3322,110 +1859,110 @@ function buildSpecificGuideContent(kcp) {
   const category = (kcp?.category || "").toLowerCase();
   const title = (kcp?.title || "").toLowerCase();
   
-  if (category.includes("nedkoeling") || title.includes("nedkøl")) {
+  if (category.includes("nedkoeling") || title.includes("nedkÃ¸l")) {
     return {
-      guidePurpose: "At sikre at tilberedte retter nedkøles hurtigt nok til at forhindre bakterievækst. Langsom nedkøling mellem 10°C og 60°C er farligt.",
-      guideExecutionTimes: "Efter hver tilberedning af retter der skal opbevares køligt",
-      guideCriticalLimit: "Sluttemperatur under 10°C inden for 4 timer fra 60°C",
+      guidePurpose: "At sikre at tilberedte retter nedkÃ¸les hurtigt nok til at forhindre bakterievÃ¦kst. Langsom nedkÃ¸ling mellem 10Â°C og 60Â°C er farligt.",
+      guideExecutionTimes: "Efter hver tilberedning af retter der skal opbevares kÃ¸ligt",
+      guideCriticalLimit: "Sluttemperatur under 10Â°C inden for 4 timer fra 60Â°C",
       guideSteps: [
-        "Mål og noter starttemperatur umiddelbart efter tilberedning (skal være under 60°C)",
-        "Placer maden i blast chiller eller køl med god luftcirkulation",
-        "Tildæk maden korrekt og mærk med dato og tidspunkt",
-        "Mål sluttemperatur efter nedkøling",
-        "Registrér både start- og sluttemperatur samt nedkølingstid i systemet"
+        "MÃ¥l og noter starttemperatur umiddelbart efter tilberedning (skal vÃ¦re under 60Â°C)",
+        "Placer maden i blast chiller eller kÃ¸l med god luftcirkulation",
+        "TildÃ¦k maden korrekt og mÃ¦rk med dato og tidspunkt",
+        "MÃ¥l sluttemperatur efter nedkÃ¸ling",
+        "RegistrÃ©r bÃ¥de start- og sluttemperatur samt nedkÃ¸lingstid i systemet"
       ],
-      guideWhatToRegister: ["Dato og klokkeslæt for start", "Starttemperatur", "Sluttemperatur", "Nedkølingstid", "Hvem der har udført kontrollen", "Eventuel kommentar"],
-      guideApproval: ["Sluttemperatur er under 10°C", "Nedkøling tog mindre end 4 timer", "Maden er korrekt tildækket og mærket", "Dokumentation er registreret"],
-      guideDeviationCriteria: ["Sluttemperatur over 10°C efter 4 timer", "Blast chiller fungerer ikke", "Maden blev ikke tildækket korrekt", "Nedkølingstid overskred 4 timer"],
+      guideWhatToRegister: ["Dato og klokkeslÃ¦t for start", "Starttemperatur", "Sluttemperatur", "NedkÃ¸lingstid", "Hvem der har udfÃ¸rt kontrollen", "Eventuel kommentar"],
+      guideApproval: ["Sluttemperatur er under 10Â°C", "NedkÃ¸ling tog mindre end 4 timer", "Maden er korrekt tildÃ¦kket og mÃ¦rket", "Dokumentation er registreret"],
+      guideDeviationCriteria: ["Sluttemperatur over 10Â°C efter 4 timer", "Blast chiller fungerer ikke", "Maden blev ikke tildÃ¦kket korrekt", "NedkÃ¸lingstid overskred 4 timer"],
       guideIfNotOk: [
-        "Registrér afvigelsen straks med præcise temperaturer og tidspunkter",
-        "Hvis over 10°C efter 4 timer: Kassér maden omgående - bakterievækst kan være farlig",
-        "Hvis blast chiller defekt: Brug isvandsbad eller fordel i mindre portioner i køl",
+        "RegistrÃ©r afvigelsen straks med prÃ¦cise temperaturer og tidspunkter",
+        "Hvis over 10Â°C efter 4 timer: KassÃ©r maden omgÃ¥ende - bakterievÃ¦kst kan vÃ¦re farlig",
+        "Hvis blast chiller defekt: Brug isvandsbad eller fordel i mindre portioner i kÃ¸l",
         "Flyt andre varer til fungerende udstyr",
-        "Informér køkkenchef eller ansvarlig leder",
-        "Bestil service på blast chiller hvis nødvendigt",
-        "Ved tvivl om fødevaresikkerhed: Kassér altid maden"
+        "InformÃ©r kÃ¸kkenchef eller ansvarlig leder",
+        "Bestil service pÃ¥ blast chiller hvis nÃ¸dvendigt",
+        "Ved tvivl om fÃ¸devaresikkerhed: KassÃ©r altid maden"
       ],
-      guideShortTips: ["Mål altid roligt og korrekt", "Brug kalibreret termometer", "Skriv den rigtige temperatur, ikke et gæt", "Ved afvigelse skal du altid handle med det samme", "Dokumentér alt"]
+      guideShortTips: ["MÃ¥l altid roligt og korrekt", "Brug kalibreret termometer", "Skriv den rigtige temperatur, ikke et gÃ¦t", "Ved afvigelse skal du altid handle med det samme", "DokumentÃ©r alt"]
     };
   }
   
   if (category.includes("tilberedning") || title.includes("tilberedning") || title.includes("opvarmning")) {
     return {
-      guidePurpose: "At sikre at maden tilberedes korrekt til en sikker temperatur for at forhindre bakterievækst.",
-      guideExecutionTimes: "Før hver servering af tilberedte retter",
-      guideCriticalLimit: "Kernetemperatur på minimum 75°C",
+      guidePurpose: "At sikre at maden tilberedes korrekt til en sikker temperatur for at forhindre bakterievÃ¦kst.",
+      guideExecutionTimes: "FÃ¸r hver servering af tilberedte retter",
+      guideCriticalLimit: "Kernetemperatur pÃ¥ minimum 75Â°C",
       guideSteps: [
-        "Stik termometeret i den tykkeste del af kødet eller fjerkræet",
-        "Vent 10 sekunder for at få en stabil måling",
-        "Aflæs temperaturen og sikr dig at den er minimum 75°C",
-        "Registrér temperaturen i systemet"
+        "Stik termometeret i den tykkeste del af kÃ¸det eller fjerkrÃ¦et",
+        "Vent 10 sekunder for at fÃ¥ en stabil mÃ¥ling",
+        "AflÃ¦s temperaturen og sikr dig at den er minimum 75Â°C",
+        "RegistrÃ©r temperaturen i systemet"
       ],
-      guideWhatToRegister: ["Dato og klokkeslæt for måling", "Kernetemperatur", "Hvem der har udført kontrollen", "Eventuel kommentar"],
-      guideApproval: ["Kernetemperatur er minimum 75°C", "Maden ser appetitlig ud", "Dokumentation er registreret"],
-      guideDeviationCriteria: ["Kernetemperatur under 75°C", "Termometeret er ikke kalibreret", "Maden ser ikke appetitlig ud"],
+      guideWhatToRegister: ["Dato og klokkeslÃ¦t for mÃ¥ling", "Kernetemperatur", "Hvem der har udfÃ¸rt kontrollen", "Eventuel kommentar"],
+      guideApproval: ["Kernetemperatur er minimum 75Â°C", "Maden ser appetitlig ud", "Dokumentation er registreret"],
+      guideDeviationCriteria: ["Kernetemperatur under 75Â°C", "Termometeret er ikke kalibreret", "Maden ser ikke appetitlig ud"],
       guideIfNotOk: [
-        "Registrér afvigelsen straks med præcise temperaturer og tidspunkter",
-        "Hvis under 75°C: Tilbered maden længere ved lavere varme",
-        "Hvis termometeret ikke er kalibreret: Kalibrér det før næste brug",
-        "Hvis maden ikke ser appetitlig ud: Kassér den",
-        "Informér køkkenchef eller ansvarlig leder",
-        "Ved tvivl om fødevaresikkerhed: Kassér altid maden"
+        "RegistrÃ©r afvigelsen straks med prÃ¦cise temperaturer og tidspunkter",
+        "Hvis under 75Â°C: Tilbered maden lÃ¦ngere ved lavere varme",
+        "Hvis termometeret ikke er kalibreret: KalibrÃ©r det fÃ¸r nÃ¦ste brug",
+        "Hvis maden ikke ser appetitlig ud: KassÃ©r den",
+        "InformÃ©r kÃ¸kkenchef eller ansvarlig leder",
+        "Ved tvivl om fÃ¸devaresikkerhed: KassÃ©r altid maden"
       ],
-      guideShortTips: ["Brug altid et kalibreret termometer", "Mål kernetemperaturen korrekt", "Skriv den rigtige temperatur, ikke et gæt", "Ved afvigelse skal du altid handle med det samme", "Dokumentér alt"]
+      guideShortTips: ["Brug altid et kalibreret termometer", "MÃ¥l kernetemperaturen korrekt", "Skriv den rigtige temperatur, ikke et gÃ¦t", "Ved afvigelse skal du altid handle med det samme", "DokumentÃ©r alt"]
     };
   }
   
   if (category.includes("varmholdelse") || title.includes("varmhold")) {
     return {
-      guideAreas: ["Temperatur (min 60°C)", "Varighed (max 3 timer)", "Madkvalitet"],
-      guideSteps: ["Mål i midten af retten", "Tjek varmeskab temperatur", "Noter starttidspunkt", "Registrer data"],
-      guideApproval: ["Minimum 60°C", "Under 3 timer", "Ser appetitlig ud"],
-      guideIfNotOk: ["Under 60°C: Varm til 75°C eller kassér", "Over 3 timer: Kassér maden", "Varmeskab defekt: Flyt eller server", "Ved tvivl: Kassér", "Registrer afvigelse"]
+      guideAreas: ["Temperatur (min 60Â°C)", "Varighed (max 3 timer)", "Madkvalitet"],
+      guideSteps: ["MÃ¥l i midten af retten", "Tjek varmeskab temperatur", "Noter starttidspunkt", "Registrer data"],
+      guideApproval: ["Minimum 60Â°C", "Under 3 timer", "Ser appetitlig ud"],
+      guideIfNotOk: ["Under 60Â°C: Varm til 75Â°C eller kassÃ©r", "Over 3 timer: KassÃ©r maden", "Varmeskab defekt: Flyt eller server", "Ved tvivl: KassÃ©r", "Registrer afvigelse"]
     };
   }
   
   if (category.includes("modtagelse") || title.includes("modtagelse")) {
     return {
-      guideAreas: ["Temperatur (køl max 5°C, frost max -12°C)", "Emballage-integritet", "Holdbarhedsdato", "Sensorisk vurdering"],
-      guideSteps: ["Tjek temperaturer", "Inspicer emballage", "Tjek datoer", "Lugt og se på varerne"],
+      guideAreas: ["Temperatur (kÃ¸l max 5Â°C, frost max -12Â°C)", "Emballage-integritet", "Holdbarhedsdato", "Sensorisk vurdering"],
+      guideSteps: ["Tjek temperaturer", "Inspicer emballage", "Tjek datoer", "Lugt og se pÃ¥ varerne"],
       guideApproval: ["Temperaturer OK", "Emballage intakt", "Datoer acceptable", "Frisk lugt og udseende"],
-      guideIfNotOk: ["Kølevarer over 5°C: Afvis", "Frostvarer optøede: Afvis", "Beskadiget emballage: Afvis eller dokumenter", "Dårlig lugt: Afvis altid", "Kort holdbarhed: Afvis eller brug samme dag", "Dokumenter med billeder"]
+      guideIfNotOk: ["KÃ¸levarer over 5Â°C: Afvis", "Frostvarer optÃ¸ede: Afvis", "Beskadiget emballage: Afvis eller dokumenter", "DÃ¥rlig lugt: Afvis altid", "Kort holdbarhed: Afvis eller brug samme dag", "Dokumenter med billeder"]
     };
   }
   
   if (category.includes("opbevaring") || title.includes("lager")) {
     return {
-      guideAreas: ["Temperatur (køl 0-5°C, frost -18 til -25°C)", "FIFO-princip", "Adskillelse råt/tilberedt", "Tildækning og mærkning"],
-      guideSteps: ["Mål temperaturer", "Tjek FIFO", "Kontrollér adskillelse", "Verificer mærkning"],
-      guideApproval: ["Temperaturer korrekte", "FIFO overholdt", "Ingen krydskontaminering", "Alt mærket"],
-      guideIfNotOk: ["Høj temperatur: Tjek døre, kontakt tekniker", "Råt over tilberedt: Flyt og rengør", "Umærket: Mærk nu eller kassér", "Gammelt mad: Kassér", "Gentagne problemer: Tag ud af drift", "Registrer afvigelse"]
+      guideAreas: ["Temperatur (kÃ¸l 0-5Â°C, frost -18 til -25Â°C)", "FIFO-princip", "Adskillelse rÃ¥t/tilberedt", "TildÃ¦kning og mÃ¦rkning"],
+      guideSteps: ["MÃ¥l temperaturer", "Tjek FIFO", "KontrollÃ©r adskillelse", "Verificer mÃ¦rkning"],
+      guideApproval: ["Temperaturer korrekte", "FIFO overholdt", "Ingen krydskontaminering", "Alt mÃ¦rket"],
+      guideIfNotOk: ["HÃ¸j temperatur: Tjek dÃ¸re, kontakt tekniker", "RÃ¥t over tilberedt: Flyt og rengÃ¸r", "UmÃ¦rket: MÃ¦rk nu eller kassÃ©r", "Gammelt mad: KassÃ©r", "Gentagne problemer: Tag ud af drift", "Registrer afvigelse"]
     };
   }
   
   if (category.includes("allergen")) {
     return {
-      guideAreas: ["Allergenmærkning på menukort", "Separate redskaber", "Rengøring mellem retter", "Personaleviden"],
-      guideSteps: ["Gennemgå menukort", "Tjek separate redskaber", "Test personaleviden", "Kontrollér rengøring"],
-      guideApproval: ["Alt mærket korrekt", "Separate redskaber findes", "Personale kender allergener", "Rengøring forhindrer krydskontaminering"],
-      guideIfNotOk: ["Mangler mærkning: Opdater omgående", "Personale ukyndigt: Hold briefing nu", "Ingen separate redskaber: Anskaf eller vask grundigt", "Krydskontaminering: Kassér og lav ny", "Allergisk reaktion: Ring 112 hvis alvorligt", "Træn personale"]
+      guideAreas: ["AllergenmÃ¦rkning pÃ¥ menukort", "Separate redskaber", "RengÃ¸ring mellem retter", "Personaleviden"],
+      guideSteps: ["GennemgÃ¥ menukort", "Tjek separate redskaber", "Test personaleviden", "KontrollÃ©r rengÃ¸ring"],
+      guideApproval: ["Alt mÃ¦rket korrekt", "Separate redskaber findes", "Personale kender allergener", "RengÃ¸ring forhindrer krydskontaminering"],
+      guideIfNotOk: ["Mangler mÃ¦rkning: Opdater omgÃ¥ende", "Personale ukyndigt: Hold briefing nu", "Ingen separate redskaber: Anskaf eller vask grundigt", "Krydskontaminering: KassÃ©r og lav ny", "Allergisk reaktion: Ring 112 hvis alvorligt", "TrÃ¦n personale"]
     };
   }
   
   if (category.includes("rengoering") || category.includes("cleaning")) {
     return {
-      guideAreas: ["Arbejdsflader og redskaber", "Køle/frostenheder", "Afløb og gulve", "Maskiner"],
-      guideSteps: ["Inspicer visuelt", "Tjek kritiske områder", "Verificer rengøringsplan", "Test med hvid klud"],
-      guideApproval: ["Visuelt rent", "Ingen dårlig lugt", "Plan fulgt", "Hvid klud-test OK"],
-      guideIfNotOk: ["Synligt snavs: Rengør omgående", "Afløb lugter: Rens dagligt", "Beskidte tætninger: Rengør og desinficer", "Maskiner urene: Stop brug og rengør", "Gentagne problemer: Ekstra instruktion", "Skadedyr: Kontakt bekæmpelse", "Registrer afvigelse"]
+      guideAreas: ["Arbejdsflader og redskaber", "KÃ¸le/frostenheder", "AflÃ¸b og gulve", "Maskiner"],
+      guideSteps: ["Inspicer visuelt", "Tjek kritiske omrÃ¥der", "Verificer rengÃ¸ringsplan", "Test med hvid klud"],
+      guideApproval: ["Visuelt rent", "Ingen dÃ¥rlig lugt", "Plan fulgt", "Hvid klud-test OK"],
+      guideIfNotOk: ["Synligt snavs: RengÃ¸r omgÃ¥ende", "AflÃ¸b lugter: Rens dagligt", "Beskidte tÃ¦tninger: RengÃ¸r og desinficer", "Maskiner urene: Stop brug og rengÃ¸r", "Gentagne problemer: Ekstra instruktion", "Skadedyr: Kontakt bekÃ¦mpelse", "Registrer afvigelse"]
     };
   }
   
   return {
-    guideAreas: ["Kontrollér visuelt", "Bekræft udførelse", "Beskriv afvigelser"],
-    guideSteps: ["Vask hænder", "Gennemfør kontrol", "Gem dokumentation"],
-    guideApproval: ["Rent og vedligeholdt", "Udført uden mangler", "Gemt i systemet"],
-    guideIfNotOk: ["Registrér afvigelse", "Udfør korrigerende handling", "Informer ansvarlig"]
+    guideAreas: ["KontrollÃ©r visuelt", "BekrÃ¦ft udfÃ¸relse", "Beskriv afvigelser"],
+    guideSteps: ["Vask hÃ¦nder", "GennemfÃ¸r kontrol", "Gem dokumentation"],
+    guideApproval: ["Rent og vedligeholdt", "UdfÃ¸rt uden mangler", "Gemt i systemet"],
+    guideIfNotOk: ["RegistrÃ©r afvigelse", "UdfÃ¸r korrigerende handling", "Informer ansvarlig"]
   };
 }
 
@@ -3737,7 +2274,7 @@ exports.syncRiskTaskTemplates = functions.https.onCall(async (request) => {
   const auth = request.auth;
   
   if (!auth?.uid) {
-    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind for at synkronisere task-skabeloner.");
+    throw new functions.https.HttpsError("unauthenticated", "Du skal vÃ¦re logget ind for at synkronisere task-skabeloner.");
   }
 
   const uid = sanitizeString(auth.uid, 160);
@@ -3837,7 +2374,7 @@ exports.syncRiskTaskTemplates = functions.https.onCall(async (request) => {
   };
 });
 
-// ─── ADMIN: RE-PROVISION EQUIPMENT FOR EXISTING LOCATION ────────────────────
+// â”€â”€â”€ ADMIN: RE-PROVISION EQUIPMENT FOR EXISTING LOCATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Kald dette for lokationer som ikke gik igennem det nye checkout-flow.
 // Populerer `equipment` collection, rydder op i cleaning/maintenance templates.
 exports.adminReprovisionEquipment = functions.https.onCall(async (request) => {
@@ -3845,7 +2382,7 @@ exports.adminReprovisionEquipment = functions.https.onCall(async (request) => {
   const auth = request.auth;
 
   if (!auth?.uid) {
-    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+    throw new functions.https.HttpsError("unauthenticated", "Du skal vÃ¦re logget ind.");
   }
 
   const uid = sanitizeString(auth.uid, 160);
@@ -3854,12 +2391,12 @@ exports.adminReprovisionEquipment = functions.https.onCall(async (request) => {
   const locationId = sanitizeString(data?.locationId, 120);
 
   if (!companyId || !locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er pÃ¥krÃ¦vet.");
   }
 
   await assertAdminAccess({ uid, email, companyId, locationId });
 
-  // Accept explicit counts or fall back to live_user_profiles → profile
+  // Accept explicit counts or fall back to live_user_profiles â†’ profile
   let equipmentCounts = {};
   let profile = {};
 
@@ -3910,13 +2447,13 @@ exports.adminReprovisionEquipment = functions.https.onCall(async (request) => {
   };
 });
 
-// ─── ADMIN: GENERER RISKS FRA ONBOARDING ─────────────────────────────────────
+// â”€â”€â”€ ADMIN: GENERER RISKS FRA ONBOARDING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.generateRisksForLocation = functions.https.onCall(async (request) => {
   const data = request.data;
   const auth = request.auth;
 
   if (!auth?.uid) {
-    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+    throw new functions.https.HttpsError("unauthenticated", "Du skal vÃ¦re logget ind.");
   }
 
   const uid = sanitizeString(auth.uid, 160);
@@ -3925,7 +2462,7 @@ exports.generateRisksForLocation = functions.https.onCall(async (request) => {
   const locationId = sanitizeString(data?.locationId, 120);
 
   if (!companyId || !locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er pÃ¥krÃ¦vet.");
   }
 
   await assertAdminAccess({ uid, email, companyId, locationId });
@@ -3936,13 +2473,13 @@ exports.generateRisksForLocation = functions.https.onCall(async (request) => {
   return { ok: true, ...result };
 });
 
-// ─── ADMIN: GENERER EGENKONTROL-TEMPLATES FRA RISKS ──────────────────────────
+// â”€â”€â”€ ADMIN: GENERER EGENKONTROL-TEMPLATES FRA RISKS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.generateTemplatesForLocation = functions.https.onCall(async (request) => {
   const data = request.data;
   const auth = request.auth;
 
   if (!auth?.uid) {
-    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+    throw new functions.https.HttpsError("unauthenticated", "Du skal vÃ¦re logget ind.");
   }
 
   const uid = sanitizeString(auth.uid, 160);
@@ -3951,7 +2488,7 @@ exports.generateTemplatesForLocation = functions.https.onCall(async (request) =>
   const locationId = sanitizeString(data?.locationId, 120);
 
   if (!companyId || !locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er pÃ¥krÃ¦vet.");
   }
 
   await assertAdminAccess({ uid, email, companyId, locationId });
@@ -4121,19 +2658,27 @@ exports.getLexiCustomerStatus = functions.https.onCall(async (request) => {
 });
 
 //
-// 🔹 FREKVENS LOGIK
+// ðŸ”¹ FREKVENS LOGIK
 //
 
 /**
  * Ny unified schedule evaluator med support for scheduleConfig.
- * Understøtter: daily, every_n_days, weekly_days, monthly, yearly, firstRunImmediately.
+ * UnderstÃ¸tter: daily, every_n_days, weekly_days, monthly, yearly, firstRunImmediately.
  */
 function shouldRunToday(scheduleConfig, todayKey, anchorDateKey, lastCompletedDateKey) {
   if (!scheduleConfig) return false;
 
   const scheduleType = scheduleConfig.scheduleType || "operational";
   const firstRunImmediately = scheduleConfig.firstRunImmediately === true;
-  const recurrenceMode = scheduleConfig.documentedIntervalMode || scheduleConfig.recurrenceMode || "daily";
+  let recurrenceMode = scheduleConfig.documentedIntervalMode || scheduleConfig.recurrenceMode || "daily";
+
+  // Alias: writers emit "interval_days" / "days" for the same "every N days" cadence
+  // that this function implements under the "every_n_days" branch. Normalize so the
+  // existing every_n_days logic is reused unchanged.
+  if (recurrenceMode === "interval_days" || recurrenceMode === "days") {
+    recurrenceMode = "every_n_days";
+  }
+
   const recurrenceValue = Number(scheduleConfig.documentedIntervalValue || scheduleConfig.recurrenceValue || 1);
   const weekdays = scheduleConfig.weekdays || [];
   const monthDays = scheduleConfig.monthDays || [];
@@ -4384,7 +2929,7 @@ async function ensureLocationTemperatureSettings(db, companyId, locationId, toda
     useDailyObservation: true
   };
 
-  // Merge: bevar eksisterende brugerdata, tilføj kun manglende felter
+  // Merge: bevar eksisterende brugerdata, tilfÃ¸j kun manglende felter
   const merged = {
     enabled: existing.enabled !== undefined ? existing.enabled : defaults.enabled,
     documentedIntervalMode: existing.documentedIntervalMode || defaults.documentedIntervalMode,
@@ -4403,7 +2948,7 @@ async function ensureLocationTemperatureSettings(db, companyId, locationId, toda
       : defaults.useDailyObservation
   };
 
-  // Kun opdater hvis der er ændringer
+  // Kun opdater hvis der er Ã¦ndringer
   const needsUpdate = JSON.stringify(existing) !== JSON.stringify(merged);
   
   if (needsUpdate) {
@@ -4434,7 +2979,7 @@ async function ensureEquipmentTemperatureControl(db, locationId, unit) {
 
   const unitType = sanitizeEquipmentType(unit.type || unit.equipmentType || "");
   
-  // Kun relevante typer får temperatureControl
+  // Kun relevante typer fÃ¥r temperatureControl
   const temperatureRelevantTypes = [
     "fridge", "freezer", "walk_in_cooler", "walk_in_freezer",
     "display_fridge", "isboks", "ice_machine", "softice_machine"
@@ -4454,7 +2999,7 @@ async function ensureEquipmentTemperatureControl(db, locationId, unit) {
     overrideSchedule: null
   };
 
-  // Merge: bevar eksisterende brugerdata, tilføj kun manglende felter
+  // Merge: bevar eksisterende brugerdata, tilfÃ¸j kun manglende felter
   const merged = {
     enabled: existing.enabled !== undefined ? existing.enabled : defaults.enabled,
     useGlobalSchedule: existing.useGlobalSchedule !== undefined ? existing.useGlobalSchedule : defaults.useGlobalSchedule,
@@ -4462,7 +3007,7 @@ async function ensureEquipmentTemperatureControl(db, locationId, unit) {
     overrideSchedule: existing.overrideSchedule || defaults.overrideSchedule
   };
 
-  // Kun opdater hvis der er ændringer
+  // Kun opdater hvis der er Ã¦ndringer
   const needsUpdate = JSON.stringify(existing) !== JSON.stringify(merged);
   
   if (needsUpdate) {
@@ -4482,7 +3027,7 @@ async function ensureEquipmentTemperatureControl(db, locationId, unit) {
 }
 
 //
-// 🔹 HENT SENESTE FULDFØRTE
+// ðŸ”¹ HENT SENESTE FULDFÃ˜RTE
 //
 async function getLastCompleted(taskId, locationId) {
   if (!taskId || !locationId) return null;
@@ -4510,7 +3055,7 @@ async function getLastCompleted(taskId, locationId) {
 function sanitizeEquipmentType(value) {
   const normalized = sanitizeString(value, 80).toLowerCase().replace(/[\s-]+/g, "_");
   const aliases = {
-    "pålægsmaskine": "paalaegsmaskine",
+    "pÃ¥lÃ¦gsmaskine": "paalaegsmaskine",
     paalaegsmaskine: "paalaegsmaskine",
     slicer: "slicer",
     slicing_machine: "slicing_machine",
@@ -4521,13 +3066,21 @@ function sanitizeEquipmentType(value) {
     ice_machine: "ice_machine",
     ismaskine: "ismaskine",
     isemaskine: "ismaskine",
-    "is-maskine": "ismaskine"
+    "is-maskine": "ismaskine",
+    walkin_cooler: "walk_in_cooler",
+    walkin_koeler: "walk_in_cooler",
+    walkin_freezer: "walk_in_freezer",
+    walkin_fryser: "walk_in_freezer",
+    refrigerated_display: "display_fridge",
+    koledisk: "display_fridge",
+    hot_cabinet: "warming_cabinet",
+    varmeskab: "warming_cabinet"
   };
   return aliases[normalized] || normalized;
 }
 
 /**
- * Beregner status for en temperaturtask ud fra threshold og målt temperatur.
+ * Beregner status for en temperaturtask ud fra threshold og mÃ¥lt temperatur.
  * @param {{ measuredTemperature?: number, thresholds?: { mode: string, value: number } }} opts
  * @returns {"ok" | "deviation" | "unknown"}
  */
@@ -4555,12 +3108,12 @@ function getEquipmentDisplayName(item, fallbackLabel) {
 
 function prettyEquipmentTypeName(type) {
   const map = {
-    fridge: "Køleskab",
+    fridge: "KÃ¸leskab",
     freezer: "Fryser",
     dishwasher: "Opvaskemaskine",
     warming_cabinet: "Varmeskab",
     blast_chiller: "Blast chiller",
-    display_fridge: "Displaykøl"
+    display_fridge: "DisplaykÃ¸l"
   };
   const normalized = sanitizeEquipmentType(type);
   return map[normalized] || normalized || "Maskine";
@@ -4653,7 +3206,7 @@ function buildStartDayTargets({ template, templateDocId, equipmentByType, allEqu
       else if (docId.includes("freezer"))    lookupKey = "freezer";
     }
     const units = lookupKey ? (equipmentByType[lookupKey] || []) : [];
-    // ingen generisk fallback — hvis ingen units, skip template
+    // ingen generisk fallback â€” hvis ingen units, skip template
     if (units.length === 0) return [];
     return units.map((u) => ({
       suffix:        u.id,
@@ -4685,25 +3238,92 @@ function toPositiveInt(value) {
   return Math.max(0, Math.floor(n));
 }
 
-// ─── ONBOARDING EQUIPMENT SYNC ───────────────────────────────────────────────
+function buildEquipmentSeedKey({ companyId, locationId, equipmentType, unitNumber }) {
+  return [
+    toDocSafeId(companyId || "company"),
+    toDocSafeId(locationId || "location"),
+    toDocSafeId(equipmentType || "equipment"),
+    toPositiveInt(unitNumber) || 1
+  ].join("__");
+}
 
-// ─── EQUIPMENT-BASED CLEANING TEMPLATES ──────────────────────────────────────
+function buildEquipmentDocId({ companyId, locationId, equipmentType, unitNumber }) {
+  return `onboarding__${buildEquipmentSeedKey({ companyId, locationId, equipmentType, unitNumber }).slice(0, 170)}`;
+}
+
+function parseEquipmentUnitNumberFromId(id = "", equipmentType = "") {
+  const raw = String(id || "");
+  const scopedMatch = raw.match(/__(\d+)$/);
+  if (scopedMatch) return toPositiveInt(scopedMatch[1]);
+
+  const legacyPrefix = `onboarding_${equipmentType}_`;
+  if (equipmentType && raw.startsWith(legacyPrefix)) {
+    return toPositiveInt(raw.slice(legacyPrefix.length));
+  }
+
+  const trailingMatch = raw.match(/_(\d+)$/);
+  return trailingMatch ? toPositiveInt(trailingMatch[1]) : 0;
+}
+
+function buildEquipmentRuntimeFlags(equipmentType = "", controlTypes = []) {
+  const type = sanitizeEquipmentType(equipmentType);
+  const temperatureTypes = new Set([
+    "fridge",
+    "freezer",
+    "walk_in_cooler",
+    "walk_in_freezer",
+    "display_fridge",
+    "ice_box",
+    "blast_chiller",
+    "warming_cabinet",
+    "softice_machine"
+  ]);
+  const limits = {
+    fridge: { minTemp: 0, maxTemp: 5 },
+    freezer: { minTemp: -30, maxTemp: -18 },
+    walk_in_cooler: { minTemp: 0, maxTemp: 5 },
+    walk_in_freezer: { minTemp: -30, maxTemp: -18 },
+    display_fridge: { minTemp: 0, maxTemp: 5 },
+    ice_box: { minTemp: -30, maxTemp: -18 },
+    blast_chiller: { minTemp: 0, maxTemp: 5 },
+    warming_cabinet: { minTemp: 65, maxTemp: null },
+    softice_machine: { minTemp: 0, maxTemp: 5 }
+  };
+  const temperatureRequired = temperatureTypes.has(type) || controlTypes.includes("temperature_check");
+  return {
+    haccpRelevant: true,
+    routineRelevant: true,
+    temperatureRequired,
+    minTemp: limits[type]?.minTemp ?? null,
+    maxTemp: limits[type]?.maxTemp ?? null,
+    cleaningRequired: true,
+    cleaningFrequency: ["freezer", "walk_in_freezer", "ice_box"].includes(type) ? "monthly" : "weekly",
+    serviceRequired: true,
+    serviceFrequency: "yearly",
+    calibrationRequired: temperatureRequired,
+    calibrationFrequency: temperatureRequired ? "yearly" : ""
+  };
+}
+
+// â”€â”€â”€ ONBOARDING EQUIPMENT SYNC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+// â”€â”€â”€ EQUIPMENT-BASED CLEANING TEMPLATES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Defines which equipment types should generate a per-unit cleaning task.
 // controlType "cleaning_check" + explicit equipmentType triggers per-unit expansion.
 
 const EQUIPMENT_CLEANING_TEMPLATE_DEFINITIONS = [
-  { key: "cleaning_fridge_control",         equipmentType: "fridge",          titleBase: "Rengøringskontrol", category: "rengøring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Rengør og desinficér køleskab grundigt. Fjern alle varer. Rengør hylder, skuffer og gummilister. Tør indvendigt tørt. Placer varerne tilbage. Kontrollér at døren lukker tæt." },
-  { key: "cleaning_freezer_control",        equipmentType: "freezer",         titleBase: "Rengøringskontrol", category: "rengøring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Afrim og rengør fryser. Fjern alle varer og isbelægning. Rengør indvendigt med godkendt middel. Tør af og sæt varerne tilbage. Kontrollér temperatur efterfølgende." },
-  { key: "cleaning_fryer_control",          equipmentType: "fryer",           titleBase: "Rengøringskontrol", category: "rengøring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Sluk og afkøl frituregryden. Tøm og filtrer olien. Rengør kar, kurve og varmeelementet. Kontrollér oliernes kvalitet (friture-test). Varm op til driftstemperatur igen." },
-  { key: "cleaning_dishwasher_control",     equipmentType: "dishwasher",      titleBase: "Rengøringskontrol", category: "rengøring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Rens opvaskemaskinens filtre, arme og indre vægge. Kontrollér afkalkningsmiddel og skyllemiddel. Kør et tomt program. Kontrollér skylletemperatur (min. 82°C)." },
-  { key: "paalaegsmaskine_rengoering",      equipmentType: "slicer",          routineType: "paalaegsmaskine_rengoering", templateKey: "paalaegsmaskine_rengoering", titleBase: "Pålægsmaskine rengøring", category: "rengøring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Rengør og desinficér pålægsmaskinens kniv, slæde, afskærmning og fødevarekontaktflader. Kontrollér at der ikke er synlige madrester, fedt, belægninger eller snavs, og at aftagelige dele er samlet korrekt." },
-  { key: "softice_maskine_rengoering",      equipmentType: "softice_machine", routineType: "softice_maskine_rengoering", templateKey: "softice_maskine_rengoering", titleBase: "Ismaskine / softicemaskine rengøring", category: "rengøring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Rengør og desinficér ismaskine eller softicemaskine efter virksomhedens plan og producentens anvisning. Kontrollér kontaktflader, dyser, tappetud, beholdere, aftagelige dele og området omkring maskinen." },
-  { key: "cleaning_display_fridge_control", equipmentType: "display_fridge",  titleBase: "Rengøringskontrol", category: "rengøring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Tøm displaykøl. Rengør hylder og vægge indvendigt. Kontrollér gummilister og låger. Tør af og fyld op med korrekt placerede varer. Kontrollér temperatur." },
-  { key: "cleaning_warming_cabinet_control",equipmentType: "warming_cabinet", titleBase: "Rengøringskontrol", category: "rengøring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Rengør varmeskab. Fjern mad-rester fra hylder og vægge. Rengør med varmt vand og godkendt rengøringsmiddel. Tør af. Kontrollér varmeelementer og termostat." },
-  { key: "cleaning_blast_chiller_control",  equipmentType: "blast_chiller",   titleBase: "Rengøringskontrol", category: "rengøring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Rengør blast chiller efter brug. Fjern alle madrester. Rengør indvendigt med godkendt middel. Kontrollér fordamper for isophobning. Tør og klargør til næste brug." },
+  { key: "cleaning_fridge_control",         equipmentType: "fridge",          titleBase: "RengÃ¸ringskontrol", category: "rengÃ¸ring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "RengÃ¸r og desinficÃ©r kÃ¸leskab grundigt. Fjern alle varer. RengÃ¸r hylder, skuffer og gummilister. TÃ¸r indvendigt tÃ¸rt. Placer varerne tilbage. KontrollÃ©r at dÃ¸ren lukker tÃ¦t." },
+  { key: "cleaning_freezer_control",        equipmentType: "freezer",         titleBase: "RengÃ¸ringskontrol", category: "rengÃ¸ring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Afrim og rengÃ¸r fryser. Fjern alle varer og isbelÃ¦gning. RengÃ¸r indvendigt med godkendt middel. TÃ¸r af og sÃ¦t varerne tilbage. KontrollÃ©r temperatur efterfÃ¸lgende." },
+  { key: "cleaning_fryer_control",          equipmentType: "fryer",           titleBase: "RengÃ¸ringskontrol", category: "rengÃ¸ring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Sluk og afkÃ¸l frituregryden. TÃ¸m og filtrer olien. RengÃ¸r kar, kurve og varmeelementet. KontrollÃ©r oliernes kvalitet (friture-test). Varm op til driftstemperatur igen." },
+  { key: "cleaning_dishwasher_control",     equipmentType: "dishwasher",      titleBase: "RengÃ¸ringskontrol", category: "rengÃ¸ring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "Rens opvaskemaskinens filtre, arme og indre vÃ¦gge. KontrollÃ©r afkalkningsmiddel og skyllemiddel. KÃ¸r et tomt program. KontrollÃ©r skylletemperatur (min. 82Â°C)." },
+  { key: "paalaegsmaskine_rengoering",      equipmentType: "slicer",          routineType: "paalaegsmaskine_rengoering", templateKey: "paalaegsmaskine_rengoering", titleBase: "PÃ¥lÃ¦gsmaskine rengÃ¸ring", category: "rengÃ¸ring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "RengÃ¸r og desinficÃ©r pÃ¥lÃ¦gsmaskinens kniv, slÃ¦de, afskÃ¦rmning og fÃ¸devarekontaktflader. KontrollÃ©r at der ikke er synlige madrester, fedt, belÃ¦gninger eller snavs, og at aftagelige dele er samlet korrekt." },
+  { key: "softice_maskine_rengoering",      equipmentType: "softice_machine", routineType: "softice_maskine_rengoering", templateKey: "softice_maskine_rengoering", titleBase: "Ismaskine / softicemaskine rengÃ¸ring", category: "rengÃ¸ring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "RengÃ¸r og desinficÃ©r ismaskine eller softicemaskine efter virksomhedens plan og producentens anvisning. KontrollÃ©r kontaktflader, dyser, tappetud, beholdere, aftagelige dele og omrÃ¥det omkring maskinen." },
+  { key: "cleaning_display_fridge_control", equipmentType: "display_fridge",  titleBase: "RengÃ¸ringskontrol", category: "rengÃ¸ring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "TÃ¸m displaykÃ¸l. RengÃ¸r hylder og vÃ¦gge indvendigt. KontrollÃ©r gummilister og lÃ¥ger. TÃ¸r af og fyld op med korrekt placerede varer. KontrollÃ©r temperatur." },
+  { key: "cleaning_warming_cabinet_control",equipmentType: "warming_cabinet", titleBase: "RengÃ¸ringskontrol", category: "rengÃ¸ring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "RengÃ¸r varmeskab. Fjern mad-rester fra hylder og vÃ¦gge. RengÃ¸r med varmt vand og godkendt rengÃ¸ringsmiddel. TÃ¸r af. KontrollÃ©r varmeelementer og termostat." },
+  { key: "cleaning_blast_chiller_control",  equipmentType: "blast_chiller",   titleBase: "RengÃ¸ringskontrol", category: "rengÃ¸ring", controlType: "cleaning_check", frequency: "daily", riskLevel: "medium", guideBody: "RengÃ¸r blast chiller efter brug. Fjern alle madrester. RengÃ¸r indvendigt med godkendt middel. KontrollÃ©r fordamper for isophobning. TÃ¸r og klargÃ¸r til nÃ¦ste brug." },
 ];
 
-async function syncEquipmentCleaningTemplates({ db: dbRef, companyId, locationId }) {
+async function syncEquipmentCleaningTemplates({ db: dbRef, companyId, locationId, ownerScopeMetadata = {} }) {
   if (!companyId || !locationId) {
     console.warn("[syncEquipmentCleaningTemplates] missing companyId or locationId, skipping");
     return { ok: false, created: 0 };
@@ -4765,8 +3385,14 @@ async function syncEquipmentCleaningTemplates({ db: dbRef, companyId, locationId
     if (snap.exists) {
       // Patch title if stale (e.g. old code stored equipment type in title)
       const existing = snap.data() || {};
+      const patch = buildOwnerScopeUpdatePatch(existing, ownerScopeMetadata);
       if (existing.title !== def.titleBase) {
-        await ref.update({ title: def.titleBase, guideTitle: `Vejledning: ${def.titleBase}`, updatedAt: nowTs });
+        patch.title = def.titleBase;
+        patch.guideTitle = `Vejledning: ${def.titleBase}`;
+      }
+      if (Object.keys(patch).length > 0) {
+        patch.updatedAt = nowTs;
+        await ref.update(patch);
       }
       continue;
     }
@@ -4777,6 +3403,7 @@ async function syncEquipmentCleaningTemplates({ db: dbRef, companyId, locationId
       companyId,
       organizationId: companyId,
       locationId,
+      ...ownerScopeMetadata,
       routineType:   def.routineType || def.key,
       templateKey:   def.templateKey || def.routineType || def.key,
       taskKey:       def.templateKey || def.routineType || def.key,
@@ -4811,28 +3438,28 @@ async function syncEquipmentCleaningTemplates({ db: dbRef, companyId, locationId
     console.log(`[syncEquipmentCleaningTemplates] created ${docId}`);
   }
 
-  console.log(`[syncEquipmentCleaningTemplates] done — created=${created}, activeTypes=${[...activeTypes].join(",")}`);
+  console.log(`[syncEquipmentCleaningTemplates] done â€” created=${created}, activeTypes=${[...activeTypes].join(",")}`);
   return { ok: true, created };
 }
-// ─── EQUIPMENT-BASED MAINTENANCE TEMPLATES ───────────────────────────────────
+// â”€â”€â”€ EQUIPMENT-BASED MAINTENANCE TEMPLATES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Defines which equipment types should generate a per-unit maintenance task.
 // controlType "maintenance_check" + explicit equipmentType triggers per-unit expansion.
 
 const EQUIPMENT_MAINTENANCE_TEMPLATE_DEFINITIONS = [
-  { key: "maintenance_fridge_control",        equipmentType: "fridge",          titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér køleskab for mekaniske fejl. Tjek termostat, kompressor og ventilator. Kontrollér gummilister og dørlukning. Afrim om nødvendigt. Rens kondensatorbakke." },
-  { key: "maintenance_freezer_control",       equipmentType: "freezer",         titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér fryser for mekaniske fejl. Tjek termostat, kompressor og lås. Kontrollér gummilister. Afrim og rengør kondensatorbakke." },
-  { key: "maintenance_walk_in_cooler_control",equipmentType: "walk_in_cooler",  titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér walk-in køler. Tjek kompressor, fordamper, lys og dørlukning. Kontrollér pakninger og låsemekanisme. Kontrollér gulvafløb." },
-  { key: "maintenance_walk_in_freezer_control",equipmentType: "walk_in_freezer",titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér walk-in fryser. Tjek kompressor, fordamper, lys og dørlukning. Afgørende: ingen isophobning på fordamper. Kontrollér pakninger og låsemekanisme." },
-  { key: "maintenance_fryer_control",         equipmentType: "fryer",           titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér frituregryde. Tjek termostat og sikkerhedsafbryder. Kontrollér varmeelement og drænsystem. Kontrollér oliestanden og oliernes kvalitet." },
-  { key: "maintenance_dishwasher_control",    equipmentType: "dishwasher",      titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér opvaskemaskine. Tjek skylletemperatur (min. 82°C), vandtryk og doseringssystem. Rens filtre og sprøjtearme. Kontrollér tætninger og låger." },
-  { key: "maintenance_ice_machine_control",   equipmentType: "ice_machine",     titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér isterningemaskine. Tjek vandfilter og afkølingssystem. Kontrollér at ingen slim eller alger er synlige. Efterse vandindløb og afløb." },
-  { key: "maintenance_blast_chiller_control", equipmentType: "blast_chiller",   titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér blast chiller. Tjek kompressor, fordamper og temperaturprobe. Kontrollér dørlukning og pakninger. Kontrollér at fordamper er fri for isophobning." },
-  { key: "maintenance_warming_cabinet_control",equipmentType: "warming_cabinet",titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér varmeskab. Tjek termostat og varmeelement. Kontrollér temperaturjustering og dørlukning. Eftersyn af pakninger og vandskuffe (ved dampvarmeskabe)." },
-  { key: "maintenance_display_fridge_control",equipmentType: "display_fridge",  titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér displaykøl. Tjek kompressor, belysning og dørlukning. Kontrollér gummilister og hyldeplaceringer. Rens kondensatorgitter og kontrollér afløb." },
-  { key: "maintenance_softice_control",       equipmentType: "softice_machine", titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "Kontrollér softice-maskine. Tjek blandeenhed, pumper og seals. Kontrollér temperatur og viskositet. Kontrollér at sikkerhedstermostat fungerer korrekt." },
+  { key: "maintenance_fridge_control",        equipmentType: "fridge",          titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "KontrollÃ©r kÃ¸leskab for mekaniske fejl. Tjek termostat, kompressor og ventilator. KontrollÃ©r gummilister og dÃ¸rlukning. Afrim om nÃ¸dvendigt. Rens kondensatorbakke." },
+  { key: "maintenance_freezer_control",       equipmentType: "freezer",         titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "KontrollÃ©r fryser for mekaniske fejl. Tjek termostat, kompressor og lÃ¥s. KontrollÃ©r gummilister. Afrim og rengÃ¸r kondensatorbakke." },
+  { key: "maintenance_walk_in_cooler_control",equipmentType: "walk_in_cooler",  titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "KontrollÃ©r walk-in kÃ¸ler. Tjek kompressor, fordamper, lys og dÃ¸rlukning. KontrollÃ©r pakninger og lÃ¥semekanisme. KontrollÃ©r gulvaflÃ¸b." },
+  { key: "maintenance_walk_in_freezer_control",equipmentType: "walk_in_freezer",titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "KontrollÃ©r walk-in fryser. Tjek kompressor, fordamper, lys og dÃ¸rlukning. AfgÃ¸rende: ingen isophobning pÃ¥ fordamper. KontrollÃ©r pakninger og lÃ¥semekanisme." },
+  { key: "maintenance_fryer_control",         equipmentType: "fryer",           titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "KontrollÃ©r frituregryde. Tjek termostat og sikkerhedsafbryder. KontrollÃ©r varmeelement og drÃ¦nsystem. KontrollÃ©r oliestanden og oliernes kvalitet." },
+  { key: "maintenance_dishwasher_control",    equipmentType: "dishwasher",      titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "KontrollÃ©r opvaskemaskine. Tjek skylletemperatur (min. 82Â°C), vandtryk og doseringssystem. Rens filtre og sprÃ¸jtearme. KontrollÃ©r tÃ¦tninger og lÃ¥ger." },
+  { key: "maintenance_ice_machine_control",   equipmentType: "ice_machine",     titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "KontrollÃ©r isterningemaskine. Tjek vandfilter og afkÃ¸lingssystem. KontrollÃ©r at ingen slim eller alger er synlige. Efterse vandindlÃ¸b og aflÃ¸b." },
+  { key: "maintenance_blast_chiller_control", equipmentType: "blast_chiller",   titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "KontrollÃ©r blast chiller. Tjek kompressor, fordamper og temperaturprobe. KontrollÃ©r dÃ¸rlukning og pakninger. KontrollÃ©r at fordamper er fri for isophobning." },
+  { key: "maintenance_warming_cabinet_control",equipmentType: "warming_cabinet",titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "KontrollÃ©r varmeskab. Tjek termostat og varmeelement. KontrollÃ©r temperaturjustering og dÃ¸rlukning. Eftersyn af pakninger og vandskuffe (ved dampvarmeskabe)." },
+  { key: "maintenance_display_fridge_control",equipmentType: "display_fridge",  titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "KontrollÃ©r displaykÃ¸l. Tjek kompressor, belysning og dÃ¸rlukning. KontrollÃ©r gummilister og hyldeplaceringer. Rens kondensatorgitter og kontrollÃ©r aflÃ¸b." },
+  { key: "maintenance_softice_control",       equipmentType: "softice_machine", titleBase: "Vedligeholdelse", category: "vedligeholdelse", controlType: "maintenance_check", frequency: "yearly", riskLevel: "medium", guideBody: "KontrollÃ©r softice-maskine. Tjek blandeenhed, pumper og seals. KontrollÃ©r temperatur og viskositet. KontrollÃ©r at sikkerhedstermostat fungerer korrekt." },
 ];
 
-async function syncEquipmentMaintenanceTemplates({ db: dbRef, companyId, locationId }) {
+async function syncEquipmentMaintenanceTemplates({ db: dbRef, companyId, locationId, ownerScopeMetadata = {} }) {
   if (!companyId || !locationId) {
     console.warn("[syncEquipmentMaintenanceTemplates] missing companyId or locationId, skipping");
     return { ok: false, created: 0 };
@@ -4878,8 +3505,14 @@ async function syncEquipmentMaintenanceTemplates({ db: dbRef, companyId, locatio
 
     if (snap.exists) {
       const existing = snap.data() || {};
+      const patch = buildOwnerScopeUpdatePatch(existing, ownerScopeMetadata);
       if (existing.title !== def.titleBase) {
-        await ref.update({ title: def.titleBase, guideTitle: `Vejledning: ${def.titleBase}`, updatedAt: nowTs });
+        patch.title = def.titleBase;
+        patch.guideTitle = `Vejledning: ${def.titleBase}`;
+      }
+      if (Object.keys(patch).length > 0) {
+        patch.updatedAt = nowTs;
+        await ref.update(patch);
       }
       continue;
     }
@@ -4891,6 +3524,7 @@ async function syncEquipmentMaintenanceTemplates({ db: dbRef, companyId, locatio
       companyId,
       organizationId: companyId,
       locationId,
+      ...ownerScopeMetadata,
       title:          def.titleBase,
       description:    def.guideBody || "",
       category:       def.category,
@@ -4927,40 +3561,40 @@ async function syncEquipmentMaintenanceTemplates({ db: dbRef, companyId, locatio
     console.log(`[syncEquipmentMaintenanceTemplates] created ${docId}`);
   }
 
-  console.log(`[syncEquipmentMaintenanceTemplates] done — created=${created}, activeTypes=${[...activeTypes].join(",")}`);
+  console.log(`[syncEquipmentMaintenanceTemplates] done â€” created=${created}, activeTypes=${[...activeTypes].join(",")}`);
   return { ok: true, created };
 }
 
-// ─── AREA-BASEREDE RENGØRINGSRUTINER ─────────────────────────────────────────
-// Én template per rengøringsområde afledt af onboarding_answers.areas[].
+// â”€â”€â”€ AREA-BASEREDE RENGÃ˜RINGSRUTINER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã‰n template per rengÃ¸ringsomrÃ¥de afledt af onboarding_answers.areas[].
 // templateSource = "area_cleaning_library"  templateType = "operational"
 
 const AREA_CLEANING_DEFINITIONS = [
-  { areaKey: "kitchen",              title: "Rengøring af køkken",                  frequency: "daily",   riskLevel: "high",   guideBody: "Rengør og desinficér alle køkkenoverflader: bordplader, gulv, vaskestationer og udstyr. Tjek at der er rene karklude. Tip affald ud. Dokumentér udførelse." },
-  { areaKey: "production_kitchen",   title: "Rengøring af produktionskøkken",       frequency: "daily",   riskLevel: "high",   guideBody: "Rengør produktionsoverflader og -udstyr. Tip affaldsposer og skift. Rengør gulv, vask og dræn. Kontrollér at ingen fødevareaffald er tilbage." },
-  { areaKey: "serving_area",         title: "Rengøring af serveringsområde",        frequency: "daily",   riskLevel: "medium", guideBody: "Rengør borde, stole, buffet og serveringsstationer. Rengør gulv og sørg for at alle overflader gæster har kontakt med er rene." },
-  { areaKey: "dry_storage",          title: "Rengøring af tørlager",                frequency: "weekly",  riskLevel: "low",    guideBody: "Rengør hylder og gulv. Kontrollér at alle varer er hævet fra gulvet og korrekt opbevaret. Kontrollér holdbarhedsdatoer. Tjek for skadedyr." },
-  { areaKey: "toilet",               title: "Rengøring af toilet og håndvask",      frequency: "daily",   riskLevel: "high",   guideBody: "Rengør og desinficér toilet, håndvask og gulv. Fyld sæbe og papirhåndklæder op. Kontrollér at der er håndsprit tilgængeligt for personale." },
-  { areaKey: "dishwashing_area",     title: "Rengøring af opvaskområde",            frequency: "daily",   riskLevel: "medium", guideBody: "Rengør opvaskemaskine, bakkestativ og gulvafløb. Tip madrester ud. Kontrollér rengøringsmidler og skyllemidler. Tjek at alle overflader er rene." },
-  { areaKey: "washing_room",         title: "Rengøring af vaskerum",                frequency: "daily",   riskLevel: "medium", guideBody: "Rengør vaskerum og dræn. Kontrollér at lagervarer er ryddeligt placeret og hævet fra gulvet." },
-  { areaKey: "vegetable_room",       title: "Rengøring af grøntrum",                frequency: "daily",   riskLevel: "medium", guideBody: "Rengør hylder og gulv. Fjern blade og affald. Tjek at temperatur er korrekt (typisk 10–12°C). Kontrollér at ingen råd/mug på varer." },
-  { areaKey: "walk_in_cooler_room",  title: "Rengøring af kølerum",                 frequency: "daily",   riskLevel: "high",   guideBody: "Rengør gulv og hylder. Tjek at alle varer er korrekt dækket og mærket. Kontrollér at gulvafløbet ikke er tilstoppet. Rengør dørpakninger." },
-  { areaKey: "walk_in_freezer_room", title: "Rengøring af fryserum",                frequency: "weekly",  riskLevel: "medium", guideBody: "Rengør gulv og hylder. Tjek at alle varer er korrekt dækket og mærket. Afrim om nødvendigt. Kontrollér at dør lukker tæt og pakninger er intakte." },
+  { areaKey: "kitchen",              title: "RengÃ¸ring af kÃ¸kken",                  frequency: "daily",   riskLevel: "high",   guideBody: "RengÃ¸r og desinficÃ©r alle kÃ¸kkenoverflader: bordplader, gulv, vaskestationer og udstyr. Tjek at der er rene karklude. Tip affald ud. DokumentÃ©r udfÃ¸relse." },
+  { areaKey: "production_kitchen",   title: "RengÃ¸ring af produktionskÃ¸kken",       frequency: "daily",   riskLevel: "high",   guideBody: "RengÃ¸r produktionsoverflader og -udstyr. Tip affaldsposer og skift. RengÃ¸r gulv, vask og drÃ¦n. KontrollÃ©r at ingen fÃ¸devareaffald er tilbage." },
+  { areaKey: "serving_area",         title: "RengÃ¸ring af serveringsomrÃ¥de",        frequency: "daily",   riskLevel: "medium", guideBody: "RengÃ¸r borde, stole, buffet og serveringsstationer. RengÃ¸r gulv og sÃ¸rg for at alle overflader gÃ¦ster har kontakt med er rene." },
+  { areaKey: "dry_storage",          title: "RengÃ¸ring af tÃ¸rlager",                frequency: "weekly",  riskLevel: "low",    guideBody: "RengÃ¸r hylder og gulv. KontrollÃ©r at alle varer er hÃ¦vet fra gulvet og korrekt opbevaret. KontrollÃ©r holdbarhedsdatoer. Tjek for skadedyr." },
+  { areaKey: "toilet",               title: "RengÃ¸ring af toilet og hÃ¥ndvask",      frequency: "daily",   riskLevel: "high",   guideBody: "RengÃ¸r og desinficÃ©r toilet, hÃ¥ndvask og gulv. Fyld sÃ¦be og papirhÃ¥ndklÃ¦der op. KontrollÃ©r at der er hÃ¥ndsprit tilgÃ¦ngeligt for personale." },
+  { areaKey: "dishwashing_area",     title: "RengÃ¸ring af opvaskomrÃ¥de",            frequency: "daily",   riskLevel: "medium", guideBody: "RengÃ¸r opvaskemaskine, bakkestativ og gulvaflÃ¸b. Tip madrester ud. KontrollÃ©r rengÃ¸ringsmidler og skyllemidler. Tjek at alle overflader er rene." },
+  { areaKey: "washing_room",         title: "RengÃ¸ring af vaskerum",                frequency: "daily",   riskLevel: "medium", guideBody: "RengÃ¸r vaskerum og drÃ¦n. KontrollÃ©r at lagervarer er ryddeligt placeret og hÃ¦vet fra gulvet." },
+  { areaKey: "vegetable_room",       title: "RengÃ¸ring af grÃ¸ntrum",                frequency: "daily",   riskLevel: "medium", guideBody: "RengÃ¸r hylder og gulv. Fjern blade og affald. Tjek at temperatur er korrekt (typisk 10â€“12Â°C). KontrollÃ©r at ingen rÃ¥d/mug pÃ¥ varer." },
+  { areaKey: "walk_in_cooler_room",  title: "RengÃ¸ring af kÃ¸lerum",                 frequency: "daily",   riskLevel: "high",   guideBody: "RengÃ¸r gulv og hylder. Tjek at alle varer er korrekt dÃ¦kket og mÃ¦rket. KontrollÃ©r at gulvaflÃ¸bet ikke er tilstoppet. RengÃ¸r dÃ¸rpakninger." },
+  { areaKey: "walk_in_freezer_room", title: "RengÃ¸ring af fryserum",                frequency: "weekly",  riskLevel: "medium", guideBody: "RengÃ¸r gulv og hylder. Tjek at alle varer er korrekt dÃ¦kket og mÃ¦rket. Afrim om nÃ¸dvendigt. KontrollÃ©r at dÃ¸r lukker tÃ¦t og pakninger er intakte." },
 ];
 
-async function syncAreaCleaningTemplates({ db: dbRef, companyId, locationId }) {
+async function syncAreaCleaningTemplates({ db: dbRef, companyId, locationId, ownerScopeMetadata = {} }) {
   if (!companyId || !locationId) {
     console.warn("[syncAreaCleaningTemplates] missing companyId or locationId, skipping");
     return { ok: false, created: 0 };
   }
 
-  // Hent areas fra onboarding_answers — læs canonical doc direkte for at undgå at ramme forkert doc
+  // Hent areas fra onboarding_answers â€” lÃ¦s canonical doc direkte for at undgÃ¥ at ramme forkert doc
   const canonicalDocId = `${companyId}__${locationId}__onboarding`;
   const oaDoc = await dbRef.collection("onboarding_answers").doc(canonicalDocId).get();
   const oaData = oaDoc.exists ? oaDoc.data() : {};
   const areas = toArray(oaData.areas);
 
-  // Fallback: alle lokationer har et køkken
+  // Fallback: alle lokationer har et kÃ¸kken
   const activeAreas = new Set(areas.length > 0 ? areas : ["kitchen"]);
 
   const nowTs = FieldValue.serverTimestamp();
@@ -4972,13 +3606,22 @@ async function syncAreaCleaningTemplates({ db: dbRef, companyId, locationId }) {
     const docId = `${companyId}_${locationId}_area_cleaning_${def.areaKey}`;
     const ref   = dbRef.collection("task_templates").doc(docId);
     const snap  = await ref.get();
-    if (snap.exists) { skipped++; continue; }
+    if (snap.exists) {
+      const patch = buildOwnerScopeUpdatePatch(snap.data() || {}, ownerScopeMetadata);
+      if (Object.keys(patch).length > 0) {
+        patch.updatedAt = nowTs;
+        await ref.update(patch);
+      }
+      skipped++;
+      continue;
+    }
 
     await ref.set({
       templateId:     docId,
       companyId,
       organizationId: companyId,
       locationId,
+      ...ownerScopeMetadata,
       areaKey:        def.areaKey,
       title:          def.title,
       description:    def.guideBody,
@@ -5006,21 +3649,21 @@ async function syncAreaCleaningTemplates({ db: dbRef, companyId, locationId }) {
     console.log(`[syncAreaCleaningTemplates] created ${docId}`);
   }
 
-  console.log(`[syncAreaCleaningTemplates] done — created=${created} skipped=${skipped} areas=${[...activeAreas].join(",")}`);
+  console.log(`[syncAreaCleaningTemplates] done â€” created=${created} skipped=${skipped} areas=${[...activeAreas].join(",")}`);
   return { ok: true, created, skipped };
 }
 
-// ─── PROCES-BASEREDE DRIFTSOPGAVER ───────────────────────────────────────────
-// Én template per driftsopgave afledt af onboarding_answers.processes[].
+// â”€â”€â”€ PROCES-BASEREDE DRIFTSOPGAVER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã‰n template per driftsopgave afledt af onboarding_answers.processes[].
 // Visse opgaver genereres altid (datokontrol, adskillelse, luk dag).
-// 3-timers regel genereres kun ved buffet/servering uden permanent køl/varme.
+// 3-timers regel genereres kun ved buffet/servering uden permanent kÃ¸l/varme.
 // templateSource = "process_drift_library"
 
 const PROCESS_DRIFT_TEMPLATE_DEFINITIONS = [
   {
     key:         "process_drift_varemodtagelse",
     title:       "Varemodtagelse",
-    description: "Kontrollér temperatur, emballage og holdbarhed ved modtagelse af fødevarer.",
+    description: "KontrollÃ©r temperatur, emballage og holdbarhed ved modtagelse af fÃ¸devarer.",
     frequency:   "daily",
     category:    "modtagelse",
     controlType: "receiving_control",
@@ -5030,8 +3673,8 @@ const PROCESS_DRIFT_TEMPLATE_DEFINITIONS = [
   },
   {
     key:         "process_drift_nedkoeling",
-    title:       "Nedkøling",
-    description: "Kontrollér at varmebehandlede fødevarer nedkøles korrekt fra +65°C til under +10°C inden for 4 timer (lovkrav).",
+    title:       "NedkÃ¸ling",
+    description: "KontrollÃ©r at varmebehandlede fÃ¸devarer nedkÃ¸les korrekt fra +65Â°C til under +10Â°C inden for 4 timer (lovkrav).",
     frequency:   "daily",
     category:    "nedkoeling",
     controlType: "cooling_process",
@@ -5043,7 +3686,7 @@ const PROCESS_DRIFT_TEMPLATE_DEFINITIONS = [
   {
     key:         "process_drift_varmholdelse",
     title:       "Varmholdelse",
-    description: "Kontrollér at varme retter holdes ved minimum 60°C og ikke varmholdes i mere end 3 timer.",
+    description: "KontrollÃ©r at varme retter holdes ved minimum 60Â°C og ikke varmholdes i mere end 3 timer.",
     frequency:   "daily",
     category:    "varmholdelse",
     controlType: "hot_holding",
@@ -5055,7 +3698,7 @@ const PROCESS_DRIFT_TEMPLATE_DEFINITIONS = [
   {
     key:         "process_drift_opvarmning",
     title:       "Opvarmning",
-    description: "Kontrollér at genopvarmede fødevarer når minimum 75°C i kernen.",
+    description: "KontrollÃ©r at genopvarmede fÃ¸devarer nÃ¥r minimum 75Â°C i kernen.",
     frequency:   "daily",
     category:    "opvarmning",
     controlType: "reheating_process",
@@ -5067,7 +3710,7 @@ const PROCESS_DRIFT_TEMPLATE_DEFINITIONS = [
   {
     key:         "process_drift_datokontrol",
     title:       "Datokontrol",
-    description: "Kontrollér holdbarhedsdatoer på alle opbevarede fødevarer. Fjern udgåede varer og følg FIFO-princippet (først ind, først ud).",
+    description: "KontrollÃ©r holdbarhedsdatoer pÃ¥ alle opbevarede fÃ¸devarer. Fjern udgÃ¥ede varer og fÃ¸lg FIFO-princippet (fÃ¸rst ind, fÃ¸rst ud).",
     frequency:   "daily",
     category:    "drift",
     controlType: "date_control",
@@ -5078,7 +3721,7 @@ const PROCESS_DRIFT_TEMPLATE_DEFINITIONS = [
   {
     key:         "process_drift_adskillelse",
     title:       "Adskillelse",
-    description: "Kontrollér korrekt adskillelse af rå og tilberedte fødevarer i køl, på arbejdsborde og med redskaber.",
+    description: "KontrollÃ©r korrekt adskillelse af rÃ¥ og tilberedte fÃ¸devarer i kÃ¸l, pÃ¥ arbejdsborde og med redskaber.",
     frequency:   "daily",
     category:    "drift",
     controlType: "separation_control",
@@ -5089,7 +3732,7 @@ const PROCESS_DRIFT_TEMPLATE_DEFINITIONS = [
   {
     key:         "process_drift_tre_timers_regel",
     title:       "3-timers regel",
-    description: "Kontrollér at fødevarer uden aktiv køl eller varme ikke har stået i farezonen (8–65°C) i mere end 3 timer.",
+    description: "KontrollÃ©r at fÃ¸devarer uden aktiv kÃ¸l eller varme ikke har stÃ¥et i farezonen (8â€“65Â°C) i mere end 3 timer.",
     frequency:   "daily",
     category:    "drift",
     controlType: "three_hour_rule",
@@ -5100,7 +3743,7 @@ const PROCESS_DRIFT_TEMPLATE_DEFINITIONS = [
   },
 ];
 
-async function syncProcessDriftTemplates({ db: dbRef, companyId, locationId }) {
+async function syncProcessDriftTemplates({ db: dbRef, companyId, locationId, ownerScopeMetadata = {} }) {
   if (!companyId || !locationId) {
     console.warn("[syncProcessDriftTemplates] missing companyId or locationId, skipping");
     return { ok: false, created: 0, skipped: 0 };
@@ -5128,8 +3771,14 @@ async function syncProcessDriftTemplates({ db: dbRef, companyId, locationId }) {
     if (snap.exists) {
       // Patch title/description hvis stale
       const existing = snap.data() || {};
+      const patch = buildOwnerScopeUpdatePatch(existing, ownerScopeMetadata);
       if (existing.title !== def.title || existing.description !== def.description) {
-        await ref.update({ title: def.title, description: def.description, updatedAt: nowTs });
+        patch.title = def.title;
+        patch.description = def.description;
+      }
+      if (Object.keys(patch).length > 0) {
+        patch.updatedAt = nowTs;
+        await ref.update(patch);
       }
       skipped++;
       continue;
@@ -5140,6 +3789,7 @@ async function syncProcessDriftTemplates({ db: dbRef, companyId, locationId }) {
       companyId,
       organizationId: companyId,
       locationId,
+      ...ownerScopeMetadata,
       title:          def.title,
       description:    def.description,
       category:       def.category,
@@ -5169,20 +3819,20 @@ async function syncProcessDriftTemplates({ db: dbRef, companyId, locationId }) {
     console.log(`[syncProcessDriftTemplates] created ${docId}`);
   }
 
-  console.log(`[syncProcessDriftTemplates] done — created=${created} skipped=${skipped}`);
+  console.log(`[syncProcessDriftTemplates] done â€” created=${created} skipped=${skipped}`);
   return { ok: true, created, skipped };
 }
 
-// ─── VANDKONTROL RUTINER ─────────────────────────────────────────────────────
-// Én template per vandroutine. drikkevand og filter er altid aktive.
+// â”€â”€â”€ VANDKONTROL RUTINER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã‰n template per vandroutine. drikkevand og filter er altid aktive.
 // isterningemaskine genereres kun hvis ice_machine-udstyr er registreret.
-// controlType "water_control" → specifik UI-formular i rutiner.html
+// controlType "water_control" â†’ specifik UI-formular i rutiner.html
 
 const WATER_CONTROL_TEMPLATE_DEFINITIONS = [
   {
     key:            "water_control_drikkevand",
     title:          "Kontrol af drikkevand",
-    description:    "Kontrollér drikkevandets udseende (klar/uklar), lugt og smag. Mål temperatur hvis relevant (koldt vand max 12°C, varmt min 55°C). Notér visuel status og eventuelle afvigelser.",
+    description:    "KontrollÃ©r drikkevandets udseende (klar/uklar), lugt og smag. MÃ¥l temperatur hvis relevant (koldt vand max 12Â°C, varmt min 55Â°C). NotÃ©r visuel status og eventuelle afvigelser.",
     frequency:      "daily",
     category:       "vandkontrol",
     controlType:    "water_control",
@@ -5196,7 +3846,7 @@ const WATER_CONTROL_TEMPLATE_DEFINITIONS = [
   {
     key:            "water_control_filter",
     title:          "Kontrol af vandfilter",
-    description:    "Inspicér vandfilter for tilstopning eller misfarvning. Kontrollér filtrets levetid og udskiftningsdato. Notér filterets aktuelle status.",
+    description:    "InspicÃ©r vandfilter for tilstopning eller misfarvning. KontrollÃ©r filtrets levetid og udskiftningsdato. NotÃ©r filterets aktuelle status.",
     frequency:      "weekly",
     category:       "vandkontrol",
     controlType:    "water_control",
@@ -5206,7 +3856,7 @@ const WATER_CONTROL_TEMPLATE_DEFINITIONS = [
   },
 ];
 
-async function syncWaterControlTemplates({ db: dbRef, companyId, locationId }) {
+async function syncWaterControlTemplates({ db: dbRef, companyId, locationId, ownerScopeMetadata = {} }) {
   if (!companyId || !locationId) {
     console.warn("[syncWaterControlTemplates] missing companyId or locationId, skipping");
     return { ok: false, created: 0, skipped: 0 };
@@ -5258,8 +3908,14 @@ async function syncWaterControlTemplates({ db: dbRef, companyId, locationId }) {
 
     if (snap.exists) {
       const existing = snap.data() || {};
+      const patch = buildOwnerScopeUpdatePatch(existing, ownerScopeMetadata);
       if (existing.title !== def.title || existing.description !== def.description) {
-        await ref.update({ title: def.title, description: def.description, updatedAt: nowTs });
+        patch.title = def.title;
+        patch.description = def.description;
+      }
+      if (Object.keys(patch).length > 0) {
+        patch.updatedAt = nowTs;
+        await ref.update(patch);
       }
       skipped++;
       continue;
@@ -5271,6 +3927,7 @@ async function syncWaterControlTemplates({ db: dbRef, companyId, locationId }) {
       companyId,
       organizationId: companyId,
       locationId,
+      ...ownerScopeMetadata,
       title:          def.title,
       description:    def.description,
       category:       def.category,
@@ -5299,22 +3956,27 @@ async function syncWaterControlTemplates({ db: dbRef, companyId, locationId }) {
     console.log(`[syncWaterControlTemplates] created ${docId}`);
   }
 
-  console.log(`[syncWaterControlTemplates] done — created=${created} skipped=${skipped}`);
+  console.log(`[syncWaterControlTemplates] done â€” created=${created} skipped=${skipped}`);
   return { ok: true, created, skipped };
 }
 
 const EQUIPMENT_COUNT_MAPPING = [
-  { countKeys: ["fridge", "fridgeCount", "antalKoeleskabe"],                equipmentType: "fridge",          titleBase: "Køleskab",          controlTypes: ["temperature_check"] },
+  { countKeys: ["fridge", "fridgeCount", "antalKoeleskabe"],                equipmentType: "fridge",          titleBase: "KÃ¸leskab",          controlTypes: ["temperature_check"] },
   { countKeys: ["freezer", "freezerCount", "antalFrysere"],                 equipmentType: "freezer",         titleBase: "Fryser",            controlTypes: ["temperature_check"] },
-  { countKeys: ["walk_in_cooler", "walkInCooler", "walkInCoolerCount"],     equipmentType: "walk_in_cooler",   titleBase: "Walk-in køler",     controlTypes: ["temperature_check"] },
-  { countKeys: ["walk_in_freezer", "walkInFreezer", "walkInFreezerCount"],  equipmentType: "walk_in_freezer",  titleBase: "Walk-in fryser",    controlTypes: ["temperature_check"] },
+  { countKeys: ["walk_in_cooler", "walkinCoolerCount", "walkInCooler", "walkInCoolerCount"],     equipmentType: "walk_in_cooler",   titleBase: "Walk-in kÃ¸ler",     controlTypes: ["temperature_check"] },
+  { countKeys: ["walk_in_freezer", "walkinFreezerCount", "walkInFreezer", "walkInFreezerCount"],  equipmentType: "walk_in_freezer",  titleBase: "Walk-in fryser",    controlTypes: ["temperature_check"] },
   { countKeys: ["ice_machine", "iceMachine", "antalIsterningemaskiner"],    equipmentType: "ice_machine",      titleBase: "Isterningemaskine", controlTypes: [] },
   { countKeys: ["ice_box", "isboks", "antalIsbokse"],                       equipmentType: "ice_box",          titleBase: "Isboks",            controlTypes: ["temperature_check"] },
   { countKeys: ["fryer", "antalFrityreGryder"],                             equipmentType: "fryer",            titleBase: "Frituregryden",     controlTypes: [] },
-  { countKeys: ["dishwasher", "antalOpvaskemaskiner"],                      equipmentType: "dishwasher",       titleBase: "Opvaskemaskine",    controlTypes: [] },
+  { countKeys: ["dishwasher", "dishwasherCount", "antalOpvaskemaskiner"],   equipmentType: "dishwasher",       titleBase: "Opvaskemaskine",    controlTypes: [] },
+  { countKeys: ["oven", "ovenCount", "antalOvne"],                          equipmentType: "oven",             titleBase: "Ovn",               controlTypes: [] },
+  { countKeys: ["stove", "stoveCount", "antalKomfurer"],                    equipmentType: "stove",            titleBase: "Komfur",            controlTypes: [] },
   { countKeys: ["blast_chiller", "blastChiller", "antalBlastChillere"],     equipmentType: "blast_chiller",    titleBase: "Blast chiller",     controlTypes: ["temperature_check"] },
-  { countKeys: ["warming_cabinet", "warmingCabinet", "antalVarmeskabe"],    equipmentType: "warming_cabinet",  titleBase: "Varmeskab",         controlTypes: ["temperature_check"] },
-  { countKeys: ["display_fridge", "displayFridge", "antalDisplaykoele"],   equipmentType: "display_fridge",   titleBase: "Displaykøl",        controlTypes: ["temperature_check"] },
+  { countKeys: ["warming_cabinet", "hotCabinetCount", "warmingCabinet", "antalVarmeskabe"],    equipmentType: "warming_cabinet",  titleBase: "Varmeskab",         controlTypes: ["temperature_check"] },
+  { countKeys: ["display_fridge", "refrigeratedDisplayCount", "displayFridge", "antalDisplaykoele"],   equipmentType: "display_fridge",   titleBase: "DisplaykÃ¸l",        controlTypes: ["temperature_check"] },
+  { countKeys: ["slicer", "slicerCount", "antalPaalaegsmaskiner"],          equipmentType: "slicer",           titleBase: "PÃ¥lÃ¦gsmaskine",    controlTypes: [] },
+  { countKeys: ["smoke_oven", "smokeOvenCount", "antalRoegeovne"],          equipmentType: "smoke_oven",       titleBase: "RÃ¸geovn",          controlTypes: ["temperature_check"] },
+  { countKeys: ["proofing_cabinet", "proofingCabinetCount", "antalRasteskabe"], equipmentType: "proofing_cabinet", titleBase: "Rasteskab", controlTypes: [] },
   { countKeys: ["softice_machine", "softiceMachine"],                       equipmentType: "softice_machine",  titleBase: "Softice maskine",   controlTypes: ["temperature_check"] },
 ];
 
@@ -5340,7 +4002,7 @@ function normalizeEquipmentCounts(rawCounts = {}, profile = {}) {
   return result;
 }
 
-async function syncOnboardingEquipmentUnits({ db: dbRef, companyId, locationId, equipmentCounts = {}, profile = {} }) {
+async function syncOnboardingEquipmentUnits({ db: dbRef, companyId, locationId, equipmentCounts = {}, profile = {}, ownerScopeMetadata = {} }) {
   if (!companyId || !locationId) {
     console.warn("[syncOnboardingEquipmentUnits] missing companyId or locationId, skipping");
     return { ok: false, error: "missing companyId or locationId" };
@@ -5357,8 +4019,19 @@ async function syncOnboardingEquipmentUnits({ db: dbRef, companyId, locationId, 
     .get();
 
   const existingById = new Map();
+  const existingBySeedKey = new Map();
+  const existingByType = new Map();
   for (const doc of existingSnap.docs) {
-    existingById.set(doc.id, { ref: doc.ref, data: doc.data() || {} });
+    const data = doc.data() || {};
+    const itemCompanyId = sanitizeString(data.companyId || data.organizationId, 120);
+    if (itemCompanyId && itemCompanyId !== companyId) continue;
+    const itemType = sanitizeEquipmentType(data.type || data.equipmentType || "");
+    const unitNumber = toPositiveInt(data.unitNumber) || parseEquipmentUnitNumberFromId(doc.id, itemType);
+    const entry = { id: doc.id, ref: doc.ref, data, type: itemType, unitNumber };
+    existingById.set(doc.id, entry);
+    if (data.seedKey) existingBySeedKey.set(String(data.seedKey), entry);
+    if (!existingByType.has(itemType)) existingByType.set(itemType, []);
+    existingByType.get(itemType).push(entry);
   }
 
   const batch = dbRef.batch();
@@ -5370,42 +4043,44 @@ async function syncOnboardingEquipmentUnits({ db: dbRef, companyId, locationId, 
     const count = normalizedCounts[mapping.equipmentType] || 0;
     const { equipmentType, titleBase, controlTypes } = mapping;
 
-    // Find highest existing unit number for this type
-    let maxExisting = 0;
-    for (const [id] of existingById) {
-      const prefix = `onboarding_${equipmentType}_`;
-      if (id.startsWith(prefix)) {
-        const n = parseInt(id.slice(prefix.length), 10);
-        if (!isNaN(n) && n > maxExisting) maxExisting = n;
-      }
-    }
-
     // Upsert active units 1..count
     for (let i = 1; i <= count; i++) {
-      const docId = `onboarding_${equipmentType}_${i}`;
+      const seedKey = buildEquipmentSeedKey({ companyId, locationId, equipmentType, unitNumber: i });
+      const scopedDocId = buildEquipmentDocId({ companyId, locationId, equipmentType, unitNumber: i });
+      const legacyDocId = `onboarding_${equipmentType}_${i}`;
       const title = `${titleBase} ${i}`;
-      const existing = existingById.get(docId);
+      const existing = existingBySeedKey.get(seedKey) || existingById.get(scopedDocId) || existingById.get(legacyDocId);
+      const docId = existing?.id || scopedDocId;
       const ref = existing?.ref || dbRef.collection("equipment").doc(docId);
+      const runtimeFlags = buildEquipmentRuntimeFlags(equipmentType, controlTypes);
+      const payload = {
+        companyId,
+        organizationId: companyId,
+        locationId,
+        ...ownerScopeMetadata,
+        source: "onboarding",
+        onboardingSource: existing?.data?.onboardingSource || "quick_onboarding",
+        equipmentId: docId,
+        seedKey,
+        equipmentType,
+        type: equipmentType,
+        controlTypes,
+        controlType: controlTypes[0] || "",
+        title,
+        name: title,
+        displayName: title,
+        unitNumber: i,
+        active: true,
+        isActive: true,
+        ...runtimeFlags,
+        updatedAt: nowTs
+      };
 
       if (existing) {
-        batch.set(ref, {
-          companyId, organizationId: companyId, locationId,
-          source: "onboarding", equipmentType, type: equipmentType,
-          controlTypes, controlType: controlTypes[0] || "",
-          title, name: title, displayName: title,
-          unitNumber: i, active: true,
-          updatedAt: nowTs
-        }, { merge: true });
+        batch.set(ref, payload, { merge: true });
         if (existing.data.active === false) { updated++; } else { kept++; }
       } else {
-        batch.set(ref, {
-          companyId, organizationId: companyId, locationId,
-          source: "onboarding", equipmentType, type: equipmentType,
-          controlTypes, controlType: controlTypes[0] || "",
-          title, name: title, displayName: title,
-          unitNumber: i, active: true,
-          createdAt: nowTs, updatedAt: nowTs
-        });
+        batch.set(ref, { ...payload, createdAt: nowTs });
         created++;
         console.log(`[syncOnboardingEquipmentUnits] created ${docId}`);
       }
@@ -5413,13 +4088,11 @@ async function syncOnboardingEquipmentUnits({ db: dbRef, companyId, locationId, 
     }
 
     // Deactivate units above current count
-    for (let i = count + 1; i <= maxExisting; i++) {
-      const docId = `onboarding_${equipmentType}_${i}`;
-      const existing = existingById.get(docId);
-      if (existing && existing.data.active !== false) {
-        batch.set(existing.ref, { active: false, updatedAt: nowTs }, { merge: true });
+    for (const existing of existingByType.get(equipmentType) || []) {
+      if (toPositiveInt(existing.unitNumber) > count && existing.data.active !== false) {
+        batch.set(existing.ref, { active: false, isActive: false, updatedAt: nowTs }, { merge: true });
         deactivated++;
-        console.log(`[syncOnboardingEquipmentUnits] deactivated ${docId}`);
+        console.log(`[syncOnboardingEquipmentUnits] deactivated ${existing.id}`);
       }
     }
   }
@@ -5478,7 +4151,8 @@ async function syncOnboardingEquipmentUnits({ db: dbRef, companyId, locationId, 
       db: dbRef,
       companyId,
       locationId,
-      units
+      units,
+      ownerScopeMetadata
     });
   }
   
@@ -5491,13 +4165,13 @@ exports.saveLocationEquipmentUnits = functions.https.onCall(async (request, cont
   const data = request.data || request;
 
   if (!context.auth?.uid) {
-    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+    throw new functions.https.HttpsError("unauthenticated", "Du skal vÃ¦re logget ind.");
   }
 
   const companyId = sanitizeString(data?.companyId || "", 120);
   const locationId = sanitizeString(data?.locationId || "", 120);
   if (!companyId || !locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er pÃ¥krÃ¦vet.");
   }
 
   const userData = await getUserAccessProfile({
@@ -5546,10 +4220,7 @@ exports.saveLocationEquipmentUnits = functions.https.onCall(async (request, cont
 
     let unitNumber = toPositiveInt(item.unitNumber);
     if (!unitNumber) {
-      const prefix = `onboarding_${itemType}_`;
-      if (docSnap.id.startsWith(prefix)) {
-        unitNumber = toPositiveInt(docSnap.id.slice(prefix.length));
-      }
+      unitNumber = parseEquipmentUnitNumberFromId(docSnap.id, itemType);
     }
 
     const entry = {
@@ -5626,15 +4297,17 @@ exports.saveLocationEquipmentUnits = functions.https.onCall(async (request, cont
       } else {
         unitNumber = (maxNumberByType.get(desired.type) || 0) + 1;
         maxNumberByType.set(desired.type, unitNumber);
-        docId = `onboarding_${desired.type}_${unitNumber}`;
+        docId = buildEquipmentDocId({
+          companyId,
+          locationId,
+          equipmentType: desired.type,
+          unitNumber
+        });
       }
     }
 
     if (!unitNumber) {
-      const prefix = `onboarding_${desired.type}_`;
-      if (docId.startsWith(prefix)) {
-        unitNumber = toPositiveInt(docId.slice(prefix.length));
-      }
+      unitNumber = parseEquipmentUnitNumberFromId(docId, desired.type);
     }
     if (!unitNumber) {
       unitNumber = (maxNumberByType.get(desired.type) || 0) + 1;
@@ -5646,12 +4319,21 @@ exports.saveLocationEquipmentUnits = functions.https.onCall(async (request, cont
     const displayName = desired.name || fallbackName;
     const nextActive = desired.active !== false;
     const ref = existing?.ref || db.collection("equipment").doc(docId);
+    const seedKey = buildEquipmentSeedKey({
+      companyId,
+      locationId,
+      equipmentType: desired.type,
+      unitNumber
+    });
 
     batch.set(ref, {
       companyId,
       organizationId: companyId,
       locationId,
       source: "onboarding",
+      onboardingSource: existing?.data?.onboardingSource || "equipment_page",
+      equipmentId: docId,
+      seedKey,
       equipmentType: desired.type,
       type: desired.type,
       controlTypes: meta.controlTypes,
@@ -5661,6 +4343,8 @@ exports.saveLocationEquipmentUnits = functions.https.onCall(async (request, cont
       displayName,
       unitNumber,
       active: nextActive,
+      isActive: nextActive,
+      ...buildEquipmentRuntimeFlags(desired.type, meta.controlTypes),
       updatedAt: nowTs,
       ...(existing ? {} : { createdAt: nowTs })
     }, { merge: true });
@@ -5773,7 +4457,7 @@ exports.saveLocationEquipmentUnits = functions.https.onCall(async (request, cont
   };
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function getOnboardingEquipmentCounts({ companyId, locationId }) {
   const byLocation = await db
@@ -5804,8 +4488,8 @@ async function getOnboardingEquipmentCounts({ companyId, locationId }) {
       toPositiveInt(counts.fridges) ||
       toPositiveInt(counts.koleskab) ||
       toPositiveInt(counts.koleskabe) ||
-      toPositiveInt(counts.køleskab) ||
-      toPositiveInt(counts.køleskabe),
+      toPositiveInt(counts["køleskab"]) ||
+      toPositiveInt(counts["køleskabe"]),
     freezers:
       toPositiveInt(counts.freezer) ||
       toPositiveInt(counts.freezers) ||
@@ -5820,25 +4504,25 @@ function createTaskTemplate(templateId, schema, schemaKey, unit, companyId, loca
   
   // Danish title and description mappings
   const schemaTitles = {
-    'varemodtagelse': 'Varemodtagelse af køle- og frostvarer',
-    'koel_frost': 'Temperaturkontrol af køle- og frostudstyr',
+    'varemodtagelse': 'Varemodtagelse af kÃ¸le- og frostvarer',
+    'koel_frost': 'Temperaturkontrol af kÃ¸le- og frostudstyr',
     'opvarmning': 'Opvarmning og genopvarmning',
     'varmholdelse': 'Varmholdelse af tilberedte retter',
-    'nedkoeling': 'Nedkøling af varmbehandlede fødevarer',
-    'rengoering': 'Rengøring og hygiejne',
+    'nedkoeling': 'NedkÃ¸ling af varmbehandlede fÃ¸devarer',
+    'rengoering': 'RengÃ¸ring og hygiejne',
     'adskillelse': 'Adskillelse og krydskontaminering',
-    'opvaskemaskine': 'Opvaskemaskine - kontrol og rengøring'
+    'opvaskemaskine': 'Opvaskemaskine - kontrol og rengÃ¸ring'
   };
   
   const schemaDescriptions = {
-    'varemodtagelse': 'Kontroller temperatur, emballage og kvalitet ved modtagelse af køle- og frostvarer. Registrer temperatur og eventuelle afvigelser.',
-    'koel_frost': 'Daglig temperaturkontrol af køleskabe og frysere. Temperaturen skal være max 5°C for køl og max -18°C for frost.',
-    'opvarmning': 'Kontroller at kernetemperaturen når minimum 75°C i mindst 2 minutter ved opvarmning og genopvarmning af fødevarer.',
-    'varmholdelse': 'Varmholdte retter skal holdes ved minimum 65°C. Kontroller temperaturen regelmæssigt.',
-    'nedkoeling': 'Nedkøl varmebehandlede fødevarer fra +65°C til under +10°C på maksimalt 4 timer (lovkrav). Registrer start- og sluttidspunkt samt temperaturer.',
-    'rengoering': 'Daglig rengøring og hygiejnekontrol af arbejdsflader, udstyr og lokaler. Følg rengøringsplanen.',
-    'adskillelse': 'Kontroller adskillelse mellem råvarer og færdige produkter. Brug separate redskaber og skærebrætter.',
-    'opvaskemaskine': 'Kontroller opvaskemaskinens temperatur og rengøring. Skylletemperatur skal være minimum 82°C.'
+    'varemodtagelse': 'Kontroller temperatur, emballage og kvalitet ved modtagelse af kÃ¸le- og frostvarer. Registrer temperatur og eventuelle afvigelser.',
+    'koel_frost': 'Daglig temperaturkontrol af kÃ¸leskabe og frysere. Temperaturen skal vÃ¦re max 5Â°C for kÃ¸l og max -18Â°C for frost.',
+    'opvarmning': 'Kontroller at kernetemperaturen nÃ¥r minimum 75Â°C i mindst 2 minutter ved opvarmning og genopvarmning af fÃ¸devarer.',
+    'varmholdelse': 'Varmholdte retter skal holdes ved minimum 65Â°C. Kontroller temperaturen regelmÃ¦ssigt.',
+    'nedkoeling': 'NedkÃ¸l varmebehandlede fÃ¸devarer fra +65Â°C til under +10Â°C pÃ¥ maksimalt 4 timer (lovkrav). Registrer start- og sluttidspunkt samt temperaturer.',
+    'rengoering': 'Daglig rengÃ¸ring og hygiejnekontrol af arbejdsflader, udstyr og lokaler. FÃ¸lg rengÃ¸ringsplanen.',
+    'adskillelse': 'Kontroller adskillelse mellem rÃ¥varer og fÃ¦rdige produkter. Brug separate redskaber og skÃ¦rebrÃ¦tter.',
+    'opvaskemaskine': 'Kontroller opvaskemaskinens temperatur og rengÃ¸ring. Skylletemperatur skal vÃ¦re minimum 82Â°C.'
   };
   
   const title = customTitle || schemaTitles[schemaKey] || schemaKey;
@@ -5847,9 +4531,9 @@ function createTaskTemplate(templateId, schema, schemaKey, unit, companyId, loca
   
   if (schemaKey === 'koel_frost' && unit) {
     if (unit.type === 'fridge') {
-      description = 'Kontroller og registrer temperaturen for dette køleskab. Temperaturen må højst være 5°C.';
+      description = 'Kontroller og registrer temperaturen for dette kÃ¸leskab. Temperaturen mÃ¥ hÃ¸jst vÃ¦re 5Â°C.';
     } else if (unit.type === 'freezer') {
-      description = 'Kontroller og registrer temperaturen for denne fryser. Temperaturen skal være -18°C eller koldere.';
+      description = 'Kontroller og registrer temperaturen for denne fryser. Temperaturen skal vÃ¦re -18Â°C eller koldere.';
     } else if (unit.type === 'ice_machine') {
       description = 'Kontroller renhed, drift og temperaturforhold for denne isterningemaskine.';
     }
@@ -5913,7 +4597,8 @@ async function ensureEgenkontrolTaskTemplates({
   db,
   companyId,
   locationId,
-  units = []
+  units = [],
+  ownerScopeMetadata = {}
 }) {
   const templatesRef = db.collection("task_templates");
 
@@ -5922,13 +4607,32 @@ async function ensureEgenkontrolTaskTemplates({
     const snap = await docRef.get();
     if (snap.exists) {
       const existing = snap.data() || {};
-      // Update if templateType is missing or incorrect
+      const patch = buildOwnerScopeUpdatePatch(existing, ownerScopeMetadata);
       if (!existing.templateType || existing.templateType !== "operational") {
-        await docRef.update({
-          templateType: "operational",
-          updatedAt: new Date()
-        });
-        console.log(`[ensureEgenkontrolTaskTemplates] Updated templateType for ${template.templateId}`);
+        patch.templateType = "operational";
+      }
+
+      for (const field of [
+        "routineType",
+        "routineKey",
+        "taskKey",
+        "equipmentId",
+        "equipmentType",
+        "equipmentName",
+        "unitId",
+        "unitName"
+      ]) {
+        if (template[field] && !existing[field]) patch[field] = template[field];
+      }
+
+      if (template.equipmentUnit && !existing.equipmentUnit) {
+        patch.equipmentUnit = template.equipmentUnit;
+      }
+
+      if (Object.keys(patch).length > 0) {
+        patch.updatedAt = new Date();
+        await docRef.update(patch);
+        console.log(`[ensureEgenkontrolTaskTemplates] Updated equipment metadata for ${template.templateId}`);
       }
       return;
     }
@@ -5939,42 +4643,100 @@ async function ensureEgenkontrolTaskTemplates({
   const baseMeta = {
     companyId,
     locationId,
+    ...ownerScopeMetadata,
     templateType: "operational",
     isActive: true,
     createdAt: new Date(),
     updatedAt: new Date()
   };
 
+  const temperatureRoutineByType = {
+    fridge: "koeleskab_temperatur",
+    freezer: "fryser_temperatur",
+    walk_in_cooler: "walkin_koeler_temperatur",
+    walk_in_freezer: "walkin_fryser_temperatur",
+    display_fridge: "koledisk_temperatur",
+    blast_chiller: "blaesekoeler_temperatur",
+    warming_cabinet: "varmeskab_temperatur",
+    softice_machine: "softice_temperatur_kontrol",
+    dishwasher: "opvaskemaskine_skyllevand"
+  };
+
+  const cleaningRoutineByType = {
+    fridge: "koeleskab_rengoering",
+    freezer: "fryser_rengoering",
+    walk_in_cooler: "walkin_koeler_rengoering",
+    walk_in_freezer: "walkin_fryser_rengoering",
+    display_fridge: "koledisk_rengoering",
+    blast_chiller: "blaesekoeler_rengoering",
+    warming_cabinet: "varmeskab_rengoering",
+    dishwasher: "opvaskemaskine_rengoering",
+    fryer: "friture_rengoering",
+    friture: "friture_rengoering",
+    slicer: "paalaegsmaskine_rengoering",
+    paalaegsmaskine: "paalaegsmaskine_rengoering",
+    softice_machine: "softice_maskine_rengoering",
+    ice_machine: "softice_maskine_rengoering",
+    oven: "ovn_rengoering",
+    stove: "komfur_rengoering",
+    smoke_oven: "roegeovn_rengoering",
+    proofing_cabinet: "rasteskab_rengoering"
+  };
+
   // TEMPERATUR PER UNIT
   for (const unit of units) {
+    const unitType = sanitizeEquipmentType(unit.type || unit.equipmentType || "");
+    const unitId = sanitizeString(unit.id || unit.equipmentId || "", 180);
+    if (!unitId || !unitType) continue;
+
     let guideKey = null;
     let cleanGuideKey = null;
-    const label = unit.name || "Enhed";
+    const label = unit.name || unit.displayName || unit.equipmentName || "Enhed";
+    const equipmentMeta = {
+      equipmentId: unitId,
+      equipmentType: unitType,
+      equipmentName: label,
+      unitId,
+      unitName: label,
+      equipmentUnit: unitId
+    };
+    const temperatureRoutineKey = temperatureRoutineByType[unitType] || "";
+    const cleaningRoutineKey = cleaningRoutineByType[unitType] || "";
 
-    if (unit.type === "fridge")           { guideKey = "fridge_temperature";          cleanGuideKey = "cleaning_control"; }
-    if (unit.type === "freezer")          { guideKey = "freezer_temperature";         cleanGuideKey = "cleaning_control"; }
-    if (unit.type === "walk_in_cooler")   { guideKey = "walkin_cooler_temperature";   cleanGuideKey = "cleaning_control"; }
-    if (unit.type === "walk_in_freezer")  { guideKey = "walk_in_freezer_temperature"; cleanGuideKey = "cleaning_control"; }
-    if (unit.type === "ice_machine")      { guideKey = "ice_machine_cleaning";        cleanGuideKey = "ice_machine_cleaning"; }
-    if (unit.type === "isboks")           { guideKey = "freezer_temperature";         cleanGuideKey = "cleaning_control"; }
-    if (unit.type === "friture")          { guideKey = "friture_control";             cleanGuideKey = "friture_control"; }
-    if (unit.type === "blast_chiller")    { guideKey = "blast_chiller_temperature";   cleanGuideKey = "cleaning_control"; }
+    if (unitType === "fridge")           { guideKey = "fridge_temperature";          cleanGuideKey = "cleaning_control"; }
+    if (unitType === "freezer")          { guideKey = "freezer_temperature";         cleanGuideKey = "cleaning_control"; }
+    if (unitType === "walk_in_cooler")   { guideKey = "walkin_cooler_temperature";   cleanGuideKey = "cleaning_control"; }
+    if (unitType === "walk_in_freezer")  { guideKey = "walk_in_freezer_temperature"; cleanGuideKey = "cleaning_control"; }
+    if (unitType === "ice_machine")      { guideKey = "ice_machine_cleaning";        cleanGuideKey = "ice_machine_cleaning"; }
+    if (unitType === "ice_box" || unitType === "isboks") { guideKey = "freezer_temperature"; cleanGuideKey = "cleaning_control"; }
+    if (unitType === "fryer" || unitType === "friture")  { cleanGuideKey = "friture_control"; }
+    if (unitType === "dishwasher")       { guideKey = "dishwasher_control";          cleanGuideKey = "cleaning_control"; }
+    if (unitType === "blast_chiller")    { guideKey = "blast_chiller_temperature";   cleanGuideKey = "cleaning_control"; }
+    if (unitType === "display_fridge")   { guideKey = "display_fridge_temperature";  cleanGuideKey = "cleaning_control"; }
+    if (unitType === "warming_cabinet")  { guideKey = "warming_cabinet_temperature"; cleanGuideKey = "cleaning_control"; }
+    if (unitType === "softice_machine")  { guideKey = "softice_temperature";         cleanGuideKey = "softice_machine_cleaning"; }
+    if (unitType === "oven" || unitType === "stove" || unitType === "smoke_oven" || unitType === "proofing_cabinet") {
+      cleanGuideKey = "cleaning_control";
+    }
 
-    // Temperaturrutine (kun for køle/fryse-enheder og friture)
-    if (guideKey && unit.type !== "ice_machine") {
-      const description = unit.type === "blast_chiller"
-        ? "Intern skærpet kontrol: Nedkøl til under +5°C inden for 90 min (ikke lovkrav)"
+    // Temperaturrutine (kun for kÃ¸le/fryse-enheder og friture)
+    if (guideKey && temperatureRoutineKey && unitType !== "ice_machine") {
+      const description = unitType === "blast_chiller"
+        ? "Intern skÃ¦rpet kontrol: NedkÃ¸l til under +5Â°C inden for 90 min (ikke lovkrav)"
         : "Kontroller og registrer temperatur";
       
       await createTemplateIfNotExists({
-        templateId: `${companyId}__${locationId}__temp__${unit.id}`,
+        templateId: `${companyId}__${locationId}__temp__${unitId}`,
         ...baseMeta,
-        templateKey: "temperature_control",
-        title: `Temperaturkontrol – ${label}`,
+        templateKey: temperatureRoutineKey,
+        taskKey: temperatureRoutineKey,
+        routineKey: temperatureRoutineKey,
+        routineType: temperatureRoutineKey,
+        title: `Temperaturkontrol â€“ ${label}`,
         description: description,
         guideKey,
         frequency: "daily",
-        equipmentUnit: unit.id,
+        ...equipmentMeta,
         scheduleConfig: {
           scheduleType: "operational",
           recurrenceMode: "every_n_days",
@@ -5985,17 +4747,20 @@ async function ensureEgenkontrolTaskTemplates({
       });
     }
 
-    // Rengøringsrutine per enhed
-    if (cleanGuideKey) {
+    // RengÃ¸ringsrutine per enhed
+    if (cleanGuideKey && cleaningRoutineKey) {
       await createTemplateIfNotExists({
-        templateId: `${companyId}__${locationId}__clean__${unit.id}`,
+        templateId: `${companyId}__${locationId}__clean__${unitId}`,
         ...baseMeta,
-        templateKey: "cleaning_control",
-        title: `Rengøring – ${label}`,
-        description: `Rengør og desinficer ${label.toLowerCase()} grundigt`,
+        templateKey: cleaningRoutineKey,
+        taskKey: cleaningRoutineKey,
+        routineKey: cleaningRoutineKey,
+        routineType: cleaningRoutineKey,
+        title: `RengÃ¸ring â€“ ${label}`,
+        description: `RengÃ¸r og desinficer ${label.toLowerCase()} grundigt`,
         guideKey: cleanGuideKey,
-        frequency: unit.type === "fridge" || unit.type === "freezer" || unit.type === "isboks" ? "weekly" : "daily",
-        equipmentUnit: unit.id
+        frequency: unitType === "fridge" || unitType === "freezer" || unitType === "ice_box" || unitType === "isboks" ? "weekly" : "daily",
+        ...equipmentMeta
       });
     }
   }
@@ -6012,7 +4777,7 @@ async function ensureEgenkontrolTaskTemplates({
         unit.type === "walk_in_freezer" || unit.type === "isboks" || unit.type === "friture" || unit.type === "blast_chiller") {
       const templateId = `${companyId}__${locationId}__temp__${unit.id}`;
       console.log(`[LOG A] Temperature template: ${templateId}`, {
-        title: `Temperaturkontrol – ${unit.name || "Enhed"}`,
+        title: `Temperaturkontrol â€“ ${unit.name || "Enhed"}`,
         templateType: "operational",
         unitId: unit.id,
         unitType: unit.type,
@@ -6024,7 +4789,7 @@ async function ensureEgenkontrolTaskTemplates({
   return { ok: true };
 }
 
-// ─── START-DAY IDEMPOTENCY HELPERS ───────────────────────────────────────────
+// â”€â”€â”€ START-DAY IDEMPOTENCY HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const INSTANCE_COMPARABLE_FIELDS = [
   "companyId", "locationId", "dateKey",
@@ -6046,7 +4811,7 @@ const INSTANCE_COMPARABLE_FIELDS = [
 function stableNormalize(value) {
   if (value === null || value === undefined) return null;
   if (typeof value === "object" && !Array.isArray(value) && value.constructor?.name === "Timestamp") {
-    // Firestore Timestamp — convert to ms for stable comparison
+    // Firestore Timestamp â€” convert to ms for stable comparison
     return typeof value.toMillis === "function" ? value.toMillis() : String(value);
   }
   if (Array.isArray(value)) {
@@ -6088,7 +4853,7 @@ function diffComparableFields(existingComparable, nextComparable) {
   return changed;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // Helper: Unified rule for daily routine template filtering
 function shouldGenerateDailyRoutineTemplate(template) {
@@ -6171,7 +4936,7 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
     return {
       ok: false,
       blocked: true,
-      message: "Lokationen er lukket. Automatiske rutiner er sat på pause for i dag."
+      message: "Lokationen er lukket. Automatiske rutiner er sat pÃ¥ pause for i dag."
     };
   }
 
@@ -6179,11 +4944,11 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
     return {
       ok: false,
       blocked: true,
-      message: "Lokationen er i ferie-mode. Automatiske rutiner er sat på pause for i dag."
+      message: "Lokationen er i ferie-mode. Automatiske rutiner er sat pÃ¥ pause for i dag."
     };
   }
 
-  // 🔹 hent templates (kun operational - ikke verification)
+  // ðŸ”¹ hent templates (kun operational - ikke verification)
   // Templates skal allerede eksistere (genereret via checkout eller adminReprovisionEquipment)
   const allTemplateDocs = await loadActiveTaskTemplates({ companyId, locationId });
   
@@ -6221,33 +4986,33 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
     const template = doc.data();
     const id = doc.id || "";
     
-    // 🚫 Fjern gamle auto templates
+    // ðŸš« Fjern gamle auto templates
     if (id.includes("auto_task")) {
       filterResults.set(id, "DROP: auto_task");
       return false;
     }
     
-    // 🚫 Fjern gamle KCP templates (ikke aggregerede)
+    // ðŸš« Fjern gamle KCP templates (ikke aggregerede)
     if (id.includes("kcp_") && !template.isAggregated) {
       filterResults.set(id, "DROP: kcp without aggregation");
       return false;
     }
     
-    // 🚫 Ekstra sikkerhed: fjern hvis title indikerer gammel struktur
+    // ðŸš« Ekstra sikkerhed: fjern hvis title indikerer gammel struktur
     const title = (template.title || "").toLowerCase();
     if (title.includes("kcp") && !template.isAggregated) {
       filterResults.set(id, "DROP: kcp in title without aggregation");
       return false;
     }
     
-    // 🚫 Fjern generisk koel_frost template hvis der findes unit-specifikke templates
+    // ðŸš« Fjern generisk koel_frost template hvis der findes unit-specifikke templates
     if (hasUnitSpecificKoelFrost && id.match(/egenkontrol_koel_frost$/) && !id.includes("__fridge_") && !id.includes("__freezer_") && !id.includes("__ice_machine_")) {
       console.log(`[egenkontrol] Skipping legacy generic koel_frost template: ${id}`);
       filterResults.set(id, "DROP: legacy generic koel_frost");
       return false;
     }
     
-    // ✅ Use unified daily routine filter
+    // âœ… Use unified daily routine filter
     const passed = shouldGenerateDailyRoutineTemplate(template);
     if (passed) {
       filterResults.set(id, "KEEP: passed shouldGenerateDailyRoutineTemplate");
@@ -6314,7 +5079,7 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
   }
 
   // Legacy compat keys (used by fallback logic and buildStartDayTargets inference)
-  if (!equipmentByType.fridge)   equipmentByType.fridge   = allEquipment.filter((x) => x.type.includes("fridge") || x.type.includes("koleskab") || x.type.includes("køleskab"));
+  if (!equipmentByType.fridge)   equipmentByType.fridge   = allEquipment.filter((x) => x.type.includes("fridge") || x.type.includes("koleskab") || x.type.includes("kÃ¸leskab"));
   if (!equipmentByType.freezer)  equipmentByType.freezer  = allEquipment.filter((x) => x.type.includes("freezer") || x.type.includes("fryser"));
   if (!equipmentByType.slicer) equipmentByType.slicer = allEquipment.filter((x) => x.type === "slicer");
   if (!equipmentByType.paalaegsmaskine) equipmentByType.paalaegsmaskine = allEquipment.filter((x) => x.type === "paalaegsmaskine");
@@ -6339,14 +5104,14 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
       }
 
       if (equipmentByType.fridge.length === 0 && counts.fridges > 0) {
-        equipmentByType.fridge = allEquipment.filter((item) => item.type.includes("fridge") || item.type.includes("koleskab") || item.type.includes("køleskab"));
+        equipmentByType.fridge = allEquipment.filter((item) => item.type.includes("fridge") || item.type.includes("koleskab") || item.type.includes("kÃ¸leskab"));
       }
 
       if (equipmentByType.freezer.length === 0 && counts.freezers > 0) {
         equipmentByType.freezer = allEquipment.filter((item) => item.type.includes("freezer") || item.type.includes("fryser"));
       }
     } catch (error) {
-      console.warn("Kunne ikke læse equipmentCounts fra onboarding_answers:", error);
+      console.warn("Kunne ikke lÃ¦se equipmentCounts fra onboarding_answers:", error);
     }
   }
 
@@ -6376,7 +5141,7 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
       120
     ) || doc.id;
 
-    // ✅ Use unified daily routine filter
+    // âœ… Use unified daily routine filter
     if (!shouldGenerateDailyRoutineTemplate(template)) {
       console.log("[startDayForLocation] SKIP blocked template", {
         templateId: template.id || null,
@@ -6535,7 +5300,7 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
     }
   }
 
-  // 🔹 gem daily run
+  // ðŸ”¹ gem daily run
   batch.set(runRef, {
     companyId,
     organizationId: companyId,
@@ -6557,7 +5322,7 @@ exports.startDayForLocation = functions.https.onCall(async (request) => {
     updated: updatedCount,
     skipped: skippedCount,
     message: runSnap.exists
-      ? `Dagens kort er opdateret (${createdCount} nye, ${updatedCount} opdateret, ${skippedCount} uændret).`
+      ? `Dagens kort er opdateret (${createdCount} nye, ${updatedCount} opdateret, ${skippedCount} uÃ¦ndret).`
       : `Oprettet ${createdCount} opgaver`
   };
 });
@@ -6572,17 +5337,25 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
 
   const companyId = sanitizeString(data?.companyId || "", 120);
   const locationId = sanitizeString(data?.locationId || "", 120);
-  const taskInstanceId = sanitizeString(data?.taskInstanceId || "", 120);
+  const rawTaskInstanceId = sanitizeString(data?.taskInstanceId || "", 120);
+  const taskDateKeyHint = normalizeDateKey(data?.taskDateKey || data?.dateKey || data?.selectedDateKey || "") || getDateKey();
   
   logger.info("saveRoutineTask called", {
     userId: auth.uid,
     companyId,
     locationId,
-    taskInstanceId
+    rawTaskInstanceId,
+    taskDateKeyHint
   });
   const taskIdHint = sanitizeString(data?.taskId || "", 120);
-  const taskDateKeyHint = sanitizeString(data?.taskDateKey || "", 40);
+  const templateIdHint = sanitizeString(data?.templateId || data?.taskTemplateId || "", 120);
+  const templateKeyHint = sanitizeString(data?.templateKey || "", 120);
+  const routineKeyHint = sanitizeString(data?.routineKey || data?.routineType || "", 120);
   const actionType = sanitizeString(data?.actionType || "save", 60);
+  const rawTaskInstanceHasDate = /\d{4}[-_]\d{2}[-_]\d{2}/.test(rawTaskInstanceId);
+  const taskInstanceId = rawTaskInstanceHasDate
+    ? normalizeTaskInstanceDateInId(rawTaskInstanceId, taskDateKeyHint)
+    : buildRoutineInstanceId(companyId, locationId, taskDateKeyHint, routineKeyHint || templateKeyHint || templateIdHint || taskIdHint || rawTaskInstanceId);
 
   if (!companyId || !locationId || !taskInstanceId) {
     throw new functions.https.HttpsError("invalid-argument", "companyId, locationId og taskInstanceId er paakraevet.");
@@ -6595,8 +5368,16 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
     locationId
   });
 
+  const todayKey = taskDateKeyHint || getDateKey();
   let taskRef = db.collection("task_instances").doc(taskInstanceId);
   let taskSnap = await taskRef.get();
+
+  if (!taskSnap.exists && rawTaskInstanceId && rawTaskInstanceId !== taskInstanceId) {
+    const rawTaskSnap = await db.collection("task_instances").doc(rawTaskInstanceId).get();
+    if (rawTaskSnap.exists) {
+      taskSnap = rawTaskSnap;
+    }
+  }
 
   if (!taskSnap.exists && taskIdHint) {
     let fallbackQuery = db
@@ -6621,8 +5402,8 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
   }
 
   // Additional fallback: try routineType/canonicalTaskKey
-  if (!taskSnap.exists && data?.routineKey && taskDateKeyHint) {
-    const routineKey = sanitizeString(data.routineKey, 120);
+  if (!taskSnap.exists && routineKeyHint && taskDateKeyHint) {
+    const routineKey = routineKeyHint;
     let routineFallbackQuery = db
       .collection("task_instances")
       .where("companyId", "==", companyId)
@@ -6642,14 +5423,154 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
     }
   }
 
+  // Lazy-create exactly one selected-date task instance when a template card is saved.
+  // This preserves the lazy-create model: normal routine load must not generate daily instances.
+  if (!taskSnap.exists) {
+    const templateCandidateIds = [
+      templateIdHint,
+      taskIdHint,
+      templateKeyHint
+    ].map((value) => sanitizeString(value, 160)).filter(Boolean);
+
+    if (!templateCandidateIds.length && !routineKeyHint) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Rutinen mangler templateId, templateKey eller routineKey, saa den kan ikke oprettes for den valgte dato."
+      );
+    }
+
+    let templateSnap = null;
+    let templateCollectionName = "";
+
+    for (const collectionName of ["task_templates", "verification_templates"]) {
+      for (const candidateId of templateCandidateIds) {
+        const candidateSnap = await db.collection(collectionName).doc(candidateId).get();
+        if (!candidateSnap.exists) continue;
+
+        const candidate = candidateSnap.data() || {};
+        const candidateCompanyId = sanitizeString(candidate.companyId || candidate.organizationId, 120);
+        const candidateLocationId = sanitizeString(candidate.locationId || "", 120);
+        const companyMatches = !candidateCompanyId || candidateCompanyId === companyId;
+        const locationMatches = !candidateLocationId || candidateLocationId === locationId;
+
+        if (companyMatches && locationMatches) {
+          templateSnap = candidateSnap;
+          templateCollectionName = collectionName;
+          break;
+        }
+      }
+      if (templateSnap) break;
+    }
+
+    if (!templateSnap && routineKeyHint) {
+      for (const collectionName of ["task_templates", "verification_templates"]) {
+        const templateQuerySnap = await db
+          .collection(collectionName)
+          .where("companyId", "==", companyId)
+          .where("locationId", "==", locationId)
+          .limit(100)
+          .get();
+
+        for (const doc of templateQuerySnap.docs) {
+          const candidate = doc.data() || {};
+          const candidateRoutineKeys = [
+            candidate.routineKey,
+            candidate.routineType,
+            candidate.canonicalRoutineType,
+            candidate.templateKey,
+            candidate.taskKey,
+            candidate.taskId,
+            doc.id
+          ].map((value) => sanitizeString(value, 120)).filter(Boolean);
+
+          if (candidateRoutineKeys.includes(routineKeyHint)) {
+            templateSnap = doc;
+            templateCollectionName = collectionName;
+            break;
+          }
+        }
+        if (templateSnap) break;
+      }
+    }
+
+    if (templateSnap) {
+      const template = templateSnap.data() || {};
+      const lazyDateKey = normalizeDateKey(taskDateKeyHint) || todayKey;
+      const resolvedRoutineKey = sanitizeString(
+        routineKeyHint ||
+        template.routineKey ||
+        template.routineType ||
+        template.canonicalRoutineType ||
+        template.templateKey ||
+        template.taskKey ||
+        templateSnap.id,
+        120
+      );
+      const lazyTaskPayload = {
+        companyId,
+        organizationId: companyId,
+        locationId,
+        unitId: sanitizeString(data?.unitId || template.unitId || "", 120),
+        taskId: sanitizeString(template.taskId || templateSnap.id, 120),
+        templateId: templateSnap.id,
+        linkedTemplateId: templateSnap.id,
+        templateKey: sanitizeString(template.templateKey || template.taskKey || templateSnap.id, 120),
+        templateSource: templateCollectionName,
+        source: "lazy_save",
+        title: sanitizeString(template.title || data?.title || "Rutine", 220),
+        description: sanitizeString(template.description || "", 1000),
+        category: sanitizeString(template.category || data?.category || "", 120),
+        controlPoint: sanitizeString(template.controlPoint || data?.controlPoint || template.category || "", 160),
+        type: sanitizeString(template.type || template.taskType || "", 80),
+        taskType: sanitizeString(template.taskType || template.type || "", 80),
+        routineKey: resolvedRoutineKey,
+        routineType: sanitizeString(template.routineType || resolvedRoutineKey, 120),
+        canonicalTaskKey: sanitizeString(template.canonicalTaskKey || resolvedRoutineKey, 120),
+        canonicalRoutineType: sanitizeString(template.canonicalRoutineType || resolvedRoutineKey, 120),
+        equipmentId: sanitizeString(template.equipmentId || "", 120),
+        equipmentName: sanitizeString(template.equipmentName || template.unitName || "", 140),
+        equipmentType: sanitizeString(template.equipmentType || "", 80),
+        frequency: sanitizeString(template.frequency || "daily", 40),
+        dateKey: lazyDateKey,
+        status: "active",
+        documented: false,
+        createdAt: FieldValue.serverTimestamp(),
+        createdBy: auth.uid,
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: auth.uid
+      };
+
+      await taskRef.set(lazyTaskPayload, { merge: true });
+      taskSnap = await taskRef.get();
+
+      logger.info("Lazy-created task instance for saveRoutineTask", {
+        userId: auth.uid,
+        companyId,
+        locationId,
+        taskInstanceId,
+        templateId: templateSnap.id,
+        templateCollectionName,
+        routineKey: resolvedRoutineKey
+      });
+    }
+  }
+
   if (!taskSnap.exists) {
     logger.warn("Task instance not found", {
       userId: auth.uid,
       companyId,
       locationId,
-      taskInstanceId
+      taskInstanceId,
+      taskIdHint,
+      templateIdHint,
+      templateKeyHint,
+      routineKeyHint,
+      taskDateKeyHint
     });
-    throw new functions.https.HttpsError("not-found", "Rutinen blev ikke fundet.");
+    throw new functions.https.HttpsError(
+      "not-found",
+      `Rutinen blev ikke fundet, og lazy-create kunne ikke finde en template for ${taskDateKeyHint}.`
+    );
   }
 
   const task = taskSnap.data() || {};
@@ -6664,7 +5585,7 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
   const result = data?.result || {};
   const completedBy = sanitizeString(data?.completedBy || auth.uid, 120) || auth.uid;
   const completedByName = sanitizeString(data?.completedByName || auth.token?.name || auth.token?.email || auth.uid, 140);
-  const note = sanitizeString(entryData.note || "", 2000);
+  const note = sanitizeString(entryData.note || entryData.comment || "", 2000);
   const aiBeskrivelse = sanitizeString(entryData.beskrivelse || entryData.aiDescription || "", 4000);
   const aiSource = sanitizeString(entryData.ai_source || "", 80);
   const aiCategory = sanitizeString(entryData.ai_category || "", 80);
@@ -6707,7 +5628,6 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
     throw new functions.https.HttpsError("invalid-argument", "Forklaring er paakraevet, fordi rutinen er gaaet over tid.");
   }
 
-  const todayKey = getDateKey();
   const resolvedTaskInstanceId = taskRef.id;
 
   const autoDocumentationNote = (() => {
@@ -6720,23 +5640,71 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
 
     if (actionType === "save") {
       if (measurementValue !== null && measurementValue !== undefined) {
-        return `${scope} udført kl. ${timeLabel}. Måling registreret: ${measurementValue}${measurementUnit || ""}.`;
+        return `${scope} udfÃ¸rt kl. ${timeLabel}. MÃ¥ling registreret: ${measurementValue}${measurementUnit || ""}.`;
       }
-      return `${scope} udført kl. ${timeLabel}. Område/maskine kontrolleret og dokumenteret.`;
+      return `${scope} udfÃ¸rt kl. ${timeLabel}. OmrÃ¥de/maskine kontrolleret og dokumenteret.`;
     }
 
     return "";
   })();
 
+  const resolvedTemplateId = sanitizeString(task.templateId || task.linkedTemplateId || templateIdHint || "", 120);
+  const resolvedTemplateKey = sanitizeString(task.templateKey || templateKeyHint || resolvedTemplateId || task.taskId || taskIdHint || "", 120);
+  const resolvedRoutineKey = sanitizeString(
+    data?.routineKey ||
+    task.routineKey ||
+    task.routineType ||
+    task.canonicalRoutineType ||
+    task.canonicalTaskKey ||
+    resolvedTemplateKey ||
+    task.taskId ||
+    taskIdHint ||
+    "",
+    120
+  );
+  const resolvedRoutineType = sanitizeString(task.routineType || data?.routineType || resolvedRoutineKey, 120);
+  const resolvedCanonicalTaskKey = sanitizeString(task.canonicalTaskKey || data?.canonicalTaskKey || resolvedRoutineKey || resolvedTemplateKey, 120);
+  const coolingData = entryData?.coolingData || {};
+  const isCoolingEntry =
+    entryType === "cooling_control" ||
+    String(data?.actionType || entryData?.actionType || "").toLowerCase().includes("cooling") ||
+    normalizeRoutineEntryKey(resolvedRoutineKey || resolvedTemplateKey || task.routineKey || task.templateKey || "") === "nedkoeling";
+  const coolingFoodItem = sanitizeString(
+    entryData.foodItem ||
+    entryData.productName ||
+    data?.foodItem ||
+    data?.productName ||
+    coolingData.foodItem ||
+    coolingData.productName ||
+    "",
+    180
+  );
+  const coolingMethod = sanitizeString(entryData.method || data?.method || coolingData.coolingMethodLabel || coolingData.coolingMethod || "", 140);
+  const coolingPerformedByUid = sanitizeString(entryData.performedByUid || data?.performedByUid || entryData.completedBy || completedBy, 120) || completedBy;
+  const coolingPerformedByName = sanitizeString(entryData.performedByName || data?.performedByName || entryData.completedByName || completedByName, 140) || completedByName;
+  const latestComment = sanitizeString(entryData.comment || entryData.note || "", 2000);
+  const startTime = sanitizeString(entryData.startTime || entryData.startAt || entryData.cooling_startTime || entryData.coolingData?.startedAt || "", 120);
+  const endTime = sanitizeString(entryData.endTime || entryData.endAt || entryData.finishedAt || entryData.cooling_endTime || entryData.coolingData?.finishedAt || "", 120);
+
   const entryPayload = {
     taskInstanceId: resolvedTaskInstanceId,
     taskId: sanitizeString(task.taskId || "", 120),
+    sourceTaskInstanceId: resolvedTaskInstanceId,
     companyId,
     organizationId: companyId,
     unitId: sanitizeString(data?.unitId || task.unitId || "", 120),
     locationId,
+    routineKey: resolvedRoutineKey,
+    routineType: resolvedRoutineType,
+    canonicalTaskKey: resolvedCanonicalTaskKey,
+    canonicalRoutineType: sanitizeString(task.canonicalRoutineType || resolvedRoutineType, 120),
+    templateKey: resolvedTemplateKey,
+    templateId: resolvedTemplateId,
     taskTitle: sanitizeString(task.title || "", 220),
+    title: sanitizeString(task.title || "", 220),
     taskType: sanitizeString(task.type || task.category || "", 80),
+    category: sanitizeString(task.category || "", 120),
+    controlPoint: sanitizeString(task.controlPoint || "", 160),
     equipmentId: sanitizeString(task.equipmentId || "", 120),
     equipmentName: sanitizeString(task.equipmentName || "", 140),
     equipmentType: sanitizeString(task.equipmentType || "", 80),
@@ -6745,7 +5713,12 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
     measurementUnit,
     valueLabel,
     status: entryStatus,
+    startTime,
+    startAt: sanitizeString(entryData.startAt || startTime || "", 120),
+    endTime,
+    endAt: sanitizeString(entryData.endAt || endTime || "", 120),
     note: autoDocumentationNote,
+    comment: latestComment || autoDocumentationNote,
     beskrivelse: aiBeskrivelse || autoDocumentationNote,
     handling_udfort: hasAiHandlingFlag ? aiHandlingUdfort : actionType === "save",
     deadlineAt,
@@ -6777,6 +5750,28 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
   if (entryRiskId) entryPayload.riskId = entryRiskId;
   if (sourceRiskAnalysisId) entryPayload.sourceRiskAnalysisId = sourceRiskAnalysisId;
   if (sourceHazard) entryPayload.sourceHazard = sourceHazard;
+  if (isCoolingEntry) {
+    entryPayload.foodItem = coolingFoodItem;
+    entryPayload.productName = coolingFoodItem;
+    entryPayload.performedByUid = coolingPerformedByUid;
+    entryPayload.performedByName = coolingPerformedByName;
+    entryPayload.completedByName = coolingPerformedByName;
+    entryPayload.method = coolingMethod;
+    entryPayload.documentation = autoDocumentationNote;
+    entryPayload.coolingData = {
+      foodItem: coolingFoodItem,
+      productName: coolingFoodItem,
+      quantityBucket: sanitizeString(coolingData.quantityBucket || entryData.quantityBucket || "", 80),
+      coolingMethod: sanitizeString(coolingData.coolingMethod || entryData.coolingMethod || "", 80),
+      coolingMethodLabel: sanitizeString(coolingData.coolingMethodLabel || coolingMethod || "", 140),
+      startTemp: coolingData.startTemp ?? entryData.startTemp ?? null,
+      endTemp: coolingData.endTemp ?? entryData.endTemp ?? measurementValue,
+      coolingDuration: coolingData.coolingDuration ?? entryData.coolingDuration ?? null,
+      startedAt: sanitizeString(coolingData.startedAt || entryData.startedAt || "", 80),
+      finishedAt: sanitizeString(coolingData.finishedAt || entryData.completedAt || data?.completedAt || "", 80),
+      aborted: coolingData.aborted === true || entryData.aborted === true
+    };
+  }
 
   const entryRef = await db.collection("task_entries").add(entryPayload);
   
@@ -6793,13 +5788,38 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
   const activeUntilDateKey = normalizeDateKey(task.activeUntilDateKey) || addDays(sourceDateKey, 7);
   const instanceUpdate = {
     status: "active",
+    statusForSelectedDate: entryStatus,
+    dateKey: todayKey,
+    taskInstanceId: resolvedTaskInstanceId,
+    sourceTaskInstanceId: resolvedTaskInstanceId,
+    routineKey: resolvedRoutineKey,
+    routineType: resolvedRoutineType,
+    canonicalTaskKey: resolvedCanonicalTaskKey,
+    canonicalRoutineType: sanitizeString(task.canonicalRoutineType || resolvedRoutineType, 120),
+    templateKey: resolvedTemplateKey,
+    templateId: resolvedTemplateId,
+    latestEntryId: entryRef.id,
+    latestEntryAt: FieldValue.serverTimestamp(),
+    latestEntryStatus: entryStatus,
+    latestEntrySummary: autoDocumentationNote,
+    latestEntryByName: isCoolingEntry ? coolingPerformedByName : completedByName,
+    latestMeasurement: measurementValue,
+    latestComment,
+    startTime,
+    startAt: sanitizeString(entryData.startAt || startTime || "", 120),
+    endTime,
+    endAt: sanitizeString(entryData.endAt || endTime || "", 120),
     lastEntryStatus: entryStatus,
     documented: true,
     lastEntryAt: FieldValue.serverTimestamp(),
+    lastEntrySummary: autoDocumentationNote,
     entryCount: FieldValue.increment(1),
     activeUntilDateKey,
     lastCompletedBy: completedBy,
-    lastCompletedByName: completedByName,
+    lastCompletedByName: isCoolingEntry ? coolingPerformedByName : completedByName,
+    completedAt: FieldValue.serverTimestamp(),
+    completedBy,
+    completedByName: isCoolingEntry ? coolingPerformedByName : completedByName,
     completedLate,
     overdueResolvedAt: completedLate ? FieldValue.serverTimestamp() : null,
     updatedAt: FieldValue.serverTimestamp()
@@ -6930,9 +5950,31 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
   return {
     ok: true,
     entryId: entryRef.id,
+    taskEntryId: entryRef.id,
+    taskInstanceId: resolvedTaskInstanceId,
+    dateKey: todayKey,
     entryStatus,
     instanceStatus: "active",
-    activeUntilDateKey
+    statusForSelectedDate: entryStatus,
+    latestEntryId: entryRef.id,
+    latestEntryAt: new Date().toISOString(),
+    latestEntryStatus: entryStatus,
+    latestEntrySummary: autoDocumentationNote,
+    latestEntryByName: isCoolingEntry ? coolingPerformedByName : completedByName,
+    latestMeasurement: measurementValue,
+    latestComment,
+    startTime,
+    startAt: sanitizeString(entryData.startAt || startTime || "", 120),
+    endTime,
+    endAt: sanitizeString(entryData.endAt || endTime || "", 120),
+    completedAt: new Date().toISOString(),
+    completedByName: isCoolingEntry ? coolingPerformedByName : completedByName,
+    foodItem: isCoolingEntry ? coolingFoodItem : "",
+    productName: isCoolingEntry ? coolingFoodItem : "",
+    performedByUid: isCoolingEntry ? coolingPerformedByUid : "",
+    performedByName: isCoolingEntry ? coolingPerformedByName : "",
+    activeUntilDateKey,
+    entryCount: Number(task.entryCount || 0) + 1
   };
 }); // Added closing brace here
 
@@ -7010,32 +6052,32 @@ exports.seedDemoData = functions.https.onCall(async (data, context) => {
   const demoTasks = [
     {
       taskId: "demo_fridge_temperature_1",
-      title: "Køleskab 1 temperatur",
-      description: "Mål temperatur i køleskab 1 og udfyld målefelt.",
+      title: "KÃ¸leskab 1 temperatur",
+      description: "MÃ¥l temperatur i kÃ¸leskab 1 og udfyld mÃ¥lefelt.",
       type: "measurement",
-      measurementUnit: "°C",
+      measurementUnit: "Â°C",
       minValue: 0,
       maxValue: 5,
       equipmentType: "fridge",
-      equipmentName: "Køleskab 1"
+      equipmentName: "KÃ¸leskab 1"
     },
     {
       taskId: "demo_fridge_temperature_2",
-      title: "Køleskab 2 temperatur",
-      description: "Mål temperatur i køleskab 2 og udfyld målefelt.",
+      title: "KÃ¸leskab 2 temperatur",
+      description: "MÃ¥l temperatur i kÃ¸leskab 2 og udfyld mÃ¥lefelt.",
       type: "measurement",
-      measurementUnit: "°C",
+      measurementUnit: "Â°C",
       minValue: 0,
       maxValue: 5,
       equipmentType: "fridge",
-      equipmentName: "Køleskab 2"
+      equipmentName: "KÃ¸leskab 2"
     },
     {
       taskId: "demo_freezer_temperature_1",
       title: "Fryser 1 temperatur",
-      description: "Mål temperatur i fryser 1 og udfyld målefelt.",
+      description: "MÃ¥l temperatur i fryser 1 og udfyld mÃ¥lefelt.",
       type: "measurement",
-      measurementUnit: "°C",
+      measurementUnit: "Â°C",
       minValue: -30,
       maxValue: -18,
       equipmentType: "freezer",
@@ -7043,7 +6085,7 @@ exports.seedDemoData = functions.https.onCall(async (data, context) => {
     },
     {
       taskId: "demo_cleaning_surface",
-      title: "Rengøring af arbejdsflader",
+      title: "RengÃ¸ring af arbejdsflader",
       description: "Kontroller at arbejdsflader er rengjort og kryds af.",
       type: "check",
       equipmentType: "cleaning",
@@ -7052,78 +6094,78 @@ exports.seedDemoData = functions.https.onCall(async (data, context) => {
     {
       taskId: "demo_allergen_separation",
       title: "Adskillelse af allergener",
-      description: "Bekræft adskillelse mellem allergenvarer og øvrige varer.",
+      description: "BekrÃ¦ft adskillelse mellem allergenvarer og Ã¸vrige varer.",
       type: "check",
       equipmentType: "storage",
-      equipmentName: "Tørvarelager"
+      equipmentName: "TÃ¸rvarelager"
     },
     {
       taskId: "demo_receiving_check",
       title: "Varemodtagelse kontrol",
-      description: "Kontroller emballage, temperatur og datomærkning.",
+      description: "Kontroller emballage, temperatur og datomÃ¦rkning.",
       type: "check",
       equipmentType: "receiving",
       equipmentName: "Varemodtagelse"
     },
     {
       taskId: "demo_softice_cleaning",
-      title: "Softice-maskine rengøring",
-      description: "Rengør softice-maskine inkl. tappetud, slanger, pakninger og drypbakke.",
+      title: "Softice-maskine rengÃ¸ring",
+      description: "RengÃ¸r softice-maskine inkl. tappetud, slanger, pakninger og drypbakke.",
       type: "check",
       equipmentType: "softice",
       equipmentName: "Softice-maskine",
-      guideTitle: "Softice-maskine - rengøring af maskine og dele",
-      guideIntro: "Maskinen skal adskilles og rengøres efter producentens procedure for at undgå bakterievækst.",
+      guideTitle: "Softice-maskine - rengÃ¸ring af maskine og dele",
+      guideIntro: "Maskinen skal adskilles og rengÃ¸res efter producentens procedure for at undgÃ¥ bakterievÃ¦kst.",
       guideAreas: [
-        "Tappetud, pakninger, slanger, omrører og drypbakke",
-        "Beholder og alle produktberørte kontaktflader",
-        "Korrekt samling af alle dele efter rengøring"
+        "Tappetud, pakninger, slanger, omrÃ¸rer og drypbakke",
+        "Beholder og alle produktberÃ¸rte kontaktflader",
+        "Korrekt samling af alle dele efter rengÃ¸ring"
       ],
       guideSteps: [
-        "Stop drift, tøm produkt og adskil de dele der skal rengøres.",
-        "Vask, skyl og desinficér delene efter godkendt rengøringsinstruks.",
-        "Saml maskinen igen, kør test/skyl og registrér opgaven."
+        "Stop drift, tÃ¸m produkt og adskil de dele der skal rengÃ¸res.",
+        "Vask, skyl og desinficÃ©r delene efter godkendt rengÃ¸ringsinstruks.",
+        "Saml maskinen igen, kÃ¸r test/skyl og registrÃ©r opgaven."
       ],
       guideApproval: [
         "Alle dele er synligt rene og korrekt monteret.",
-        "Ingen rester af produkt eller rengøringsmiddel.",
+        "Ingen rester af produkt eller rengÃ¸ringsmiddel.",
         "Maskinen er klar til sikker drift."
       ],
       guideIfNotOk: [
-        "Registrér afvigelse med hvilken del der ikke er ok.",
-        "Gentag rengøring før maskinen tages i brug.",
-        "Informer ansvarlig ved teknisk fejl eller manglende tæthed."
+        "RegistrÃ©r afvigelse med hvilken del der ikke er ok.",
+        "Gentag rengÃ¸ring fÃ¸r maskinen tages i brug.",
+        "Informer ansvarlig ved teknisk fejl eller manglende tÃ¦thed."
       ]
     },
     {
       taskId: "demo_oven_cleaning_and_temp",
-      title: "Ovn rengøring og temperaturkontrol",
-      description: "Rengør ovn og verificér at ovntemperatur er korrekt.",
+      title: "Ovn rengÃ¸ring og temperaturkontrol",
+      description: "RengÃ¸r ovn og verificÃ©r at ovntemperatur er korrekt.",
       type: "measurement",
-      measurementUnit: "°C",
+      measurementUnit: "Â°C",
       minValue: 160,
       maxValue: 260,
       equipmentType: "oven",
       equipmentName: "Kombiovn 1",
-      guideTitle: "Ovn - rengøring og temperaturkontrol",
-      guideIntro: "Ovnen skal være ren og holde den temperatur der er sat for sikker tilberedning.",
+      guideTitle: "Ovn - rengÃ¸ring og temperaturkontrol",
+      guideIntro: "Ovnen skal vÃ¦re ren og holde den temperatur der er sat for sikker tilberedning.",
       guideAreas: [
-        "Ovnrum, riste, plader, tætningslister og håndtag",
+        "Ovnrum, riste, plader, tÃ¦tningslister og hÃ¥ndtag",
         "Temperaturvisning og evt. kernetermometer",
-        "Luftcirkulation og ventilationsåbninger"
+        "Luftcirkulation og ventilationsÃ¥bninger"
       ],
       guideSteps: [
-        "Rengør ovnens indvendige flader og tilbehør.",
-        "Forvarm ovnen og mål faktisk temperatur med kalibreret termometer.",
-        "Indtast målingen og registrér kommentar ved afvigelse."
+        "RengÃ¸r ovnens indvendige flader og tilbehÃ¸r.",
+        "Forvarm ovnen og mÃ¥l faktisk temperatur med kalibreret termometer.",
+        "Indtast mÃ¥lingen og registrÃ©r kommentar ved afvigelse."
       ],
       guideApproval: [
-        "Ovnen er fri for fastbrændte rester.",
-        "Målt temperatur ligger inden for tilladt interval.",
+        "Ovnen er fri for fastbrÃ¦ndte rester.",
+        "MÃ¥lt temperatur ligger inden for tilladt interval.",
         "Kontrollen er dokumenteret i systemet."
       ],
       guideIfNotOk: [
-        "Opret afvigelse med målt temperatur og forventet værdi.",
+        "Opret afvigelse med mÃ¥lt temperatur og forventet vÃ¦rdi.",
         "Tag ovn ud af drift ved kritisk temperaturfejl.",
         "Bestil service/kalibrering."
       ]
@@ -7131,32 +6173,32 @@ exports.seedDemoData = functions.https.onCall(async (data, context) => {
     {
       taskId: "demo_industrial_dishwasher_temp",
       title: "Industriopvaskemaskine temperaturkontrol",
-      description: "Kontrollér vaske-/slutskylletemperatur og rengør filtre/dyser.",
+      description: "KontrollÃ©r vaske-/slutskylletemperatur og rengÃ¸r filtre/dyser.",
       type: "measurement",
-      measurementUnit: "°C",
+      measurementUnit: "Â°C",
       minValue: 60,
       maxValue: 90,
       equipmentType: "dishwasher",
       equipmentName: "Industriopvaskemaskine",
-      guideTitle: "Industriopvaskemaskine - rengøring og temperatur",
-      guideIntro: "Maskinen skal være ren, og temperaturer skal sikre hygiejnisk opvask.",
+      guideTitle: "Industriopvaskemaskine - rengÃ¸ring og temperatur",
+      guideIntro: "Maskinen skal vÃ¦re ren, og temperaturer skal sikre hygiejnisk opvask.",
       guideAreas: [
         "Filtre, dyser, skyllearme og tank",
-        "Sæbe-/afspændingsdosering",
+        "SÃ¦be-/afspÃ¦ndingsdosering",
         "Vaske- og slutskylletemperatur"
       ],
       guideSteps: [
-        "Rengør filtre, dyser og tank efter daglig rutine.",
-        "Kør testprogram og aflæs temperaturer.",
-        "Registrér temperaturmåling og evt. afvigelse."
+        "RengÃ¸r filtre, dyser og tank efter daglig rutine.",
+        "KÃ¸r testprogram og aflÃ¦s temperaturer.",
+        "RegistrÃ©r temperaturmÃ¥ling og evt. afvigelse."
       ],
       guideApproval: [
         "Maskinen er rengjort uden madrester.",
-        "Målt temperatur ligger inden for tilladt interval.",
+        "MÃ¥lt temperatur ligger inden for tilladt interval.",
         "Dokumentation er gemt."
       ],
       guideIfNotOk: [
-        "Opret afvigelse med målte temperaturer.",
+        "Opret afvigelse med mÃ¥lte temperaturer.",
         "Stop brug ved kritisk afvigelse.",
         "Kontakt service ved gentagne fejl."
       ]
@@ -7196,9 +6238,9 @@ exports.seedDemoData = functions.https.onCall(async (data, context) => {
       guideIntro: item.guideIntro || "Dette er demo-data. Udfyld kun felter som en medarbejder normalt udfylder.",
       guideAreas: Array.isArray(item.guideAreas) ? item.guideAreas : [],
       guideSteps: Array.isArray(item.guideSteps) ? item.guideSteps : [
-        "Læs opgaven",
-        "Udfyld måling eller vælg udført",
-        "Tilføj kommentar ved afvigelse"
+        "LÃ¦s opgaven",
+        "Udfyld mÃ¥ling eller vÃ¦lg udfÃ¸rt",
+        "TilfÃ¸j kommentar ved afvigelse"
       ],
       guideApproval: Array.isArray(item.guideApproval) ? item.guideApproval : [],
       guideIfNotOk: Array.isArray(item.guideIfNotOk) ? item.guideIfNotOk : [],
@@ -7595,12 +6637,12 @@ exports.createStripeCheckoutSession = functions.https.onCall(
   };
 });
 
-// ─── BILLING PLANS REGISTER ──────────────────────────────────────────────────
+// â”€â”€â”€ BILLING PLANS REGISTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const BILLING_PLANS = {
   monthly: {
     code: "monthly",
-    label: "Månedsabonnement",
+    label: "MÃ¥nedsabonnement",
     interval: "month",
     intervalCount: 1,
     exVatOre: 14900,
@@ -7609,7 +6651,7 @@ const BILLING_PLANS = {
   },
   yearly: {
     code: "yearly",
-    label: "Årsabonnement (Spar 10%)",
+    label: "Ã…rsabonnement (Spar 10%)",
     interval: "year",
     intervalCount: 1,
     exVatOre: 160920,
@@ -7626,10 +6668,10 @@ function getBillingPlan(planCode) {
   return plan;
 }
 
-// ─── CANONICAL COMPANY ID (STABLE SLUG-BASED) ───────────────────────────────
-// VIGTIGT: companyId må IKKE bruge Date.now() (ikke stabil ved re-runs)
-// VIGTIGT: companyId må IKKE kun bruge slug (collision mellem virksomheder med samme navn)
-// LØSNING: slug + CVR (hvis findes) eller slug + hash (fallback for uniqueness)
+// â”€â”€â”€ CANONICAL COMPANY ID (STABLE SLUG-BASED) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// VIGTIGT: companyId mÃ¥ IKKE bruge Date.now() (ikke stabil ved re-runs)
+// VIGTIGT: companyId mÃ¥ IKKE kun bruge slug (collision mellem virksomheder med samme navn)
+// LÃ˜SNING: slug + CVR (hvis findes) eller slug + hash (fallback for uniqueness)
 
 function buildCanonicalCompanyId(input) {
   const crypto = require("crypto");
@@ -7642,12 +6684,12 @@ function buildCanonicalCompanyId(input) {
 
   const cleanCvr = String(input.cvr || "").replace(/\D/g, "");
 
-  // Path 1: CVR findes → slug + CVR (garanteret unik)
+  // Path 1: CVR findes â†’ slug + CVR (garanteret unik)
   if (/^\d{8}$/.test(cleanCvr)) {
     return `onboarding_${slug}_${cleanCvr}`;
   }
 
-  // Path 2: Ingen CVR → slug + stabil hash baseret på fallback-seed
+  // Path 2: Ingen CVR â†’ slug + stabil hash baseret pÃ¥ fallback-seed
   // Hash sikrer uniqueness selv ved samme company name
   const fallbackSeed = `${input.companyName || ""}_${input.address || ""}_${input.zip || ""}_${input.city || ""}`
     .toLowerCase()
@@ -7662,7 +6704,7 @@ function buildCanonicalCompanyId(input) {
   return `onboarding_${slug}_${hash}`;
 }
 
-// ─── COMPANY KEY (DEDUPLICATION) ─────────────────────────────────────────────
+// â”€â”€â”€ COMPANY KEY (DEDUPLICATION) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function buildCompanyKey({ cvr, companyName, address, zip, city }) {
   const cleanCvr = String(cvr || "").replace(/\D/g, "");
@@ -7685,7 +6727,7 @@ function buildCompanyKey({ cvr, companyName, address, zip, city }) {
   };
 }
 
-// ─── CREATE OR GET COMPANY (TRANSACTION) ─────────────────────────────────────
+// â”€â”€â”€ CREATE OR GET COMPANY (TRANSACTION) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function getOrCreateCompany(tx, input) {
   const { companyKey, keyType } = buildCompanyKey(input);
@@ -7751,7 +6793,55 @@ async function getOrCreateCompany(tx, input) {
   };
 }
 
-// ─── ONBOARDING CHECKOUT SESSION ────────────────────────────────────────────
+// â”€â”€â”€ ONBOARDING CHECKOUT SESSION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+const CHECKOUT_ALLOWED_MODULES = new Set(["pos", "lagerkontrol", "bogforing", "egenkontrol", "menu", "seo", "kalkulation", "koerselskontrol"]);
+const CHECKOUT_MODULE_ALIASES = {
+  accounting: "bogforing",
+  bogfoering: "bogforing",
+  "bogføring": "bogforing"
+};
+
+function normalizeCheckoutSelectedModules(...sources) {
+  const result = [];
+  const pushValue = (value) => {
+    if (Array.isArray(value)) {
+      value.forEach(pushValue);
+      return;
+    }
+    String(value || "")
+      .split(",")
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean)
+      .forEach((item) => {
+        const moduleKey = CHECKOUT_MODULE_ALIASES[item] || item;
+        if (CHECKOUT_ALLOWED_MODULES.has(moduleKey) && !result.includes(moduleKey)) {
+          result.push(moduleKey);
+        }
+      });
+  };
+  sources.forEach(pushValue);
+  return result;
+}
+
+function buildCheckoutModuleAccess(selectedModules = [], source = "onboarding_checkout") {
+  return selectedModules.reduce((acc, moduleKey) => {
+    acc[moduleKey] = {
+      enabled: true,
+      status: "active",
+      source,
+      activatedAt: FieldValue.serverTimestamp()
+    };
+    return acc;
+  }, {});
+}
+
+function buildCheckoutModuleMap(selectedModules = []) {
+  return selectedModules.reduce((acc, moduleKey) => {
+    acc[moduleKey] = true;
+    return acc;
+  }, {});
+}
 
 exports.createOnboardingCheckoutSession = functions.https.onCall(
   { secrets: ["FUNCTIONS_CONFIG_EXPORT"] },
@@ -7790,6 +6880,15 @@ exports.createOnboardingCheckoutSession = functions.https.onCall(
   const profile = sanitizeOnboardingProfile(mergedProfile);
   const requestedCompanyId = sanitizeString(data?.companyId || "", 120);
   const requestedLocationId = sanitizeString(data?.locationId || "", 120);
+  const selectedModules = normalizeCheckoutSelectedModules(
+    data?.selectedModules,
+    data?.checkoutSummary?.selectedModules,
+    data?.module,
+    data?.modules
+  );
+  if (!selectedModules.length) {
+    throw new functions.https.HttpsError("invalid-argument", "Vælg mindst ét modul for at fortsætte.");
+  }
 
   // STEP 1: Read and validate billingPlan from frontend
   const normalizedBillingPlan = String(data.billingPlan || "monthly").toLowerCase();
@@ -7799,6 +6898,7 @@ exports.createOnboardingCheckoutSession = functions.https.onCall(
 
   console.log("[createOnboardingCheckoutSession] Selected billing plan:", normalizedBillingPlan);
   console.log("[createOnboardingCheckoutSession] Selected price ID:", selectedStripePriceId);
+  console.log("[createOnboardingCheckoutSession] Selected modules:", selectedModules);
 
   console.log("=== COMPANY/LOCATION ID GENERATION ===");
   console.log("Sanitized profile.companyName:", profile.companyName);
@@ -7865,7 +6965,7 @@ exports.createOnboardingCheckoutSession = functions.https.onCall(
   );
 
   if (!companyId || !locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er pÃ¥krÃ¦vet.");
   }
 
   if (authUid && requestedCompanyId && requestedLocationId) {
@@ -7878,6 +6978,15 @@ exports.createOnboardingCheckoutSession = functions.https.onCall(
   }
 
   const riskModel = sanitizeRiskModelInput(data?.riskModel || {});
+  let quickOnboardingSetup = null;
+  if (data?.setup && typeof data.setup === "object") {
+    try {
+      const { normalizeQuickOnboardingSetup } = require("./js/setupToCanonicalRoutines");
+      quickOnboardingSetup = normalizeQuickOnboardingSetup(data.setup || {});
+    } catch (setupErr) {
+      console.warn("[createOnboardingCheckoutSession] quick setup normalization failed:", setupErr.message);
+    }
+  }
   const cloudinaryAssets = extractCloudinaryAssets(
     data?.cloudinaryAssets,
     data?.profile?.cloudinaryAssets,
@@ -7920,7 +7029,12 @@ exports.createOnboardingCheckoutSession = functions.https.onCall(
     companyId,
     organizationId: companyId,
     locationId,
+    selectedModules,
+    activeModules: selectedModules,
+    moduleAccess: buildCheckoutModuleAccess(selectedModules),
     profile,
+    setup: quickOnboardingSetup,
+    quickOnboardingSetup,
     riskModel,
     summary,
     cloudinaryAssets,
@@ -7961,6 +7075,7 @@ exports.createOnboardingCheckoutSession = functions.https.onCall(
       draftId: draftRef.id,
       provisioningToken,
       onboardingEmail,
+      selectedModules: selectedModules.join(","),
       plan: normalizedBillingPlan,
       companyKey: companyKey || "",
       keyType: keyType || ""
@@ -7982,6 +7097,8 @@ exports.createOnboardingCheckoutSession = functions.https.onCall(
     companyId,
     locationId,
     addonKeys: [],
+    selectedModules,
+    activeModules: selectedModules,
     onboardingDraftId: draftRef.id,
     stripeSessionId: session.id,
     stripeUrl: session.url || "",
@@ -8080,7 +7197,6 @@ exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) =>
       data?.data && typeof data.data === "object"
         ? data.data
         : data;
-    const saveAuth = await resolveSeoSaveAuth(data, context);
 
     console.log("RAW DATA - companyId:", payload?.companyId, "locationId:", payload?.locationId);
     console.log("PARSED PAYLOAD - keys:", Object.keys(payload || {}));
@@ -8091,77 +7207,69 @@ exports.saveSeoGeneratorConfig = functions.https.onCall(async (data, context) =>
     console.log("companyId:", companyId);
     console.log("locationId:", locationId);
     const config = payload?.config || {};
-    const rawConfigSizeBytes = estimateSeoJsonSizeBytes(config);
-    const firestoreConfig = sanitizeSeoConfigForFirestore(config);
-    const sanitizedConfigSizeBytes = estimateSeoJsonSizeBytes(firestoreConfig);
-    console.log(`[seo config size before sanitize] ${rawConfigSizeBytes}`);
-    console.log(`[seo config size after sanitize] ${sanitizedConfigSizeBytes}`);
-    console.log(`[seo pagecount selected] ${parsePageCount(firestoreConfig.pageCount || config.pageCount, 50)}`);
-    console.log(`[seo landingpages generated count] ${Array.isArray(firestoreConfig.landingPages) ? firestoreConfig.landingPages.length : 0}`);
     const isOnboarding = companyId.toLowerCase().startsWith("onboarding_");
 
     if (!companyId || !locationId) {
       throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
     }
 
-    if (!isOnboarding && !saveAuth.uid) {
+    if (!isOnboarding && !context.auth?.uid) {
       throw new functions.https.HttpsError("unauthenticated", "Log ind for at gemme generator-data.");
     }
 
     if (!isOnboarding) {
       await assertSeoGeneratorAccess({
-        uid: saveAuth.uid,
-        email: saveAuth.email || "",
+        uid: context.auth.uid,
+        email: context.auth.token?.email || "",
         companyId,
         locationId
       });
     }
 
     const configDocId = sanitizeString(payload?.configId || "", 180) || toDocSafeId(`${companyId}__${locationId}__${Date.now()}`);
-    const subdomain = toAsciiSlug(firestoreConfig?.subdomain || firestoreConfig?.businessName || "restaurant", 120) || "restaurant";
-    const canonicalConfig = sanitizeSeoConfigForFirestore(normalizeSeoGeneratorConfig({ ...firestoreConfig, subdomain }));
-    const canonicalConfigSizeBytes = estimateSeoJsonSizeBytes(canonicalConfig);
-    if (canonicalConfigSizeBytes > 800 * 1024) {
-      throw new functions.https.HttpsError("invalid-argument", "config_too_large", {
-        sizeBytes: canonicalConfigSizeBytes
-      });
-    }
-    const cta = canonicalConfig.cta;
-    console.log(`SEO landing editor config business=${canonicalConfig.businessName} title=${canonicalConfig.heroTitle} heroText=${canonicalConfig.heroText ? "present" : "missing"}`);
-    console.log(`SEO landing save payload fields=${Object.keys(canonicalConfig).join(",")}`);
-    console.log(`SEO CTA persist enabled=${cta.enabled} text=${cta.text} url=${cta.url}`);
+    const subdomain = toAsciiSlug(config?.subdomain || config?.businessName || "restaurant", 120) || "restaurant";
 
     const dbPayload = {
       companyId,
       organizationId: companyId,
       locationId,
-      config: canonicalConfig,
-      canonicalConfig,
-      ...canonicalConfig,
-      cta,
-      ctaText: cta.text,
-      ctaUrl: cta.url,
+      businessName: sanitizeString(config?.businessName || "", 140),
+      subdomain,
+      city: sanitizeString(config?.city || "", 80),
+      cuisineType: sanitizeString(config?.cuisineType || "", 80),
+      offerings: sanitizeString(config?.offerings || "", 240),
+      keyword: sanitizeString(config?.keyword || "", 140),
+      phone: sanitizeString(config?.phone || "", 80),
+      address: sanitizeString(config?.address || "", 220),
+      description: sanitizeString(config?.description || "", 1200),
+      selectedTemplate: sanitizeString(config?.selectedTemplate || "classic", 80),
+      pageCount: parsePageCount(config?.pageCount, 50),
+      logoPosition: sanitizeString(config?.logoPosition || "card", 40),
+      logoDataUrl: sanitizeString(config?.logoDataUrl || "", 500000),
+      seoNarrative: sanitizeString(config?.seoNarrative || "", 2000),
+      heroImageUrl: sanitizeString(config?.heroImageUrl || "", 2000),
+      ctaText: sanitizeString(config?.ctaText || "", 120),
+      ctaUrl: sanitizeString(config?.ctaUrl || "", 500),
+      landingPages: Array.isArray(config?.landingPages) ? config.landingPages.slice(0, 200).map(p => ({
+        canonicalPath: sanitizeString(p?.canonicalPath || "", 220),
+        keyword:       sanitizeString(p?.keyword || "", 140),
+        title:         sanitizeString(p?.title || "", 220),
+        h1:            sanitizeString(p?.h1 || "", 220),
+        h2:            sanitizeString(p?.h2 || "", 220),
+        h3:            sanitizeString(p?.h3 || "", 220),
+        metaDescription: sanitizeString(p?.metaDescription || "", 320)
+      })) : [],
       updatedAt: FieldValue.serverTimestamp(),
-      updatedBy: saveAuth.uid || null,
-      updatedByEmail: sanitizeString(saveAuth.email || "", 160)
+      updatedBy: context.auth?.uid || null,
+      updatedByEmail: sanitizeString(context.auth?.token?.email || "", 160)
     };
-    const dbPayloadSizeBytes = estimateSeoJsonSizeBytes({
-      ...dbPayload,
-      updatedAt: null
-    });
-    if (dbPayloadSizeBytes > 800 * 1024) {
-      throw new functions.https.HttpsError("invalid-argument", "config_too_large", {
-        sizeBytes: dbPayloadSizeBytes
-      });
-    }
 
     await db.collection("seo_generator_configs").doc(configDocId).set({
       ...dbPayload,
       createdAt: FieldValue.serverTimestamp(),
-      createdBy: saveAuth.uid || null
+      createdBy: context.auth?.uid || null
     }, { merge: true });
 
-    console.log("[seo save callable success]");
     return {
       ok: true,
       configId: configDocId,
@@ -8273,254 +7381,32 @@ exports.finalizeSeoCheckoutProvisioning = functions.https.onCall(async (data, co
     ok: true,
     websiteId: result.websiteId,
     generatedPages: result.generatedPages,
-    subdomain: result.subdomain,
-    liveUrl: `https://${result.businessSlug || result.subdomain}.madkontrollen.dk/`,
-    cacheInvalidation: result.cacheInvalidation
+    subdomain: result.subdomain
   };
 });
 
-function normalizeSeoActivationData(data) {
-  if (data?.data && typeof data.data === "object") {
-    return data.data;
+exports.adminActivateSeoSite = functions.https.onCall(async (data, context) => {
+  if (!context.auth?.uid) {
+    throw new functions.https.HttpsError("unauthenticated", "Log ind for at aktivere SEO-site.");
   }
-  return data && typeof data === "object" ? data : {};
-}
-
-async function resolveSeoActivationAuth(data, context) {
-  const payload = normalizeSeoActivationData(data);
-  console.log("SEO LOG auth-start");
-  console.log(`SEO LOG context-auth-present ${Boolean(context.auth?.uid)}`);
-  const bearer = String(context.rawRequest?.headers?.authorization || "").trim();
-  const bearerToken = bearer.toLowerCase().startsWith("bearer ") ? bearer.slice(7).trim() : "";
-  const payloadToken = String(payload?.authToken || payload?.idToken || "").trim();
-  const idToken = payloadToken || bearerToken;
-  console.log(`SEO LOG fallback-token-present ${Boolean(idToken)}`);
-
-  const contextUid = sanitizeString(context.auth?.uid || "", 160);
-  if (contextUid) {
-    return {
-      uid: contextUid,
-      email: sanitizeString(context.auth?.token?.email || "", 180),
-      source: "callable-context"
-    };
-  }
-
-  if (!idToken) {
-    return { uid: "", email: "", source: "", reason: "token_missing" };
-  }
-
-  try {
-    const decoded = await admin.auth().verifyIdToken(idToken);
-    const uid = sanitizeString(decoded.uid || "", 160);
-    console.log(`SEO LOG fallback-token-verified uid=${uid}`);
-    return {
-      uid,
-      email: sanitizeString(decoded.email || "", 180),
-      source: payloadToken ? "payload-token" : "authorization-header"
-    };
-  } catch (error) {
-    console.log("SEO LOG access-result ok=false reason=token_verify_failed");
-    return { uid: "", email: "", source: "invalid-token", reason: "token_verify_failed" };
-  }
-}
-
-async function resolveSeoSaveAuth(data, context) {
-  const payload = normalizeSeoActivationData(data);
-  console.log("[seo save invocation type] callable");
-  console.log(`[seo save request auth header present] ${Boolean(context.rawRequest?.headers?.authorization)}`);
-  const contextUid = sanitizeString(context.auth?.uid || "", 160);
-  if (contextUid) {
-    console.log(`[seo save auth uid] ${contextUid}`);
-    return {
-      uid: contextUid,
-      email: sanitizeString(context.auth?.token?.email || "", 180),
-      source: "callable-context"
-    };
-  }
-
-  const bearer = String(context.rawRequest?.headers?.authorization || "").trim();
-  const bearerToken = bearer.toLowerCase().startsWith("bearer ") ? bearer.slice(7).trim() : "";
-  const payloadToken = String(payload?.authToken || payload?.idToken || "").trim();
-  const idToken = payloadToken || bearerToken;
-  if (!idToken) {
-    console.log("[seo save auth uid] ");
-    return { uid: "", email: "", source: "", reason: "token_missing" };
-  }
-
-  try {
-    const decoded = await admin.auth().verifyIdToken(idToken);
-    const uid = sanitizeString(decoded.uid || "", 160);
-    console.log(`[seo save auth uid] ${uid}`);
-    return {
-      uid,
-      email: sanitizeString(decoded.email || "", 180),
-      source: payloadToken ? "payload-token" : "authorization-header"
-    };
-  } catch (_error) {
-    console.log("[seo save auth uid] token_verify_failed");
-    return { uid: "", email: "", source: "invalid-token", reason: "token_verify_failed" };
-  }
-}
-
-async function assertSeoPublishAccessWithLogs({ uid, email, companyId, locationId }) {
-  try {
-    const userData = await getUserAccessProfile({ uid, email });
-    if (!userData) {
-      console.log("SEO LOG profile-loaded role=");
-      console.log("SEO LOG access-result ok=false reason=access_denied");
-      throw new functions.https.HttpsError("permission-denied", "access_denied");
-    }
-
-    const role = sanitizeString(userData.role || "", 80).toLowerCase();
-    console.log(`SEO LOG profile-loaded role=${role}`);
-
-    const allowedRoles = ["owner", "hq_admin", "location_manager", "admin", "super-admin"];
-    if (!allowedRoles.includes(role)) {
-      console.log("SEO LOG access-result ok=false reason=access_denied");
-      throw new functions.https.HttpsError("permission-denied", "access_denied");
-    }
-
-    if (role === "super-admin") {
-      console.log("SEO LOG access-result ok=true reason=super_admin");
-      return;
-    }
-
-    const userCompanyId = sanitizeString(userData.companyId || userData.organizationId, 120);
-    if (!userCompanyId || userCompanyId !== companyId) {
-      console.log("SEO LOG access-result ok=false reason=access_denied");
-      throw new functions.https.HttpsError("permission-denied", "access_denied");
-    }
-
-    const locationIds = getUserLocationIds(userData);
-    if (locationIds.length > 0 && !locationIds.includes(locationId)) {
-      console.log("SEO LOG access-result ok=false reason=access_denied");
-      throw new functions.https.HttpsError("permission-denied", "access_denied");
-    }
-
-    console.log("SEO LOG access-result ok=true reason=role_scope_ok");
-  } catch (error) {
-    if (error instanceof functions.https.HttpsError) {
-      throw error;
-    }
-    console.log("SEO LOG access-result ok=false reason=access_denied");
-    throw new functions.https.HttpsError("permission-denied", "access_denied");
-  }
-}
-
-exports.adminActivateSeoSite = functions.https.onCall(
-  { secrets: ["FUNCTIONS_CONFIG_EXPORT"] },
-  async (data, context) => {
-  const payload = normalizeSeoActivationData(data);
-  console.log("[seo function publish request]");
-  const publishAuth = await resolveSeoActivationAuth(data, context);
-  if (!publishAuth.uid) {
-    const reason = publishAuth.reason === "token_verify_failed" ? "token_verify_failed" : "token_missing";
-    if (reason === "token_missing") {
-      console.log("SEO LOG access-result ok=false reason=token_missing");
-    }
-    throw new functions.https.HttpsError("unauthenticated", reason);
-  }
-  const companyId  = sanitizeString(payload?.companyId  || "", 120);
-  const locationId = sanitizeString(payload?.locationId || "", 120);
+  const companyId  = sanitizeString(data?.companyId  || "", 120);
+  const locationId = sanitizeString(data?.locationId || "", 120);
   if (!companyId || !locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er pÃ¥krÃ¦vet.");
   }
-  await assertSeoPublishAccessWithLogs({ uid: publishAuth.uid, email: publishAuth.email, companyId, locationId });
-
-  const configId = sanitizeString(payload?.configId || "", 180);
-  const payloadConfig = payload?.canonicalConfig && typeof payload.canonicalConfig === "object"
-    ? payload.canonicalConfig
-    : (payload?.overrides && typeof payload.overrides === "object"
-      ? payload.overrides
-      : (payload?.config && typeof payload.config === "object" ? payload.config : {}));
-  const hasPayloadConfig = Object.keys(payloadConfig || {}).length > 0;
-  console.log(`[seo publish configId] ${configId}`);
-  console.log(`[seo publish config source] ${hasPayloadConfig ? "payload" : "firestore"}`);
-  console.log(`[seo publish config found] ${hasPayloadConfig}`);
+  await assertAdminAccess({ uid: context.auth.uid, email: context.auth.token?.email || "", companyId, locationId });
 
   // Use provided inline config or load saved config from Firestore
-  let baseConfig = {};
-  const overrides = hasPayloadConfig ? {} : payloadConfig;
-  if (!hasPayloadConfig && configId) {
-    console.log(`[seo publish configId] firestore_doc=seo_generator_configs/${configId}`);
-    if (!configId) throw new functions.https.HttpsError("invalid-argument", "config eller configId er påkrævet.");
+  let config = data?.config || null;
+  if (!config) {
+    const configId = sanitizeString(data?.configId || "", 180);
+    if (!configId) throw new functions.https.HttpsError("invalid-argument", "config eller configId er pÃ¥krÃ¦vet.");
     const snap = await db.collection("seo_generator_configs").doc(configId).get();
-    console.log(`[seo publish config found] ${snap.exists}`);
     if (!snap.exists) throw new functions.https.HttpsError("not-found", "Generator-konfiguration ikke fundet.");
-    baseConfig = snap.data() || {};
-  } else if (!hasPayloadConfig) {
-    console.log("[seo publish configId] firestore_query=latest_by_company_location");
+    config = snap.data();
   }
 
-  const config = hasPayloadConfig
-    ? { ...payloadConfig, ...normalizeSeoGeneratorConfig(payloadConfig) }
-    : await buildSeoPublishConfigFromFirestore({
-      companyId,
-      locationId,
-      baseConfig,
-      overrides
-    });
-  console.log(`[seo pagecount selected] ${parsePageCount(config.pageCount, 50)}`);
-  console.log(`[seo landingpages generated count] ${Array.isArray(config.landingPages) ? config.landingPages.length : 0}`);
-
-  const result = await upsertWebsiteAndSeoPages({ companyId, locationId, config, activatedByUid: publishAuth.uid });
-  const domain = `${result.businessSlug || result.subdomain}.madkontrollen.dk`;
-  let packageUpload = { ok: false, packageUrl: "", checksum: "", storagePath: "", error: "" };
-  let packageDeploy = { attempted: false, ok: false, deployOk: false, deployError: "" };
-  try {
-    console.log("[seo package build start]");
-    const packageFiles = buildSeoSitePackage({
-      domain,
-      canonicalConfig: config,
-      websiteDoc: { websiteId: result.websiteId, companyId, locationId }
-    });
-    console.log("[seo package build success]");
-    packageUpload = await uploadSeoSitePackageZip({ domain, files: packageFiles });
-    packageDeploy = await triggerSeoGatewayPackageDeploy({
-      domain,
-      companyId,
-      locationId,
-      websiteId: result.websiteId,
-      packageUrl: packageUpload.packageUrl,
-      checksum: packageUpload.checksum
-    });
-  } catch (error) {
-    packageUpload = {
-      ok: false,
-      packageUrl: "",
-      checksum: "",
-      storagePath: "",
-      error: String(error?.message || "package_build_failed").slice(0, 180)
-    };
-    packageDeploy = {
-      attempted: false,
-      ok: false,
-      deployOk: false,
-      deployError: packageUpload.error
-    };
-  }
-
-  const vpsRebuild = packageDeploy?.ok
-    ? {
-      attempted: true,
-      ok: true,
-      rebuildOk: true,
-      domain,
-      indexPath: packageDeploy.indexPath || "",
-      outputDir: packageDeploy.outputDir || "",
-      packageDeploy: true
-    }
-    : await triggerSeoGatewayRebuild({
-      domain,
-      companyId,
-      locationId,
-      websiteId: result.websiteId
-    });
-  const rebuildOk = Boolean(packageDeploy?.ok || vpsRebuild?.ok || vpsRebuild?.rebuildOk);
-  const rebuildError = rebuildOk ? "" : sanitizeString(vpsRebuild?.rebuildError || vpsRebuild?.error || vpsRebuild?.reason || "unknown", 180);
-  const deployOk = Boolean(packageDeploy?.ok);
-  const deployError = deployOk ? "" : sanitizeString(packageDeploy?.deployError || packageDeploy?.error || packageUpload?.error || packageDeploy?.reason || "", 180);
-  console.log("[seo function publish success]");
+  const result = await upsertWebsiteAndSeoPages({ companyId, locationId, config, activatedByUid: context.auth.uid });
 
   // Mark SEO addon as active on the company location
   await db.collection("company_locations").doc(`${companyId}__${locationId}`).set({
@@ -8528,35 +7414,12 @@ exports.adminActivateSeoSite = functions.https.onCall(
     updatedAt: FieldValue.serverTimestamp()
   }, { merge: true }).catch(() => {});
 
-  return {
-    ok: true,
-    publishOk: true,
-    deployOk,
-    deployError,
-    packageUploadOk: Boolean(packageUpload.ok),
-    packageUploadError: packageUpload.ok ? "" : sanitizeString(packageUpload.error || "package_upload_failed", 180),
-    packageUrl: packageUpload.packageUrl || "",
-    packageStoragePath: packageUpload.storagePath || "",
-    checksum: packageUpload.checksum || packageDeploy.checksum || "",
-    outputDir: sanitizeString(packageDeploy?.outputDir || vpsRebuild?.outputDir || "", 500),
-    rebuildOk,
-    rebuildError,
-    domain,
-    indexPath: sanitizeString(packageDeploy?.indexPath || vpsRebuild?.indexPath || "", 500),
-    partial: Boolean((packageDeploy.attempted && !packageDeploy.ok) || (vpsRebuild.attempted && !vpsRebuild.ok)),
-    websiteId: result.websiteId,
-    generatedPages: result.generatedPages,
-    subdomain: result.subdomain,
-    businessSlug: result.businessSlug,
-    liveUrl: `https://${domain}/`,
-    cacheInvalidation: result.cacheInvalidation,
-    vpsRebuild
-  };
+  return { ok: true, websiteId: result.websiteId, generatedPages: result.generatedPages, subdomain: result.subdomain };
 });
 
-// ── SEO SITE RENDERER ────────────────────────────────────────────────────────
-// HTTP function — serves *.madkontrollen.dk subdomains as real HTML pages
-// Map *.madkontrollen.dk → this function via Google Cloud Run custom domains
+// â”€â”€ SEO SITE RENDERER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// HTTP function â€” serves *.madkontrollen.dk subdomains as real HTML pages
+// Map *.madkontrollen.dk â†’ this function via Google Cloud Run custom domains
 exports.seoSiteRenderer = functions.https.onRequest(async (req, res) => {
   res.set("X-Content-Type-Options", "nosniff");
   res.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -8564,35 +7427,19 @@ exports.seoSiteRenderer = functions.https.onRequest(async (req, res) => {
   const host = (req.headers.host || "").toLowerCase().split(":")[0];
   const match = host.match(/^([a-z0-9-]+)\.madkontrollen\.dk$/);
   if (!match) {
-    res.status(400).send("Ugyldigt domæne.");
+    res.status(400).send("Ugyldigt domÃ¦ne.");
     return;
   }
   const subdomain = sanitizeString(match[1], 120);
-  const requestPath = (req.path || "/").replace(/^\//,"").replace(/\/$/,"") || "";
-  const pathParts = requestPath.split("/").filter(Boolean);
 
   let websiteDoc = null;
   let websiteDocId = null;
   try {
-    let snap = null;
-
-    if (pathParts[0]) {
-      snap = await db.collection("websites")
-        .where("citySlug", "==", subdomain)
-        .where("businessSlug", "==", pathParts[0])
-        .where("status", "==", "published")
-        .limit(1)
-        .get();
-    }
-
-    if (!snap || snap.empty) {
-      snap = await db.collection("websites")
-        .where("subdomain", "==", subdomain)
-        .where("status", "==", "published")
-        .limit(1)
-        .get();
-    }
-
+    const snap = await db.collection("websites")
+      .where("subdomain", "==", subdomain)
+      .where("status", "==", "published")
+      .limit(1)
+      .get();
     if (!snap.empty) {
       websiteDoc = snap.docs[0].data();
       websiteDocId = snap.docs[0].id;
@@ -8620,39 +7467,28 @@ exports.seoSiteRenderer = functions.https.onRequest(async (req, res) => {
     console.warn("seoSiteRenderer: pages lookup error", e);
   }
 
-  const slugPath = requestPath || String(websiteDoc.routePath || "").replace(/^\//,"").replace(/\/$/,"") || "";
+  const slugPath = (req.path || "/").replace(/^\//,"").replace(/\/$/,"") || "";
   const page = seoPages.find(p => p.slug === slugPath) || null;
 
   const esc = (v) => String(v || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const storedConfig = websiteDoc?.config && typeof websiteDoc.config === "object" ? websiteDoc.config : {};
-  const storedCanonicalConfig = websiteDoc?.canonicalConfig && typeof websiteDoc.canonicalConfig === "object" ? websiteDoc.canonicalConfig : {};
-  const pageConfig = normalizeSeoGeneratorConfig({ ...websiteDoc, ...storedConfig, ...storedCanonicalConfig });
   
-  const title = esc(page?.title || pageConfig.heroTitle || pageConfig.businessName || subdomain);
-  const metaDesc = esc(page?.metaDescription || pageConfig.heroText || "");
-  const h1 = esc(page?.h1 || pageConfig.heroTitle || pageConfig.businessName || subdomain);
-  const intro = esc(page?.bodyText || page?.metaDescription || pageConfig.heroText || "");
-  const heroImg = esc(pageConfig.heroImageUrl || "");
-  const phoneRaw = pageConfig.phone || "";
-  const phone = esc(phoneRaw);
-  const address = esc(pageConfig.address || "");
-  const companyNameRaw = pageConfig.displayBusinessName || pageConfig.businessName || pageConfig.heroTitle || subdomain;
-  const companyName = esc(companyNameRaw);
-  const cta = pageConfig.cta;
-  console.log(`SEO CTA generated HTML enabled=${cta.enabled} text=${cta.text} url=${cta.url}`);
-  console.log(`SEO landing generated HTML CTA marker enabled=${cta.enabled} url=${cta.url ? "present" : "missing"}`);
-  const externalWebsite = esc(cta.enabled ? cta.url : "");
-  const ctaText = esc(cta.text || "Bestil nu");
+  const title = esc(page?.title || websiteDoc.heroTitle || subdomain);
+  const metaDesc = esc(page?.metaDescription || websiteDoc.heroText || "");
+  const h1 = esc(page?.h1 || websiteDoc.heroTitle || subdomain);
+  const intro = esc(page?.bodyText || page?.metaDescription || websiteDoc.heroText || "");
+  const heroImg = esc(websiteDoc.heroImageUrl || "");
+  const phone = esc(websiteDoc.phone || "");
+  const address = esc(websiteDoc.address || "");
+  const companyName = esc(websiteDoc.heroTitle || subdomain);
+  const externalWebsite = esc(websiteDoc.ctaUrl || "");
   const slug = esc(page?.slug || "");
   
-  const logoInitials = companyNameRaw.split(" ").slice(0,2).map(w=>w.charAt(0).toUpperCase()).join("") || "MK";
-  const logoUrl = esc(websiteDoc.logoUrl || pageConfig.logoDataUrl || "");
-  const logoMarkup = logoUrl ? `<img src="${logoUrl}" alt="${companyName} logo">` : logoInitials;
+  const logoInitials = companyName.split(" ").slice(0,2).map(w=>w.charAt(0).toUpperCase()).join("") || "MK";
   
-  const themePrimary = esc(pageConfig.theme.primary || "#1f7a3d");
-  const themeSecondary = esc(pageConfig.theme.secondary || "#f8f4ea");
-  const themeAccent = esc(pageConfig.theme.accent || "#b91c1c");
-  const themeText = esc(pageConfig.theme.text || "#1f2937");
+  const themePrimary = esc(websiteDoc.themePrimary || "#1f7a3d");
+  const themeSecondary = esc(websiteDoc.themeSecondary || "#f8f4ea");
+  const themeAccent = esc(websiteDoc.themeAccent || "#b91c1c");
+  const themeText = esc(websiteDoc.themeText || "#1f2937");
   
   const sectionsHtml = page?.h2 ? `<div class="section"><h2>${esc(page.h2)}</h2><p>${intro}</p></div>` : "";
 
@@ -8664,7 +7500,7 @@ exports.seoSiteRenderer = functions.https.onRequest(async (req, res) => {
 <title>${title}</title>
 <meta name="description" content="${metaDesc}">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="${esc(page?.canonicalPath ? `https://madkontrollen.dk${page.canonicalPath}` : `https://madkontrollen.dk/${slug}/`)}">
+<link rel="canonical" href="https://madkontrollen.dk/landing-pages/${slug}/">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -8676,7 +7512,6 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.22), var(--theme-hero-overlay)); }
 .hero-inner { position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; padding: 120px 24px 90px; text-align: center; color: #ffffff; }
 .hero-logo { width: 110px; height: 110px; margin: 0 auto 20px; border-radius: 999px; background: rgba(255, 255, 255, 0.94); border: 5px solid var(--theme-primary); display: grid; place-items: center; color: var(--theme-primary); font-weight: 800; font-size: 28px; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18); }
-.hero-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 999px; }
 .hero-title { margin: 0; font-size: clamp(42px, 7vw, 84px); line-height: 0.95; font-weight: 900; letter-spacing: -0.03em; text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
 .hero-subtitle { margin: 18px auto 0; max-width: 760px; font-size: clamp(20px, 2.2vw, 34px); line-height: 1.2; font-weight: 700; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
 .hero-actions { margin-top: 34px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
@@ -8700,14 +7535,14 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
   <div class="markise-bar"></div>
   <div class="hero">
     <div class="hero-inner">
-      <div class="hero-logo">${logoMarkup}</div>
+      <div class="hero-logo">${logoInitials}</div>
       <h1 class="hero-title">${h1}</h1>
       <p class="hero-subtitle">${intro}</p>
       <div class="hero-actions">
-        <a href="/index.html" class="hero-btn hero-btn--primary">Gå til forsiden</a>
+        <a href="/index.html" class="hero-btn hero-btn--primary">GÃ¥ til forsiden</a>
         <a href="/index.html#menu" class="hero-btn hero-btn--secondary">Se menu</a>
         ${phone ? `<a href="tel:${phone}" class="hero-btn hero-btn--ghost">Ring nu</a>` : ""}
-        ${externalWebsite ? `<a href="${externalWebsite}" class="hero-btn hero-btn--ghost" target="_blank" rel="noopener">${ctaText}</a>` : ""}
+        ${externalWebsite ? `<a href="${externalWebsite}" class="hero-btn hero-btn--ghost" target="_blank" rel="noopener">BesÃ¸g vores hjemmeside</a>` : ""}
       </div>
     </div>
   </div>
@@ -8717,8 +7552,8 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
       <p><strong>${companyName}</strong></p>
       <p>${address}</p>
       <p>Telefon: ${phone}</p>
-      <p style="margin-top:20px;"><a href="/index.html" style="color:#fff;text-decoration:underline;">← Tilbage til forsiden</a></p>
-      ${externalWebsite ? `<p><a href="${externalWebsite}" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline;">${ctaText} →</a></p>` : ""}
+      <p style="margin-top:20px;"><a href="/index.html" style="color:#fff;text-decoration:underline;">â† Tilbage til forsiden</a></p>
+      ${externalWebsite ? `<p><a href="${externalWebsite}" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline;">BesÃ¸g vores hjemmeside â†’</a></p>` : ""}
     </div>
   </footer>
 </div>
@@ -8746,7 +7581,7 @@ exports.createHaccpSnapshotFromOnboarding = functions.https.onCall(async (data, 
   };
 });
 
-// ─── PROVISION RISK ANALYSIS SNAPSHOT ────────────────────────────────────────
+// â”€â”€â”€ PROVISION RISK ANALYSIS SNAPSHOT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Auto-generates HACCP snapshot from central risk library
 // Idempotent: Won't overwrite manual edits
 exports.provisionRiskAnalysisSnapshot = functions.https.onCall(async (request, context) => {
@@ -8761,7 +7596,7 @@ exports.provisionRiskAnalysisSnapshot = functions.https.onCall(async (request, c
   const profile = data?.profile || {};
   
   if (!companyId || !locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er pÃ¥krÃ¦vet.");
   }
   
   console.log("[provisionRiskAnalysisSnapshot] START", { companyId, locationId, industry });
@@ -8866,7 +7701,7 @@ exports.provisionRiskAnalysisSnapshot = functions.https.onCall(async (request, c
   }
 });
 
-// ─── CREATE QUICK ONBOARDING ACCOUNT ─────────────────────────────────────────
+// â”€â”€â”€ CREATE QUICK ONBOARDING ACCOUNT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Creates Auth user AND all Firestore documents in one atomic operation
 exports.createQuickOnboardingAccount = onCall(async (request) => {
   const { generateRiskAnalysisSnapshot } = require("./riskAnalysisLibrary");
@@ -8886,6 +7721,41 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
   const phone = String(payload.phone || "").trim();
   const industry = String(payload.industry || "restaurant").trim();
   const profile = payload.profile || {};
+
+  const allowedQuickModules = new Set(["pos", "lagerkontrol", "bogforing", "egenkontrol", "menu", "seo", "kalkulation", "koerselskontrol"]);
+  const quickModuleAliases = {
+    accounting: "bogforing",
+    bogfoering: "bogforing",
+    "bogføring": "bogforing"
+  };
+  const selectedModules = Array.isArray(payload.selectedModules)
+    ? payload.selectedModules
+        .map((moduleSlug) => String(moduleSlug || "").trim().toLowerCase())
+        .map((moduleSlug) => quickModuleAliases[moduleSlug] || moduleSlug)
+        .filter((moduleSlug) => allowedQuickModules.has(moduleSlug))
+    : [];
+
+  const enabledModules = Array.from(new Set(selectedModules));
+  if (!enabledModules.length) {
+    throw new HttpsError("invalid-argument", "Vælg mindst ét modul for at fortsætte.");
+  }
+
+  const hasEgenkontrol = selectedModules.includes("egenkontrol");
+  const hasPos = selectedModules.includes("pos");
+  const hasLagerkontrol = selectedModules.includes("lagerkontrol");
+  const hasBogforing = selectedModules.includes("bogforing");
+  const hasMenu = selectedModules.includes("menu");
+  const hasSeo = selectedModules.includes("seo");
+
+  const moduleAccess = enabledModules.reduce((acc, moduleSlug) => {
+    acc[moduleSlug] = {
+      enabled: true,
+      status: "trial",
+      source: "quick-onboarding",
+      activatedAt: FieldValue.serverTimestamp()
+    };
+    return acc;
+  }, {});
   
   console.log("[createQuickOnboardingAccount] parsed:", {
     hasEmail: !!email,
@@ -8893,16 +7763,25 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
     hasCompanyName: !!companyName,
     hasAddress: !!address,
     hasPhone: !!phone,
-    industry
+    industry,
+    selectedModules: enabledModules,
+    moduleFlags: {
+      hasEgenkontrol,
+      hasPos,
+      hasLagerkontrol,
+      hasBogforing,
+      hasMenu,
+      hasSeo
+    }
   });
   
   // Validate input
   if (!email || !password || !companyName) {
-    throw new HttpsError("invalid-argument", "Email, password og firmanavn er påkrævet.");
+    throw new HttpsError("invalid-argument", "Email, password og firmanavn er pÃ¥krÃ¦vet.");
   }
   
   if (password.length < 6) {
-    throw new HttpsError("invalid-argument", "Kodeordet skal være mindst 6 tegn.");
+    throw new HttpsError("invalid-argument", "Kodeordet skal vÃ¦re mindst 6 tegn.");
   }
   
   console.log("[createQuickOnboardingAccount] START", { email, companyName, industry });
@@ -8943,6 +7822,7 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
     // Step 3: Calculate trial dates
     const now = new Date();
     const trialEndsAt = new Date(now.getTime() + (14 * 24 * 60 * 60 * 1000)); // 14 days
+    const ownerScopeMetadata = buildOwnerScopeMetadata(OWNER_KIND.REAL_OWNER);
     
     // Step 4: Create company document
     console.log("[createQuickOnboardingAccount] STEP 3: Creating company...");
@@ -8952,6 +7832,7 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
       name: companyName,
       companyName: companyName,
       organizationId: companyId,
+      ...ownerScopeMetadata,
       ownerUid: uid,
       address: address,
       postalCode: postalCode,
@@ -8960,6 +7841,11 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
       status: "trial",
       subscriptionStatus: "trial",
       isPaid: false,
+      selectedModules: enabledModules,
+      enabledModules: enabledModules,
+      activeModules: enabledModules,
+      moduleAccess: moduleAccess,
+      modules: moduleAccess,
       trialStartedAt: FieldValue.serverTimestamp(),
       trialEndsAt: trialEndsAt,
       createdAt: FieldValue.serverTimestamp(),
@@ -8979,6 +7865,7 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
         locationId: locationId,
         companyId: companyId,
         organizationId: companyId,
+        ...ownerScopeMetadata,
         name: companyName,
         companyName: companyName,
         prettyName: companyName,
@@ -9014,12 +7901,18 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
       locationId: locationId,
       locationIds: [locationId],
       organizationId: companyId,
+      ...ownerScopeMetadata,
       role: "owner",
       onboardingCompleted: false,
       trialStartedAt: FieldValue.serverTimestamp(),
       trialEndsAt: trialEndsAt,
       isPaid: false,
       subscriptionStatus: "trial",
+      selectedModules: enabledModules,
+      enabledModules: enabledModules,
+      activeModules: enabledModules,
+      moduleAccess: moduleAccess,
+      modules: moduleAccess,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp()
     });
@@ -9039,10 +7932,11 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
       companyId: companyId,
       locationId: locationId,
       organizationId: companyId,
+      ...ownerScopeMetadata,
       role: "owner",
       
       profile: {
-        // KRITISK FELTER (primære)
+        // KRITISK FELTER (primÃ¦re)
         companyName: companyName,
         profileCompanyName: companyName,
         accountEmail: email,
@@ -9067,6 +7961,11 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
       status: "active",
       subscriptionStatus: "trial",
       isPaid: false,
+      selectedModules: enabledModules,
+      enabledModules: enabledModules,
+      activeModules: enabledModules,
+      moduleAccess: moduleAccess,
+      modules: moduleAccess,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp()
     });
@@ -9076,69 +7975,33 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
       throw new HttpsError("internal", `Live profile creation failed: ${profileError.message}`);
     }
     
-    // Step 7: Complete onboarding with equipment and routines
+    // Step 7: Complete Egenkontrol onboarding with equipment and routines
     console.log("[createQuickOnboardingAccount] STEP 7: Completing onboarding with setup...");
     let onboardingResult = null;
-    try {
-      const {
-        normalizeQuickOnboardingSetup,
-        resolveCanonicalRoutineKeysFromSetup,
-        buildEquipmentFromSetup
-      } = require("./js/setupToCanonicalRoutines");
-      
-      // Normalize setup from payload
-      const setup = normalizeQuickOnboardingSetup(payload.setup || { industry });
-      console.log("[createQuickOnboardingAccount] Setup normalized:", setup);
-      
-      // Resolve routine keys from setup (STRICT MODE - only selected routines)
-      const routineKeys = resolveCanonicalRoutineKeysFromSetup(setup);
-      console.log("[createQuickOnboardingAccount] Routine keys from setup:", routineKeys);
-      
-      // Build and save equipment
-      const equipmentUnits = buildEquipmentFromSetup(setup, {
-        companyId,
-        locationId,
-        userId: uid
-      });
-      
-      for (const unit of equipmentUnits) {
-        await db.collection("equipment").doc(unit.id).set(unit);
-      }
-      console.log("[createQuickOnboardingAccount] Equipment created:", equipmentUnits.length);
-      
-      // Generate templates (FILTERED by routineKeys)
-      const templatesResult = await generateCanonicalTaskTemplates({
-        db,
-        companyId,
-        locationId,
-        routineKeys
-      });
-      console.log("[createQuickOnboardingAccount] Templates generated:", templatesResult);
-      
-      // Generate instances for today (FILTERED by routineKeys)
-      const todayDateKey = new Date().toISOString().slice(0, 10);
-      const instancesResult = await startDayForLocationCanonical({
-        db,
-        companyId,
-        locationId,
-        dateKey: todayDateKey,
-        createdBy: uid,
-        routineKeys
-      });
-      console.log("[createQuickOnboardingAccount] Instances generated:", instancesResult);
-      
-      onboardingResult = {
-        equipmentCount: equipmentUnits.length,
-        templatesCount: templatesResult.created + templatesResult.updated,
-        instancesCount: instancesResult.instancesCreated,
-        routineKeys
-      };
-      
-      console.log("[createQuickOnboardingAccount] STEP 7: SUCCESS", onboardingResult);
-    } catch (onboardingError) {
-      console.error("[createQuickOnboardingAccount] STEP 7 FAILED (non-critical):", onboardingError.message);
-      // Don't throw - onboarding setup is non-critical for account creation
-    }
+    // Module-driven provisioning via the central MODULE_PROVISIONERS map (no scattered if-statements).
+    // selectedModules decide which provisioner runs; egenkontrol keeps its exact previous behavior,
+    // other modules are registry-ready no-ops until they have their own setup/runtime.
+    const { runModuleProvisioners } = require("./modules/onboarding/moduleProvisioners");
+    const moduleSetup = (payload.moduleSetup && typeof payload.moduleSetup === "object") ? payload.moduleSetup : {};
+    const provisionResults = await runModuleProvisioners(enabledModules, {
+      db,
+      FieldValue,
+      companyId,
+      locationId,
+      userId: uid,
+      industry,
+      // prefer the new moduleSetup.egenkontrol; fall back to the legacy flat setup payload
+      setup: moduleSetup.egenkontrol || payload.setup,
+      ownerScopeMetadata,
+      generateCanonicalTaskTemplates,
+      startDayForLocationCanonical
+    });
+    console.log("[createQuickOnboardingAccount] STEP 7 module provisioning:", provisionResults);
+
+    const egenkontrolResult = provisionResults.egenkontrol;
+    onboardingResult = (egenkontrolResult && !egenkontrolResult.error && !egenkontrolResult.skipped)
+      ? egenkontrolResult
+      : null;
     
     console.log("[createQuickOnboardingAccount] ALL STEPS COMPLETE", {
       uid,
@@ -9154,6 +8017,8 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
       companyId: companyId,
       locationId: locationId,
       organizationId: organizationId,
+      selectedModules: enabledModules,
+      enabledModules: enabledModules,
       ...(onboardingResult || {})
     };
     
@@ -9169,7 +8034,7 @@ exports.createQuickOnboardingAccount = onCall(async (request) => {
   }
 });
 
-// ─── COMPLETE QUICK ONBOARDING ───────────────────────────────────────────────
+// â”€â”€â”€ COMPLETE QUICK ONBOARDING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Complete quick onboarding with setup-based equipment and routines
 exports.completeQuickOnboarding = onCall({ region: "us-central1" }, async (request) => {
   const {
@@ -9179,7 +8044,7 @@ exports.completeQuickOnboarding = onCall({ region: "us-central1" }, async (reque
   } = require("./js/setupToCanonicalRoutines");
   
   if (!request.auth?.uid) {
-    throw new HttpsError("unauthenticated", "Du skal være logget ind.");
+    throw new HttpsError("unauthenticated", "Du skal vÃ¦re logget ind.");
   }
   
   const payload = request.data || {};
@@ -9198,7 +8063,27 @@ exports.completeQuickOnboarding = onCall({ region: "us-central1" }, async (reque
     const locationId = String(payload.locationId || "").trim();
     
     if (!companyId || !locationId) {
-      throw new HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+      throw new HttpsError("invalid-argument", "companyId og locationId er pÃ¥krÃ¦vet.");
+    }
+
+    const companySnap = await db.collection("companies").doc(companyId).get();
+    const ownerScopeMetadata = buildOwnerScopeMetadata(companySnap.data()?.ownerKind || OWNER_KIND.REAL_OWNER);
+    const companyModules = Array.isArray(companySnap.data()?.activeModules)
+      ? companySnap.data().activeModules.map((moduleSlug) => String(moduleSlug || "").trim().toLowerCase()).filter(Boolean)
+      : [];
+    if (companyModules.length && !companyModules.includes("egenkontrol")) {
+      console.log("[completeQuickOnboarding] skipped: Egenkontrol not active for company", {
+        companyId,
+        locationId,
+        activeModules: companyModules
+      });
+      return {
+        ok: true,
+        skipped: true,
+        reason: "egenkontrol_not_selected",
+        companyId,
+        locationId
+      };
     }
     
     // Normalize setup
@@ -9214,21 +8099,40 @@ exports.completeQuickOnboarding = onCall({ region: "us-central1" }, async (reque
       companyId,
       locationId,
       userId
-    });
+    }).map((unit) => ({ ...unit, ...ownerScopeMetadata }));
     console.log("[completeQuickOnboarding] Equipment units:", equipmentUnits.length);
     
     // Save equipment to Firestore
     for (const unit of equipmentUnits) {
-      await db.collection("equipment").doc(unit.id).set(unit);
+      await db.collection("equipment").doc(unit.id).set(unit, { merge: true });
     }
     console.log("[completeQuickOnboarding] Equipment saved");
+
+    const equipmentCounts = equipmentUnits.reduce((acc, unit) => {
+      const type = String(unit.type || unit.equipmentType || "").trim();
+      if (type) acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
+
+    await db.collection("onboarding_answers").doc(`${companyId}__${locationId}__onboarding`).set({
+      companyId,
+      organizationId: companyId,
+      locationId,
+      ...ownerScopeMetadata,
+      equipmentCounts,
+      quickOnboardingSetup: setup,
+      source: "quick_onboarding",
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
     
     // Generate canonical templates (FILTERED by routineKeys)
     const templatesResult = await generateCanonicalTaskTemplates({
       db,
       companyId,
       locationId,
-      routineKeys
+      routineKeys,
+      units: equipmentUnits,
+      ownerScopeMetadata
     });
     console.log("[completeQuickOnboarding] Templates generated:", templatesResult);
     
@@ -9240,7 +8144,8 @@ exports.completeQuickOnboarding = onCall({ region: "us-central1" }, async (reque
       locationId,
       dateKey: todayDateKey,
       createdBy: userId,
-      routineKeys
+      routineKeys,
+      ownerScopeMetadata
     });
     console.log("[completeQuickOnboarding] Instances generated:", instancesResult);
     
@@ -9248,6 +8153,7 @@ exports.completeQuickOnboarding = onCall({ region: "us-central1" }, async (reque
     await db.collection("companies").doc(companyId).update({
       quickOnboardingSetup: setup,
       quickOnboardingCompletedAt: FieldValue.serverTimestamp(),
+      ...ownerScopeMetadata,
       updatedAt: FieldValue.serverTimestamp()
     });
     
@@ -9255,6 +8161,7 @@ exports.completeQuickOnboarding = onCall({ region: "us-central1" }, async (reque
     await db.collection("locations").doc(locationId).update({
       quickOnboardingSetup: setup,
       quickOnboardingCompletedAt: FieldValue.serverTimestamp(),
+      ...ownerScopeMetadata,
       updatedAt: FieldValue.serverTimestamp()
     });
     
@@ -9284,11 +8191,11 @@ exports.completeQuickOnboarding = onCall({ region: "us-central1" }, async (reque
       throw error;
     }
     
-    throw new HttpsError("internal", `Kunne ikke færdiggøre onboarding: ${error.message}`);
+    throw new HttpsError("internal", `Kunne ikke fÃ¦rdiggÃ¸re onboarding: ${error.message}`);
   }
 });
 
-// ─── PROVISION QUICK ONBOARDING ACCOUNT ──────────────────────────────────────
+// â”€â”€â”€ PROVISION QUICK ONBOARDING ACCOUNT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // DEPRECATED: Use createQuickOnboardingAccount instead
 // Creates all Firestore documents for quick onboarding after Auth user is created
 exports.provisionQuickOnboardingAccount = functions.https.onCall(async (request, context) => {
@@ -9305,7 +8212,7 @@ exports.provisionQuickOnboardingAccount = functions.https.onCall(async (request,
   
   // Verify authentication
   if (!context.auth?.uid) {
-    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+    throw new functions.https.HttpsError("unauthenticated", "Du skal vÃ¦re logget ind.");
   }
   
   if (context.auth.uid !== uid) {
@@ -9313,7 +8220,7 @@ exports.provisionQuickOnboardingAccount = functions.https.onCall(async (request,
   }
   
   if (!email || !companyName) {
-    throw new functions.https.HttpsError("invalid-argument", "Email og firmanavn er påkrævet.");
+    throw new functions.https.HttpsError("invalid-argument", "Email og firmanavn er pÃ¥krÃ¦vet.");
   }
   
   console.log("[provisionQuickOnboardingAccount] START", { uid, email, companyName, industry });
@@ -9327,6 +8234,7 @@ exports.provisionQuickOnboardingAccount = functions.https.onCall(async (request,
     // Calculate trial dates
     const now = new Date();
     const trialEndsAt = new Date(now.getTime() + (14 * 24 * 60 * 60 * 1000)); // 14 days
+    const ownerScopeMetadata = buildOwnerScopeMetadata(OWNER_KIND.REAL_OWNER);
     
     console.log("[provisionQuickOnboardingAccount] Creating company:", companyId);
     
@@ -9336,6 +8244,7 @@ exports.provisionQuickOnboardingAccount = functions.https.onCall(async (request,
       name: companyName,
       companyName: companyName,
       organizationId: companyId,
+      ...ownerScopeMetadata,
       ownerUid: uid,
       status: "trial",
       subscriptionStatus: "trial",
@@ -9354,6 +8263,7 @@ exports.provisionQuickOnboardingAccount = functions.https.onCall(async (request,
       locationId: locationId,
       companyId: companyId,
       organizationId: companyId,
+      ...ownerScopeMetadata,
       name: "Hovedlokation",
       prettyName: "Hovedlokation",
       status: "active",
@@ -9371,6 +8281,7 @@ exports.provisionQuickOnboardingAccount = functions.https.onCall(async (request,
       locationId: locationId,
       locationIds: [locationId],
       organizationId: companyId,
+      ...ownerScopeMetadata,
       role: "owner",
       onboardingCompleted: false,
       trialStartedAt: FieldValue.serverTimestamp(),
@@ -9391,6 +8302,7 @@ exports.provisionQuickOnboardingAccount = functions.https.onCall(async (request,
       companyId: companyId,
       locationId: locationId,
       organizationId: companyId,
+      ...ownerScopeMetadata,
       role: "owner",
       profile: {
         companyName: companyName,
@@ -9458,7 +8370,7 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
   const requestedProvisioningToken = sanitizeString(data?.provisioningToken || "", 220);
 
   if (!sessionId) {
-    throw new functions.https.HttpsError("invalid-argument", "sessionId er påkrævet.");
+    throw new functions.https.HttpsError("invalid-argument", "sessionId er pÃ¥krÃ¦vet.");
   }
 
   const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId);
@@ -9475,7 +8387,7 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
   console.log("[FINALIZE] Billing plan from metadata:", billingPlan);
 
   if (source !== "onboarding_checkout") {
-    throw new functions.https.HttpsError("failed-precondition", "Checkout-session tilhører ikke onboarding-flowet.");
+    throw new functions.https.HttpsError("failed-precondition", "Checkout-session tilhÃ¸rer ikke onboarding-flowet.");
   }
 
   if (!draftId || !companyId || !locationId) {
@@ -9484,7 +8396,7 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
 
   const isPaid = sessionStatus === "complete" && (paymentStatus === "paid" || paymentStatus === "no_payment_required");
   if (!isPaid) {
-    throw new functions.https.HttpsError("failed-precondition", "Betalingen er ikke gennemført endnu.");
+    throw new functions.https.HttpsError("failed-precondition", "Betalingen er ikke gennemfÃ¸rt endnu.");
   }
 
   const draftRef = db.collection("onboarding_checkout_drafts").doc(draftId);
@@ -9495,8 +8407,36 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
 
   const draft = draftSnap.data() || {};
   if (sanitizeString(draft.companyId || draft.organizationId, 120) !== companyId || sanitizeString(draft.locationId, 120) !== locationId) {
-    throw new functions.https.HttpsError("permission-denied", "Draft tilhører ikke valgt company/location.");
+    throw new functions.https.HttpsError("permission-denied", "Draft tilhÃ¸rer ikke valgt company/location.");
   }
+
+  const selectedModules = normalizeCheckoutSelectedModules(
+    draft.selectedModules,
+    checkoutSession?.metadata?.selectedModules,
+    data?.selectedModules,
+    draft.checkoutSummary?.selectedModules
+  );
+  if (!selectedModules.length) {
+    throw new functions.https.HttpsError("failed-precondition", "Checkout-draft mangler valgte moduler.");
+  }
+  const hasEgenkontrol = selectedModules.includes("egenkontrol");
+  const hasPos = selectedModules.includes("pos");
+  const hasLagerkontrol = selectedModules.includes("lagerkontrol");
+  const hasBogforing = selectedModules.includes("bogforing");
+  const hasMenu = selectedModules.includes("menu");
+  const hasSeo = selectedModules.includes("seo");
+  const moduleAccess = buildCheckoutModuleAccess(selectedModules);
+  const moduleMap = buildCheckoutModuleMap(selectedModules);
+
+  console.log("[FINALIZE] Selected modules:", {
+    selectedModules,
+    hasEgenkontrol,
+    hasPos,
+    hasLagerkontrol,
+    hasBogforing,
+    hasMenu,
+    hasSeo
+  });
 
   const effectiveProvisioningToken = requestedProvisioningToken || metadataProvisioningToken;
   const draftProvisioningToken = sanitizeString(draft.provisioningToken || "", 220);
@@ -9509,37 +8449,43 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
 
   const actorUserId = authUid || sanitizeString(draft.uid || "", 160) || `checkout_guest_${draftId}`;
   const actorEmail = authEmail || sanitizeString(draft.userEmail || draft.onboardingEmail || "", 160);
+  const ownerScopeMetadata = buildOwnerScopeMetadata(OWNER_KIND.REAL_OWNER);
 
   const existingSnapshotId = sanitizeString(draft.snapshotId, 180);
   const existingLiveProfileId = sanitizeString(draft.liveProfileId, 180);
   if (existingSnapshotId && existingLiveProfileId) {
-    console.log(`⚠️ Onboarding already provisioned for ${companyId}__${locationId}, but checking risk analysis...`);
+    console.log(`âš ï¸ Onboarding already provisioned for ${companyId}__${locationId}, but checking risk analysis...`);
     
     // Check if risk analysis exists, if not generate it
-    const profile = sanitizeOnboardingProfile(draft.profile || draft.company || {});
-    const riskRef = db.collection("companies").doc(companyId).collection("locations").doc(locationId).collection("risk_analysis").doc("current");
-    const riskSnap = await riskRef.get();
-    
-    if (!riskSnap.exists) {
-      console.log('🔍 Risk analysis missing, generating now...');
-      try {
-        const { buildStructuredHaccpData } = require('./provisioning');
-        const controlPoints = buildStructuredHaccpData(profile);
-        
-        await riskRef.set({
-          status: "generated",
-          onboardingSnapshot: profile,
-          controlPoints: controlPoints,
-          totalControlPoints: controlPoints.length,
-          updatedAt: FieldValue.serverTimestamp()
-        }, { merge: true });
-        
-        console.log(`✅ Risk analysis generated: ${controlPoints.length} control points`);
-      } catch (riskError) {
-        console.error('❌ Risk analysis generation failed:', riskError);
+    if (hasEgenkontrol) {
+      const profile = sanitizeOnboardingProfile(draft.profile || draft.company || {});
+      const riskRef = db.collection("companies").doc(companyId).collection("locations").doc(locationId).collection("risk_analysis").doc("current");
+      const riskSnap = await riskRef.get();
+
+      if (!riskSnap.exists) {
+        console.log('ðŸ” Risk analysis missing, generating now...');
+        try {
+          const { buildStructuredHaccpData } = require('./provisioning');
+          const controlPoints = buildStructuredHaccpData(profile);
+
+          await riskRef.set({
+            status: "generated",
+            ...ownerScopeMetadata,
+            onboardingSnapshot: profile,
+            controlPoints: controlPoints,
+            totalControlPoints: controlPoints.length,
+            updatedAt: FieldValue.serverTimestamp()
+          }, { merge: true });
+
+          console.log(`âœ… Risk analysis generated: ${controlPoints.length} control points`);
+        } catch (riskError) {
+          console.error('âŒ Risk analysis generation failed:', riskError);
+        }
+      } else {
+        console.log('âœ… Risk analysis already exists');
       }
     } else {
-      console.log('✅ Risk analysis already exists');
+      console.log("[FINALIZE] Risk analysis check skipped: Egenkontrol not selected", { selectedModules });
     }
     
     return {
@@ -9548,6 +8494,7 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
       draftId,
       snapshotId: existingSnapshotId,
       liveProfileId: existingLiveProfileId,
+      selectedModules,
       summary: draft.summary || {}
     };
   }
@@ -9557,6 +8504,28 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
     : {};
   const profile = sanitizeOnboardingProfile(draft.profile || draft.company || {});
   const riskModel = sanitizeRiskModelInput(draft.riskModel || {});
+  let quickOnboardingSetup = null;
+  let quickEquipmentUnits = [];
+  let quickRoutineKeys = [];
+  if ((draft.quickOnboardingSetup || draft.setup) && hasEgenkontrol) {
+    try {
+      const {
+        normalizeQuickOnboardingSetup,
+        resolveCanonicalRoutineKeysFromSetup,
+        buildEquipmentFromSetup
+      } = require("./js/setupToCanonicalRoutines");
+      quickOnboardingSetup = normalizeQuickOnboardingSetup(draft.quickOnboardingSetup || draft.setup || {});
+      quickRoutineKeys = resolveCanonicalRoutineKeysFromSetup(quickOnboardingSetup);
+      quickEquipmentUnits = buildEquipmentFromSetup(quickOnboardingSetup, {
+        companyId,
+        locationId,
+        userId: actorUserId,
+        onboardingDraftId: draftId
+      }).map((unit) => ({ ...unit, ...ownerScopeMetadata }));
+    } catch (quickSetupErr) {
+      console.warn("[finalizeOnboardingCheckoutProvisioning] quick setup normalization failed:", quickSetupErr.message);
+    }
+  }
   const customerName = deriveCustomerName({
     profile,
     userData,
@@ -9585,112 +8554,162 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
     summary,
     cloudinaryAssets,
     draftId,
-    checkoutSessionId: sessionId
+    checkoutSessionId: sessionId,
+    ownerScopeMetadata
   });
-
-  const { snapshotId } = await createHaccpSnapshotDocument({
-    profile,
-    riskModel,
-    companyId,
-    locationId,
-    userId: actorUserId
-  });
-
-  // FJERNET: generateAndSaveEgenkontrolProgram (skriver til egenkontrol_programs, læses ikke af startDay)
-  // FJERNET: buildStructuredHaccpData / companies/{id}/locations/... (isoleret, læses ingensteds)
-
-  const onboardingAnswersId = await upsertOnboardingAnswersDocument({
-    companyId,
-    locationId,
-    userId: actorUserId,
-    liveProfilePayload
-  });
-
-  // ─── PIPELINE: onboarding_answers → risks → task_templates ───────────────
-  // Steg 1: Skriv risks fra onboarding (processer → CCP/GAG regler)
-  try {
-    const { generateRisksFromOnboardingAnswers } = require("./admin/generateRisksFromOnboardingAnswers");
-    const risksResult = await generateRisksFromOnboardingAnswers({ locationId });
-    console.log("[provisioning] generateRisksFromOnboardingAnswers:", risksResult);
-  } catch (risksErr) {
-    console.error("[provisioning] generateRisksFromOnboardingAnswers failed:", risksErr.message);
+  if (quickOnboardingSetup) {
+    liveProfilePayload.quickOnboardingSetup = quickOnboardingSetup;
+    liveProfilePayload.onboardingAnswers = liveProfilePayload.onboardingAnswers || {};
+    liveProfilePayload.onboardingAnswers.equipmentCounts = quickEquipmentUnits.reduce((acc, unit) => {
+      const type = String(unit.type || unit.equipmentType || "").trim();
+      if (type) acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
   }
 
-  // Steg 2: Byg task_templates fra risks (aggregeret per kontrolkategori)
-  try {
-    const { generateEgenkontrolFromRiskAnalysis } = require("./admin/generateEgenkontrolFromRiskAnalysis");
-    const templatesResult = await generateEgenkontrolFromRiskAnalysis({ locationId, db });
-    console.log("[provisioning] generateEgenkontrolFromRiskAnalysis:", templatesResult);
-  } catch (templatesErr) {
-    console.error("[provisioning] generateEgenkontrolFromRiskAnalysis failed:", templatesErr.message);
-  }
+  let snapshotId = "";
+  let onboardingAnswersId = "";
 
-  // Materialiser equipment counts til konkrete equipment docs
-  try {
-    await syncOnboardingEquipmentUnits({
-      db,
+  if (hasEgenkontrol) {
+    const snapshotResult = await createHaccpSnapshotDocument({
+      profile,
+      riskModel,
       companyId,
       locationId,
-      equipmentCounts: liveProfilePayload.onboardingAnswers?.equipmentCounts || {},
-      profile
+      userId: actorUserId,
+      ownerScopeMetadata
     });
-  } catch (eqErr) {
-    console.error("[finalizeOnboardingCheckoutProvisioning] syncOnboardingEquipmentUnits failed:", eqErr.message);
+    snapshotId = snapshotResult.snapshotId;
+
+    // FJERNET: generateAndSaveEgenkontrolProgram (skriver til egenkontrol_programs, lÃ¦ses ikke af startDay)
+    // FJERNET: buildStructuredHaccpData / companies/{id}/locations/... (isoleret, lÃ¦ses ingensteds)
+
+    onboardingAnswersId = await upsertOnboardingAnswersDocument({
+      companyId,
+      locationId,
+      userId: actorUserId,
+      liveProfilePayload,
+      ownerScopeMetadata
+    });
+
+    // â”€â”€â”€ PIPELINE: onboarding_answers â†’ risks â†’ task_templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Steg 1: Skriv risks fra onboarding (processer â†’ CCP/GAG regler)
+    try {
+      const { generateRisksFromOnboardingAnswers } = require("./admin/generateRisksFromOnboardingAnswers");
+      const risksResult = await generateRisksFromOnboardingAnswers({ locationId });
+      console.log("[provisioning] generateRisksFromOnboardingAnswers:", risksResult);
+    } catch (risksErr) {
+      console.error("[provisioning] generateRisksFromOnboardingAnswers failed:", risksErr.message);
+    }
+
+    // Steg 2: Byg task_templates fra risks (aggregeret per kontrolkategori)
+    try {
+      const { generateEgenkontrolFromRiskAnalysis } = require("./admin/generateEgenkontrolFromRiskAnalysis");
+      const templatesResult = await generateEgenkontrolFromRiskAnalysis({ locationId, db });
+      console.log("[provisioning] generateEgenkontrolFromRiskAnalysis:", templatesResult);
+    } catch (templatesErr) {
+      console.error("[provisioning] generateEgenkontrolFromRiskAnalysis failed:", templatesErr.message);
+    }
+
+    // Materialiser Quick Onboarding equipment til konkrete equipment docs
+    if (quickEquipmentUnits.length > 0) {
+      try {
+        for (const unit of quickEquipmentUnits) {
+          await db.collection("equipment").doc(unit.id).set(unit, { merge: true });
+        }
+        const templatesResult = await generateCanonicalTaskTemplates({
+          db,
+          companyId,
+          locationId,
+          routineKeys: quickRoutineKeys,
+          units: quickEquipmentUnits,
+          ownerScopeMetadata
+        });
+        console.log("[finalizeOnboardingCheckoutProvisioning] quick canonical templates:", templatesResult);
+      } catch (quickEqErr) {
+        console.error("[finalizeOnboardingCheckoutProvisioning] quick equipment/template sync failed:", quickEqErr.message);
+      }
+    }
+
+    // Materialiser equipment counts til konkrete equipment docs
+    try {
+      if (quickEquipmentUnits.length === 0) {
+        await syncOnboardingEquipmentUnits({
+          db,
+          companyId,
+          locationId,
+          equipmentCounts: liveProfilePayload.onboardingAnswers?.equipmentCounts || {},
+          profile,
+          ownerScopeMetadata
+        });
+      }
+    } catch (eqErr) {
+      console.error("[finalizeOnboardingCheckoutProvisioning] syncOnboardingEquipmentUnits failed:", eqErr.message);
+    }
+
+    // Ensure location has temperatureControlSettings for new schedule system
+    try {
+      const todayKey = new Date().toISOString().slice(0, 10);
+      await ensureLocationTemperatureSettings(db, companyId, locationId, todayKey);
+      console.log("[finalizeOnboardingCheckoutProvisioning] ensureLocationTemperatureSettings completed");
+    } catch (tempErr) {
+      console.error("[finalizeOnboardingCheckoutProvisioning] ensureLocationTemperatureSettings failed:", tempErr.message);
+    }
+
+    // Sync equipment-based cleaning task templates
+    try {
+      await syncEquipmentCleaningTemplates({ db, companyId, locationId, ownerScopeMetadata });
+    } catch (cleanErr) {
+      console.error("[finalizeOnboardingCheckoutProvisioning] syncEquipmentCleaningTemplates failed:", cleanErr.message);
+    }
+
+    // Sync equipment-based maintenance task templates
+    try {
+      await syncEquipmentMaintenanceTemplates({ db, companyId, locationId, ownerScopeMetadata });
+    } catch (maintErr) {
+      console.error("[finalizeOnboardingCheckoutProvisioning] syncEquipmentMaintenanceTemplates failed:", maintErr.message);
+    }
+
+    // Sync area-based cleaning task templates
+    try {
+      await syncAreaCleaningTemplates({ db, companyId, locationId, ownerScopeMetadata });
+    } catch (areaErr) {
+      console.error("[finalizeOnboardingCheckoutProvisioning] syncAreaCleaningTemplates failed:", areaErr.message);
+    }
+
+    // Sync process-based drift task templates
+    try {
+      await syncProcessDriftTemplates({ db, companyId, locationId, ownerScopeMetadata });
+    } catch (driftErr) {
+      console.error("[finalizeOnboardingCheckoutProvisioning] syncProcessDriftTemplates failed:", driftErr.message);
+    }
+
+    // Sync water control task templates
+    try {
+      await syncWaterControlTemplates({ db, companyId, locationId, ownerScopeMetadata });
+    } catch (waterErr) {
+      console.error("[finalizeOnboardingCheckoutProvisioning] syncWaterControlTemplates failed:", waterErr.message);
+    }
+  } else {
+    console.log("[FINALIZE] Egenkontrol/HACCP provisioning skipped", { selectedModules });
   }
 
-  // Ensure location has temperatureControlSettings for new schedule system
-  try {
-    const todayKey = new Date().toISOString().slice(0, 10);
-    await ensureLocationTemperatureSettings(db, companyId, locationId, todayKey);
-    console.log("[finalizeOnboardingCheckoutProvisioning] ensureLocationTemperatureSettings completed");
-  } catch (tempErr) {
-    console.error("[finalizeOnboardingCheckoutProvisioning] ensureLocationTemperatureSettings failed:", tempErr.message);
-  }
-
-  // Sync equipment-based cleaning task templates
-  try {
-    await syncEquipmentCleaningTemplates({ db, companyId, locationId });
-  } catch (cleanErr) {
-    console.error("[finalizeOnboardingCheckoutProvisioning] syncEquipmentCleaningTemplates failed:", cleanErr.message);
-  }
-
-  // Sync equipment-based maintenance task templates
-  try {
-    await syncEquipmentMaintenanceTemplates({ db, companyId, locationId });
-  } catch (maintErr) {
-    console.error("[finalizeOnboardingCheckoutProvisioning] syncEquipmentMaintenanceTemplates failed:", maintErr.message);
-  }
-
-  // Sync area-based cleaning task templates
-  try {
-    await syncAreaCleaningTemplates({ db, companyId, locationId });
-  } catch (areaErr) {
-    console.error("[finalizeOnboardingCheckoutProvisioning] syncAreaCleaningTemplates failed:", areaErr.message);
-  }
-
-  // Sync process-based drift task templates
-  try {
-    await syncProcessDriftTemplates({ db, companyId, locationId });
-  } catch (driftErr) {
-    console.error("[finalizeOnboardingCheckoutProvisioning] syncProcessDriftTemplates failed:", driftErr.message);
-  }
-
-  // Sync water control task templates
-  try {
-    await syncWaterControlTemplates({ db, companyId, locationId });
-  } catch (waterErr) {
-    console.error("[finalizeOnboardingCheckoutProvisioning] syncWaterControlTemplates failed:", waterErr.message);
-  }
-
-  await db.collection("live_user_profiles").doc(liveProfileId).set({
+  const liveProfileUpdate = {
     ...liveProfilePayload,
-    haccpSnapshotId: snapshotId,
-    onboardingAnswersId,
+    selectedModules,
+    enabledModules: selectedModules,
+    activeModules: selectedModules,
+    moduleAccess,
+    modules: moduleMap,
     updatedAt: FieldValue.serverTimestamp()
-  }, { merge: true });
+  };
+  if (snapshotId) liveProfileUpdate.haccpSnapshotId = snapshotId;
+  if (onboardingAnswersId) liveProfileUpdate.onboardingAnswersId = onboardingAnswersId;
 
-  // FJERNET: ensureLiveTaskTemplatesForProvisioning — genererede scenario_based_haccp templates
-  // som startDayForLocation eksplicit filtreréde væk. Erstattet af risks-pipeline ovenfor.
+  await db.collection("live_user_profiles").doc(liveProfileId).set(liveProfileUpdate, { merge: true });
+
+  // FJERNET: ensureLiveTaskTemplatesForProvisioning â€” genererede scenario_based_haccp templates
+  // som startDayForLocation eksplicit filtrerÃ©de vÃ¦k. Erstattet af risks-pipeline ovenfor.
 
   let finalUserId = authUid;
 
@@ -9700,7 +8719,7 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
     const password = String(profile.accountPassword || "").trim();
     const displayName = sanitizeString(profile.ownerName || profile.companyName || "Ejer", 120);
 
-    console.log(`🔐 User creation attempt - Email: ${email}, Password length: ${password.length}, DisplayName: ${displayName}`);
+    console.log(`ðŸ” User creation attempt - Email: ${email}, Password length: ${password.length}, DisplayName: ${displayName}`);
 
     if (email && password.length >= 8) {
       try {
@@ -9736,11 +8755,17 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
             role: "owner",
             companyId,
             organizationId: companyId,
+            ...ownerScopeMetadata,
             primaryLocationId: locationId,
             locationId,
             locationIds: [locationId],
             latestLiveProfileId: liveProfileId,
-            latestHaccpSnapshotId: snapshotId,
+            latestHaccpSnapshotId: snapshotId || "",
+            selectedModules,
+            enabledModules: selectedModules,
+            activeModules: selectedModules,
+            moduleAccess,
+            modules: moduleMap,
             onboardingStatus: "completed",
             onboardingCompletedAt: FieldValue.serverTimestamp(),
             latestCloudinaryAssets: cloudinaryAssets,
@@ -9766,12 +8791,18 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
     await db.collection("users").doc(authUid).set({
       companyId,
       organizationId: companyId,
+      ...ownerScopeMetadata,
       email: actorEmail,
       primaryLocationId: locationId,
       locationId,
       locationIds: nextLocationIds,
       latestLiveProfileId: liveProfileId,
-      latestHaccpSnapshotId: snapshotId,
+      latestHaccpSnapshotId: snapshotId || "",
+      selectedModules,
+      enabledModules: selectedModules,
+      activeModules: selectedModules,
+      moduleAccess,
+      modules: moduleMap,
       onboardingStatus: "completed",
       onboardingCompletedAt: FieldValue.serverTimestamp(),
       latestCloudinaryAssets: cloudinaryAssets,
@@ -9793,12 +8824,19 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
     companyId,
     name: companyDisplayName || companyId,
     displayName: companyDisplayName || companyId,
+    ...ownerScopeMetadata,
     address: sanitizeString(profile.address || "", 220) || null,
     zip: sanitizeString(profile.zip || "", 40) || null,
     city: sanitizeString(profile.city || "", 120) || null,
     status: "active",
+    selectedModules,
+    enabledModules: selectedModules,
+    activeModules: selectedModules,
+    moduleAccess,
+    modules: moduleMap,
     subscription: {
       plan: billingPlan,
+      selectedModules,
       startedAt: FieldValue.serverTimestamp(),
       stripeSessionId: sessionId
     },
@@ -9810,29 +8848,68 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
     companyId,
     organizationId: companyId,
     locationId,
+    ...ownerScopeMetadata,
     name: locationDisplayName,
     displayName: locationDisplayName,
     address: sanitizeString(profile.address || "", 220) || null,
     zip: sanitizeString(profile.zip || "", 40) || null,
     city: sanitizeString(profile.city || "", 120) || null,
     status: "active",
+    selectedModules,
+    enabledModules: selectedModules,
+    activeModules: selectedModules,
+    moduleAccess,
+    modules: moduleMap,
     updatedAt: FieldValue.serverTimestamp()
   }, { merge: true });
+
+  await companyRef.collection("subscriptions").doc("current").set({
+    status: "active",
+    ...ownerScopeMetadata,
+    plan: billingPlan,
+    selectedModules,
+    activeModules: selectedModules,
+    stripeSessionId: sessionId,
+    source: "onboarding_checkout",
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  const accessBatch = db.batch();
+  selectedModules.forEach((moduleKey) => {
+    const accessDocId = `${toDocSafeId(moduleKey)}__location_${toDocSafeId(locationId)}__all-users`;
+    accessBatch.set(companyRef.collection("module_access").doc(accessDocId), {
+      moduleKey,
+      status: "active",
+      source: "onboarding_checkout",
+      assignedToCompanyId: companyId,
+      assignedToLocationId: locationId,
+      assignedToUserId: "",
+      stripeSessionId: sessionId,
+      billingPlan,
+      updatedAt: FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+  await accessBatch.commit();
   
   console.log("[FINALIZE] Company status updated to active with subscription:", billingPlan);
 
-  await draftRef.set({
+  const draftCompletionUpdate = {
     summary,
     cloudinaryAssets,
     liveProfileId,
-    onboardingAnswersId,
-    snapshotId,
     stripeSessionId: sessionId,
     billingPlan,
+    selectedModules,
+    activeModules: selectedModules,
+    moduleAccess,
     status: "completed",
     completedAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp()
-  }, { merge: true });
+  };
+  if (snapshotId) draftCompletionUpdate.snapshotId = snapshotId;
+  if (onboardingAnswersId) draftCompletionUpdate.onboardingAnswersId = onboardingAnswersId;
+  await draftRef.set(draftCompletionUpdate, { merge: true });
 
   const matchingCheckoutSessions = await db
     .collection("checkout_sessions")
@@ -9843,15 +8920,18 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
   if (!matchingCheckoutSessions.empty) {
     const batch = db.batch();
     matchingCheckoutSessions.docs.forEach((docSnap) => {
-      batch.set(docSnap.ref, {
+      const checkoutUpdate = {
         status: "completed",
         onboardingProvisioned: true,
         onboardingDraftId: draftId,
         liveProfileId,
-        onboardingAnswersId,
-        haccpSnapshotId: snapshotId,
+        selectedModules,
+        activeModules: selectedModules,
         updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
+      };
+      if (onboardingAnswersId) checkoutUpdate.onboardingAnswersId = onboardingAnswersId;
+      if (snapshotId) checkoutUpdate.haccpSnapshotId = snapshotId;
+      batch.set(docSnap.ref, checkoutUpdate, { merge: true });
     });
     await batch.commit();
   }
@@ -9864,8 +8944,9 @@ exports.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
     snapshotId,
     liveProfileId,
     onboardingAnswersId,
+    selectedModules,
     taskTemplateCount: 0,
-    dashboardUrl: "/dashboard#haccp-print-section",
+    dashboardUrl: hasEgenkontrol ? "/dashboard#haccp-print-section" : "/dashboard.html",
     summary
   };
 });
@@ -9878,7 +8959,14 @@ exports.getCloudinarySignature = onCall({ region: "us-central1", secrets: ["FUNC
 
   const crypto = require("crypto");
   let config = {};
-  try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
+  try {
+    const secretConfig = FUNCTIONS_CONFIG.value();
+    config = typeof secretConfig === "string"
+      ? JSON.parse(secretConfig || "{}")
+      : (secretConfig || {});
+  } catch (_) {
+    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
+  }
 
   const cloudName =
     config?.cloudinary?.cloud_name ||
@@ -10002,11 +9090,11 @@ function buildVisionPrompt({ moduleType, itemId, contextType, citizenProfile, ta
   const categoryLower = sanitizeString(taskCategory || "", 80).toLowerCase();
 
   const commonRules = [
-    "Skriv kort, professionelt og juridisk egnet på dansk.",
+    "Skriv kort, professionelt og juridisk egnet pÃ¥ dansk.",
     "Vurder kun det, der kan ses i billedet.",
-    "Undgå gæt om usynlige forhold.",
-    "FOKUS: Koncentrér dig om det primære objekt/område i billedet – ignorer rod, kaos eller støj i baggrunden medmindre det er en direkte hygiejnerisiko.",
-    "PROAKTIV SCANNING: Selv hvis du ikke er blevet bedt specifikt om det, skal du ALTID råbe op med '[AFVIGELSE]' hvis du ser: åbne beholdere uden låg, redskaber (skeer, knive, sleev) placeret direkte i madvarer, udækkede råvarer, spild eller dryp på hylder, datostempler der er overskredet, eller lignende konkrete hygiejnerisici. Forklar præcist hvad der skal gøres.",
+    "UndgÃ¥ gÃ¦t om usynlige forhold.",
+    "FOKUS: KoncentrÃ©r dig om det primÃ¦re objekt/omrÃ¥de i billedet â€“ ignorer rod, kaos eller stÃ¸j i baggrunden medmindre det er en direkte hygiejnerisiko.",
+    "PROAKTIV SCANNING: Selv hvis du ikke er blevet bedt specifikt om det, skal du ALTID rÃ¥be op med '[AFVIGELSE]' hvis du ser: Ã¥bne beholdere uden lÃ¥g, redskaber (skeer, knive, sleev) placeret direkte i madvarer, udÃ¦kkede rÃ¥varer, spild eller dryp pÃ¥ hylder, datostempler der er overskredet, eller lignende konkrete hygiejnerisici. Forklar prÃ¦cist hvad der skal gÃ¸res.",
     "AI maa kun give et forslag til manuel vurdering. AI maa aldrig afgoere eller oprette en afvigelse alene.",
     "Skriv IKKE '[AFVIGELSE]' som kommando. Brug i stedet severity, confidenceScore og suggestedIssue til at beskrive mulig risiko.",
     "Hvis du ser mulig hygiejnerisiko, formuler det som et manuelt forslag brugeren skal bekraefte.",
@@ -10016,21 +9104,21 @@ function buildVisionPrompt({ moduleType, itemId, contextType, citizenProfile, ta
   // AI-Router mode: Auto-categorize image type
   if (autoRoute) {
     return [
-      "Du er en hygiejne-inspektør og revisor for et professionelt køkken-dokumentationssystem.",
-      "Analysér dette optimerede billede med kritisk blik og identificér hvad det viser:",
-      "1. FAKTURA/BILAG: Hvis du ser tekst med beløb, leverandørnavn, fakturanummer, eller regnskabsbilag → kategori: 'finance'",
-      "   - Udtræk leverandør, totalbeløb, momsbeløb (25%), fakturadato.",
-      "   - Vurder om teksten er læsbar til bogføring.",
-      "2. EGENKONTROL (MASKINE/UDSTYR): Hvis du ser køkkenudstyr (ovn, køleskab, emhætte, opvaskemaskine) → kategori: 'egenkontrol'",
+      "Du er en hygiejne-inspektÃ¸r og revisor for et professionelt kÃ¸kken-dokumentationssystem.",
+      "AnalysÃ©r dette optimerede billede med kritisk blik og identificÃ©r hvad det viser:",
+      "1. FAKTURA/BILAG: Hvis du ser tekst med belÃ¸b, leverandÃ¸rnavn, fakturanummer, eller regnskabsbilag â†’ kategori: 'finance'",
+      "   - UdtrÃ¦k leverandÃ¸r, totalbelÃ¸b, momsbelÃ¸b (25%), fakturadato.",
+      "   - Vurder om teksten er lÃ¦sbar til bogfÃ¸ring.",
+      "2. EGENKONTROL (MASKINE/UDSTYR): Hvis du ser kÃ¸kkenudstyr (ovn, kÃ¸leskab, emhÃ¦tte, opvaskemaskine) â†’ kategori: 'egenkontrol'",
       "   - LED EFTER: Madrester, fedt, snavs, eller urenheder.",
-      "   - Hvis det er et display: Udtræk temperatur med præcis værdi og enhed (f.eks. '+4°C' eller '-18°C').",
-      "   - Hvis du finder fejl (synligt snavs, madrester, fedt, høj temperatur >+8°C eller lav temperatur >-15°C), skal dit svar STARTE med '[AFVIGELSE]'.",
-      "   - Beskriv hvad du ser (f.eks. 'Ovn rengjort, ingen restprodukter' eller '[AFVIGELSE] Synlige madrester i hjørner, fedt på pakninger').",
-      "3. MADANRETNING: Hvis du ser en tallerken med mad, dysfagi-kost, eller portion til borger → kategori: 'institution'",
+      "   - Hvis det er et display: UdtrÃ¦k temperatur med prÃ¦cis vÃ¦rdi og enhed (f.eks. '+4Â°C' eller '-18Â°C').",
+      "   - Hvis du finder fejl (synligt snavs, madrester, fedt, hÃ¸j temperatur >+8Â°C eller lav temperatur >-15Â°C), skal dit svar STARTE med '[AFVIGELSE]'.",
+      "   - Beskriv hvad du ser (f.eks. 'Ovn rengjort, ingen restprodukter' eller '[AFVIGELSE] Synlige madrester i hjÃ¸rner, fedt pÃ¥ pakninger').",
+      "3. MADANRETNING: Hvis du ser en tallerken med mad, dysfagi-kost, eller portion til borger â†’ kategori: 'institution'",
       "   - Vurder konsistens, tekstur, dysfagi-egnethed.",
-      "Vurder billedets KLARHED (image_clarity): 'clear' hvis alle detaljer er synlige, 'unclear' hvis uskarpt/mørkt/utydeligt.",
+      "Vurder billedets KLARHED (image_clarity): 'clear' hvis alle detaljer er synlige, 'unclear' hvis uskarpt/mÃ¸rkt/utydeligt.",
       commonRules,
-      "Returner kategori baseret på hvad billedet FAKTISK viser, ikke hvad brugeren siger.",
+      "Returner kategori baseret pÃ¥ hvad billedet FAKTISK viser, ikke hvad brugeren siger.",
       "Husk: Start beskrivelse med '[AFVIGELSE]' hvis du finder hygiejneproblemer eller temperaturafvigelser."
     ].join(" ");
   }
@@ -10039,8 +9127,8 @@ function buildVisionPrompt({ moduleType, itemId, contextType, citizenProfile, ta
   if (moduleLower === "finance") {
     return [
       "Du analyserer et foto af et regnskabsbilag fra professionel foodservice-drift.",
-      "Udtræk leverandørnavn, totalbeløb, momsbeløb og fakturadato, hvis synligt.",
-      "Vurder om bilaget er læsbart til bogføring.",
+      "UdtrÃ¦k leverandÃ¸rnavn, totalbelÃ¸b, momsbelÃ¸b og fakturadato, hvis synligt.",
+      "Vurder om bilaget er lÃ¦sbart til bogfÃ¸ring.",
       commonRules,
       "Brug kategori: finance."
     ].join(" ");
@@ -10049,8 +9137,8 @@ function buildVisionPrompt({ moduleType, itemId, contextType, citizenProfile, ta
   if (moduleLower === "institution" || contextLower === "institution") {
     const citizenInfo = sanitizeString(citizenProfile || "", 300);
     return [
-      "Du analyserer et billede af en anretning i institutionskøkken.",
-      "Vurder konsistens ift. dysfagi/blød kost, synlige klumper, tekstur og ensartethed.",
+      "Du analyserer et billede af en anretning i institutionskÃ¸kken.",
+      "Vurder konsistens ift. dysfagi/blÃ¸d kost, synlige klumper, tekstur og ensartethed.",
       citizenInfo ? `Borgerprofil: ${citizenInfo}.` : "Borgerprofil: Ikke angivet.",
       commonRules,
       "Brug kategori: institution."
@@ -10059,8 +9147,8 @@ function buildVisionPrompt({ moduleType, itemId, contextType, citizenProfile, ta
 
   if (moduleLower === "commercial" || contextLower === "commercial") {
     return [
-      "Du analyserer et rengørings- eller udstyrsfoto fra et kommercielt køkken.",
-      "Vurder renhedsgrad for ovne, emhætter, kølediske og synlige filtre/tømning.",
+      "Du analyserer et rengÃ¸rings- eller udstyrsfoto fra et kommercielt kÃ¸kken.",
+      "Vurder renhedsgrad for ovne, emhÃ¦tter, kÃ¸lediske og synlige filtre/tÃ¸mning.",
       commonRules,
       "Brug kategori: commercial."
     ].join(" ");
@@ -10072,33 +9160,33 @@ function buildVisionPrompt({ moduleType, itemId, contextType, citizenProfile, ta
   // ADSKILLELSE / SEPARATION
   if (categoryLower.includes("adskillelse") || categoryLower.includes("separation") || categoryLower.includes("kryds") || scopedItemLower.includes("adskillelse") || scopedItemLower.includes("separation") || scopedItemLower.includes("kryds")) {
     return [
-      "Du er en HACCP-inspektør. Analysér dette billede med fokus på ADSKILLELSE af råvarer og kryds-kontaminationsrisiko.",
+      "Du er en HACCP-inspektÃ¸r. AnalysÃ©r dette billede med fokus pÃ¥ ADSKILLELSE af rÃ¥varer og kryds-kontaminationsrisiko.",
       `Opgave: ${scopedItem}.`,
       "Tjek SPECIFIKT:",
-      "1. FARVEKODER: Bruges de rigtige farver til skærebrætter/knive (rød=råt kød, gul=fjerkræ, grøn=grønt, blå=fisk, hvid=mejeriprodukter)?",
-      "2. ADSKILLELSE: Er råt kød/fisk adskilt fra tilberedte varer med fysisk afstand, separat emballage, eller skillevæg?",
-      "3. OPBEVARINGSHØJDE: Er råt kød/fisk placeret UNDER tilberedte varer (ikke over)?",
+      "1. FARVEKODER: Bruges de rigtige farver til skÃ¦rebrÃ¦tter/knive (rÃ¸d=rÃ¥t kÃ¸d, gul=fjerkrÃ¦, grÃ¸n=grÃ¸nt, blÃ¥=fisk, hvid=mejeriprodukter)?",
+      "2. ADSKILLELSE: Er rÃ¥t kÃ¸d/fisk adskilt fra tilberedte varer med fysisk afstand, separat emballage, eller skillevÃ¦g?",
+      "3. OPBEVARINGSHÃ˜JDE: Er rÃ¥t kÃ¸d/fisk placeret UNDER tilberedte varer (ikke over)?",
       "4. KONTAMINATIONSRISIKO: Er der dryp, spild, eller uhygiejnisk kontakt mellem produkttyper?",
       "Hvis du finder ADSKILLELSESPROBLEM: Start med '[AFVIGELSE]' og forklar risikoen (kryds-kontaminering = alvorlig Salmonella/E.coli-risiko).",
-      "Hvis adskillelsen er korrekt: Bekræft med kort professionel beskrivelse.",
+      "Hvis adskillelsen er korrekt: BekrÃ¦ft med kort professionel beskrivelse.",
       commonRules,
       "Brug kategori: egenkontrol."
     ].join(" ");
   }
 
   // TEMPERATUR KONTROL
-  if (categoryLower.includes("temperatur") || categoryLower.includes("køl") || categoryLower.includes("frost") || categoryLower.includes("varmt") || categoryLower.includes("varmhold") || scopedItemLower.includes("temp") || scopedItemLower.includes("køl") || scopedItemLower.includes("frost") || scopedItemLower.includes("°c")) {
+  if (categoryLower.includes("temperatur") || categoryLower.includes("kÃ¸l") || categoryLower.includes("frost") || categoryLower.includes("varmt") || categoryLower.includes("varmhold") || scopedItemLower.includes("temp") || scopedItemLower.includes("kÃ¸l") || scopedItemLower.includes("frost") || scopedItemLower.includes("Â°c")) {
     return [
-      "Du er en HACCP-temperaturekspert. Analysér dette billede med FOKUS PÅ TEMPERATUR.",
+      "Du er en HACCP-temperaturekspert. AnalysÃ©r dette billede med FOKUS PÃ… TEMPERATUR.",
       `Udstyr/opgave: ${scopedItem}.`,
       "Hvis du ser et DISPLAY eller TERMOMETER:",
-      "- Aflæs temperaturen med PRÆCISION (f.eks. '-18.2°C' eller '+4.1°C').",
+      "- AflÃ¦s temperaturen med PRÃ†CISION (f.eks. '-18.2Â°C' eller '+4.1Â°C').",
       "- Returner tallet med fortegn i temperature_value (f.eks. -18.2 eller 4.1).",
-      "- GRÆNSEVÆRDIER: Køl ≤+5°C, Frost ≤-18°C, Varmholdelse ≥+65°C.",
-      "- Er temperaturen INDEN FOR grænsen? → handling_udfort: true og bekræft.",
-      "- Er temperaturen UDENFOR grænsen? → Start med '[AFVIGELSE]' og forklar risikoen (bakterievækst, HACCP-brud).",
+      "- GRÃ†NSEVÃ†RDIER: KÃ¸l â‰¤+5Â°C, Frost â‰¤-18Â°C, Varmholdelse â‰¥+65Â°C.",
+      "- Er temperaturen INDEN FOR grÃ¦nsen? â†’ handling_udfort: true og bekrÃ¦ft.",
+      "- Er temperaturen UDENFOR grÃ¦nsen? â†’ Start med '[AFVIGELSE]' og forklar risikoen (bakterievÃ¦kst, HACCP-brud).",
       "Hvis du IKKE kan se temperaturen tydeligt: Angiv image_clarity: 'unclear'.",
-      "Tjek også: Er udstyret lukket korrekt? Er der rim/is-dannelse (tegn på temperatursvingninger)?",
+      "Tjek ogsÃ¥: Er udstyret lukket korrekt? Er der rim/is-dannelse (tegn pÃ¥ temperatursvingninger)?",
       commonRules,
       "Brug kategori: egenkontrol."
     ].join(" ");
@@ -10107,18 +9195,18 @@ function buildVisionPrompt({ moduleType, itemId, contextType, citizenProfile, ta
   // OPBEVARING / STORAGE
   if (categoryLower.includes("opbevaring") || categoryLower.includes("storage") || categoryLower.includes("lager") || categoryLower.includes("hylde") || scopedItemLower.includes("opbevaring") || scopedItemLower.includes("lager") || scopedItemLower.includes("hylde")) {
     return [
-      "Du er en hygiejnekonsulent. Analysér dette billede med fokus på KORREKT OPBEVARING af fødevarer.",
-      `Område/opgave: ${scopedItem}.`,
+      "Du er en hygiejnekonsulent. AnalysÃ©r dette billede med fokus pÃ¥ KORREKT OPBEVARING af fÃ¸devarer.",
+      `OmrÃ¥de/opgave: ${scopedItem}.`,
       "Tjek SPECIFIKT:",
-      "1. ÅBNE BEHOLDERE: Er der beholdere, gryder, skåle eller pakker uden låg/dækning? En åben beholder = kontaminationsrisiko (hårhygiejne, insekter, luftbårne bakterier). Forklar hvad der mangler (låg, plastikfilm, dækkende emballage).",
-      "2. REDSKABER I MAD: Er der en ske, slev, kniv eller andet redskab placeret DIREKTE I en madbeholder? Det er en hygiejnerisiko (kryds-kontaminering, bakterievækst på håndtaget). Råb op: forklar at redskabet skal fjernes og opbevares separat.",
-      "3. EMBALLAGE: Er alle øvrige varer forsvarligt emballerede/dækkede?",
-      "4. DATOSTEMPLING: Er varer mærket med åbningsdato/holdbarhed? Kan du se udløbsdatoer?",
-      "5. RÆKKEFØLGE (FIFO): Er ældste varer placeret forrest (First In, First Out)?",
+      "1. Ã…BNE BEHOLDERE: Er der beholdere, gryder, skÃ¥le eller pakker uden lÃ¥g/dÃ¦kning? En Ã¥ben beholder = kontaminationsrisiko (hÃ¥rhygiejne, insekter, luftbÃ¥rne bakterier). Forklar hvad der mangler (lÃ¥g, plastikfilm, dÃ¦kkende emballage).",
+      "2. REDSKABER I MAD: Er der en ske, slev, kniv eller andet redskab placeret DIREKTE I en madbeholder? Det er en hygiejnerisiko (kryds-kontaminering, bakterievÃ¦kst pÃ¥ hÃ¥ndtaget). RÃ¥b op: forklar at redskabet skal fjernes og opbevares separat.",
+      "3. EMBALLAGE: Er alle Ã¸vrige varer forsvarligt emballerede/dÃ¦kkede?",
+      "4. DATOSTEMPLING: Er varer mÃ¦rket med Ã¥bningsdato/holdbarhed? Kan du se udlÃ¸bsdatoer?",
+      "5. RÃ†KKEFÃ˜LGE (FIFO): Er Ã¦ldste varer placeret forrest (First In, First Out)?",
       "6. HYGIEJNE: Er hylder/enheder rene? Rester, spild eller kondensvand?",
-      "7. ADSKILLELSE: Er råvarer og tilberedte varer adskilt korrekt (råt under, tilberedt over)?",
+      "7. ADSKILLELSE: Er rÃ¥varer og tilberedte varer adskilt korrekt (rÃ¥t under, tilberedt over)?",
       "Hvis du finder OPBEVARINGSFEJL: Start med '[AFVIGELSE]' og forklar den konkrete risiko.",
-      "Hvis opbevaringen er korrekt: Bekræft med kort professionel beskrivelse.",
+      "Hvis opbevaringen er korrekt: BekrÃ¦ft med kort professionel beskrivelse.",
       commonRules,
       "Brug kategori: egenkontrol."
     ].join(" ");
@@ -10127,79 +9215,79 @@ function buildVisionPrompt({ moduleType, itemId, contextType, citizenProfile, ta
   // MODTAGEKONTROL / VAREMODTAGELSE
   if (categoryLower.includes("modtagelse") || categoryLower.includes("levering") || categoryLower.includes("varemodtagelse") || scopedItemLower.includes("modtagelse") || scopedItemLower.includes("levering")) {
     return [
-      "Du er en varekontrollør. Analysér dette billede med fokus på VAREMODTAGELSE.",
+      "Du er en varekontrollÃ¸r. AnalysÃ©r dette billede med fokus pÃ¥ VAREMODTAGELSE.",
       `Ordre/vare: ${scopedItem}.`,
       "Tjek SPECIFIKT:",
-      "1. TEMPERATUR: Er der synlig temperatur på mærkat eller thermometer? Kødvarer ≤+5°C, Fisk ≤+2°C, Frost ≤-18°C.",
+      "1. TEMPERATUR: Er der synlig temperatur pÃ¥ mÃ¦rkat eller thermometer? KÃ¸dvarer â‰¤+5Â°C, Fisk â‰¤+2Â°C, Frost â‰¤-18Â°C.",
       "2. EMBALLAGE: Er emballagen hel, ren og ubeskadiget (ingen huller, misfarvning, kondensation)?",
       "3. SYNLIGE FEJL: Misfarvning, lugtproblemer (skriv 'kan ikke vurdere lugt fra billede'), beskadigelse?",
-      "4. MÆRKNING: Er produktet korrekt mærket (art, mængde, holdbarhed)?",
-      "Hvis du finder FEJL ved modtagelsen: Start med '[AFVIGELSE]' – varen skal AFVISES og returneres til leverandøren.",
-      "Hvis varen er OK: Bekræft med 'Vare godkendt til modtagelse' og noter relevante observationer.",
+      "4. MÃ†RKNING: Er produktet korrekt mÃ¦rket (art, mÃ¦ngde, holdbarhed)?",
+      "Hvis du finder FEJL ved modtagelsen: Start med '[AFVIGELSE]' â€“ varen skal AFVISES og returneres til leverandÃ¸ren.",
+      "Hvis varen er OK: BekrÃ¦ft med 'Vare godkendt til modtagelse' og noter relevante observationer.",
       commonRules,
       "Brug kategori: egenkontrol."
     ].join(" ");
   }
 
-  // RENGØRING / CLEANING
-  if (categoryLower.includes("rengøring") || categoryLower.includes("rengoring") || categoryLower.includes("cleaning") || categoryLower.includes("hygiejne") || scopedItemLower.includes("rengør") || scopedItemLower.includes("rengor")) {
+  // RENGÃ˜RING / CLEANING
+  if (categoryLower.includes("rengÃ¸ring") || categoryLower.includes("rengoring") || categoryLower.includes("cleaning") || categoryLower.includes("hygiejne") || scopedItemLower.includes("rengÃ¸r") || scopedItemLower.includes("rengor")) {
     return [
-      "Du er en hygiejneinspektør. Analysér dette billede med KRITISK blik på RENGØRINGSRESULTATET.",
-      `Område/udstyr: ${scopedItem}.`,
+      "Du er en hygiejneinspektÃ¸r. AnalysÃ©r dette billede med KRITISK blik pÃ¥ RENGÃ˜RINGSRESULTATET.",
+      `OmrÃ¥de/udstyr: ${scopedItem}.`,
       "LED SPECIFIKT EFTER:",
       "1. MADRESTER: Synlige rester af mad, fedt, eller organisk materiale?",
       "2. OVERFLADERENHED: Er overflader rent og fri for fedtfilm?",
-      "3. HJØRNER OG SAMLINGER: Er hjørner, revner og samlinger rene (skjulesteder for bakterier)?",
-      "4. DRIFTSSLID: Misfarvning i stål, patina og normalt slid er IKKE hygiejnerisiko – beskriv det som acceptabelt.",
+      "3. HJÃ˜RNER OG SAMLINGER: Er hjÃ¸rner, revner og samlinger rene (skjulesteder for bakterier)?",
+      "4. DRIFTSSLID: Misfarvning i stÃ¥l, patina og normalt slid er IKKE hygiejnerisiko â€“ beskriv det som acceptabelt.",
       "Hvis du finder SYNLIG SNAVS eller MADRESTER: Start med '[AFVIGELSE]' og forklar risikoen.",
-      "Hvis rengøringen er tilfredsstillende: Bekræft kort og professionelt.",
+      "Hvis rengÃ¸ringen er tilfredsstillende: BekrÃ¦ft kort og professionelt.",
       commonRules,
       "Brug kategori: egenkontrol."
     ].join(" ");
   }
-  if (scopedItemLower.includes("gulv") || scopedItemLower.includes("afløb") || scopedItemLower.includes("rist") || scopedItemLower.includes("drain") || scopedItemLower.includes("floor")) {
+  if (scopedItemLower.includes("gulv") || scopedItemLower.includes("aflÃ¸b") || scopedItemLower.includes("rist") || scopedItemLower.includes("drain") || scopedItemLower.includes("floor")) {
     return [
-      "Du er en erfaren køkkenchef-mentor. Analysér dette billede af et gulvafløb eller en rist med FAGLIGT blik.",
-      "Vær STRENG med hygiejne (madrester, organisk materiale), men REALISTISK med driftsslid (misfarvning i stål, slid på pakninger).",
+      "Du er en erfaren kÃ¸kkenchef-mentor. AnalysÃ©r dette billede af et gulvaflÃ¸b eller en rist med FAGLIGT blik.",
+      "VÃ¦r STRENG med hygiejne (madrester, organisk materiale), men REALISTISK med driftsslid (misfarvning i stÃ¥l, slid pÃ¥ pakninger).",
       "Tjek SPECIFIKT for:",
       "1. ORGANISK MATERIALE: Er der synlige madrester, fedtslam eller snavs i risten eller under koppen?",
-      "2. VANDLÅS: Er der vand i vandlåsen (for at undgå lugtgener)?",
-      "3. RIST: Sidder risten korrekt på plads?",
-      "Hvis du finder MADRESTER i afløbet:",
+      "2. VANDLÃ…S: Er der vand i vandlÃ¥sen (for at undgÃ¥ lugtgener)?",
+      "3. RIST: Sidder risten korrekt pÃ¥ plads?",
+      "Hvis du finder MADRESTER i aflÃ¸bet:",
       "- Dit svar skal STARTE med '[AFVIGELSE]'",
-      "- Forklar HVORFOR det er et problem: 'Madrester fundet i afløb. Dette tiltrækker skadedyr (rotter, kakerlakker) og skaber bakterievækst (Salmonella, E. coli). Skal fjernes straks.'",
-      "- Sæt handling_udfort til false",
-      "Hvis afløbet er RENT, men har misfarvning/patina:",
-      "- Beskriv: 'Afløb rengjort. Ingen madrester. Misfarvning i stål er normalt driftsslid, ikke hygiejnerisiko. Rist korrekt placeret.'",
-      "- Sæt handling_udfort til true",
-      "Hvis afløbet er RENT:",
-      "- Beskriv: 'Afløb rengjort. Ingen madrester. Rist korrekt placeret. Vandlås OK.'",
-      "- Sæt handling_udfort til true",
+      "- Forklar HVORFOR det er et problem: 'Madrester fundet i aflÃ¸b. Dette tiltrÃ¦kker skadedyr (rotter, kakerlakker) og skaber bakterievÃ¦kst (Salmonella, E. coli). Skal fjernes straks.'",
+      "- SÃ¦t handling_udfort til false",
+      "Hvis aflÃ¸bet er RENT, men har misfarvning/patina:",
+      "- Beskriv: 'AflÃ¸b rengjort. Ingen madrester. Misfarvning i stÃ¥l er normalt driftsslid, ikke hygiejnerisiko. Rist korrekt placeret.'",
+      "- SÃ¦t handling_udfort til true",
+      "Hvis aflÃ¸bet er RENT:",
+      "- Beskriv: 'AflÃ¸b rengjort. Ingen madrester. Rist korrekt placeret. VandlÃ¥s OK.'",
+      "- SÃ¦t handling_udfort til true",
       commonRules,
       "Brug kategori: egenkontrol.",
-      "Husk: Forklar HVORFOR noget er et problem (risiko for skadedyr, bakterievækst), ikke bare 'beskidt'. Vær realistisk om normal slid vs. hygiejnerisiko."
+      "Husk: Forklar HVORFOR noget er et problem (risiko for skadedyr, bakterievÃ¦kst), ikke bare 'beskidt'. VÃ¦r realistisk om normal slid vs. hygiejnerisiko."
     ].join(" ");
   }
 
   return [
-    "Du er en erfaren køkkenchef-mentor. Analysér dette optimerede billede fra et professionelt køkken med FAGLIGT blik.",
+    "Du er en erfaren kÃ¸kkenchef-mentor. AnalysÃ©r dette optimerede billede fra et professionelt kÃ¸kken med FAGLIGT blik.",
     `Objekt/opgave: ${scopedItem}.`,
-    "Vær STRENG med hygiejne (madrester, temperatur), men REALISTISK med driftsslid (misfarvning, slid på pakninger).",
+    "VÃ¦r STRENG med hygiejne (madrester, temperatur), men REALISTISK med driftsslid (misfarvning, slid pÃ¥ pakninger).",
     "LED EFTER: Madrester, fedt, snavs, urenheder, eller temperaturafvigelser.",
-    "Hvis det er en maskine: Er den ren? Synlige madrester? Fedt på pakninger eller lister? Hvis du ser misfarvning i stål eller normal slid, forklar at det er acceptabelt driftsslid.",
-    "Hvis det er et DISPLAY (temperatur): Find temperaturen på displayet. Returner tallet med fortegn i temperature_value (f.eks. '-18.5' eller '+4.0').",
-    "Hvis det er et filter: Er det tømt? Synligt snavs?",
+    "Hvis det er en maskine: Er den ren? Synlige madrester? Fedt pÃ¥ pakninger eller lister? Hvis du ser misfarvning i stÃ¥l eller normal slid, forklar at det er acceptabelt driftsslid.",
+    "Hvis det er et DISPLAY (temperatur): Find temperaturen pÃ¥ displayet. Returner tallet med fortegn i temperature_value (f.eks. '-18.5' eller '+4.0').",
+    "Hvis det er et filter: Er det tÃ¸mt? Synligt snavs?",
     "Hvis du finder HYGIEJNE-FEJL (madrester, fedt, temperaturafvigelser):",
     "- Dit svar skal STARTE med '[AFVIGELSE]'",
-    "- Forklar HVORFOR det er et problem (f.eks. 'Madrester tiltrækker skadedyr', 'Temperatur >8°C giver bakterievækst', 'Fedt på pakninger skaber biofilm')",
-    "- Vær SPECIFIK om risikoen, ikke bare 'beskidt'",
-    "Hvis du ser NORMAL SLID (misfarvning, patina, slid på overflader):",
+    "- Forklar HVORFOR det er et problem (f.eks. 'Madrester tiltrÃ¦kker skadedyr', 'Temperatur >8Â°C giver bakterievÃ¦kst', 'Fedt pÃ¥ pakninger skaber biofilm')",
+    "- VÃ¦r SPECIFIK om risikoen, ikke bare 'beskidt'",
+    "Hvis du ser NORMAL SLID (misfarvning, patina, slid pÃ¥ overflader):",
     "- Beskriv: 'Udstyr rengjort. Misfarvning/slid er normalt driftsslid, ikke hygiejnerisiko.'",
-    "- Sæt handling_udfort til true",
-    "Skriv en kort, formel bekræftelse på dansk til en egenkontrol-rapport.",
+    "- SÃ¦t handling_udfort til true",
+    "Skriv en kort, formel bekrÃ¦ftelse pÃ¥ dansk til en egenkontrol-rapport.",
     commonRules,
     "Brug kategori: egenkontrol.",
-    "Husk: Forklar HVORFOR problemer er farlige. Vær realistisk om forskellen på hygiejnerisiko vs. normal slid. Du er en læremester, ikke en politibetjent."
+    "Husk: Forklar HVORFOR problemer er farlige. VÃ¦r realistisk om forskellen pÃ¥ hygiejnerisiko vs. normal slid. Du er en lÃ¦remester, ikke en politibetjent."
   ].join(" ");
 }
 
@@ -10267,11 +9355,11 @@ exports.analyzeCloudinaryAsset = onCall(
     "confidence: number mellem 0 og 1",
     "confidenceScore: number mellem 0 og 1",
     "severity: string ('low', 'medium', 'high' eller 'critical')",
-    "suggestedIssue: string|null (kort forslag til hvad brugeren manuelt bør kontrollere)",
+    "suggestedIssue: string|null (kort forslag til hvad brugeren manuelt bÃ¸r kontrollere)",
     "kategori: string (finance, egenkontrol, eller institution)",
     "image_clarity: string ('clear' eller 'unclear')",
     "temperature_value: number|null (hvis display viser temperatur, returner tallet med fortegn, f.eks. -18.5 eller 4.0)",
-    "has_fresh_fish: boolean (true hvis du ser fersk fisk på billedet)",
+    "has_fresh_fish: boolean (true hvis du ser fersk fisk pÃ¥ billedet)",
     "observationer: array af strings",
     "commercial: { cleanliness_score: number|null, filter_tomt: boolean|null }",
     "institution: { dysfagi_match: boolean|null, dysfagi_note: string }",
@@ -10294,7 +9382,7 @@ exports.analyzeCloudinaryAsset = onCall(
         messages: [
           {
             role: "system",
-            content: "Du er fødevaresikkerheds-assistent for egenkontrol og dokumentation. Lever kun validerbar, sober vurdering."
+            content: "Du er fÃ¸devaresikkerheds-assistent for egenkontrol og dokumentation. Lever kun validerbar, sober vurdering."
           },
           {
             role: "user",
@@ -10315,7 +9403,7 @@ exports.analyzeCloudinaryAsset = onCall(
     responseData = await resp.json();
   } catch (error) {
     console.error("Vision API kald fejlede:", error);
-    throw new HttpsError("internal", "Kunne ikke gennemføre billedanalyse.");
+    throw new HttpsError("internal", "Kunne ikke gennemfÃ¸re billedanalyse.");
   }
 
   const rawText = String(
@@ -10326,7 +9414,7 @@ exports.analyzeCloudinaryAsset = onCall(
 
   const handlingUdfort = parsed?.handling_udfort === true;
   const beskrivelse = sanitizeString(
-    parsed?.beskrivelse || "Billedet er analyseret automatisk. Verificér resultatet manuelt før godkendelse.",
+    parsed?.beskrivelse || "Billedet er analyseret automatisk. VerificÃ©r resultatet manuelt fÃ¸r godkendelse.",
     1800
   );
   const confidenceRaw = Number(parsed?.confidence);
@@ -10419,7 +9507,7 @@ exports.analyzeCloudinaryAsset = onCall(
       is_unclear: isUnclear,
       confidence,
       user_message: isUnclear 
-        ? "Utydeligt billede – prøv igen for korrekt dokumentation"
+        ? "Utydeligt billede â€“ prÃ¸v igen for korrekt dokumentation"
         : `Billede kategoriseret som: ${detectedCategory === "finance" ? "Faktura/Regnskab" : detectedCategory === "institution" ? "Madanretning/Institution" : "Egenkontrol"}`
     }
   };
@@ -10540,977 +9628,30 @@ function scoreStockPhoto(photo) {
   return score;
 }
 
-const OFFICIAL_RECALL_PAGE_URL = "https://foedevarestyrelsen.dk/nyheder/tilbagekaldte-produkter";
-let officialRecallFeedCache = {
-  expiresAt: 0,
-  payload: null
-};
-
-function decodeXmlEntities(value = "") {
-  return String(value || "")
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, "\"")
-    .replace(/&#39;/g, "'")
-    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(parseInt(num, 10)));
-}
-
-function stripHtml(value = "") {
-  return decodeXmlEntities(String(value || "").replace(/<[^>]+>/g, " "))
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function readXmlTag(xml = "", tag = "") {
-  const match = String(xml || "").match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "i"));
-  return match ? decodeXmlEntities(match[1]).trim() : "";
-}
-
-function absolutizeUrl(url = "", baseUrl = OFFICIAL_RECALL_PAGE_URL) {
-  try {
-    return new URL(decodeXmlEntities(url), baseUrl).toString();
-  } catch (_error) {
-    return "";
-  }
-}
-
-function parseRecallFeedItems(xml = "") {
-  const source = String(xml || "");
-  const blocks = [...source.matchAll(/<item(?:\s[^>]*)?>[\s\S]*?<\/item>/gi)].map(match => match[0]);
-  const feedBlocks = blocks.length
-    ? blocks
-    : [...source.matchAll(/<entry(?:\s[^>]*)?>[\s\S]*?<\/entry>/gi)].map(match => match[0]);
-
-  return feedBlocks.slice(0, 10).map((block, index) => {
-    const title = stripHtml(readXmlTag(block, "title"));
-    const summary = stripHtml(readXmlTag(block, "description") || readXmlTag(block, "summary") || readXmlTag(block, "content")).slice(0, 280);
-    let link = readXmlTag(block, "link");
-    if (!link) {
-      const linkHref = block.match(/<link[^>]+href=["']([^"']+)["']/i);
-      link = linkHref ? linkHref[1] : "";
-    }
-    const publishedAt = readXmlTag(block, "pubDate") || readXmlTag(block, "published") || readXmlTag(block, "updated") || "";
-    const guid = stripHtml(readXmlTag(block, "guid") || readXmlTag(block, "id") || "");
-    const normalizedLink = absolutizeUrl(link);
-    const id = sanitizeString(guid || normalizedLink || `${title}_${publishedAt}_${index}`, 500);
-    return {
-      id,
-      title: sanitizeString(title, 240),
-      summary: sanitizeString(summary, 500),
-      link: sanitizeString(normalizedLink, 800),
-      publishedAt: sanitizeString(publishedAt, 120)
-    };
-  }).filter(item => item.title && item.link);
-}
-
-function discoverRecallRssUrl(pageHtml = "") {
-  const links = [...String(pageHtml || "").matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
-  for (const [, href, label] of links) {
-    const cleanLabel = stripHtml(label).toLowerCase();
-    if (cleanLabel === "rss" || cleanLabel.includes("rss")) {
-      return absolutizeUrl(href, OFFICIAL_RECALL_PAGE_URL);
-    }
-  }
-
-  const relMatch = String(pageHtml || "").match(/<link\b[^>]*(?:type=["']application\/rss\+xml["']|rel=["']alternate["'])[^>]*href=["']([^"']+)["'][^>]*>/i);
-  return relMatch ? absolutizeUrl(relMatch[1], OFFICIAL_RECALL_PAGE_URL) : "";
-}
-
-async function fetchOfficialRecallFeed() {
-  const pageResp = await fetch(OFFICIAL_RECALL_PAGE_URL, {
-    headers: {
-      "Accept": "text/html,application/xhtml+xml",
-      "User-Agent": "Madkontrollen/1.0 recall-feed"
-    }
-  });
-  if (!pageResp.ok) {
-    throw new Error(`Official recall page failed: ${pageResp.status}`);
-  }
-
-  const pageHtml = await pageResp.text();
-  const feedUrl = discoverRecallRssUrl(pageHtml);
-  if (!feedUrl) {
-    throw new Error("Official RSS link was not found on recall page.");
-  }
-
-  const feedResp = await fetch(feedUrl, {
-    headers: {
-      "Accept": "application/rss+xml,application/xml,text/xml",
-      "User-Agent": "Madkontrollen/1.0 recall-feed"
-    }
-  });
-  if (!feedResp.ok) {
-    throw new Error(`Official recall RSS failed: ${feedResp.status}`);
-  }
-
-  const xml = await feedResp.text();
-  const items = parseRecallFeedItems(xml);
-  return {
-    ok: true,
-    sourcePageUrl: OFFICIAL_RECALL_PAGE_URL,
-    feedUrl,
-    items,
-    fetchedAt: new Date().toISOString(),
-    cacheMaxAgeMinutes: 60
-  };
-}
-
-exports.getOfficialRecallFeed = onCall(
-  { region: "us-central1", timeoutSeconds: 30 },
-  async (request) => {
-    if (!request.auth?.uid) {
-      throw new HttpsError("unauthenticated", "Log ind for at hente tilbagekaldelser.");
-    }
-
-    const now = Date.now();
-    if (officialRecallFeedCache.payload && officialRecallFeedCache.expiresAt > now) {
-      return {
-        ...officialRecallFeedCache.payload,
-        fromCache: true
-      };
-    }
-
-    try {
-      const payload = await fetchOfficialRecallFeed();
-      officialRecallFeedCache = {
-        payload,
-        expiresAt: now + (60 * 60 * 1000)
-      };
-      return {
-        ...payload,
-        fromCache: false
-      };
-    } catch (error) {
-      console.warn("[official recall feed] failed", error?.message || error);
-      return {
-        ok: false,
-        sourcePageUrl: OFFICIAL_RECALL_PAGE_URL,
-        feedUrl: "",
-        items: [],
-        error: sanitizeString(error?.message || "Feed kunne ikke hentes.", 300),
-        fetchedAt: new Date().toISOString(),
-        cacheMaxAgeMinutes: 60,
-        fromCache: false
-      };
-    }
-  }
-);
-
-function buildRestaurantHeroImagePrompt(data) {
-  const businessName = sanitizeString(data?.businessName || "restaurant", 120);
-  const cuisineType = sanitizeString(data?.cuisineType || "restaurant", 100);
-  const mood = sanitizeString(data?.mood || data?.style || "warm cinematic", 100);
-  const offerings = sanitizeString(data?.offerings || "", 240);
-  const description = sanitizeString(data?.description || "", 400);
-  const primary = sanitizeString(data?.theme?.primary || "", 20);
-  const secondary = sanitizeString(data?.theme?.secondary || "", 20);
-  const accent = sanitizeString(data?.theme?.accent || "", 20);
-  const hasLogo = Boolean(data?.logoDataUrl || data?.hasLogo);
-  const brandLine = hasLogo
-    ? `Use the uploaded logo and brand colors as a subtle style reference. Brand colors: ${[primary, secondary, accent].filter(Boolean).join(", ") || "from the uploaded logo"}.`
-    : `Use brand colors when relevant: ${[primary, secondary, accent].filter(Boolean).join(", ") || "premium restaurant palette"}.`;
-  const promptParts = [
-    `Modern ${cuisineType} restaurant hero image for ${businessName}.`,
-    offerings ? `Concept and menu cues: ${offerings}.` : "",
-    description ? `Restaurant description: ${description}.` : "",
-    `${mood} atmosphere, warm cinematic lighting, premium realistic food photography, Nordic restaurant marketing banner composition.`,
-    brandLine,
-    "Landscape 16:9 hero banner, appetizing food in foreground, tasteful restaurant ambience, no empty background, no stock-photo watermark, no readable text overlays."
-  ].filter(Boolean);
-  return promptParts.join(" ");
-}
-
-async function uploadRestaurantHeroToCloudinary({ file, companyId, locationId, config }) {
-  const cloudName = config?.cloudinary?.cloud_name || process.env.CLOUDINARY_CLOUD_NAME || "";
-  const apiKey = config?.cloudinary?.api_key || process.env.CLOUDINARY_API_KEY || "";
-  const apiSecret = config?.cloudinary?.api_secret || process.env.CLOUDINARY_API_SECRET || "";
-
-  if (!cloudName || !apiKey || !apiSecret) {
-    throw new HttpsError("failed-precondition", "Cloudinary er ikke konfigureret.");
-  }
-
-  const crypto = require("crypto");
-  const timestamp = Math.floor(Date.now() / 1000);
-  const folder = `madkontrol/${toAsciiSlug(companyId, 60)}/${toAsciiSlug(locationId, 60)}/seo_hero`;
-  const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
-  const signature = crypto.createHash("sha1").update(paramsToSign + apiSecret).digest("hex");
-  const uploadParams = new URLSearchParams();
-  uploadParams.append("file", file);
-  uploadParams.append("folder", folder);
-  uploadParams.append("timestamp", String(timestamp));
-  uploadParams.append("api_key", apiKey);
-  uploadParams.append("signature", signature);
-
-  const uploadResp = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: uploadParams.toString()
-  });
-
-  if (!uploadResp.ok) {
-    const errText = await uploadResp.text().catch(() => "");
-    throw new Error(`Cloudinary upload: ${uploadResp.status} - ${errText.slice(0, 200)}`);
-  }
-
-  const uploadResult = await uploadResp.json();
-  return {
-    cloudName,
-    publicId: uploadResult.public_id || "",
-    url: uploadResult.secure_url || ""
-  };
-}
-
-function buildSeoCloudinaryHeroUrl({ cloudName, publicId }) {
-  if (!cloudName || !publicId) return "";
-  const transforms = "ar_16:9,c_fill,w_1600,q_auto,f_auto";
-  return `https://res.cloudinary.com/${cloudName}/image/upload/${transforms}/${publicId}`;
-}
-
-function normalizeBusinessHeroCloudinaryImage({ uploaded, sourceData }) {
-  const secureUrl = sanitizeString(uploaded?.url || "", 2000);
-  const cloudName = sanitizeString(uploaded?.cloudName || "", 120);
-  const publicId = sanitizeString(uploaded?.publicId || "", 300);
-  const optimizedUrl = buildSeoCloudinaryHeroUrl({ cloudName, publicId }) || secureUrl;
-  return {
-    source: "cloudinary",
-    role: "business-hero",
-    url: secureUrl,
-    secureUrl,
-    originalUrl: secureUrl,
-    optimizedUrl,
-    publicId,
-    cloudinaryPublicId: publicId,
-    cloudName,
-    provider: sanitizeString(sourceData?.source || "business_image_search", 80),
-    sourceUrl: sanitizeString(sourceData?.sourceUrl || "", 400),
-    photographer: sanitizeString(sourceData?.photographer || "", 120),
-    photographerUrl: sanitizeString(sourceData?.photographerUrl || "", 400),
-    alt: sanitizeString(sourceData?.alt || sourceData?.query || "Restaurant hero image", 200),
-    query: sanitizeString(sourceData?.query || "", 200)
-  };
-}
-
-function getSecretParamValue(secretParam) {
-  try {
-    return String(secretParam.value() || "").trim();
-  } catch (_error) {
-    return "";
-  }
-}
-
-function getGooglePlacesApiKey(config) {
-  const secretKey = getSecretParamValue(GOOGLE_PLACES_API_KEY);
-  console.log(`Google Places secret configured: ${Boolean(secretKey)}`);
-  const key = String(
-    secretKey ||
-    config?.google?.places_api_key ||
-    config?.google?.placesApiKey ||
-    config?.google_places?.api_key ||
-    config?.googlePlaces?.apiKey ||
-    config?.google_maps?.api_key ||
-    process.env.GOOGLE_PLACES_API_KEY ||
-    process.env.GOOGLE_MAPS_API_KEY ||
-    ""
-  ).trim();
-  if (!key || /^(din_key|your_key|your_api_key|replace_me|changeme)$/i.test(key)) return "";
-  return key;
-}
-
-function normalizeGooglePhotoName(value) {
-  const raw = sanitizeString(value || "", 500);
-  return /^places\/[^/]+\/photos\/[^/]+$/i.test(raw) ? raw : "";
-}
-
-async function fetchGooglePlacePhotoBuffer({ photoName, apiKey, maxWidthPx = 1200 }) {
-  const normalizedName = normalizeGooglePhotoName(photoName);
-  if (!normalizedName || !apiKey) {
-    throw new Error("google_photo_config_missing");
-  }
-  const width = Math.min(Math.max(120, Number(maxWidthPx) || 1200), 4800);
-  const photoUrl = `https://places.googleapis.com/v1/${normalizedName}/media?maxWidthPx=${width}&key=${encodeURIComponent(apiKey)}`;
-  const photoResp = await fetch(photoUrl, { method: "GET", redirect: "follow" });
-  if (!photoResp.ok) {
-    const errText = await photoResp.text().catch(() => "");
-    throw new Error(`google_photo_fetch_failed_${photoResp.status}_${errText.slice(0, 80)}`);
-  }
-  const contentType = sanitizeString(photoResp.headers.get("content-type") || "image/jpeg", 80);
-  if (!/^image\//i.test(contentType)) {
-    throw new Error("google_photo_not_image");
-  }
-  const buffer = Buffer.from(await photoResp.arrayBuffer());
-  if (!buffer.length) {
-    throw new Error("google_photo_empty");
-  }
-  return { buffer, contentType };
-}
-
-function toImageDataUrl({ buffer, contentType }) {
-  return `data:${contentType || "image/jpeg"};base64,${buffer.toString("base64")}`;
-}
-
-function scoreGooglePlaceForBusiness(place, { businessName, city, address }) {
-  const haystack = [
-    place?.displayName?.text,
-    place?.formattedAddress,
-    Array.isArray(place?.types) ? place.types.join(" ") : "",
-    place?.businessStatus
-  ].filter(Boolean).join(" ").toLowerCase();
-  let score = 0;
-  [businessName, city, address].filter(Boolean).forEach(value => {
-    const normalized = String(value).toLowerCase().trim();
-    if (normalized && haystack.includes(normalized)) score += normalized.length;
-  });
-  const restaurantTypes = ["restaurant", "thai_restaurant", "cafe", "meal_takeaway", "meal_delivery", "food", "bakery", "bar"];
-  const lodgingTypes = ["lodging", "hotel", "real_estate_agency", "apartment_complex"];
-  if (restaurantTypes.some((type) => haystack.includes(type))) score += 50;
-  if (lodgingTypes.some((type) => haystack.includes(type))) score -= 45;
-  if (place?.businessStatus === "OPERATIONAL") score += 10;
-  if (Number(place?.rating) >= 4) score += 8;
-  if (Array.isArray(place?.photos) && place.photos.length) score += 20;
-  return score;
-}
-
-function extractGooglePlaceCity(place) {
-  const components = Array.isArray(place?.addressComponents) ? place.addressComponents : [];
-  const cityTypes = ["locality", "postal_town", "administrative_area_level_2", "administrative_area_level_1"];
-  for (const wanted of cityTypes) {
-    const component = components.find((item) => Array.isArray(item?.types) && item.types.includes(wanted));
-    const city = sanitizeString(component?.longText || component?.shortText || "", 120);
-    if (city) return city;
-  }
-  const address = sanitizeString(place?.formattedAddress || "", 260);
-  const parts = address.split(",").map((part) => part.trim()).filter(Boolean);
-  return sanitizeString(parts.length >= 2 ? parts[parts.length - 2].replace(/^\d{4}\s*/, "") : "", 120);
-}
-
-function normalizeGooglePlaceOpeningHours(place) {
-  const descriptions = place?.regularOpeningHours?.weekdayDescriptions || place?.openingHours?.weekdayDescriptions || [];
-  return Array.isArray(descriptions)
-    ? descriptions.map((line) => sanitizeString(line, 160)).filter(Boolean).slice(0, 14)
-    : [];
-}
-
-function sanitizeGooglePlaceForSeo(place = {}) {
-  const placeId = sanitizeString(String(place?.id || place?.placeId || "").replace(/^places\//, ""), 180);
-  const phone = sanitizeString(place?.internationalPhoneNumber || place?.nationalPhoneNumber || place?.formattedPhoneNumber || "", 80);
-  const website = normalizeSeoCtaUrl(place?.websiteUri || place?.website || "");
-  const googleMapsUrl = normalizeSeoCtaUrl(place?.googleMapsUri || (placeId ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}` : ""));
-  const photos = Array.isArray(place?.photos) ? place.photos.map((photo) => ({
-    name: normalizeGooglePhotoName(photo?.name || ""),
-    width: Number(photo?.widthPx) || 0,
-    height: Number(photo?.heightPx) || 0
-  })).filter((photo) => photo.name).slice(0, 12) : [];
-  return {
-    placeId,
-    name: sanitizeString(place?.displayName?.text || place?.name || "", 180),
-    formattedAddress: sanitizeString(place?.formattedAddress || place?.address || "", 260),
-    city: extractGooglePlaceCity(place),
-    phone,
-    website,
-    googleMapsUrl,
-    types: Array.isArray(place?.types) ? place.types.map((type) => sanitizeString(type, 80)).filter(Boolean).slice(0, 20) : [],
-    businessStatus: sanitizeString(place?.businessStatus || "", 80),
-    rating: Number.isFinite(Number(place?.rating)) ? Number(place.rating) : null,
-    userRatingsTotal: Number.isFinite(Number(place?.userRatingCount || place?.userRatingsTotal)) ? Number(place.userRatingCount || place.userRatingsTotal) : 0,
-    photos,
-    location: place?.location && typeof place.location === "object" ? {
-      latitude: Number(place.location.latitude) || null,
-      longitude: Number(place.location.longitude) || null
-    } : null,
-    openingHours: normalizeGooglePlaceOpeningHours(place)
-  };
-}
-
-async function fetchGooglePlaceDetailsForSeo({ placeId, apiKey }) {
-  const cleanPlaceId = sanitizeString(String(placeId || "").replace(/^places\//, ""), 180);
-  if (!cleanPlaceId || !apiKey) {
-    throw new HttpsError("invalid-argument", "Google Place ID mangler.");
-  }
-  const detailsResp = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(cleanPlaceId)}`, {
-    method: "GET",
-    headers: {
-      "X-Goog-Api-Key": apiKey,
-      "X-Goog-FieldMask": "id,displayName,formattedAddress,addressComponents,internationalPhoneNumber,nationalPhoneNumber,websiteUri,googleMapsUri,rating,userRatingCount,location,regularOpeningHours,types,businessStatus,photos"
-    }
-  });
-  if (!detailsResp.ok) {
-    const errText = await detailsResp.text().catch(() => "");
-    throw new Error(`google_places_details_failed_${detailsResp.status}_${errText.slice(0, 120)}`);
-  }
-  return sanitizeGooglePlaceForSeo(await detailsResp.json());
-}
-
-function getBusinessTypeTerms(value = "") {
-  const text = sanitizeString(value || "", 160).toLowerCase();
-  const terms = ["restaurant", "mad", "food"];
-  const typeMap = [
-    { match: ["thai", "aroi"], terms: ["thai restaurant", "thai food", "takeaway"] },
-    { match: ["pizza", "italiensk"], terms: ["pizza", "italiensk restaurant"] },
-    { match: ["cafe", "café", "kaffe"], terms: ["cafe", "coffee", "brunch"] },
-    { match: ["sushi"], terms: ["sushi", "japanese restaurant"] },
-    { match: ["takeaway", "fastfood"], terms: ["takeaway", "fast food"] },
-    { match: ["burger"], terms: ["burger", "restaurant"] },
-    { match: ["kebab", "grill"], terms: ["grill", "kebab", "takeaway"] }
-  ];
-  typeMap.forEach((item) => {
-    if (item.match.some((needle) => text.includes(needle))) terms.push(...item.terms);
-  });
-  return [...new Set(terms)].slice(0, 8);
-}
-
-function scoreBusinessImageRelevance(photo = {}, context = {}) {
-  const haystack = [
-    photo.alt,
-    photo.url,
-    photo.src?.original,
-    photo.src?.large2x,
-    photo.photographer,
-    context.query,
-    context.businessType
-  ].filter(Boolean).join(" ").toLowerCase();
-  const terms = getBusinessTypeTerms(`${context.businessType || ""} ${context.query || ""}`);
-  let score = scoreStockPhoto(photo);
-  const reasons = [];
-  const boost = (amount, reason) => {
-    score += amount;
-    reasons.push(reason);
-  };
-  if (/\b(food|meal|dish|plate|menu|restaurant|cafe|café|pizza|sushi|thai|burger|takeaway|dining|kitchen|coffee|brunch)\b/i.test(haystack)) {
-    boost(50, "food_or_restaurant_detected");
-  }
-  if (/\b(sign|signage|logo|storefront|shop front|facade restaurant)\b/i.test(haystack)) {
-    boost(35, "logo_signage_detected");
-  }
-  if (/\b(interior|indoor|table|dining room|bar|counter)\b/i.test(haystack)) {
-    boost(30, "indoor_restaurant_detected");
-  }
-  if (/\b(menu|plate|dish|served|cuisine)\b/i.test(haystack)) {
-    boost(30, "menu_plate_detected");
-  }
-  terms.forEach((term) => {
-    const compact = term.toLowerCase();
-    if (compact && haystack.includes(compact)) boost(18, `business_type_${compact.replace(/\s+/g, "_")}`);
-  });
-  if (/\b(hotel|lodging|apartment|office|building|architecture|city skyline|street view|real estate|facade)\b/i.test(haystack) &&
-      !/\b(food|dish|plate|restaurant|cafe|café|dining|menu)\b/i.test(haystack)) {
-    boost(-80, "irrelevant_building_or_hotel");
-  }
-  return { score, reasons };
-}
-
-function buildBusinessImageFallbackQuery({ businessName, city, cuisineType, query }) {
-  const terms = getBusinessTypeTerms(`${cuisineType || ""} ${query || ""} ${businessName || ""}`);
-  const cleanName = sanitizeString(businessName || "", 120).replace(/\bhotel\b/ig, "").trim();
-  return [cleanName, terms[0] || "restaurant food", city].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
-}
-
-exports.searchGooglePlacesForSeo = onCall(
-  { secrets: [GOOGLE_PLACES_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 60 },
-  async (request) => {
-    console.log("SEO places search request");
-    if (!request.auth?.uid) {
-      throw new HttpsError("unauthenticated", "Log ind for at søge efter virksomheder.");
-    }
-
-    const data = request.data || {};
-    const query = sanitizeString(data?.query || "", 240);
-    const placeId = sanitizeString(data?.placeId || "", 180);
-    const country = sanitizeString(data?.country || "dk", 8).toLowerCase();
-
-    if (!query && !placeId) {
-      throw new HttpsError("invalid-argument", "Søgeord eller Place ID mangler.");
-    }
-
-    let config = {};
-    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
-    const googleApiKey = getGooglePlacesApiKey(config);
-    if (!googleApiKey) {
-      console.log("SEO places error");
-      return {
-        ok: false,
-        errorCode: "missing_google_places_key",
-        message: "Google Places er ikke konfigureret",
-        results: []
-      };
-    }
-
-    try {
-      if (placeId) {
-        const place = await fetchGooglePlaceDetailsForSeo({ placeId, apiKey: googleApiKey });
-        console.log("SEO places details success");
-        return { ok: true, place };
-      }
-
-      const searchResp = await fetch("https://places.googleapis.com/v1/places:searchText", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": googleApiKey,
-          "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.addressComponents,places.internationalPhoneNumber,places.nationalPhoneNumber,places.websiteUri,places.googleMapsUri,places.rating,places.userRatingCount,places.location,places.regularOpeningHours,places.types,places.businessStatus,places.photos"
-        },
-        body: JSON.stringify({
-          textQuery: query,
-          languageCode: "da",
-          regionCode: country === "dk" ? "DK" : country.toUpperCase(),
-          maxResultCount: 8
-        })
-      });
-
-      if (!searchResp.ok) {
-        const errText = await searchResp.text().catch(() => "");
-        throw new Error(`google_places_search_failed_${searchResp.status}_${errText.slice(0, 120)}`);
-      }
-
-      const searchData = await searchResp.json();
-      const results = (Array.isArray(searchData?.places) ? searchData.places : [])
-        .map(sanitizeGooglePlaceForSeo)
-        .filter((place) => place.placeId && place.name);
-      console.log("SEO places search success");
-      return { ok: true, results };
-    } catch (error) {
-      console.log("SEO places error");
-      throw new HttpsError("internal", "Google Places søgning fejlede.");
-    }
-  }
-);
-
-exports.generateRestaurantHeroImage = onCall(
-  { secrets: [OPENAI_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 180 },
-  async (request) => {
-    if (!request.auth?.uid) {
-      throw new HttpsError("unauthenticated", "Log ind for at generere billede.");
-    }
-
-    const data = request.data || {};
-    const companyId = sanitizeString(data?.companyId || "", 120);
-    const locationId = sanitizeString(data?.locationId || "", 120);
-    const style = sanitizeString(data?.style || "warm", 40);
-    const category = sanitizeString(data?.category || "", 80);
-
-    if (!companyId || !locationId) {
-      throw new HttpsError("invalid-argument", "companyId og locationId er paakraevet.");
-    }
-
-    let config = {};
-    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
-    const apiKey = OPENAI_API_KEY.value() || process.env.OPENAI_API_KEY || "";
-    if (!apiKey) {
-      throw new HttpsError("failed-precondition", "OpenAI API-noegle mangler. Saet OPENAI_API_KEY som function secret.");
-    }
-
-    const prompt = sanitizeString(data?.prompt || buildRestaurantHeroImagePrompt(data), 1800);
-    const resp = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-image-1",
-        prompt,
-        n: 1,
-        size: "1536x1024",
-        quality: "medium",
-        output_format: "jpeg",
-        output_compression: 85
-      })
-    });
-
-    if (!resp.ok) {
-      const errText = await resp.text().catch(() => "");
-      throw new HttpsError("internal", `AI image generation fejlede: ${resp.status}. ${errText.slice(0, 200)}`);
-    }
-
-    const imageData = await resp.json();
-    const first = imageData?.data?.[0] || {};
-    const generatedFile = first.b64_json
-      ? `data:image/jpeg;base64,${first.b64_json}`
-      : sanitizeString(first.url || "", 2000);
-
-    if (!generatedFile) {
-      throw new HttpsError("internal", "AI image generation returnerede ikke et billede.");
-    }
-
-    const uploaded = await uploadRestaurantHeroToCloudinary({ file: generatedFile, companyId, locationId, config });
-    const docId = `${companyId}__${locationId}__hero_${Date.now()}`;
-    await db.collection("seo_hero_images").doc(docId).set({
-      companyId,
-      locationId,
-      url: uploaded.url,
-      thumbUrl: uploaded.url,
-      enhancedUrl: uploaded.url,
-      category,
-      style,
-      source: "openai",
-      sourceUrl: "",
-      photographer: "OpenAI",
-      photographerUrl: "",
-      alt: sanitizeString(data?.alt || `${data?.businessName || "Restaurant"} hero image`, 200),
-      prompt,
-      publicId: uploaded.publicId,
-      cloudName: uploaded.cloudName,
-      enhanced: true,
-      createdBy: request.auth.uid,
-      createdAt: FieldValue.serverTimestamp(),
-      isActive: true
-    });
-
-    try {
-      const sitesSnap = await db.collection("websites")
-        .where("companyId", "==", companyId)
-        .where("locationId", "==", locationId)
-        .where("status", "==", "published")
-        .limit(5)
-        .get();
-      if (!sitesSnap.empty) {
-        const siteBatch = db.batch();
-        sitesSnap.docs.forEach(d => {
-          siteBatch.set(d.ref, {
-            heroImageUrl: uploaded.url,
-            heroThumbUrl: uploaded.url,
-            heroImageStyle: style,
-            updatedAt: FieldValue.serverTimestamp()
-          }, { merge: true });
-        });
-        await siteBatch.commit();
-      }
-    } catch (siteErr) {
-      console.warn("[generateRestaurantHeroImage] Kunne ikke opdatere websites:", siteErr.message);
-    }
-
-    return { ok: true, docId, url: uploaded.url, enhancedUrl: uploaded.url, source: "openai", prompt };
-  }
-);
-
-exports.uploadBusinessHeroImageToCloudinary = onCall(
-  { secrets: [GOOGLE_PLACES_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 90 },
-  async (request) => {
-    console.log("SEO IMG business upload start");
-    if (!request.auth?.uid) {
-      throw new HttpsError("unauthenticated", "Log ind for at gemme billede.");
-    }
-
-    const data = request.data || {};
-    const companyId = sanitizeString(data?.companyId || "", 120);
-    const locationId = sanitizeString(data?.locationId || "", 120);
-    const imageUrl = sanitizeString(data?.imageUrl || data?.url || data?.image?.url || "", 2000);
-    const googlePhotoName = normalizeGooglePhotoName(
-      data?.googlePhotoName || data?.photoReference || data?.image?.googlePhotoName || data?.image?.photoReference || ""
-    );
-    const placeId = sanitizeString(data?.placeId || data?.image?.placeId || "", 180);
-    const thumbUrl = sanitizeString(data?.thumbUrl || data?.image?.thumbUrl || "", 1000);
-    const sourceData = {
-      source: googlePhotoName ? "google_places" : (data?.source || data?.image?.source || "business_image_search"),
-      sourceUrl: data?.sourceUrl || data?.image?.sourceUrl || "",
-      photographer: data?.photographer || data?.image?.photographer || "",
-      photographerUrl: data?.photographerUrl || data?.image?.photographerUrl || "",
-      alt: data?.alt || data?.image?.alt || "",
-      query: data?.query || ""
-    };
-
-    if (!companyId || !locationId || (!imageUrl && !googlePhotoName)) {
-      throw new HttpsError("invalid-argument", "companyId, locationId og imageUrl/photoReference er paakraevet.");
-    }
-
-    if (!googlePhotoName && !/^https:\/\//i.test(imageUrl)) {
-      throw new HttpsError("invalid-argument", "Billedet skal hentes fra en sikker HTTPS URL.");
-    }
-
-    let config = {};
-    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
-    let uploadFile = imageUrl;
-
-    if (googlePhotoName) {
-      console.log("SEO IMG google photo fetch start");
-      console.log(`Google Places secret configured for uploadBusinessHeroImageToCloudinary: ${Boolean(getSecretParamValue(GOOGLE_PLACES_API_KEY))}`);
-      const googleApiKey = getGooglePlacesApiKey(config);
-      console.log(`SEO IMG google key present ${Boolean(googleApiKey)}`);
-      if (!googleApiKey) {
-        throw new HttpsError("failed-precondition", "Google Places API key mangler.");
-      }
-      try {
-        const photoData = await fetchGooglePlacePhotoBuffer({
-          photoName: googlePhotoName,
-          apiKey: googleApiKey,
-          maxWidthPx: 1800
-        });
-        uploadFile = toImageDataUrl(photoData);
-        console.log("SEO IMG google photo fetch success");
-      } catch (err) {
-        console.log("SEO IMG google photo fetch failed");
-        throw new HttpsError("internal", "Google Place Photo kunne ikke hentes.");
-      }
-    }
-
-    const uploaded = await uploadRestaurantHeroToCloudinary({
-      file: uploadFile,
-      companyId,
-      locationId,
-      config
-    });
-    const normalized = normalizeBusinessHeroCloudinaryImage({ uploaded, sourceData });
-
-    if (!/^https:\/\/res\.cloudinary\.com\//i.test(normalized.secureUrl || "")) {
-      throw new HttpsError("internal", "Cloudinary returnerede ikke en gyldig billed-URL.");
-    }
-
-    const docId = `${companyId}__${locationId}__business_hero_${Date.now()}`;
-    await db.collection("seo_hero_images").doc(docId).set({
-      companyId,
-      locationId,
-      url: normalized.secureUrl,
-      thumbUrl: googlePhotoName ? "" : thumbUrl,
-      enhancedUrl: normalized.optimizedUrl,
-      category: "business_image_search",
-      style: "business",
-      source: sourceData.source,
-      sourceProvider: normalized.provider,
-      sourceUrl: normalized.sourceUrl,
-      googlePhotoName: googlePhotoName || null,
-      placeId: placeId || null,
-      photographer: normalized.photographer,
-      photographerUrl: normalized.photographerUrl,
-      alt: normalized.alt,
-      query: normalized.query,
-      publicId: normalized.publicId,
-      cloudName: normalized.cloudName,
-      cloudinaryImage: normalized,
-      enhanced: true,
-      createdBy: request.auth.uid,
-      createdAt: FieldValue.serverTimestamp(),
-      isActive: true
-    });
-
-    return {
-      ok: true,
-      docId,
-      image: normalized,
-      heroImageUrl: normalized.optimizedUrl || normalized.secureUrl
-    };
-  }
-);
-
-exports.searchGooglePlaceBusinessImages = onCall(
-  { secrets: [GOOGLE_PLACES_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1", timeoutSeconds: 60 },
-  async (request) => {
-    console.log("SEO IMG google search start");
-    if (!request.auth?.uid) {
-      throw new HttpsError("unauthenticated", "Log ind for at søge billeder.");
-    }
-
-    const data = request.data || {};
-    const businessName = sanitizeString(data?.businessName || "", 180);
-    const city = sanitizeString(data?.city || "", 100);
-    const address = sanitizeString(data?.address || "", 220);
-    const placeIdInput = sanitizeString(data?.placeId || data?.googlePlaceId || data?.googlePlace?.placeId || "", 180);
-    const cuisineType = sanitizeString(data?.cuisineType || data?.businessType || data?.type || "", 120);
-    const explicitQuery = sanitizeString(data?.query || "", 240);
-    const queryText = explicitQuery || [businessName, address || city, cuisineType].filter(Boolean).join(" ").trim();
-    const fallbackQuery = buildBusinessImageFallbackQuery({ businessName, city, cuisineType, query: queryText });
-    const perPage = Math.min(Math.max(1, Number(data?.perPage) || 8), 8);
-
-    if (!queryText && !placeIdInput) {
-      throw new HttpsError("invalid-argument", "Søgeord mangler.");
-    }
-
-    let config = {};
-    try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
-    const googleApiKey = getGooglePlacesApiKey(config);
-    console.log(`SEO IMG google key present ${Boolean(googleApiKey)}`);
-    if (!googleApiKey) {
-      console.log("SEO IMG google place found false");
-      console.log("[seo images] place photos empty reason=missing_google_places_key");
-      return { ok: false, source: "google_places", photos: [], fallbackReason: "missing_google_places_key" };
-    }
-
-    let place = null;
-    console.log(`[seo images] placeId present ${Boolean(placeIdInput)}`);
-    if (!placeIdInput) {
-      console.log("[seo images] fallback image search reason=selected_google_place_missing");
-    }
-    if (placeIdInput) {
-      console.log("[seo images] requesting place photos");
-      const cleanPlaceId = placeIdInput.replace(/^places\//, "");
-      const detailsResp = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(cleanPlaceId)}`, {
-        method: "GET",
-        headers: {
-          "X-Goog-Api-Key": googleApiKey,
-          "X-Goog-FieldMask": "id,displayName,formattedAddress,photos,types,businessStatus,rating,userRatingCount"
-        }
-      });
-      if (detailsResp.ok) {
-        place = await detailsResp.json();
-        const detailsPhotoCount = Array.isArray(place?.photos) ? place.photos.length : 0;
-        console.log(`[seo images] place photos found count ${detailsPhotoCount}`);
-        if (!detailsPhotoCount) {
-          console.log("[seo images] place photos empty reason=details_no_photos");
-        }
-      } else {
-        const errText = await detailsResp.text().catch(() => "");
-        console.log(`SEO IMG google details failed status=${detailsResp.status}`);
-        if (detailsResp.status === 403) {
-          console.log("[seo images] place photos empty reason=places_photos_api_key_denied");
-        }
-        console.log(`[seo images] place photos empty reason=details_failed_${detailsResp.status}_${errText.slice(0, 80)}`);
-      }
-    }
-
-    if (!place) {
-      console.log("[seo images] fallback image search reason=place_details_unavailable");
-    const boostedQuery = [queryText, cuisineType, getBusinessTypeTerms(`${cuisineType} ${queryText}`).join(" ")].filter(Boolean).join(" ");
-    const searchResp = await fetch("https://places.googleapis.com/v1/places:searchText", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": googleApiKey,
-        "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.photos,places.types,places.businessStatus,places.rating,places.userRatingCount"
-      },
-      body: JSON.stringify({
-        textQuery: boostedQuery,
-        languageCode: "da",
-        regionCode: "DK",
-        maxResultCount: 5
-      })
-    });
-
-    if (!searchResp.ok) {
-      console.log("SEO IMG google search failed");
-      const errText = await searchResp.text().catch(() => "");
-      throw new HttpsError("internal", `Google Places søgning fejlede: ${searchResp.status}. ${errText.slice(0, 120)}`);
-    }
-
-    const searchData = await searchResp.json();
-    const places = Array.isArray(searchData?.places) ? searchData.places : [];
-    console.log(`[seo images] place search candidates count ${places.length}`);
-    const rankedPlaces = places
-      .slice()
-      .sort((a, b) => scoreGooglePlaceForBusiness(b, { businessName, city, address }) - scoreGooglePlaceForBusiness(a, { businessName, city, address }));
-    place = rankedPlaces.find(p => Array.isArray(p?.photos) && p.photos.length) || rankedPlaces[0] || null;
-    }
-    const placeId = sanitizeString(place?.id || "", 180);
-    const placeName = sanitizeString(place?.displayName?.text || businessName || queryText, 180);
-    const placeAddress = sanitizeString(place?.formattedAddress || "", 240);
-    const placeTypes = Array.isArray(place?.types) ? place.types.map((type) => sanitizeString(type, 80)).filter(Boolean) : [];
-    const placeBusinessStatus = sanitizeString(place?.businessStatus || "", 80);
-    const placeRating = Number.isFinite(Number(place?.rating)) ? Number(place.rating) : null;
-    const rawPhotos = Array.isArray(place?.photos) ? place.photos.slice(0, perPage) : [];
-
-    console.log(`SEO IMG google place found ${Boolean(placeId)}`);
-    console.log(`SEO IMG google photos count ${rawPhotos.length}`);
-    console.log(`[seo images] backend response placePhotos=${rawPhotos.length}`);
-
-    if (!placeId || !rawPhotos.length) {
-      console.log(`[seo images] place photos empty reason=${placeId ? "no_google_place_photos" : "no_google_place"}`);
-      return {
-        ok: false,
-        source: "google_places",
-        photos: [],
-        fallbackReason: placeId ? "no_google_place_photos" : "no_google_place",
-        fallbackQuery,
-        place: placeId ? { placeId, name: placeName, address: placeAddress, types: placeTypes, businessStatus: placeBusinessStatus, rating: placeRating } : null
-      };
-    }
-
-    const photos = [];
-    for (const photo of rawPhotos) {
-      const googlePhotoName = normalizeGooglePhotoName(photo?.name || "");
-      if (!googlePhotoName) {
-        console.log("[seo images] place photos empty reason=invalid_photo_reference");
-        continue;
-      }
-      try {
-        console.log("[seo images] requesting place photo media");
-        const thumbData = await fetchGooglePlacePhotoBuffer({
-          photoName: googlePhotoName,
-          apiKey: googleApiKey,
-          maxWidthPx: 420
-        });
-        const author = Array.isArray(photo?.authorAttributions) ? photo.authorAttributions[0] || {} : {};
-        const photographer = sanitizeString(author?.displayName || "Google Places", 120);
-        const relevanceScore = 100 + (placeTypes.some((type) => /restaurant|cafe|food|meal|bar/i.test(type)) ? 30 : 0) + (placeBusinessStatus === "OPERATIONAL" ? 10 : 0);
-        console.log(`[seo images] relevance score ${relevanceScore}`);
-        photos.push({
-          id: googlePhotoName,
-          source: "google_places",
-          sourceGroup: "Google Place billeder",
-          googlePhotoName,
-          photoReference: googlePhotoName,
-          placeId,
-          placeName,
-          placeAddress,
-          placeTypes,
-          businessStatus: placeBusinessStatus,
-          rating: placeRating,
-          relevanceScore,
-          relevanceReasons: ["google_place_photo", "place_id_match"],
-          url: toImageDataUrl(thumbData),
-          thumbUrl: toImageDataUrl(thumbData),
-          width: Number(photo?.widthPx) || 0,
-          height: Number(photo?.heightPx) || 0,
-          photographer,
-          photographerUrl: sanitizeString(author?.uri || "", 400),
-          sourceUrl: placeId ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}` : "",
-          alt: `${placeName} - Google Place foto`,
-          query: queryText
-        });
-      } catch (err) {
-        const message = String(err?.message || "thumbnail_failed").slice(0, 160);
-        console.log(`SEO IMG google thumbnail failed ${message}`);
-        if (message.includes("_403_")) {
-          console.log("[seo images] place photos empty reason=places_photos_api_key_denied");
-        }
-      }
-    }
-
-    console.log(`SEO IMG google thumbnails count ${photos.length}`);
-    if (photos.length) {
-      console.log("[seo images] place photo used");
-    } else {
-      console.log("[seo images] place photos empty reason=thumbnail_fetch_failed");
-    }
-    return {
-      ok: photos.length > 0,
-      source: "google_places",
-      photos,
-      fallbackQuery,
-      place: { placeId, name: placeName, address: placeAddress, types: placeTypes, businessStatus: placeBusinessStatus, rating: placeRating, photos: rawPhotos.map((photo) => ({
-        name: normalizeGooglePhotoName(photo?.name || ""),
-        width: Number(photo?.widthPx) || 0,
-        height: Number(photo?.heightPx) || 0
-      })).filter((photo) => photo.name).slice(0, perPage) },
-      fallbackReason: photos.length ? "" : "thumbnail_fetch_failed"
-    };
-  }
-);
-
 exports.searchRestaurantImages = onCall(
-  { secrets: [PEXELS_API_KEY, "FUNCTIONS_CONFIG_EXPORT"], region: "us-central1" },
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"], region: "us-central1" },
   async (request) => {
     if (!request.auth?.uid) {
-      throw new HttpsError("unauthenticated", "Log ind for at søge billeder.");
+      throw new HttpsError("unauthenticated", "Log ind for at sÃ¸ge billeder.");
     }
 
     const data = request.data;
     const query = sanitizeString(data?.query || "", 200);
-    const businessType = sanitizeString(data?.businessType || data?.cuisineType || data?.type || "", 120);
     const perPage = Math.min(Math.max(1, Number(data?.perPage) || 15), 24);
 
     if (!query) {
-      throw new HttpsError("invalid-argument", "Søgeord mangler.");
+      throw new HttpsError("invalid-argument", "SÃ¸geord mangler.");
     }
 
     let config = {};
     try { config = JSON.parse(process.env.FUNCTIONS_CONFIG_EXPORT || "{}"); } catch (_) {}
-    const pexelsKey = config?.pexels?.api_key || PEXELS_API_KEY.value() || process.env.PEXELS_API_KEY || "";
+    const pexelsKey = config?.pexels?.api_key || process.env.PEXELS_API_KEY || "";
     const cloudName = config?.cloudinary?.cloud_name || process.env.CLOUDINARY_CLOUD_NAME || "";
 
     if (!pexelsKey) {
       throw new HttpsError(
         "failed-precondition",
-        "Pexels API nøgle ikke konfigureret. Kør: firebase functions:config:set pexels.api_key=\"DIN_NØGLE\" og redeploy."
+        "Pexels API nÃ¸gle ikke konfigureret. KÃ¸r: firebase functions:config:set pexels.api_key=\"DIN_NÃ˜GLE\" og redeploy."
       );
     }
 
@@ -11525,10 +9666,7 @@ exports.searchRestaurantImages = onCall(
     const pexelsData = await pexelsResp.json();
 
     const photos = (pexelsData.photos || [])
-      .map(p => {
-        const relevance = scoreBusinessImageRelevance(p, { query, businessType });
-        console.log(`[seo images] relevance score ${relevance.score}`);
-        return {
+      .map(p => ({
         id: String(p.id),
         url: p.src?.large2x || p.src?.large || p.src?.original || "",
         thumbUrl: p.src?.medium || p.src?.small || "",
@@ -11537,17 +9675,12 @@ exports.searchRestaurantImages = onCall(
         photographer: sanitizeString(p.photographer || "", 120),
         photographerUrl: sanitizeString(p.photographer_url || "", 300),
         source: "pexels",
-        sourceGroup: "Alternative billeder",
         sourceUrl: sanitizeString(p.url || "", 300),
         alt: sanitizeString(p.alt || query, 200),
-        relevanceScore: relevance.score,
-        relevanceReasons: relevance.reasons,
         _raw: p
-        };
-      })
+      }))
       .filter(p => p.url)
-      .filter(p => p.relevanceScore >= 0 || /\b(food|restaurant|cafe|café|pizza|sushi|thai|burger|takeaway|dish|plate|menu)\b/i.test(`${p.alt} ${query} ${businessType}`))
-      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .sort((a, b) => scoreStockPhoto(b._raw) - scoreStockPhoto(a._raw))
       .map(({ _raw, ...rest }) => rest);
 
     return { photos, cloudName };
@@ -11567,7 +9700,7 @@ exports.saveRestaurantHeroImage = onCall(
     const url = sanitizeString(data?.url || "", 1000);
 
     if (!companyId || !locationId || !url) {
-      throw new HttpsError("invalid-argument", "companyId, locationId og url er påkrævet.");
+      throw new HttpsError("invalid-argument", "companyId, locationId og url er pÃ¥krÃ¦vet.");
     }
 
     const docId = `${companyId}__${locationId}__hero_${Date.now()}`;
@@ -11614,7 +9747,7 @@ exports.enhanceAndUploadRestaurantImage = onCall(
     const alt = sanitizeString(data?.alt || "", 200);
 
     if (!imageUrl || !companyId || !locationId) {
-      throw new HttpsError("invalid-argument", "url, companyId og locationId er påkrævet.");
+      throw new HttpsError("invalid-argument", "url, companyId og locationId er pÃ¥krÃ¦vet.");
     }
 
     const SEO_HERO_TRANSFORMS = {
@@ -11663,7 +9796,7 @@ exports.enhanceAndUploadRestaurantImage = onCall(
 
       if (!uploadResp.ok) {
         const errText = await uploadResp.text().catch(() => "");
-        throw new Error(`Cloudinary upload: ${uploadResp.status} — ${errText.slice(0, 200)}`);
+        throw new Error(`Cloudinary upload: ${uploadResp.status} â€” ${errText.slice(0, 200)}`);
       }
 
       const uploadResult = await uploadResp.json();
@@ -11734,7 +9867,7 @@ exports.generateSeoAiSuggestions = onCall(
     let websiteUrl = sanitizeString(data?.websiteUrl || "", 500);
 
     if (!businessName && !cuisineType) {
-      throw new HttpsError("invalid-argument", "Mindst restaurantnavn eller køkkentype skal angives.");
+      throw new HttpsError("invalid-argument", "Mindst restaurantnavn eller kÃ¸kkentype skal angives.");
     }
 
     if (websiteUrl && !/^https?:\/\//i.test(websiteUrl)) {
@@ -11776,7 +9909,7 @@ exports.generateSeoAiSuggestions = onCall(
     if (!openAiApiKey) {
       throw new HttpsError(
         "failed-precondition",
-        "OpenAI API-nøgle mangler. Sæt OPENAI_API_KEY som function secret."
+        "OpenAI API-nÃ¸gle mangler. SÃ¦t OPENAI_API_KEY som function secret."
       );
     }
 
@@ -11808,7 +9941,7 @@ exports.generateSeoAiSuggestions = onCall(
               {
                 role: "system",
                 content:
-                  "Du er en dansk SEO-ekspert specialiseret i lokal restaurant-SEO. Du returnerer ALTID valid JSON uden ekstra tekst. Hvis du er i tvivl, returnér {}."
+                  "Du er en dansk SEO-ekspert specialiseret i lokal restaurant-SEO. Du returnerer ALTID valid JSON uden ekstra tekst. Hvis du er i tvivl, returnÃ©r {}."
               },
               { role: "user", content: prompt }
             ],
@@ -11833,7 +9966,7 @@ exports.generateSeoAiSuggestions = onCall(
       );
     }
 
-    // 🔥 STABIL PARSING (det her var dit problem)
+    // ðŸ”¥ STABIL PARSING (det her var dit problem)
     const aiContent =
       responseData?.choices?.[0]?.message?.content || "";
 
@@ -11847,7 +9980,7 @@ exports.generateSeoAiSuggestions = onCall(
       console.warn("Kunne ikke parse AI JSON:", aiContent);
     }
 
-    // 🔥 FALLBACK (sikrer aldrig "no result")
+    // ðŸ”¥ FALLBACK (sikrer aldrig "no result")
     if (!suggestions || typeof suggestions !== "object") {
       suggestions = {
         primaryKeyword:
@@ -11906,51 +10039,26 @@ function buildSeoAiPrompt({ businessName, address, city, cuisineType, offerings,
     cuisineType ? `Type: ${cuisineType}` : "",
     offerings ? `Udbud: ${offerings}` : "",
     description ? `Beskrivelse: ${description}` : "",
-    keyword ? `Nuværende søgeord: ${keyword}` : "",
+    keyword ? `NuvÃ¦rende sÃ¸geord: ${keyword}` : "",
     websiteContent ? `Website-indhold: ${websiteContent}` : ""
   ].filter(Boolean).join("\n");
 
   return `${parts}
 
-Returner JSON med følgende struktur:
+Returner JSON med fÃ¸lgende struktur:
 {
-  "primaryKeyword": "primært lokalt søgeord (fx 'thai restaurant hvidovre')",
-  "secondaryKeywords": ["sekundært søgeord 1", "sekundært søgeord 2", "sekundært søgeord 3"],
-  "shortDescription": "kort beskrivelse 1-2 sætninger på dansk",
+  "primaryKeyword": "primÃ¦rt lokalt sÃ¸geord (fx 'thai restaurant hvidovre')",
+  "secondaryKeywords": ["sekundÃ¦rt sÃ¸geord 1", "sekundÃ¦rt sÃ¸geord 2", "sekundÃ¦rt sÃ¸geord 3"],
+  "shortDescription": "kort beskrivelse 1-2 sÃ¦tninger pÃ¥ dansk",
   "seoTitle": "SEO title tag inkl. restaurantnavn og by",
-  "metaDescription": "meta description 150-160 tegn på dansk",
-  "extractedWebsiteSummary": "kort opsummering af hvad du fandt på hjemmesiden (eller tom hvis ingen website)"
+  "metaDescription": "meta description 150-160 tegn pÃ¥ dansk",
+  "extractedWebsiteSummary": "kort opsummering af hvad du fandt pÃ¥ hjemmesiden (eller tom hvis ingen website)"
 }
 
-Fokuser på lokal SEO. Brug faktiske oplysninger. Skriv på dansk. Hvis website-indhold er tilgængeligt, brug det til at gøre forslagene mere præcise.`;
+Fokuser pÃ¥ lokal SEO. Brug faktiske oplysninger. Skriv pÃ¥ dansk. Hvis website-indhold er tilgÃ¦ngeligt, brug det til at gÃ¸re forslagene mere prÃ¦cise.`;
 }
 
-exports.startCoolingProcess = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
-  }
-
-  const { companyId, locationId, productName, batchSize, container, startTemperature } = data;
-
-  if (!companyId || !locationId || !productName || startTemperature === undefined) {
-    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
-  }
-
-  try {
-    return await processInstances.startCoolingProcess({
-      companyId,
-      locationId,
-      userId: context.auth.uid,
-      productName,
-      batchSize,
-      container,
-      startTemperature
-    });
-  } catch (error) {
-    console.error("Start cooling process fejl:", error);
-    throw new functions.https.HttpsError("internal", error.message);
-  }
-});
+exports.startCoolingProcess = startCoolingProcess;
 exports.createEgenkontrolProgramForLocation =
   egenkontrol.createEgenkontrolProgramForLocation({
     db,
@@ -11961,170 +10069,22 @@ exports.createEgenkontrolProgramForLocation =
     sanitizeRiskModelInput
   });
   
-exports.addCoolingMeasurement = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
-  }
-
-  const { processId, temperature, note } = data;
-
-  if (!processId || temperature === undefined) {
-    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
-  }
-
-  try {
-    return await processInstances.addCoolingMeasurement({
-      processId,
-      temperature,
-      note,
-      userId: context.auth.uid
-    });
-  } catch (error) {
-    console.error("Add cooling measurement fejl:", error);
-    throw new functions.https.HttpsError("internal", error.message);
-  }
-});
-
-exports.completeCoolingProcess = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
-  }
-
-  const { processId, endTemperature, note } = data;
-
-  if (!processId || endTemperature === undefined) {
-    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
-  }
-
-  try {
-    return await processInstances.completeCoolingProcess({
-      processId,
-      endTemperature,
-      note,
-      userId: context.auth.uid
-    });
-  } catch (error) {
-    console.error("Complete cooling process fejl:", error);
-    throw new functions.https.HttpsError("internal", error.message);
-  }
-});
-
-exports.startReheatingProcess = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
-  }
-
-  const { companyId, locationId, failedCoolingProcessId } = data;
-
-  if (!companyId || !locationId || !failedCoolingProcessId) {
-    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
-  }
-
-  try {
-    return await processInstances.startReheatingProcess({
-      companyId,
-      locationId,
-      userId: context.auth.uid,
-      failedCoolingProcessId
-    });
-  } catch (error) {
-    console.error("Start reheating process fejl:", error);
-    throw new functions.https.HttpsError("internal", error.message);
-  }
-});
-
-exports.completeReheatingProcess = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
-  }
-
-  const { processId, endTemperature, note } = data;
-
-  if (!processId || endTemperature === undefined) {
-    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
-  }
-
-  try {
-    return await processInstances.completeReheatingProcess({
-      processId,
-      endTemperature,
-      note,
-      userId: context.auth.uid
-    });
-  } catch (error) {
-    console.error("Complete reheating process fejl:", error);
-    throw new functions.https.HttpsError("internal", error.message);
-  }
-});
-
-exports.disposeCoolingProcess = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
-  }
-
-  const { processId, disposalReason } = data;
-
-  if (!processId) {
-    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
-  }
-
-  try {
-    return await processInstances.disposeCoolingProcess({
-      processId,
-      disposalReason,
-      userId: context.auth.uid
-    });
-  } catch (error) {
-    console.error("Dispose cooling process fejl:", error);
-    throw new functions.https.HttpsError("internal", error.message);
-  }
-});
-
-exports.startNewCoolingFromReheating = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
-  }
-
-  const { reheatingProcessId } = data;
-
-  if (!reheatingProcessId) {
-    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
-  }
-
-  try {
-    return await processInstances.startNewCoolingFromReheating({
-      reheatingProcessId,
-      userId: context.auth.uid
-    });
-  } catch (error) {
-    console.error("Start new cooling from reheating fejl:", error);
-    throw new functions.https.HttpsError("internal", error.message);
-  }
-});
-
-exports.loadActiveProcessInstances = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
-  }
-
-  const { locationId } = data;
-
-  if (!locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
-  }
-
-  try {
-    return await processInstances.loadActiveProcessInstances({ locationId });
-  } catch (error) {
-    console.error("Load active process instances fejl:", error);
-    throw new functions.https.HttpsError("internal", error.message);
-  }
-});
+exports.addCoolingMeasurement = addCoolingMeasurement;
+exports.completeCoolingProcess = completeCoolingProcess;
+exports.startReheatingProcess = startReheatingProcess;
+exports.completeReheatingProcess = completeReheatingProcess;
+exports.disposeCoolingProcess = disposeCoolingProcess;
+exports.startNewCoolingFromReheating = startNewCoolingFromReheating;
+exports.loadActiveProcessInstances = loadActiveProcessInstances;
+exports.pauseEgenkontrolRoutine = pauseEgenkontrolRoutine;
+exports.reactivateEgenkontrolRoutine = reactivateEgenkontrolRoutine;
+exports.setRoutinePauseState = setRoutinePauseState;
+exports.updateEgenkontrolRoutineFrequency = updateEgenkontrolRoutineFrequency;
 
 // Demo Mode - DEVELOPER ONLY (not for production customers)
 exports.enableDemoMode = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal vÃ¦re logget ind");
   }
 
   // CRITICAL: Demo mode is DEVELOPER ONLY
@@ -12148,7 +10108,7 @@ exports.enableDemoMode = functions.https.onCall(async (data, context) => {
 
 exports.disableDemoMode = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal vÃ¦re logget ind");
   }
 
   try {
@@ -12170,13 +10130,13 @@ exports.disableDemoMode = functions.https.onCall(async (data, context) => {
 // Soft Archive - Safe alternative to hard delete
 exports.startNewPeriod = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal vÃ¦re logget ind");
   }
 
   const { companyId, locationId, periodName } = data;
 
   if (!companyId || !locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+    throw new functions.https.HttpsError("invalid-argument", "Manglende pÃ¥krÃ¦vede felter");
   }
 
   // CRITICAL: Verify user owns this company/location
@@ -12231,7 +10191,7 @@ exports.startNewPeriod = functions.https.onCall(async (data, context) => {
 
 exports.archiveCompany = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal vÃ¦re logget ind");
   }
 
   // CRITICAL: This is a dangerous operation - guard it
@@ -12240,7 +10200,7 @@ exports.archiveCompany = functions.https.onCall(async (data, context) => {
   const { companyId, reason } = data;
 
   if (!companyId) {
-    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+    throw new functions.https.HttpsError("invalid-argument", "Manglende pÃ¥krÃ¦vede felter");
   }
 
   try {
@@ -12259,7 +10219,7 @@ exports.archiveCompany = functions.https.onCall(async (data, context) => {
 
 exports.restoreCompany = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Bruger skal være logget ind");
+    throw new functions.https.HttpsError("unauthenticated", "Bruger skal vÃ¦re logget ind");
   }
 
   // CRITICAL: This is a dangerous operation - guard it
@@ -12268,7 +10228,7 @@ exports.restoreCompany = functions.https.onCall(async (data, context) => {
   const { companyId } = data;
 
   if (!companyId) {
-    throw new functions.https.HttpsError("invalid-argument", "Manglende påkrævede felter");
+    throw new functions.https.HttpsError("invalid-argument", "Manglende pÃ¥krÃ¦vede felter");
   }
 
   try {
@@ -12287,15 +10247,24 @@ exports.closeDailyRun = closeDailyRun;
 
 exports.cleanupTaskTemplates = functions.https.onCall(async (data, context) => {
   if (!context.auth?.uid) {
-    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+    throw new functions.https.HttpsError("unauthenticated", "Du skal vÃ¦re logget ind.");
   }
+
+  guardDangerousOperation(context, "cleanupTaskTemplates");
 
   const companyId = sanitizeString(data?.companyId || "", 120);
   const locationId = sanitizeString(data?.locationId || "", 120);
 
   if (!companyId || !locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er pÃ¥krÃ¦vet.");
   }
+
+  await assertAdminAccess({
+    uid: context.auth.uid,
+    email: context.auth.token?.email || "",
+    companyId,
+    locationId
+  });
 
   try {
     const templatesRef = db.collection("task_templates");
@@ -12305,19 +10274,29 @@ exports.cleanupTaskTemplates = functions.https.onCall(async (data, context) => {
       .get();
 
     if (snapshot.empty) {
-      return { deleted: 0, message: "Ingen templates fundet." };
+      return { archived: 0, deleted: 0, message: "Ingen templates fundet." };
     }
 
     const batch = db.batch();
     snapshot.docs.forEach(doc => {
-      batch.delete(doc.ref);
+      batch.set(doc.ref, {
+        active: false,
+        isActive: false,
+        archived: true,
+        status: "inactive",
+        archivedAt: FieldValue.serverTimestamp(),
+        archivedByUid: context.auth.uid,
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedByUid: context.auth.uid
+      }, { merge: true });
     });
 
     await batch.commit();
 
     return {
-      deleted: snapshot.size,
-      message: `Slettet ${snapshot.size} task templates.`
+      archived: snapshot.size,
+      deleted: 0,
+      message: `Arkiverede ${snapshot.size} task templates.`
     };
   } catch (error) {
     console.error("cleanupTaskTemplates fejl:", error);
@@ -12331,7 +10310,7 @@ exports.lookupCvr = functions.https.onCall(async (data, context) => {
   if (!/^\d{8}$/.test(cvr)) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "CVR skal være 8 cifre."
+      "CVR skal vÃ¦re 8 cifre."
     );
   }
 
@@ -12361,7 +10340,7 @@ exports.lookupCvr = functions.https.onCall(async (data, context) => {
 
 // Manual risk analysis generator for existing onboardings
 exports.manualGenerateRiskAnalysis = functions.https.onCall(async (data, context) => {
-  console.log("🔥 manualGenerateRiskAnalysis START");
+  console.log("ðŸ”¥ manualGenerateRiskAnalysis START");
 
   try {
     const payload =
@@ -12379,7 +10358,7 @@ exports.manualGenerateRiskAnalysis = functions.https.onCall(async (data, context
     if (!companyId || !locationId) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "companyId og locationId er påkrævet."
+        "companyId og locationId er pÃ¥krÃ¦vet."
       );
     }
 
@@ -12400,7 +10379,7 @@ exports.manualGenerateRiskAnalysis = functions.https.onCall(async (data, context
     const snapshot = snapshotQuery.docs[0].data();
     const profile = snapshot?.profile || snapshot || {};
 
-    console.log("📦 Loading buildStructuredHaccpData...");
+    console.log("ðŸ“¦ Loading buildStructuredHaccpData...");
     const { buildStructuredHaccpData } = require("./provisioning");
 
     if (!buildStructuredHaccpData) {
@@ -12408,7 +10387,7 @@ exports.manualGenerateRiskAnalysis = functions.https.onCall(async (data, context
     }
 
     const controlPoints = buildStructuredHaccpData(profile);
-    console.log(`📊 Generated ${controlPoints.length} control points`);
+    console.log(`ðŸ“Š Generated ${controlPoints.length} control points`);
 
     await db
       .collection("companies")
@@ -12426,7 +10405,7 @@ exports.manualGenerateRiskAnalysis = functions.https.onCall(async (data, context
         updatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
 
-    console.log(`✅ Risk analysis saved: ${controlPoints.length} control points`);
+    console.log(`âœ… Risk analysis saved: ${controlPoints.length} control points`);
 
     return {
       ok: true,
@@ -12435,8 +10414,8 @@ exports.manualGenerateRiskAnalysis = functions.https.onCall(async (data, context
       totalControlPoints: controlPoints.length
     };
   } catch (error) {
-    console.error("❌ manualGenerateRiskAnalysis FAILED:", error?.message);
-    console.error("❌ stack:", error?.stack || null);
+    console.error("âŒ manualGenerateRiskAnalysis FAILED:", error?.message);
+    console.error("âŒ stack:", error?.stack || null);
 
     if (error instanceof functions.https.HttpsError) {
       throw error;
@@ -12449,21 +10428,21 @@ exports.manualGenerateRiskAnalysis = functions.https.onCall(async (data, context
   }
 });
 
-// ─── REGENERATE TASK TEMPLATES FOR LOCATION ───────────────────────────────
+// â”€â”€â”€ REGENERATE TASK TEMPLATES FOR LOCATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.regenerateTaskTemplatesForLocation = functions.https.onCall(async (request, context) => {
   try {
     const data = request.data || request;
     const authUid = context.auth?.uid;
     
     if (!authUid) {
-      throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+      throw new functions.https.HttpsError("unauthenticated", "Du skal vÃ¦re logget ind.");
     }
 
     const companyId = sanitizeString(data?.companyId || "", 120);
     const locationId = sanitizeString(data?.locationId || "", 120);
 
     if (!companyId || !locationId) {
-      throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+      throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er pÃ¥krÃ¦vet.");
     }
 
     console.log(`[regenerateTaskTemplatesForLocation] START for ${companyId}/${locationId}`);
@@ -12575,18 +10554,18 @@ exports.regenerateTaskTemplatesForLocation = functions.https.onCall(async (reque
   }
 });
 
-// ─── WATER MODULE ──────────────────────────────────────────────────────────
+// â”€â”€â”€ WATER MODULE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Object.assign(exports, require("./water-module"));
 
-// ─── AUDIT TOOLS ───────────────────────────────────────────────────────────
+// â”€â”€â”€ AUDIT TOOLS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const { auditCompanyLocationIntegrity } = require("./auditCompanyLocation");
 exports.auditCompanyLocationIntegrity = auditCompanyLocationIntegrity;
 
-// ─── ONBOARDING FIX ────────────────────────────────────────────────────────
+// â”€â”€â”€ ONBOARDING FIX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const { fixOnboardingStructure } = require("./fixOnboardingStructure");
 exports.fixOnboardingStructure = fixOnboardingStructure;
 
-// ─── CANONICAL TASK ENGINE ─────────────────────────────────────────────────
+// â”€â”€â”€ CANONICAL TASK ENGINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const {
   generateCanonicalTaskTemplates,
   ensureSingleTaskInstance,
@@ -12598,17 +10577,24 @@ exports.generateCanonicalTaskTemplates = functions.https.onCall(async (request) 
   const auth = request.auth;
   
   if (!auth?.uid) {
-    throw new functions.https.HttpsError("unauthenticated", "Du skal være logget ind.");
+    throw new functions.https.HttpsError("unauthenticated", "Du skal vÃ¦re logget ind.");
   }
   
   const companyId = sanitizeString(data?.companyId, 120);
   const locationId = sanitizeString(data?.locationId, 120);
   
   if (!companyId || !locationId) {
-    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er påkrævet.");
+    throw new functions.https.HttpsError("invalid-argument", "companyId og locationId er pÃ¥krÃ¦vet.");
   }
   
-  const result = await generateCanonicalTaskTemplates({ db, companyId, locationId });
+  let ownerScopeMetadata = {};
+  const locationSnap = await db.collection("companies").doc(companyId).collection("locations").doc(locationId).get();
+  const companySnap = await db.collection("companies").doc(companyId).get();
+  const inheritedOwnerKind = locationSnap.data()?.ownerKind || companySnap.data()?.ownerKind || "";
+  if (inheritedOwnerKind) {
+    ownerScopeMetadata = buildOwnerScopeMetadata(inheritedOwnerKind);
+  }
+  const result = await generateCanonicalTaskTemplates({ db, companyId, locationId, ownerScopeMetadata });
   
   return {
     ok: true,
@@ -12616,7 +10602,7 @@ exports.generateCanonicalTaskTemplates = functions.https.onCall(async (request) 
   };
 });
 
-// ─── CREATE DEMO ENVIRONMENT ───────────────────────────────────────────────
+// â”€â”€â”€ CREATE DEMO ENVIRONMENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.createDemoEnvironment = functions.https.onCall(async (request) => {
   const data = request.data || {};
   const origin = String(data.origin || "https://madkontrollen.dk").replace(/\/+$/, "");
@@ -12643,11 +10629,13 @@ exports.createDemoEnvironment = functions.https.onCall(async (request) => {
     const locationId = locationRef.id;
     
     const nowTs = FieldValue.serverTimestamp();
+    const ownerScopeMetadata = buildOwnerScopeMetadata(OWNER_KIND.DEMO_OWNER);
     
     await companyRef.set({
       id: companyId,
       companyId,
       organizationId: companyId,
+      ...ownerScopeMetadata,
       name: "Demo Restaurant",
       displayName: "Demo Restaurant",
       status: "active",
@@ -12660,11 +10648,12 @@ exports.createDemoEnvironment = functions.https.onCall(async (request) => {
       updatedAt: nowTs
     });
     
-    await locationRef.set({
+    const locationData = {
       id: locationId,
       locationId,
       companyId,
       organizationId: companyId,
+      ...ownerScopeMetadata,
       name: "Demo Lokation",
       displayName: "Demo Lokation",
       status: "active",
@@ -12675,7 +10664,9 @@ exports.createDemoEnvironment = functions.https.onCall(async (request) => {
       createdBy: userId,
       createdAt: nowTs,
       updatedAt: nowTs
-    });
+    };
+    await locationRef.set(locationData);
+    await db.collection("companies").doc(companyId).collection("locations").doc(locationId).set(locationData);
     
     // Create user documents
     await db.collection("users").doc(userId).set({
@@ -12687,6 +10678,7 @@ exports.createDemoEnvironment = functions.https.onCall(async (request) => {
       locationId,
       locationIds: [locationId],
       primaryLocationId: locationId,
+      ...ownerScopeMetadata,
       role: "owner",
       roles: ["owner", "admin", "demo"],
       status: "active",
@@ -12709,6 +10701,7 @@ exports.createDemoEnvironment = functions.https.onCall(async (request) => {
       organizationId: companyId,
       locationId,
       locationIds: [locationId],
+      ...ownerScopeMetadata,
       status: "active",
       isDemo: true,
       demoMode: true,
@@ -12719,13 +10712,13 @@ exports.createDemoEnvironment = functions.https.onCall(async (request) => {
     
     // Create demo equipment units
     const equipmentUnits = [
-      { id: "demo_fridge_1", name: "Køleskab 1", type: "fridge" },
+      { id: "demo_fridge_1", name: "KÃ¸leskab 1", type: "fridge" },
       { id: "demo_freezer_1", name: "Fryser 1", type: "freezer" },
       { id: "demo_dishwasher_1", name: "Opvaskemaskine 1", type: "dishwasher" },
       { id: "demo_fryer_1", name: "Friture 1", type: "fryer" },
-      { id: "demo_slicer_1", name: "Pålægsmaskine 1", type: "slicer" },
+      { id: "demo_slicer_1", name: "PÃ¥lÃ¦gsmaskine 1", type: "slicer" },
       { id: "demo_softice_1", name: "Softicemaskine 1", type: "softice_machine" },
-      { id: "demo_walkin_cooler_1", name: "Walk-in køler", type: "walkin_cooler" },
+      { id: "demo_walkin_cooler_1", name: "Walk-in kÃ¸ler", type: "walkin_cooler" },
       { id: "demo_walkin_freezer_1", name: "Walk-in fryser", type: "walkin_freezer" }
     ];
     
@@ -12736,6 +10729,7 @@ exports.createDemoEnvironment = functions.https.onCall(async (request) => {
         companyId,
         organizationId: companyId,
         locationId,
+        ...ownerScopeMetadata,
         name: unit.name,
         displayName: unit.name,
         type: unit.type,
@@ -12756,7 +10750,8 @@ exports.createDemoEnvironment = functions.https.onCall(async (request) => {
     const templatesResult = await generateCanonicalTaskTemplates({
       db,
       companyId,
-      locationId
+      locationId,
+      ownerScopeMetadata
     });
     
     console.log("[createDemoEnvironment] Templates generated:", templatesResult);
@@ -12780,7 +10775,8 @@ exports.createDemoEnvironment = functions.https.onCall(async (request) => {
       companyId,
       locationId,
       dateKey: todayDateKey,
-      createdBy: userId
+      createdBy: userId,
+      ownerScopeMetadata
     });
     
     console.log("[createDemoEnvironment] Instances generated:", instancesResult);
@@ -12818,7 +10814,7 @@ exports.createDemoEnvironment = functions.https.onCall(async (request) => {
   }
 });
 
-// ─── ADD MISSING PROCESSES TO ONBOARDING ────────────────────────────────────
+// â”€â”€â”€ ADD MISSING PROCESSES TO ONBOARDING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.addMissingProcessesToOnboarding = functions.https.onCall(async (request, context) => {
   const { companyId, locationId, processesToAdd } = request.data || {};
   
@@ -12875,7 +10871,7 @@ exports.addMissingProcessesToOnboarding = functions.https.onCall(async (request,
   }
 });
 
-// ─── CVR ENRICHMENT ──────────────────────────────────────────────────────────
+// â”€â”€â”€ CVR ENRICHMENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 exports.enrichNextCvrBatch = functions.https.onCall(async (request, context) => {
   const data = request.data || request;
@@ -12889,7 +10885,7 @@ exports.enrichNextCvrBatch = functions.https.onCall(async (request, context) => 
   const batchSize = Math.min(Math.max(parseInt(data?.batchSize) || 50, 1), 100);
 
   if (!jobId) {
-    throw new functions.https.HttpsError("invalid-argument", "jobId er påkrævet");
+    throw new functions.https.HttpsError("invalid-argument", "jobId er pÃ¥krÃ¦vet");
   }
 
   console.log("[enrichNextCvrBatch] Starting batch:", { jobId, batchSize, uid: auth.uid });
@@ -13153,7 +11149,7 @@ async function fetchCvrData(cvr) {
     });
 
     req.on("error", (error) => {
-      reject(new Error(`Netværksfejl: ${error.message}`));
+      reject(new Error(`NetvÃ¦rksfejl: ${error.message}`));
     });
 
     req.setTimeout(10000, () => {
@@ -13164,3 +11160,6 @@ async function fetchCvrData(cvr) {
     req.end();
   });
 }
+
+
+

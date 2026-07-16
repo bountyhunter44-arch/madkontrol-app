@@ -15,6 +15,7 @@ const {
   generateCanonicalTaskTemplates,
   startDayForLocationCanonical
 } = require('./canonicalTaskEngine');
+const { buildOwnerScopeMetadata } = require("./lib/ownerScope");
 
 /**
  * Start day for location using canonical engine
@@ -30,6 +31,12 @@ async function startDayForLocationStrict({
   userId = "system"
 }) {
   console.log(`[startDayForLocationStrict] START for ${companyId}/${locationId}/${dateKey}`);
+  let ownerScopeMetadata = {};
+  const companySnap = await db.collection("companies").doc(companyId).get();
+  const companyData = companySnap.data() || {};
+  if (companyData.ownerKind) {
+    ownerScopeMetadata = buildOwnerScopeMetadata(companyData.ownerKind);
+  }
   
   const stats = {
     ok: true,
@@ -60,8 +67,6 @@ async function startDayForLocationStrict({
     console.warn("[startDayForLocationStrict] No templates found");
     
     // Check if demo company
-    const companySnap = await db.collection("companies").doc(companyId).get();
-    const companyData = companySnap.data() || {};
     const isDemo = companyData.isDemo === true || companyData.demoMode === true;
     
     if (isDemo) {
@@ -72,7 +77,8 @@ async function startDayForLocationStrict({
         const templateStats = await generateCanonicalTaskTemplates({
           db,
           companyId,
-          locationId
+          locationId,
+          ownerScopeMetadata
         });
         
         templateCount = templateStats.created + templateStats.updated;
@@ -110,7 +116,8 @@ async function startDayForLocationStrict({
       companyId,
       locationId,
       dateKey,
-      createdBy: userId
+      createdBy: userId,
+      ownerScopeMetadata
     });
     
     stats.created = instanceStats.instancesCreated || 0;

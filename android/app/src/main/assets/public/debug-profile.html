@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Debug Profil | Madkontrollen</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 { margin: 0 0 20px; color: #1f6e2a; }
+    h2 { margin: 20px 0 10px; color: #333; font-size: 18px; }
+    pre {
+      background: #f8f8f8;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .error { color: #b42318; font-weight: 600; }
+    .success { color: #1f6e2a; font-weight: 600; }
+    button {
+      background: #1f6e2a;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover { background: #2e7d32; }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔍 Debug Brugerprofil</h1>
+    <p>Denne side viser din brugerprofil og tjekker om alle nødvendige felter er sat korrekt.</p>
+  </div>
+
+  <div class="card">
+    <h2>Firebase Auth Bruger</h2>
+    <div id="authInfo">Henter...</div>
+  </div>
+
+  <div class="card">
+    <h2>Firestore Brugerprofil (users/{uid})</h2>
+    <div id="profileInfo">Henter...</div>
+  </div>
+
+  <div class="card">
+    <h2>Diagnose</h2>
+    <div id="diagnosis">Analyserer...</div>
+    <button id="fixBtn" style="display:none;">Ret automatisk</button>
+  </div>
+
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import { db } from "/core/firebase-config.js";
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    let currentUser = null;
+    let currentProfile = null;
+
+    setupAuthGate({
+      appName: "Debug Profil",
+      onAuthenticated: async ({ user, profile }) => {
+        currentUser = user;
+        currentProfile = profile;
+
+        // Show auth info
+        document.getElementById("authInfo").innerHTML = `
+          <pre>${JSON.stringify({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName
+          }, null, 2)}</pre>
+        `;
+
+        // Show profile info
+        document.getElementById("profileInfo").innerHTML = `
+          <pre>${JSON.stringify(profile || {}, null, 2)}</pre>
+        `;
+
+        // Diagnose
+        diagnose(user, profile);
+      },
+      onSignedOut: () => {
+        document.getElementById("authInfo").innerHTML = '<p class="error">Ikke logget ind</p>';
+        document.getElementById("profileInfo").innerHTML = '<p class="error">Log ind for at se profil</p>';
+        document.getElementById("diagnosis").innerHTML = '<p class="error">Log ind først</p>';
+      }
+    });
+
+    function diagnose(user, profile) {
+      const issues = [];
+      const warnings = [];
+
+      if (!profile) {
+        issues.push("❌ Firestore brugerprofil mangler helt (users/" + user.uid + " eksisterer ikke)");
+      } else {
+        // Check companyId/organizationId
+        const hasCompanyId = profile.companyId || profile.organizationId;
+        if (!hasCompanyId) {
+          issues.push("❌ Mangler companyId eller organizationId");
+        } else {
+          warnings.push("✅ companyId/organizationId: " + (profile.companyId || profile.organizationId));
+        }
+
+        // Check locationId
+        const hasLocationId = profile.locationId || profile.primaryLocationId || (profile.locationIds && profile.locationIds.length > 0);
+        if (!hasLocationId) {
+          issues.push("❌ Mangler locationId, primaryLocationId eller locationIds");
+        } else {
+          warnings.push("✅ locationId: " + (profile.locationId || profile.primaryLocationId || profile.locationIds?.[0]));
+        }
+
+        // Check role
+        if (!profile.role) {
+          issues.push("❌ Mangler role");
+        } else {
+          warnings.push("✅ role: " + profile.role);
+        }
+      }
+
+      let html = '';
+      if (issues.length > 0) {
+        html += '<div class="error"><h3>Problemer fundet:</h3><ul>';
+        issues.forEach(issue => html += `<li>${issue}</li>`);
+        html += '</ul></div>';
+        document.getElementById("fixBtn").style.display = "block";
+      } else {
+        html += '<div class="success">✅ Alt ser godt ud!</div>';
+      }
+
+      if (warnings.length > 0) {
+        html += '<div style="margin-top:16px;"><h3>Status:</h3><ul>';
+        warnings.forEach(w => html += `<li>${w}</li>`);
+        html += '</ul></div>';
+      }
+
+      document.getElementById("diagnosis").innerHTML = html;
+    }
+
+    document.getElementById("fixBtn").addEventListener("click", async () => {
+      const btn = document.getElementById("fixBtn");
+      btn.disabled = true;
+      btn.textContent = "Retter...";
+
+      try {
+        // Create a basic profile with defaults
+        const userRef = doc(db, "users", currentUser.uid);
+        
+        const updatedProfile = {
+          email: currentUser.email,
+          displayName: currentUser.displayName || currentUser.email,
+          role: currentProfile?.role || "employee",
+          companyId: currentProfile?.companyId || currentProfile?.organizationId || "",
+          organizationId: currentProfile?.organizationId || currentProfile?.companyId || "",
+          locationId: currentProfile?.locationId || currentProfile?.primaryLocationId || "",
+          primaryLocationId: currentProfile?.primaryLocationId || currentProfile?.locationId || "",
+          locationIds: currentProfile?.locationIds || [currentProfile?.locationId || currentProfile?.primaryLocationId].filter(Boolean),
+          updatedAt: new Date().toISOString()
+        };
+
+        await setDoc(userRef, updatedProfile, { merge: true });
+
+        alert("Profil opdateret! Genindlæser siden...");
+        window.location.reload();
+      } catch (error) {
+        alert("Fejl: " + error.message);
+        btn.disabled = false;
+        btn.textContent = "Ret automatisk";
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 const admin = require("firebase-admin");
 const serviceAccount = require("../../serviceAccountKey.json");
+const { OWNER_KIND, buildOwnerScopeMetadata } = require("../lib/ownerScope");
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -68,7 +69,7 @@ function buildSchedule({ recurrenceMode = "daily", recurrenceValue = 1, anchorDa
   };
 }
 
-function buildTemplate({ companyId, locationId, key, title, description, category, guideKey, templateKey, controlType = "check", formType = "checklist", equipmentType = "", requiresMeasurement = false, recurrenceMode = "daily", recurrenceValue = 1, sortOrder = 100 }) {
+function buildTemplate({ companyId, locationId, ownerScopeMetadata = {}, key, title, description, category, guideKey, templateKey, controlType = "check", formType = "checklist", equipmentType = "", requiresMeasurement = false, recurrenceMode = "daily", recurrenceValue = 1, sortOrder = 100 }) {
   const id = toDocSafeId(`${companyId}__${locationId}__minimal__${key}`);
   const isTemperature = controlType === "temperature_check" || formType === "temperature";
 
@@ -78,6 +79,7 @@ function buildTemplate({ companyId, locationId, key, title, description, categor
     companyId,
     organizationId: companyId,
     locationId,
+    ...ownerScopeMetadata,
     title,
     description,
     category,
@@ -122,11 +124,12 @@ function buildTemplate({ companyId, locationId, key, title, description, categor
   };
 }
 
-function buildMinimalTemplates({ companyId, locationId }) {
+function buildMinimalTemplates({ companyId, locationId, ownerScopeMetadata = {} }) {
   return [
     buildTemplate({
       companyId,
       locationId,
+      ownerScopeMetadata,
       key: "varemodtagelse",
       title: "Varemodtagelse",
       description: "Kontroller temperatur, emballage og kvalitet ved modtagelse af varer.",
@@ -139,6 +142,7 @@ function buildMinimalTemplates({ companyId, locationId }) {
     buildTemplate({
       companyId,
       locationId,
+      ownerScopeMetadata,
       key: "temperatur-koel",
       title: "Temperaturkontrol køl",
       description: "Kontroller og registrer temperatur for køl. Køl skal normalt være maks. 5 °C.",
@@ -154,6 +158,7 @@ function buildMinimalTemplates({ companyId, locationId }) {
     buildTemplate({
       companyId,
       locationId,
+      ownerScopeMetadata,
       key: "temperatur-frost",
       title: "Temperaturkontrol frost",
       description: "Kontroller og registrer temperatur for frost. Frost skal normalt være -18 °C eller koldere.",
@@ -169,6 +174,7 @@ function buildMinimalTemplates({ companyId, locationId }) {
     buildTemplate({
       companyId,
       locationId,
+      ownerScopeMetadata,
       key: "rengoering",
       title: "Rengøring",
       description: "Gennemfør og dokumenter rengøring efter rengøringsplanen.",
@@ -183,6 +189,7 @@ function buildMinimalTemplates({ companyId, locationId }) {
     buildTemplate({
       companyId,
       locationId,
+      ownerScopeMetadata,
       key: "opvarmning",
       title: "Opvarmning",
       description: "Kontroller at fødevarer opvarmes til sikker temperatur.",
@@ -197,6 +204,7 @@ function buildMinimalTemplates({ companyId, locationId }) {
     buildTemplate({
       companyId,
       locationId,
+      ownerScopeMetadata,
       key: "nedkoeling",
       title: "Nedkøling",
       description: "Kontroller og dokumenter korrekt nedkøling af varmebehandlede fødevarer.",
@@ -211,6 +219,7 @@ function buildMinimalTemplates({ companyId, locationId }) {
     buildTemplate({
       companyId,
       locationId,
+      ownerScopeMetadata,
       key: "varmholdelse",
       title: "Varmholdelse",
       description: "Kontroller og registrer temperatur for varmholdte fødevarer.",
@@ -225,7 +234,7 @@ function buildMinimalTemplates({ companyId, locationId }) {
   ];
 }
 
-function buildEquipment({ companyId, locationId, key, name, equipmentType }) {
+function buildEquipment({ companyId, locationId, ownerScopeMetadata = {}, key, name, equipmentType }) {
   const id = toDocSafeId(`${companyId}__${locationId}__minimal__${key}`);
   return {
     id,
@@ -233,6 +242,7 @@ function buildEquipment({ companyId, locationId, key, name, equipmentType }) {
     companyId,
     organizationId: companyId,
     locationId,
+    ...ownerScopeMetadata,
     name,
     displayName: name,
     title: name,
@@ -289,6 +299,9 @@ async function main() {
   const liveData = liveProfileSnap.exists ? (liveProfileSnap.data() || {}) : {};
   const liveProfile = { ...(liveData.profile || {}), ...liveData };
   const addressParts = buildAddressParts({ ...companyData, ...locationData, ...liveProfile, ...userData });
+  const ownerScopeMetadata = buildOwnerScopeMetadata(
+    firstText(locationData.ownerKind, companyData.ownerKind, userData.ownerKind, OWNER_KIND.REAL_OWNER)
+  );
 
   const companyName = firstText(liveProfile.companyName, companyData.companyName, companyData.name, userData.companyName, "Eksisterende virksomhed");
   const locationName = firstText(locationData.locationName, locationData.name, liveProfile.locationName, "Hovedlokation");
@@ -301,6 +314,7 @@ async function main() {
     organizationId: companyId,
     companyName,
     name: firstText(companyData.name, companyName),
+    ...ownerScopeMetadata,
     ownerName: firstText(companyData.ownerName, contactName),
     contactName: firstText(companyData.contactName, contactName),
     phone: firstText(companyData.phone, phone),
@@ -315,6 +329,7 @@ async function main() {
     locationId,
     companyId,
     organizationId: companyId,
+    ...ownerScopeMetadata,
     name: locationName,
     locationName,
     ...addressParts,
@@ -330,6 +345,7 @@ async function main() {
     companyId,
     organizationId: companyId,
     locationId,
+    ...ownerScopeMetadata,
     userId: UID,
     userEmail: firstText(userData.email),
     companyName,
@@ -363,7 +379,7 @@ async function main() {
   }
 
   const batch = db.batch();
-  const templates = buildMinimalTemplates({ companyId, locationId });
+  const templates = buildMinimalTemplates({ companyId, locationId, ownerScopeMetadata });
 
   for (const template of templates) {
     const ref = db.collection("task_templates").doc(template.id);
@@ -374,6 +390,7 @@ async function main() {
     buildEquipment({
       companyId,
       locationId,
+      ownerScopeMetadata,
       key: "koeleskab-1",
       name: "Køleskab 1",
       equipmentType: "cooling"
@@ -381,6 +398,7 @@ async function main() {
     buildEquipment({
       companyId,
       locationId,
+      ownerScopeMetadata,
       key: "fryser-1",
       name: "Fryser 1",
       equipmentType: "freezing"

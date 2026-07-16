@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>Systemer — Vandsystem | Madkontrollen Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .ws-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+        .ws-hdr h1{font-size:22px;font-weight:800;color:#182118;margin:0;}
+        .ws-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid transparent;text-decoration:none;transition:opacity .15s;}
+        .ws-btn:hover{opacity:.84;}
+        .ws-btn-primary{background:#2e7d32;color:#fff;border:none;}
+        .ws-btn-secondary{background:#fff;border-color:#d9e4d9;color:#2e7d32;}
+        .ws-list{margin-bottom:24px;}
+        .ws-sys-card{background:#fff;border:1px solid #d9e4d9;border-radius:16px;padding:18px 20px;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+ name{font-size:16px;font-weight:800;color:#182118;}
+        .ws-sys-meta{font-size:12px;color:#667267;margin-top:3px;}
+        .ws-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;}
+        .ws-badge.active{background:#e8f5e9;color:#1b5e20;}
+        .ws-badge.service{background:#fff8e1;color:#795548;}
+        .ws-badge.offline{background:#f3e5f5;color:#4a148c;}
+        .ws-badge.decommissioned{background:#eceff1;color:#546e7a;}
+        .ws-sys-actions{display:flex;gap:8px;flex-wrap:wrap;}
+        .ws-form-wrap{background:#fff;border:1px solid #a5d6a7;border-radius:18px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:24px;display:none;}
+        .ws-form-wrap.open{display:block;}
+        .ws-form-wrap h2{font-size:16px;font-weight:800;color:#182118;margin:0 0 18px;}
+        .ws-field{margin-bottom:14px;}
+        .ws-field label{display:block;font-size:12px;font-weight:700;color:#667267;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+        .ws-field input,.ws-field select,.ws-field textarea{width:100%;padding:10px 13px;border:1px solid #d9e4d9;border-radius:11px;font-size:14px;color:#182118;font-family:inherit;box-sizing:border-box;transition:border-color .15s;}
+        .ws-field input:focus,.ws-field select:focus{outline:none;border-color:#2e7d32;box-shadow:0 0 0 3px rgba(46,125,50,.12);}
+        .ws-row{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+        .ws-status{margin-top:12px;padding:12px 15px;border-radius:11px;font-size:14px;font-weight:700;display:none;}
+        .ws-status.ok{display:block;background:#e8f5e9;color:#1b5e20;}
+        .ws-status.err{display:block;background:#fce4ec;color:#b71c1c;}
+        .ws-empty{color:#667267;font-size:14px;padding:24px;text-align:center;background:#f8faf8;border-radius:14px;border:1px dashed #d9e4d9;}
+        .ws-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#2e7d32;text-decoration:none;margin-bottom:18px;}
+        .ws-back:hover{opacity:.75;}
+        .ws-loading{color:#667267;font-size:14px;padding:20px;}
+        @media(max-width:600px){.ws-row{grid-template-columns:1fr;}}
+    </style>
+</head>
+<body data-page="water-systems">
+<div id="headerMount"></div>
+<main class="page-shell">
+    <div class="container app-layout">
+        <div id="sidebarMount"></div>
+        <section class="page-content">
+            <a class="ws-back" href="/modules/water/dashboard.html">← Dashboard</a>
+            <div class="ws-hdr">
+                <h1>⚙️ Vandrensningssystemer</h1>
+                <button class="ws-btn ws-btn-primary" id="toggleAddForm">+ Tilføj system</button>
+            </div>
+
+            <!-- ADD SYSTEM FORM -->
+            <div class="ws-form-wrap" id="addFormWrap">
+                <h2>Nyt vandrensningssystem</h2>
+                <div class="ws-row">
+                    <div class="ws-field">
+                        <label>Systemnavn *</label>
+                        <input type="text" id="fName" placeholder="F.eks. RO-System A"/>
+                    </div>
+                    <div class="ws-field">
+                        <label>Systemtype *</label>
+                        <select id="fType">
+                            <option value="ro">Omvendt osmose (RO)</option>
+                            <option value="uv">UV-filtrering</option>
+                            <option value="carbon">Aktivt kul-filter</option>
+                            <option value="sediment">Sedimentfilter</option>
+                            <option value="combo">Kombineret system</option>
+                            <option value="other">Andet</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ws-row">
+                    <div class="ws-field">
+                        <label>Mærke / Model</label>
+                        <input type="text" id="fBrand" placeholder="F.eks. Pentair G-33"/>
+                    </div>
+                    <div class="ws-field">
+                        <label>Serienummer</label>
+                        <input type="text" id="fSerial" placeholder="SN-XXXXX"/>
+                    </div>
+                </div>
+                <div class="ws-row">
+                    <div class="ws-field">
+                        <label>Kapacitet (L/time)</label>
+                        <input type="number" id="fCapacity" min="0" step="1" placeholder="500"/>
+                    </div>
+                    <div class="ws-field">
+                        <label>Installeret (dato)</label>
+                        <input type="date" id="fInstalled"/>
+                    </div>
+                </div>
+                <div class="ws-row">
+                    <div class="ws-field">
+                        <label>Lokation / Rum</label>
+                        <input type="text" id="fLocation" placeholder="F.eks. Kælder, teknisk rum 1"/>
+                    </div>
+                    <div class="ws-field">
+                        <label>Dækkede rum / afdelinger</label>
+                        <input type="text" id="fRoomCoverage" placeholder="F.eks. 3. etage, restaurant"/>
+                    </div>
+                </div>
+                <div class="ws-field">
+                    <label>Noter</label>
+                    <textarea id="fNotes" style="min-height:70px;" placeholder="Ekstra oplysninger om systemet…"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <button class="ws-btn ws-btn-primary" id="addSubmit">Opret system</button>
+                    <button class="ws-btn ws-btn-secondary" id="cancelAdd">Annuller</button>
+                </div>
+                <div class="ws-status" id="addStatus"></div>
+            </div>
+
+            <!-- SYSTEMS LIST -->
+            <div class="ws-list" id="systemsList">
+                <div class="ws-loading">Henter systemer…</div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script type="module">
+import { initializeApp, getApps, getApp }   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged }        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFunctions, httpsCallable }        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+import { loadLayout }                          from "/core/layout.js";
+
+const cfg = await (await fetch("/firebase-config.json")).json();
+const app = getApps().length ? getApp() : initializeApp(cfg);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const fns  = getFunctions(app);
+
+loadLayout();
+
+const fnCreate = httpsCallable(fns, "createWaterSystem");
+const fnUpdateStatus = httpsCallable(fns, "updateWaterSystemStatus");
+
+const STATUS_LABELS = { active:"Aktiv", service:"I service", offline:"Offline", decommissioned:"Nedlagt" };
+const TYPE_LABELS   = { ro:"Omvendt osmose", uv:"UV-filtrering", carbon:"Aktivt kul", sediment:"Sediment", combo:"Kombineret", other:"Andet" };
+
+function sv(id) { return document.getElementById(id).value.trim(); }
+function nv(id) { const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? null : v; }
+
+function showStatus(id, msg, isErr) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = "ws-status " + (isErr ? "err" : "ok");
+    setTimeout(() => { el.className = "ws-status"; }, 6000);
+}
+
+async function getUserCtx(user) {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists()) return null;
+    const d = snap.data();
+    return { companyId: d.companyId || d.organizationId || "", locationId: d.primaryLocationId || (d.locationIds && d.locationIds[0]) || d.locationId || "" };
+}
+
+async function loadAndRenderSystems(ctx) {
+    const list = document.getElementById("systemsList");
+    list.innerHTML = `<div class="ws-loading">Henter systemer…</div>`;
+    const q = query(collection(db, "water_systems"), where("companyId", "==", ctx.companyId), where("locationId", "==", ctx.locationId));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+        list.innerHTML = `<div class="ws-empty">Ingen systemer registreret endnu.<br>Tryk <strong>+ Tilføj system</strong> for at komme i gang.</div>`;
+        return;
+    }
+    list.innerHTML = snap.docs.map(d => {
+        const s = d.data();
+        return `<div class="ws-sys-card" data-id="${d.id}">
+            <div class="ws-sys-info">
+                <div class="ws-sys-name">${s.name || d.id}</div>
+                <div class="ws-sys-meta">
+                    ${TYPE_LABELS[s.systemType] || s.systemType || "–"}
+                    ${s.brand ? " · " + s.brand : ""}
+                    ${s.serialNumber ? " · S/N: " + s.serialNumber : ""}
+                    ${s.location ? " · " + s.location : ""}
+                    ${s.capacityLph ? " · " + s.capacityLph + " L/t" : ""}
+                    ${s.lastServiceAt ? " · Sidst serviceret: " + s.lastServiceAt : ""}
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <span class="ws-badge ${s.status}">${STATUS_LABELS[s.status] || s.status}</span>
+                <select class="ws-status-sel" data-id="${d.id}" style="padding:6px 10px;border:1px solid #d9e4d9;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;color:#2e7d32;">
+                    <option value="">Skift status…</option>
+                    <option value="active">Aktiv</option>
+                    <option value="service">I service</option>
+                    <option value="offline">Offline</option>
+                    <option value="decommissioned">Nedlagt</option>
+                </select>
+            </div>
+        </div>`;
+    }).join("");
+
+    // Bind status change selects
+    document.querySelectorAll(".ws-status-sel").forEach(sel => {
+        sel.addEventListener("change", async () => {
+            const newStatus = sel.value;
+            if (!newStatus) return;
+            sel.disabled = true;
+            try {
+                await fnUpdateStatus({ systemId: sel.dataset.id, companyId: ctx.companyId, status: newStatus });
+                await loadAndRenderSystems(ctx);
+            } catch (err) {
+                alert("Fejl: " + err.message);
+                sel.value = "";
+                sel.disabled = false;
+            }
+        });
+    });
+}
+
+// Toggle add form
+document.getElementById("toggleAddForm").addEventListener("click", () => {
+    const wrap = document.getElementById("addFormWrap");
+    wrap.classList.toggle("open");
+    document.getElementById("toggleAddForm").textContent = wrap.classList.contains("open") ? "✕ Luk" : "+ Tilføj system";
+});
+document.getElementById("cancelAdd").addEventListener("click", () => {
+    document.getElementById("addFormWrap").classList.remove("open");
+    document.getElementById("toggleAddForm").textContent = "+ Tilføj system";
+});
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "/"; return; }
+    const ctx = await getUserCtx(user);
+    if (!ctx?.companyId) { window.location.href = "/"; return; }
+    await loadAndRenderSystems(ctx);
+
+    document.getElementById("addSubmit").addEventListener("click", async () => {
+        const name = sv("fName");
+        if (!name) { showStatus("addStatus", "Angiv systemnavn", true); return; }
+        const btn = document.getElementById("addSubmit");
+        btn.disabled = true; btn.textContent = "Opretter…";
+        try {
+            await fnCreate({
+                companyId: ctx.companyId,
+                locationId: ctx.locationId,
+                name,
+                systemType: sv("fType"),
+                brand: sv("fBrand"),
+                serialNumber: sv("fSerial"),
+                capacityLph: nv("fCapacity"),
+                installationDate: sv("fInstalled"),
+                location: sv("fLocation"),
+                roomCoverage: sv("fRoomCoverage"),
+                notes: sv("fNotes")
+            });
+            showStatus("addStatus", "✅ System oprettet!", false);
+            ["fName","fBrand","fSerial","fCapacity","fInstalled","fLocation","fRoomCoverage","fNotes"].forEach(id => document.getElementById(id).value = "");
+            await loadAndRenderSystems(ctx);
+            setTimeout(() => {
+                document.getElementById("addFormWrap").classList.remove("open");
+                document.getElementById("toggleAddForm").textContent = "+ Tilføj system";
+            }, 1500);
+        } catch (err) {
+            showStatus("addStatus", "❌ Fejl: " + err.message, true);
+        } finally {
+            btn.disabled = false; btn.textContent = "Opret system";
+        }
+    });
+});
+</script>
+</body>
+</html>

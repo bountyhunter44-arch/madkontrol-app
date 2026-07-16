@@ -1,0 +1,1 @@
+﻿No gfxinfo/simpleperf/perfetto capture possible: no connected device/emulator and no Android package/build target found.

@@ -1,0 +1,964 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Selskabsplanlægning | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    .events-page{
+      display:grid;
+      gap:24px;
+    }
+
+    .hero-events{
+      position:relative;
+      overflow:hidden;
+      border-radius:28px;
+      padding:32px;
+      background:
+        radial-gradient(circle at top right, rgba(46,125,50,0.18), transparent 30%),
+        linear-gradient(135deg, #18311c 0%, #22532b 55%, #2e7d32 100%);
+      color:#fff;
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow:0 24px 60px rgba(22,34,22,0.16);
+    }
+
+    .hero-events::after{
+      content:"";
+      position:absolute;
+      right:-34px;
+      bottom:-42px;
+      width:220px;
+      height:220px;
+      border-radius:50%;
+      background:rgba(255,255,255,0.08);
+      filter:blur(8px);
+    }
+
+    .hero-events h1{
+      margin:0 0 10px;
+      font-size:clamp(2rem, 3vw, 2.75rem);
+      line-height:1.05;
+      font-weight:800;
+      max-width:760px;
+    }
+
+    .hero-events p{
+      margin:0;
+      max-width:830px;
+      color:rgba(255,255,255,0.88);
+      line-height:1.7;
+      font-size:1.02rem;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:24px;
+    }
+
+    .hero-actions .btn-secondary{
+      background:rgba(255,255,255,0.14);
+      color:#fff;
+      border:1px solid rgba(255,255,255,0.16);
+    }
+
+    .hero-actions .btn-secondary:hover{
+      background:rgba(255,255,255,0.22);
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:16px;
+    }
+
+    .stat-card{
+      background:#fff;
+      border:1px solid var(--border, #d9e4d9);
+      border-radius:22px;
+      padding:20px;
+      box-shadow:0 12px 30px rgba(19,34,20,0.06);
+    }
+
+    .stat-label{
+      font-size:0.92rem;
+      color:var(--muted, #667267);
+      margin-bottom:10px;
+    }
+
+    .stat-value{
+      font-size:1.8rem;
+      font-weight:800;
+      color:var(--text, #182118);
+      line-height:1;
+      margin-bottom:8px;
+    }
+
+    .stat-meta{
+      font-size:0.92rem;
+      color:var(--muted, #667267);
+    }
+
+    .toolbar-card,
+    .events-card,
+    .planning-card,
+    .panel-card{
+      background:#fff;
+      border:1px solid var(--border, #d9e4d9);
+      border-radius:24px;
+      box-shadow:0 14px 34px rgba(19,34,20,0.06);
+    }
+
+    .toolbar-card{
+      padding:18px;
+      display:grid;
+      grid-template-columns:1.5fr 180px 180px 180px auto;
+      gap:14px;
+      align-items:center;
+    }
+
+    .field,
+    .select{
+      width:100%;
+      border:1px solid #d8e3d8;
+      background:#f8fbf8;
+      border-radius:14px;
+      min-height:48px;
+      padding:0 14px;
+      font:inherit;
+      color:#182118;
+      outline:none;
+    }
+
+    .field:focus,
+    .select:focus{
+      border-color:#2e7d32;
+      box-shadow:0 0 0 3px rgba(46,125,50,0.12);
+      background:#fff;
+    }
+
+    .events-layout{
+      display:grid;
+      grid-template-columns:minmax(0, 1.6fr) minmax(320px, 0.95fr);
+      gap:24px;
+      align-items:start;
+    }
+
+    .left-column{
+      display:grid;
+      gap:24px;
+    }
+
+    .events-card{
+      padding:22px;
+      display:grid;
+      gap:18px;
+    }
+
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+    }
+
+    .card-header h2,
+    .planning-card h2,
+    .panel-card h2{
+      margin:0;
+      font-size:1.15rem;
+      color:#182118;
+    }
+
+    .event-list{
+      display:grid;
+      gap:16px;
+    }
+
+    .event-item{
+      border:1px solid #e3ece3;
+      background:#fbfdfb;
+      border-radius:22px;
+      padding:18px;
+      display:grid;
+      grid-template-columns:auto minmax(0, 1fr) auto;
+      gap:18px;
+      align-items:start;
+    }
+
+    .event-date{
+      min-width:82px;
+      border-radius:18px;
+      background:linear-gradient(180deg, #e8f5e9 0%, #dff0e1 100%);
+      border:1px solid #cae3cd;
+      padding:14px 10px;
+      text-align:center;
+    }
+
+    .event-date .day{
+      display:block;
+      font-size:1.5rem;
+      font-weight:800;
+      color:#1f5a23;
+      line-height:1;
+      margin-bottom:6px;
+    }
+
+    .event-date .month{
+      display:block;
+      font-size:0.86rem;
+      font-weight:700;
+      color:#406243;
+      text-transform:uppercase;
+      letter-spacing:0.04em;
+    }
+
+    .event-title-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      margin-bottom:10px;
+    }
+
+    .event-title{
+      margin:0;
+      font-size:1.08rem;
+      font-weight:800;
+      color:#182118;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:30px;
+      padding:0 12px;
+      border-radius:999px;
+      font-size:0.82rem;
+      font-weight:700;
+      border:1px solid transparent;
+      white-space:nowrap;
+    }
+
+    .badge-green{
+      background:#e8f5e9;
+      color:#1f5a23;
+      border-color:#cae9cf;
+    }
+
+    .badge-yellow{
+      background:#fff6df;
+      color:#9a6700;
+      border-color:#f4dfad;
+    }
+
+    .badge-blue{
+      background:#e7f0ff;
+      color:#2457a6;
+      border-color:#d3e1ff;
+    }
+
+    .badge-red{
+      background:#fdecec;
+      color:#b42318;
+      border-color:#f6caca;
+    }
+
+    .event-desc{
+      margin:0 0 14px;
+      color:#5f6d61;
+      line-height:1.65;
+    }
+
+    .event-meta{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:12px;
+    }
+
+    .meta-box{
+      background:#f8fbf8;
+      border:1px solid #e3ece3;
+      border-radius:16px;
+      padding:14px;
+    }
+
+    .meta-label{
+      font-size:0.8rem;
+      color:#667267;
+      margin-bottom:6px;
+    }
+
+    .meta-value{
+      font-size:0.95rem;
+      font-weight:700;
+      color:#182118;
+      line-height:1.45;
+    }
+
+    .event-actions{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-width:180px;
+    }
+
+    .planning-card{
+      padding:22px;
+      display:grid;
+      gap:18px;
+    }
+
+    .planning-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:14px;
+    }
+
+    .planning-item{
+      background:#f8fbf8;
+      border:1px solid #e3ece3;
+      border-radius:18px;
+      padding:16px;
+      display:grid;
+      gap:10px;
+    }
+
+    .planning-item strong{
+      display:block;
+      color:#182118;
+      font-size:0.98rem;
+    }
+
+    .planning-item small{
+      color:#667267;
+      font-size:0.84rem;
+    }
+
+    .planning-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .meta-pill{
+      display:inline-flex;
+      align-items:center;
+      min-height:32px;
+      padding:0 10px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid #dbe5db;
+      color:#2c3a2d;
+      font-size:0.82rem;
+      font-weight:700;
+    }
+
+    .planning-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:4px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:46px;
+      padding:0 16px;
+      border-radius:14px;
+      border:none;
+      cursor:pointer;
+      font:inherit;
+      font-weight:700;
+      transition:0.18s ease;
+      text-decoration:none;
+    }
+
+    .btn-primary{
+      background:#2e7d32;
+      color:#fff;
+    }
+
+    .btn-primary:hover{
+      background:#25672a;
+      transform:translateY(-1px);
+    }
+
+    .btn-secondary{
+      background:#f5f8f5;
+      color:#1f2a20;
+      border:1px solid #d8e3d8;
+    }
+
+    .btn-secondary:hover{
+      background:#edf4ed;
+    }
+
+    .btn-small{
+      min-height:38px;
+      padding:0 12px;
+      border-radius:12px;
+      font-size:0.88rem;
+    }
+
+    .panel-card{
+      padding:22px;
+      display:grid;
+      gap:18px;
+    }
+
+    .quick-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .quick-item{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:center;
+      padding:14px 16px;
+      border-radius:18px;
+      background:#f8fbf8;
+      border:1px solid #e3ece3;
+    }
+
+    .quick-item strong{
+      display:block;
+      color:#182118;
+      margin-bottom:4px;
+    }
+
+    .quick-item span{
+      color:#667267;
+      font-size:0.92rem;
+    }
+
+    .quick-pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:88px;
+      min-height:34px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid #dae5da;
+      font-weight:700;
+      color:#2e7d32;
+      padding:0 10px;
+      white-space:nowrap;
+    }
+
+    .mini-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+
+    .mini-card{
+      background:#f8fbf8;
+      border:1px solid #e3ece3;
+      border-radius:18px;
+      padding:16px;
+    }
+
+    .mini-card .label{
+      font-size:0.85rem;
+      color:#667267;
+      margin-bottom:8px;
+    }
+
+    .mini-card .value{
+      font-size:1.05rem;
+      font-weight:800;
+      color:#182118;
+    }
+
+    @media (max-width: 1180px){
+      .toolbar-card{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .events-layout{
+        grid-template-columns:1fr;
+      }
+
+      .stats-grid{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 920px){
+      .event-item{
+        grid-template-columns:1fr;
+      }
+
+      .event-actions{
+        min-width:0;
+        flex-direction:row;
+        flex-wrap:wrap;
+      }
+
+      .event-meta{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+      }
+
+      .planning-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 680px){
+      .stats-grid,
+      .mini-grid,
+      .toolbar-card,
+      .event-meta{
+        grid-template-columns:1fr;
+      }
+
+      .hero-events{
+        padding:24px;
+      }
+
+      .card-header{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="headerMount"></div>
+
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+
+      <section class="page-content">
+        <div class="events-page">
+
+          <section class="hero-events">
+            <h1>Selskabsplanlægning med styr på gæster, menu, timing og indkøb</h1>
+            <p>
+              Planlæg selskaber, catering og arrangementer ét sted. Få overblik over antal gæster,
+              menuvalg, tidsplan, råvarebehov og status, så drift, køkken og indkøb spiller sammen
+              uden stress.
+            </p>
+
+            <div class="hero-actions">
+              <a href="#" class="btn btn-primary">+ Opret selskab</a>
+              <a href="/modules/drift/menu.html" class="btn btn-secondary">Se menu / retter</a>
+              <a href="/modules/drift/purchases.html" class="btn btn-secondary">Gå til indkøb</a>
+            </div>
+          </section>
+
+          <section class="stats-grid">
+            <article class="stat-card">
+              <div class="stat-label">Kommende selskaber</div>
+              <div class="stat-value">6</div>
+              <div class="stat-meta">3 inden for de næste 7 dage</div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-label">Bekræftede gæster</div>
+              <div class="stat-value">214</div>
+              <div class="stat-meta">Fordelt på alle aktive arrangementer</div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-label">Manglende menuvalg</div>
+              <div class="stat-value">2</div>
+              <div class="stat-meta">Kræver afklaring med kunden</div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-label">Indkøb til events</div>
+              <div class="stat-value">12.860 kr.</div>
+              <div class="stat-meta">Estimeret samlet behov</div>
+            </article>
+          </section>
+
+          <section class="toolbar-card">
+            <input class="field" type="text" placeholder="Søg efter selskab, kunde, dato, menu eller lokation..." />
+            <select class="select">
+              <option>Alle statusser</option>
+              <option>Forespørgsel</option>
+              <option>Bekræftet</option>
+              <option>I planlægning</option>
+              <option>Afsluttet</option>
+            </select>
+            <select class="select">
+              <option>Alle typer</option>
+              <option>Catering</option>
+              <option>Firmaevent</option>
+              <option>Privat selskab</option>
+              <option>Bryllup</option>
+            </select>
+            <select class="select">
+              <option>Sortér: Nærmeste dato</option>
+              <option>Sortér: Flest gæster</option>
+              <option>Sortér: Nyeste oprettet</option>
+              <option>Sortér: Højeste omsætning</option>
+            </select>
+            <button class="btn btn-primary">Filtrér</button>
+          </section>
+
+          <section class="events-layout">
+            <div class="left-column">
+
+              <section class="events-card">
+                <div class="card-header">
+                  <h2>Kommende selskaber</h2>
+                  <a href="#" class="btn btn-secondary">Eksportér plan</a>
+                </div>
+
+                <div class="event-list">
+                  <article class="event-item">
+                    <div class="event-date">
+                      <span class="day">18</span>
+                      <span class="month">MAR</span>
+                    </div>
+
+                    <div>
+                      <div class="event-title-row">
+                        <h3 class="event-title">Firmafrokost · Nordtek ApS</h3>
+                        <span class="badge badge-green">Bekræftet</span>
+                        <span class="badge badge-blue">Firmaevent</span>
+                      </div>
+
+                      <p class="event-desc">
+                        Frokostarrangement for kontorpersonale med buffet, vegetarvalg
+                        og dessertbord. Levering og opsætning på kundens adresse.
+                      </p>
+
+                      <div class="event-meta">
+                        <div class="meta-box">
+                          <div class="meta-label">Gæster</div>
+                          <div class="meta-value">42 personer</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Menu</div>
+                          <div class="meta-value">Buffet + dessert</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Tid</div>
+                          <div class="meta-value">11:30 – 14:00</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Estimeret omsætning</div>
+                          <div class="meta-value">8.900 kr.</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="event-actions">
+                      <a href="#" class="btn btn-primary">Åbn selskab</a>
+                      <a href="#" class="btn btn-secondary">Planlæg indkøb</a>
+                    </div>
+                  </article>
+
+                  <article class="event-item">
+                    <div class="event-date">
+                      <span class="day">21</span>
+                      <span class="month">MAR</span>
+                    </div>
+
+                    <div>
+                      <div class="event-title-row">
+                        <h3 class="event-title">Bryllupsmiddag · Hansen & Lund</h3>
+                        <span class="badge badge-yellow">I planlægning</span>
+                        <span class="badge badge-blue">Bryllup</span>
+                      </div>
+
+                      <p class="event-desc">
+                        Aftenarrangement med tre retter, vinmenu og natmad. Der mangler
+                        endelig bekræftelse på dessert og allergener for 6 gæster.
+                      </p>
+
+                      <div class="event-meta">
+                        <div class="meta-box">
+                          <div class="meta-label">Gæster</div>
+                          <div class="meta-value">76 personer</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Menu</div>
+                          <div class="meta-value">3 retter + natmad</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Tid</div>
+                          <div class="meta-value">17:00 – 01:00</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Estimeret omsætning</div>
+                          <div class="meta-value">34.500 kr.</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="event-actions">
+                      <a href="#" class="btn btn-primary">Åbn selskab</a>
+                      <a href="#" class="btn btn-secondary">Se menuvalg</a>
+                    </div>
+                  </article>
+
+                  <article class="event-item">
+                    <div class="event-date">
+                      <span class="day">24</span>
+                      <span class="month">MAR</span>
+                    </div>
+
+                    <div>
+                      <div class="event-title-row">
+                        <h3 class="event-title">Catering · BygPartner kickoff</h3>
+                        <span class="badge badge-green">Bekræftet</span>
+                        <span class="badge badge-blue">Catering</span>
+                      </div>
+
+                      <p class="event-desc">
+                        Sandwiches, salater og drikkevarer til intern kickoff. Enkel levering
+                        uden servering, men med præcis portionspakning og mærkning.
+                      </p>
+
+                      <div class="event-meta">
+                        <div class="meta-box">
+                          <div class="meta-label">Gæster</div>
+                          <div class="meta-value">28 personer</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Menu</div>
+                          <div class="meta-value">Sandwich + salat</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Tid</div>
+                          <div class="meta-value">10:45 levering</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Estimeret omsætning</div>
+                          <div class="meta-value">5.600 kr.</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="event-actions">
+                      <a href="#" class="btn btn-primary">Åbn selskab</a>
+                      <a href="#" class="btn btn-secondary">Klargør produktion</a>
+                    </div>
+                  </article>
+
+                  <article class="event-item">
+                    <div class="event-date">
+                      <span class="day">29</span>
+                      <span class="month">MAR</span>
+                    </div>
+
+                    <div>
+                      <div class="event-title-row">
+                        <h3 class="event-title">50 års fødselsdag · Privat booking</h3>
+                        <span class="badge badge-red">Mangler afklaring</span>
+                        <span class="badge badge-blue">Privat selskab</span>
+                      </div>
+
+                      <p class="event-desc">
+                        Lokalt selskab med buffet og fri bar. Afventer endeligt gæsteantal,
+                        dessertvalg og bekræftelse af oppyntning.
+                      </p>
+
+                      <div class="event-meta">
+                        <div class="meta-box">
+                          <div class="meta-label">Gæster</div>
+                          <div class="meta-value">Ca. 38 personer</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Menu</div>
+                          <div class="meta-value">Buffet</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Tid</div>
+                          <div class="meta-value">18:00 – 23:30</div>
+                        </div>
+                        <div class="meta-box">
+                          <div class="meta-label">Estimeret omsætning</div>
+                          <div class="meta-value">11.800 kr.</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="event-actions">
+                      <a href="#" class="btn btn-primary">Åbn selskab</a>
+                      <a href="#" class="btn btn-secondary">Kontakt kunde</a>
+                    </div>
+                  </article>
+                </div>
+              </section>
+
+              <section class="planning-card">
+                <h2>Planlægningsopgaver</h2>
+
+                <div class="planning-grid">
+                  <article class="planning-item">
+                    <strong>Afklar allergener til bryllup</strong>
+                    <small>Bryllupsmiddag · Hansen & Lund</small>
+                    <div class="planning-meta">
+                      <span class="meta-pill">6 gæster mangler info</span>
+                      <span class="meta-pill">Deadline: 17-03-2026</span>
+                    </div>
+                    <div class="planning-actions">
+                      <a href="#" class="btn btn-primary btn-small">Åbn opgave</a>
+                      <a href="#" class="btn btn-secondary btn-small">Se selskab</a>
+                    </div>
+                  </article>
+
+                  <article class="planning-item">
+                    <strong>Generér indkøbsliste til firmafrokost</strong>
+                    <small>Nordtek ApS</small>
+                    <div class="planning-meta">
+                      <span class="meta-pill">42 kuverter</span>
+                      <span class="meta-pill">Buffet + dessert</span>
+                    </div>
+                    <div class="planning-actions">
+                      <a href="#" class="btn btn-primary btn-small">Lav indkøb</a>
+                      <a href="#" class="btn btn-secondary btn-small">Se menu</a>
+                    </div>
+                  </article>
+
+                  <article class="planning-item">
+                    <strong>Bekræft dessertvalg</strong>
+                    <small>Privat booking · 50 års fødselsdag</small>
+                    <div class="planning-meta">
+                      <span class="meta-pill">Afventer kunde</span>
+                      <span class="meta-pill">Påvirker råvarebehov</span>
+                    </div>
+                    <div class="planning-actions">
+                      <a href="#" class="btn btn-primary btn-small">Følg op</a>
+                      <a href="#" class="btn btn-secondary btn-small">Åbn selskab</a>
+                    </div>
+                  </article>
+
+                  <article class="planning-item">
+                    <strong>Klargør produktion til catering</strong>
+                    <small>BygPartner kickoff</small>
+                    <div class="planning-meta">
+                      <span class="meta-pill">28 portioner</span>
+                      <span class="meta-pill">Mærkning påkrævet</span>
+                    </div>
+                    <div class="planning-actions">
+                      <a href="#" class="btn btn-primary btn-small">Start plan</a>
+                      <a href="#" class="btn btn-secondary btn-small">Se opskrifter</a>
+                    </div>
+                  </article>
+                </div>
+              </section>
+
+            </div>
+
+            <aside class="panel-card">
+              <h2>Hurtigt overblik</h2>
+
+              <div class="quick-list">
+                <div class="quick-item">
+                  <div>
+                    <strong>Events denne uge</strong>
+                    <span>Selskaber som kræver produktion, indkøb og koordinering</span>
+                  </div>
+                  <div class="quick-pill">3 stk.</div>
+                </div>
+
+                <div class="quick-item">
+                  <div>
+                    <strong>Mangler afklaring</strong>
+                    <span>Menuvalg, allergener eller gæsteantal skal bekræftes</span>
+                  </div>
+                  <div class="quick-pill">2 stk.</div>
+                </div>
+
+                <div class="quick-item">
+                  <div>
+                    <strong>Største arrangement</strong>
+                    <span>Det event der lægger størst pres på køkken og planlægning</span>
+                  </div>
+                  <div class="quick-pill">76 gæster</div>
+                </div>
+              </div>
+
+              <div class="mini-grid">
+                <div class="mini-card">
+                  <div class="label">Nærmeste event</div>
+                  <div class="value">Nordtek ApS</div>
+                </div>
+                <div class="mini-card">
+                  <div class="label">Største omsætning</div>
+                  <div class="value">Bryllupsmiddag</div>
+                </div>
+                <div class="mini-card">
+                  <div class="label">Næste fokus</div>
+                  <div class="value">Allergener</div>
+                </div>
+                <div class="mini-card">
+                  <div class="label">Menu pres</div>
+                  <div class="value">2 uafklarede</div>
+                </div>
+              </div>
+
+              <a href="/modules/drift/purchases.html" class="btn btn-primary">Til indkøb</a>
+              <a href="/modules/drift/recipes.html" class="btn btn-secondary">Til opskrifter</a>
+            </aside>
+          </section>
+
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/modules/drift/drift.js"></script>
+  <script>
+    async function loadSharedPartials() {
+      const headerMount = document.getElementById("headerMount");
+      const sidebarMount = document.getElementById("sidebarMount");
+
+      try {
+        const [headerRes, sidebarRes] = await Promise.all([
+          fetch("/components/header.html"),
+          fetch("/components/sidebar.html")
+        ]);
+
+        if (headerRes.ok) {
+          headerMount.innerHTML = await headerRes.text();
+        }
+
+        if (sidebarRes.ok) {
+          sidebarMount.innerHTML = await sidebarRes.text();
+        }
+
+        const currentPath = window.location.pathname;
+        document.querySelectorAll(".sidebar-link, .nav a").forEach((link) => {
+          const href = link.getAttribute("href");
+          if (href && currentPath.includes(href.replace("/index.html", "/"))) {
+            link.classList.add("active");
+          }
+          if (href === currentPath) {
+            link.classList.add("active");
+          }
+        });
+      } catch (error) {
+        console.error("Kunne ikke indlæse header/sidebar:", error);
+      }
+    }
+
+    loadSharedPartials();
+  </script>
+
+</body>
+</html>

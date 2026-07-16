@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Optælling | Lagerkontrol staging read-only</title>
+  <meta name="description" content="Read-only staging shell for Lagerkontrol optælling. Ingen production writes.">
+  <link rel="stylesheet" href="./assets/css/lagerkontrol.css">
+</head>
+<body data-route-file="optaelling.html">
+  <main class="staging-shell route-page">
+    <div id="routeNavigation"></div>
+    <section id="routeShell"></section>
+    <section id="countsWarnings"></section>
+    <section id="countsList" class="section">
+      <p class="muted">Indlæser optællinger read-only...</p>
+    </section>
+    <noscript>
+      <section class="section warning">
+        <h2>JavaScript mangler</h2>
+        <p>Optælling read-only kræver JavaScript. Ingen production writes er aktiveret.</p>
+      </section>
+    </noscript>
+  </main>
+  <script type="module" src="./assets/js/lagerkontrol.js"></script>
+</body>
+</html>

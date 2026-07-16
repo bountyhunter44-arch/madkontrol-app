@@ -1,0 +1,3098 @@
+﻿<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Madkontrollen POS</title>
+  <style>
+    :root {
+      --bg: #f3f7f1;
+      --surface: #ffffff;
+      --surface-soft: #eef5eb;
+      --text: #17311f;
+      --muted: #667466;
+      --border: #dbe7d7;
+      --green: #236a3a;
+      --green-dark: #164929;
+      --danger: #b42318;
+      --shadow: 0 16px 36px rgba(26, 54, 35, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .pos-shell {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-width: 0;
+      min-height: 100vh;
+    }
+
+    .pos-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .pos-brand {
+      display: grid;
+      gap: 2px;
+    }
+
+    .pos-brand strong {
+      font-size: 18px;
+    }
+
+    .pos-brand span,
+    #clock {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .pos-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .pos-nav a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--green-dark);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-button {
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--green-dark);
+      cursor: pointer;
+    }
+
+    .hamburger-lines,
+    .hamburger-lines::before,
+    .hamburger-lines::after {
+      display: block;
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+      content: "";
+    }
+
+    .hamburger-lines {
+      position: relative;
+    }
+
+    .hamburger-lines::before,
+    .hamburger-lines::after {
+      position: absolute;
+      left: 0;
+    }
+
+    .hamburger-lines::before {
+      top: -6px;
+    }
+
+    .hamburger-lines::after {
+      top: 6px;
+    }
+
+    .pos-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+      gap: 18px;
+      width: min(1440px, calc(100% - 32px));
+      min-width: 0;
+      margin: 0 auto;
+      padding: 18px 0;
+    }
+
+    .pos-context-banner {
+      grid-column: 1 / -1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--muted);
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .pos-context-banner[data-state="missing"] {
+      border-color: #f0d7a8;
+      background: #fff8e8;
+      color: #835f13;
+    }
+
+    .panel {
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .panel h1,
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .pos-dashboard {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(220px, 0.8fr) minmax(300px, 1.35fr) minmax(300px, 1fr);
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .dashboard-card {
+      min-width: 0;
+      min-height: 154px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .dashboard-card h2 {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      display: block;
+      margin-top: 6px;
+      font-size: 30px;
+      font-weight: 950;
+      letter-spacing: 0;
+      color: var(--text);
+    }
+
+    .metric-sub,
+    .metric-delta,
+    .chart-empty {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .metric-delta.positive {
+      color: var(--green);
+    }
+
+    .metric-delta.negative {
+      color: var(--danger);
+    }
+
+    .sales-chart {
+      min-height: 96px;
+    }
+
+    .sales-chart svg {
+      display: block;
+      width: 100%;
+      height: 104px;
+    }
+
+    .chart-labels {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .category-summary {
+      display: grid;
+      gap: 9px;
+    }
+
+    .category-row {
+      display: grid;
+      grid-template-columns: 82px minmax(80px, 1fr) 48px 76px;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .category-track {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #edf2ea;
+    }
+
+    .category-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--green);
+    }
+
+    .pos-toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+      margin-bottom: 14px;
+    }
+
+    .product-search {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .category-tabs,
+    .quick-payment-grid,
+    .quick-payment-more {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .category-tab,
+    .quick-payment {
+      max-width: 100%;
+      min-width: 0;
+      min-height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--green-dark);
+      font-size: 13px;
+      font-weight: 850;
+      cursor: pointer;
+      padding: 7px 10px;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .category-tab[aria-pressed="true"],
+    .quick-payment[aria-pressed="true"] {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+
+    .add-product {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 140px auto;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .add-product input {
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      color: var(--text);
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .product-card {
+      display: grid;
+      gap: 10px;
+      min-height: 188px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s ease;
+    }
+
+    .product-card:hover {
+      border-color: var(--green);
+      transform: translateY(-1px);
+    }
+
+    .product-name {
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .product-price {
+      color: var(--green-dark);
+      font-weight: 850;
+    }
+
+    .product-image {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      aspect-ratio: 1.25 / 1;
+      overflow: hidden;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #eef5eb, #ffffff);
+      color: var(--green);
+      font-size: 34px;
+      font-weight: 950;
+    }
+
+    .product-image img,
+    .cart-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .product-meta {
+      display: grid;
+      gap: 4px;
+    }
+
+    .product-category {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .cart {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+      min-width: 0;
+    }
+
+    .cart-items {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+      min-height: 180px;
+    }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .cart-item-info,
+    .cart-item-controls,
+    .total-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cart-item-info {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      font-weight: 750;
+    }
+
+    .cart-item-qty {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .cart-item-controls {
+      white-space: nowrap;
+    }
+
+    .cart-thumb {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: var(--surface-soft);
+      color: var(--green);
+      font-weight: 950;
+    }
+
+    .btn,
+    .btn-qty {
+      max-width: 100%;
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--green-dark);
+      font-weight: 800;
+      cursor: pointer;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .btn {
+      min-height: 42px;
+      padding: 9px 13px;
+    }
+
+    .btn.primary {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+
+    .btn.danger {
+      border-color: #f1c3bf;
+      color: var(--danger);
+    }
+
+    .btn-qty {
+      width: 30px;
+      height: 30px;
+    }
+
+    .totals {
+      display: grid;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .total-line {
+      justify-content: space-between;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .total-line.grand {
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .cart-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .checkout-button {
+      grid-column: 1 / -1;
+      min-height: 52px;
+      font-size: 16px;
+    }
+
+    .quick-payment-area {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .quick-payment-more[hidden] {
+      display: none;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    .payment-select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 9px 11px;
+      font-weight: 800;
+    }
+
+    .payment-details {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .payment-details[hidden] {
+      display: none;
+    }
+
+    .payment-details input,
+    .payment-details textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 9px 11px;
+    }
+
+    .payment-details textarea {
+      min-height: 72px;
+      resize: vertical;
+    }
+
+    .payment-help {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
+    .pos-settings {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-soft);
+    }
+
+    .pos-settings h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .zettle-panel-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      justify-items: start;
+      background: rgba(12, 24, 16, 0.32);
+    }
+
+    .zettle-panel-backdrop[hidden] {
+      display: none;
+    }
+
+    .zettle-panel {
+      width: min(440px, 100%);
+      height: 100vh;
+      overflow: auto;
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: 18px 0 52px rgba(11, 28, 16, 0.2);
+    }
+
+    .zettle-panel-header {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .zettle-panel-title {
+      display: grid;
+      gap: 3px;
+    }
+
+    .zettle-panel-title strong {
+      font-size: 24px;
+    }
+
+    .zettle-panel-title span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .zettle-panel-body {
+      display: grid;
+      gap: 22px;
+      padding: 18px;
+    }
+
+    .settings-section {
+      display: grid;
+      gap: 8px;
+    }
+
+    .settings-section h2 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .settings-row {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      min-height: 62px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .settings-row:last-child {
+      border-bottom: 0;
+    }
+
+    .settings-row-icon {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--surface-soft);
+      color: var(--green-dark);
+      font-size: 16px;
+      font-weight: 950;
+    }
+
+    .settings-row-text {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .settings-row-title {
+      font-size: 18px;
+      font-weight: 850;
+      line-height: 1.2;
+    }
+
+    .settings-row-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.35;
+    }
+
+    .settings-row-action {
+      min-width: 74px;
+      justify-self: end;
+      color: var(--green-dark);
+      font-size: 13px;
+      font-weight: 900;
+      text-align: right;
+    }
+
+    .settings-link {
+      color: var(--green-dark);
+      text-decoration: none;
+    }
+
+    .switch-button {
+      position: relative;
+      width: 58px;
+      height: 34px;
+      border: 0;
+      border-radius: 999px;
+      background: #dbe2d8;
+      cursor: pointer;
+    }
+
+    .switch-button::after {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(12, 24, 16, 0.18);
+      content: "";
+      transition: transform 0.16s ease;
+    }
+
+    .switch-button[aria-pressed="true"] {
+      background: #125bd8;
+    }
+
+    .switch-button[aria-pressed="true"]::after {
+      transform: translateX(24px);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .status-pill.ok {
+      border-color: #b8dec4;
+      background: #eaf7ee;
+      color: var(--green-dark);
+    }
+
+    .inventory-empty {
+      display: grid;
+      gap: 12px;
+      justify-items: center;
+      padding: 22px 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .inventory-empty strong {
+      color: var(--text);
+      font-size: 20px;
+    }
+
+    .box-illustration {
+      position: relative;
+      width: 128px;
+      height: 92px;
+    }
+
+    .box-illustration::before,
+    .box-illustration::after {
+      position: absolute;
+      border: 3px solid #14326f;
+      background: #f5efe8;
+      content: "";
+    }
+
+    .box-illustration::before {
+      left: 12px;
+      bottom: 0;
+      width: 70px;
+      height: 58px;
+      transform: skewY(-8deg);
+    }
+
+    .box-illustration::after {
+      right: 8px;
+      bottom: 6px;
+      width: 62px;
+      height: 52px;
+      transform: skewY(7deg);
+    }
+
+    .settings-actions,
+    .reader-list {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .settings-actions .btn,
+    .reader-list .btn {
+      width: 100%;
+    }
+
+    .reader-option {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .reader-option strong,
+    .reader-option span {
+      display: block;
+    }
+
+    .reader-option span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .payment-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(12, 24, 16, 0.42);
+    }
+
+    .payment-modal-backdrop[hidden] {
+      display: none;
+    }
+
+    .payment-modal {
+      width: min(620px, 100%);
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 24px 80px rgba(11, 28, 16, 0.22);
+      padding: 18px;
+    }
+
+    .payment-modal h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+    }
+
+    .payment-choice-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .payment-choice-grid.secondary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 8px;
+    }
+
+    .payment-choice {
+      min-height: 46px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--green-dark);
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .payment-choice[aria-pressed="true"] {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+
+    .payment-modal-fields {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .payment-modal-fields input,
+    .payment-modal-fields textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+    }
+
+    .payment-modal-fields textarea {
+      min-height: 74px;
+      resize: vertical;
+    }
+
+    .payment-modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .payment-modal-status {
+      min-height: 20px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    #print-receipt {
+      display: none;
+    }
+
+    @media (max-width: 860px) {
+      .pos-main,
+      .add-product,
+      .pos-dashboard,
+      .pos-toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .pos-main {
+        width: min(100%, calc(100% - 24px));
+        gap: 12px;
+        padding: 12px 0;
+      }
+
+      .panel {
+        padding: 12px;
+      }
+
+      .pos-topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .pos-nav {
+        justify-content: flex-start;
+      }
+
+      .topbar-actions {
+        justify-content: space-between;
+      }
+
+      .payment-choice-grid,
+      .payment-choice-grid.secondary {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .pos-main {
+        width: min(100%, calc(100% - 20px));
+      }
+
+      .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+      }
+
+      .cart-actions {
+        gap: 8px;
+      }
+
+      .btn {
+        padding: 9px 10px;
+      }
+    }
+
+    @media print {
+      body > *:not(#print-receipt) {
+        display: none !important;
+      }
+
+      #print-receipt {
+        display: block;
+        width: 58mm;
+        color: #000;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+      }
+
+      .receipt-header {
+        text-align: center;
+      }
+
+      .receipt-header h3,
+      .receipt-header p {
+        margin: 0 0 4px;
+      }
+
+      .receipt-divider {
+        border-top: 1px dashed #000;
+        margin: 8px 0;
+      }
+
+      .receipt-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 4px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="pos-shell">
+    <header class="pos-topbar">
+      <div class="topbar-actions">
+        <button class="icon-button" type="button" id="pos-settings-open" aria-label="Åbn POS-indstillinger">
+          <span class="hamburger-lines" aria-hidden="true"></span>
+        </button>
+        <div class="pos-brand">
+          <strong>Madkontrollen POS</strong>
+          <span>Salgs- og bonmodul</span>
+        </div>
+      </div>
+      <nav class="pos-nav" aria-label="POS navigation">
+        <a href="/modules/pos/index.html">Kasse</a>
+        <a href="/modules/pos/create-product.html">Opret produkt</a>
+        <a href="/modules/pos/edit-product.html">Ret vare</a>
+        <a href="/modules/pos/delete-product.html">Slet produkter</a>
+        <a href="/modules/pos/sales-report.html">Salgsrapport</a>
+      </nav>
+      <div id="clock" aria-label="Klokkeslæt"></div>
+    </header>
+
+    <main class="pos-main">
+      <div id="business-context-status" class="pos-context-banner" data-state="missing">
+        Virksomhedsoplysninger mangler. POS kører med lokal prototype/fallback.
+      </div>
+
+      <section class="pos-dashboard" aria-label="Dagens overblik">
+        <article class="dashboard-card">
+          <h2>Omsætning i dag</h2>
+          <strong class="metric-value" id="today-revenue">0,00 kr.</strong>
+          <span class="metric-sub" id="today-sales-count">0 salg</span>
+          <div class="metric-delta" id="today-revenue-delta">Ingen salg i går</div>
+        </article>
+        <article class="dashboard-card">
+          <h2>Omsætning de sidste 7 dage</h2>
+          <div id="sales-chart" class="sales-chart"></div>
+        </article>
+        <article class="dashboard-card">
+          <h2>Salg fordelt på kategorier</h2>
+          <div id="category-summary" class="category-summary"></div>
+        </article>
+      </section>
+
+      <section class="panel product-panel">
+        <h1>Varer</h1>
+        <div class="pos-toolbar">
+          <input id="product-search" class="product-search" type="search" autocomplete="off" placeholder="Søg efter varer">
+          <div class="category-tabs" aria-label="Kategorier">
+            <button class="category-tab" type="button" data-category-filter="Alle" aria-pressed="true">Alle</button>
+            <button class="category-tab" type="button" data-category-filter="Mad" aria-pressed="false">Mad</button>
+            <button class="category-tab" type="button" data-category-filter="Drikke" aria-pressed="false">Drikke</button>
+            <button class="category-tab" type="button" data-category-filter="Tilbehør" aria-pressed="false">Tilbehør</button>
+            <button class="category-tab" type="button" data-category-filter="Dessert" aria-pressed="false">Dessert</button>
+            <button class="category-tab" type="button" data-category-filter="Andet" aria-pressed="false">Andet</button>
+          </div>
+        </div>
+        <div id="product-grid" class="product-grid"></div>
+      </section>
+
+      <aside class="panel cart">
+        <h2>Kurv</h2>
+        <div id="cart-items" class="cart-items"></div>
+        <div class="totals">
+          <div class="total-line">
+            <span>Subtotal</span>
+            <strong id="subtotal">0.00 kr.</strong>
+          </div>
+          <div class="total-line">
+            <span>Rabat</span>
+            <strong id="discount-display">0.00 kr.</strong>
+          </div>
+          <div class="total-line visually-hidden">
+            <span>Uden moms</span>
+            <strong id="total-ex-vat">0.00 kr.</strong>
+          </div>
+          <div class="total-line visually-hidden">
+            <span>Moms 25%</span>
+            <strong id="vat-amount">0.00 kr.</strong>
+          </div>
+          <div class="total-line grand">
+            <span>Total</span>
+            <strong id="total">0.00 kr.</strong>
+          </div>
+        </div>
+        <label class="visually-hidden">
+          Betaling
+          <select id="payment-method" class="payment-select">
+            <option value="zettle_reader">Zettle / PayPal Reader</option>
+            <option value="external_card_terminal">Tap to Pay / Kortterminal</option>
+            <option value="cash">Kontant</option>
+            <option value="mobilepay">MobilePay</option>
+            <option value="revolut">Revolut</option>
+            <option value="wise">Wise betalingslink</option>
+            <option value="stripe">Stripe</option>
+            <option value="bank_transfer">Bankoverførsel</option>
+            <option value="gift_card">Gavekort</option>
+            <option value="other">Andet</option>
+          </select>
+        </label>
+        <div id="payment-details" class="payment-details" hidden>
+          <label>
+            Reference / transaktions-ID
+            <input id="payment-reference" type="text" autocomplete="off" placeholder="Fx terminal-ID, link-reference eller banktekst">
+          </label>
+          <label>
+            Note
+            <textarea id="payment-note" placeholder="Valgfri note til senere betalingsafstemning"></textarea>
+          </label>
+          <p class="payment-help">POS registrerer salget og dokumentationen. Selve betalingen håndteres af den valgte betalingsudbyder.</p>
+        </div>
+        <div class="cart-actions">
+          <button class="btn" type="button" onclick="applyDiscount()">Rabat</button>
+          <button class="btn danger" type="button" onclick="clearCart()">Nulstil</button>
+          <button class="btn primary checkout-button" id="checkout-button" type="button" onclick="checkout()">Betal 0,00 kr.</button>
+        </div>
+        <div class="quick-payment-area" aria-label="Betalingsmetode">
+          <div class="quick-payment-grid">
+            <button class="quick-payment" type="button" data-quick-payment="zettle_reader" aria-pressed="true">Zettle / Kort</button>
+            <button class="quick-payment" type="button" data-quick-payment="external_card_terminal" aria-pressed="false">Tap to Pay</button>
+            <button class="quick-payment" type="button" data-quick-payment="mobilepay" aria-pressed="false">MobilePay</button>
+            <button class="quick-payment" type="button" data-quick-payment="cash" aria-pressed="false">Kontant</button>
+            <button class="quick-payment" type="button" id="more-payments-button" aria-pressed="false">Flere</button>
+          </div>
+          <div class="quick-payment-more" id="quick-payment-more" hidden>
+            <button class="quick-payment" type="button" data-quick-payment="bank_transfer" aria-pressed="false">Bankoverførsel</button>
+            <button class="quick-payment" type="button" data-quick-payment="revolut" aria-pressed="false">Revolut</button>
+            <button class="quick-payment" type="button" data-quick-payment="wise" aria-pressed="false">Wise</button>
+            <button class="quick-payment" type="button" data-quick-payment="stripe" aria-pressed="false">Stripe</button>
+            <button class="quick-payment" type="button" data-quick-payment="gift_card" aria-pressed="false">Gavekort</button>
+            <button class="quick-payment" type="button" data-quick-payment="other" aria-pressed="false">Andet</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div id="pos-settings-backdrop" class="zettle-panel-backdrop" hidden>
+    <section class="zettle-panel" role="dialog" aria-modal="true" aria-labelledby="pos-settings-title">
+      <header class="zettle-panel-header">
+        <div class="zettle-panel-title">
+          <strong id="pos-settings-title">Indstillinger</strong>
+          <span id="pos-settings-sync-status">Lokale POS-indstillinger</span>
+        </div>
+        <button class="icon-button" type="button" id="pos-settings-close" aria-label="Luk POS-indstillinger">X</button>
+      </header>
+      <div class="zettle-panel-body">
+        <section class="settings-section" aria-labelledby="settings-payment-title">
+          <h2 id="settings-payment-title">Betalingstyper</h2>
+          <div id="payment-settings-list"></div>
+        </section>
+
+        <section class="settings-section" aria-labelledby="settings-hardware-title">
+          <h2 id="settings-hardware-title">Hardware</h2>
+          <div class="settings-row">
+            <span class="settings-row-icon">K</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">Tilslut kortlæser</span>
+              <span class="settings-row-subtitle" id="settings-reader-subtitle">Zettle Reader er klar til manuel reference</span>
+            </span>
+            <button class="btn" type="button" id="settings-connect-reader">Tilslut</button>
+          </div>
+          <div class="settings-actions zettle-reader-settings">
+            <p class="settings-row-subtitle" id="zettle-reader-current">Zettle-terminal er forberedt. Manuel reference virker stadig.</p>
+            <button class="btn" type="button" id="zettle-connect-button">Forbind Zettle Reader</button>
+            <button class="btn" type="button" id="zettle-fetch-readers-button">Hent tilgængelige readers</button>
+            <div id="zettle-reader-list" class="reader-list" aria-live="polite"></div>
+            <p class="payment-help" id="zettle-settings-status" role="status"></p>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-icon">P</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">Tilslut printer</span>
+              <span class="settings-row-subtitle">Bon-print bruger browserens printdialog</span>
+            </span>
+            <button class="status-pill" type="button" data-hardware-toggle="printerConnected">Til</button>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-icon">S</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">Tilslut pengeskuffe</span>
+              <span class="settings-row-subtitle">Kontant kasse indgår i afstemningen</span>
+            </span>
+            <button class="status-pill" type="button" data-hardware-toggle="cashDrawerConnected">Til</button>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-icon">H</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">Bestil hardware</span>
+              <span class="settings-row-subtitle">Terminal, printer og pengeskuffe</span>
+            </span>
+            <a class="settings-row-action settings-link" href="/modules/pos/sales-report.html">Åbn</a>
+          </div>
+        </section>
+
+        <section class="settings-section" aria-labelledby="settings-stock-title">
+          <h2 id="settings-stock-title">Lager</h2>
+          <div id="settings-inventory-summary" class="inventory-empty"></div>
+          <div class="settings-row">
+            <span class="settings-row-icon">B</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">Stregkodescanner</span>
+              <span class="settings-row-subtitle">Scan varer ind og ud via lager-modulet</span>
+            </span>
+            <a class="settings-row-action settings-link" href="/modules/lager/scanner.html">Åbn</a>
+          </div>
+        </section>
+
+        <section class="settings-section" aria-labelledby="settings-register-title">
+          <h2 id="settings-register-title">Kasseapparat</h2>
+          <div class="settings-row">
+            <span class="settings-row-icon">Z</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">Historik for Z-rapporter</span>
+              <span class="settings-row-subtitle">Fra dagsrapporter og kasseafstemning</span>
+            </span>
+            <a class="settings-row-action settings-link" href="/modules/pos/sales-report.html">Åbn</a>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-icon">C</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">Certificeret kasseapparat</span>
+              <span class="settings-row-subtitle" id="settings-register-subtitle">Ikke opsat</span>
+            </span>
+            <button class="btn primary" type="button" id="settings-register-setup">Opsæt nu</button>
+          </div>
+        </section>
+
+        <section class="settings-section" aria-labelledby="settings-other-title">
+          <h2 id="settings-other-title">Andet</h2>
+          <div class="settings-row">
+            <span class="settings-row-icon">C</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">Kunder</span>
+              <span class="settings-row-subtitle">Kundeliste og kvitteringsdata</span>
+            </span>
+            <span class="settings-row-action">Til</span>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-icon">N</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">Notifikationer</span>
+              <span class="settings-row-subtitle">Dagsluk og afstemning</span>
+            </span>
+            <span class="settings-row-action">Til</span>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-icon">A</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">App-temaer</span>
+              <span class="settings-row-subtitle">Standard POS-tema</span>
+            </span>
+            <span class="settings-row-action">Til</span>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-icon">V</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">v1.1.0</span>
+              <span class="settings-row-subtitle">Madkontrollen POS</span>
+            </span>
+          </div>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <div id="payment-modal-backdrop" class="payment-modal-backdrop" hidden>
+    <section class="payment-modal" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title">
+      <h2 id="payment-modal-title">Hvordan vil kunden betale?</h2>
+      <div class="payment-choice-grid" aria-label="Primære betalingsvalg">
+        <button class="payment-choice" type="button" data-modal-payment="zettle_reader" aria-pressed="true">Zettle / PayPal Reader</button>
+        <button class="payment-choice" type="button" data-modal-payment="external_card_terminal" aria-pressed="false">Tap to Pay</button>
+        <button class="payment-choice" type="button" data-modal-payment="mobilepay" aria-pressed="false">MobilePay</button>
+        <button class="payment-choice" type="button" data-modal-payment="cash" aria-pressed="false">Kontant</button>
+      </div>
+      <div class="payment-choice-grid secondary" aria-label="Sekundære betalingsvalg">
+        <button class="payment-choice" type="button" data-modal-payment="wise" aria-pressed="false">Betalingslink</button>
+        <button class="payment-choice" type="button" data-modal-payment="gift_card" aria-pressed="false">Gavekort</button>
+        <button class="payment-choice" type="button" data-modal-payment="bank_transfer" aria-pressed="false">Bankoverførsel</button>
+        <button class="payment-choice" type="button" data-modal-payment="other" aria-pressed="false">Andet</button>
+      </div>
+      <div class="payment-modal-fields">
+        <p id="modal-payment-help" class="payment-help"></p>
+        <label id="modal-reference-label">
+          Reference / transaktions-ID
+          <input id="modal-payment-reference" type="text" autocomplete="off" placeholder="Fx terminal-ID, Zettle reference eller banktekst">
+        </label>
+        <label>
+          Note
+          <textarea id="modal-payment-note" placeholder="Valgfri note til betalingsafstemning"></textarea>
+        </label>
+      </div>
+      <div class="payment-modal-actions">
+        <button class="btn primary" type="button" id="modal-confirm-payment">Betaling modtaget</button>
+        <button class="btn" type="button" id="modal-send-reader">Betal med Zettle</button>
+        <button class="btn" type="button" id="modal-manual-confirm">Marker som betalt manuelt</button>
+        <button class="btn danger" type="button" id="modal-cancel-payment">Annuller</button>
+      </div>
+      <p id="payment-modal-status" class="payment-modal-status" role="status"></p>
+    </section>
+  </div>
+
+  <div id="print-receipt" aria-hidden="true"></div>
+
+  <script type="module">
+    import app, { auth } from "/core/firebase-config.js";
+    import { createPosStore } from "/modules/pos/pos-store.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+    function waitForPosUser(timeoutMs = 10000) {
+      if (auth.currentUser) return Promise.resolve(auth.currentUser);
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          unsubscribe();
+          reject(new Error("POS kræver login før data kan hentes."));
+        }, timeoutMs);
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (!user) return;
+          clearTimeout(timer);
+          unsubscribe();
+          resolve(user);
+        }, (error) => {
+          clearTimeout(timer);
+          unsubscribe();
+          reject(error);
+        });
+      });
+    }
+
+    const functions = getFunctions(app, "us-central1");
+    window.ZETTLE_READER_API = {
+      getLinkedReaders: httpsCallable(functions, "getZettleLinkedReaders"),
+      saveReaderForLocation: httpsCallable(functions, "saveZettleReaderForLocation"),
+      createSdkSession: httpsCallable(functions, "createZettleSdkSession"),
+      createPaymentRequest: httpsCallable(functions, "createZettlePaymentRequest"),
+      cancelPaymentRequest: httpsCallable(functions, "cancelZettlePaymentRequest"),
+      createZettlePayment: httpsCallable(functions, "posCreateZettlePayment"),
+      markSalePaidManually: httpsCallable(functions, "posMarkSalePaidManually")
+    };
+
+    window.POS_AUTH_READY = waitForPosUser();
+    window.POS_STORE_READY = window.POS_AUTH_READY
+      .then((user) => createPosStore({ sourceApp: "pos", user }))
+      .then((store) => {
+        window.POS_STORE = store;
+        window.POS_PLATFORM_BUSINESS = store.businessSnapshot;
+        window.dispatchEvent(new CustomEvent("pos:store-ready", { detail: store }));
+        return store;
+      })
+      .catch((error) => {
+        console.warn("[pos] Firestore store fallback", error);
+        window.dispatchEvent(new CustomEvent("pos:store-ready", { detail: null }));
+        return null;
+      });
+  </script>
+
+  <script src="/modules/pos/payments/payment-adapter.js"></script>
+
+  <script>
+    const POS_DEFAULT_BUSINESS = {
+      companyId: "onboarding_aroi-d",
+      locationId: "onboarding_aroi-d__main",
+      companyName: "Aroi-D",
+      cvr: "42405000",
+      address: "Hovedgaden 49",
+      postalCode: "6973",
+      city: "Ørnhøj",
+      phone: "",
+      email: "",
+      source: "localStorage",
+      vatRate: 0.25
+    };
+    const PRODUCT_CATEGORIES = ["Mad", "Drikke", "Tilbehør", "Dessert", "Andet"];
+    const CATEGORY_COLORS = {
+      Mad: "#2f8f3a",
+      Drikke: "#2f6fb3",
+      Tilbehør: "#8a6bb8",
+      Dessert: "#d8a12b",
+      Andet: "#6b7280"
+    };
+    const PAYMENT_METHODS = {
+      zettle_reader: {
+        label: "Zettle / PayPal Reader",
+        provider: "zettle",
+        providerMode: "manual_reference",
+        settlementAccountType: "zettle_paypal",
+        settlementAccountLabel: "Zettle / PayPal POS"
+      },
+      cash: {
+        label: "Kontant",
+        provider: "manual",
+        settlementAccountType: "cash_drawer",
+        settlementAccountLabel: "Kontant kasse"
+      },
+      mobilepay: {
+        label: "MobilePay",
+        provider: "mobilepay",
+        settlementAccountType: "danish_business_bank",
+        settlementAccountLabel: "MobilePay erhverv / dansk bank"
+      },
+      external_card_terminal: {
+        label: "Tap to Pay / Kortterminal",
+        provider: "tap_to_pay",
+        settlementAccountType: "tap_to_pay",
+        settlementAccountLabel: "Tap to Pay / ekstern kortterminal"
+      },
+      revolut: {
+        label: "Revolut",
+        provider: "revolut",
+        settlementAccountType: "revolut_business",
+        settlementAccountLabel: "Revolut Business"
+      },
+      wise: {
+        label: "Wise betalingslink",
+        provider: "wise",
+        settlementAccountType: "wise_business",
+        settlementAccountLabel: "Wise Business"
+      },
+      stripe: {
+        label: "Stripe",
+        provider: "stripe",
+        settlementAccountType: "danish_business_bank",
+        settlementAccountLabel: "Stripe settlement"
+      },
+      bank_transfer: {
+        label: "Bankoverførsel",
+        provider: "bank",
+        settlementAccountType: "danish_business_bank",
+        settlementAccountLabel: "Dansk erhvervskonto"
+      },
+      gift_card: {
+        label: "Gavekort",
+        provider: "gift_card",
+        settlementAccountType: "gift_card_liability",
+        settlementAccountLabel: "Gavekort"
+      },
+      other: {
+        label: "Andet",
+        provider: "other",
+        settlementAccountType: "other",
+        settlementAccountLabel: "Anden betalingsvej"
+      }
+    };
+    const POS_PAYMENT_PROVIDERS = {
+      zettle_reader_manual: {
+        key: "zettle_reader_manual",
+        label: "Zettle / PayPal Reader",
+        provider: "zettle",
+        mode: "manual_reference",
+        active: true,
+        supportsReader: true,
+        supportsApiPaymentRequest: false
+      },
+      zettle_reader_connect: {
+        key: "zettle_reader_connect",
+        label: "Zettle terminal",
+        provider: "zettle",
+        mode: "reader_connect_api",
+        active: false,
+        supportsReader: true,
+        supportsApiPaymentRequest: true
+      }
+    };
+    const POS_SETTINGS_STORAGE_KEY = "pos_settings_main";
+    const PAYMENT_SETTINGS_ROWS = [
+      { key: "cash", title: "Kontant", icon: "K", subtitle: "Kontant kasse" },
+      { key: "external_card_terminal", title: "Tap to Pay", icon: "T", subtitle: "Ekstern kortterminal eller Tap to Pay" },
+      { key: "zettle_reader", title: "Zettle Reader", icon: "Z", subtitle: "Zettle / PayPal Reader" },
+      { key: "mobilepay", title: "MobilePay", icon: "M", subtitle: "MobilePay erhverv" },
+      { key: "wise", title: "Betalingslinks", icon: "L", subtitle: "Wise eller andet betalingslink" },
+      { key: "gift_card", title: "Gavekort", icon: "G", subtitle: "Gavekort som betalingsmiddel" }
+    ];
+    const DEFAULT_POS_SETTINGS = {
+      paymentMethods: {
+        zettle_reader: true,
+        cash: true,
+        mobilepay: true,
+        external_card_terminal: true,
+        wise: true,
+        gift_card: true,
+        bank_transfer: true,
+        revolut: false,
+        stripe: false,
+        other: true
+      },
+      hardware: {
+        printerConnected: true,
+        cashDrawerConnected: true
+      },
+      cashRegister: {
+        configured: false,
+        certified: false
+      }
+    };
+    let posStore = null;
+    let POS_BUSINESS = normalizePosBusiness(window.POS_PLATFORM_BUSINESS || POS_DEFAULT_BUSINESS);
+    let pendingCheckoutTotals = null;
+    let selectedModalPaymentMethod = "zettle_reader";
+    let activePaymentSession = null;
+    let zettleSettings = null;
+    let linkedZettleReaders = [];
+    let posSettings = loadLocalPosSettings();
+    let sales = [];
+    let selectedCategoryFilter = "Alle";
+    let selectedQuickPaymentMethod = "zettle_reader";
+    let products = [];
+    let cart = [];
+    let discountPercentage = 0;
+
+    function mergePosSettings(input = {}) {
+      return {
+        paymentMethods: {
+          ...DEFAULT_POS_SETTINGS.paymentMethods,
+          ...(input.paymentMethods || {})
+        },
+        hardware: {
+          ...DEFAULT_POS_SETTINGS.hardware,
+          ...(input.hardware || {})
+        },
+        cashRegister: {
+          ...DEFAULT_POS_SETTINGS.cashRegister,
+          ...(input.cashRegister || {})
+        }
+      };
+    }
+
+    function loadLocalPosSettings() {
+      try {
+        return mergePosSettings(JSON.parse(localStorage.getItem(POS_SETTINGS_STORAGE_KEY) || "null") || {});
+      } catch {
+        return mergePosSettings();
+      }
+    }
+
+    function saveLocalPosSettings() {
+      try {
+        localStorage.setItem(POS_SETTINGS_STORAGE_KEY, JSON.stringify(posSettings));
+      } catch {
+        return;
+      }
+    }
+
+    function getStoredPosBusinessProfile() {
+      try {
+        return JSON.parse(localStorage.getItem("pos_business_profile") || "null") || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function cleanText(value) {
+      const text = String(value ?? "").trim();
+      if (!/[ÃÂâ]/.test(text)) return text;
+      try {
+        const decoded = new TextDecoder("utf-8").decode(Uint8Array.from([...text].map((char) => char.charCodeAt(0) & 255)));
+        return decoded.includes("�") ? text : decoded.trim();
+      } catch {
+        return text
+          .replace(/Ã˜/g, "Ø")
+          .replace(/Ã¸/g, "ø")
+          .replace(/Ã…/g, "Å")
+          .replace(/Ã¥/g, "å")
+          .replace(/Ã†/g, "Æ")
+          .replace(/Ã¦/g, "æ")
+          .replace(/Ã©/g, "é");
+      }
+    }
+
+    function normalizeCvr(value) {
+      return cleanText(value).replace(/\bCVR\b/gi, "").replace(/\bDK\b/gi, "").replace(/\D/g, "").slice(0, 8);
+    }
+
+    function splitAddressParts(source = {}) {
+      let address = cleanText(source.address || "");
+      let postalCode = cleanText(source.postalCode || source.zip || "");
+      let city = cleanText(source.city || "");
+      const commaMatch = address.match(/^(.+?),\s*(\d{4})\s+(.+)$/);
+      if (commaMatch) {
+        address = commaMatch[1].trim();
+        postalCode = postalCode || commaMatch[2].trim();
+        city = city || cleanText(commaMatch[3]);
+      }
+      const duplicateSuffix = [postalCode, city].filter(Boolean).join(" ");
+      if (duplicateSuffix && address.endsWith(`, ${duplicateSuffix}`)) {
+        address = address.slice(0, -(`, ${duplicateSuffix}`).length).trim();
+      }
+      return { address, postalCode, city };
+    }
+
+    function normalizePosBusiness(input = {}) {
+      const storedProfile = getStoredPosBusinessProfile();
+      const addressParts = splitAddressParts({ ...POS_DEFAULT_BUSINESS, ...storedProfile, ...input });
+      const normalized = {
+        ...POS_DEFAULT_BUSINESS,
+        ...storedProfile,
+        ...input,
+        companyName: cleanText(input.companyName || input.name || input.businessName || storedProfile.companyName || storedProfile.name || POS_DEFAULT_BUSINESS.companyName),
+        cvr: normalizeCvr(input.cvr || input.cvrNumber || input.vatNumber || input.taxId || storedProfile.cvr || storedProfile.cvrNumber || storedProfile.vatNumber || storedProfile.taxId || POS_DEFAULT_BUSINESS.cvr),
+        address: addressParts.address,
+        postalCode: addressParts.postalCode,
+        city: addressParts.city,
+        country: cleanText(input.country || storedProfile.country || POS_DEFAULT_BUSINESS.country || "DK"),
+        phone: cleanText(input.phone || storedProfile.phone || POS_DEFAULT_BUSINESS.phone),
+        email: cleanText(input.email || input.accountEmail || storedProfile.email || storedProfile.accountEmail || POS_DEFAULT_BUSINESS.email),
+        vatRate: Number(input.vatRate || storedProfile.vatRate || POS_DEFAULT_BUSINESS.vatRate) || 0.25
+      };
+      normalized.source = normalized.source || "missing";
+      return normalized;
+    }
+
+    function setPosBusiness(input = {}) {
+      POS_BUSINESS = normalizePosBusiness(input);
+      renderBusinessStatus();
+      updateCart();
+    }
+
+    function buildCloudPosUrl() {
+      const currentParams = new URLSearchParams(window.location.search || "");
+      const companyId = POS_BUSINESS.companyId || currentParams.get("companyId") || "";
+      const locationId = POS_BUSINESS.locationId || currentParams.get("locationId") || "";
+      const isLocalHost = ["localhost", "127.0.0.1", ""].includes(window.location.hostname);
+      const baseOrigin = isLocalHost ? "https://madkontrollen.dk" : window.location.origin;
+      const url = new URL("/modules/pos/index.html", baseOrigin);
+      if (companyId) url.searchParams.set("companyId", companyId);
+      if (locationId) url.searchParams.set("locationId", locationId);
+      url.searchParams.set("sourceApp", "pos");
+      return url.toString();
+    }
+
+    function getTerminalContextMessage() {
+      return `Terminalvalg kræver login og valgt virksomhed/lokation. Åbn POS via <a href="${escapeHtml(buildCloudPosUrl())}">madkontrollen.dk</a>.`;
+    }
+
+    function getBusinessSnapshot() {
+      return {
+        uid: POS_BUSINESS.uid || "",
+        companyId: POS_BUSINESS.companyId || "",
+        locationId: POS_BUSINESS.locationId || "",
+        name: POS_BUSINESS.companyName || "",
+        companyName: POS_BUSINESS.companyName || "",
+        cvr: POS_BUSINESS.cvr || "",
+        address: POS_BUSINESS.address || "",
+        postalCode: POS_BUSINESS.postalCode || "",
+        city: POS_BUSINESS.city || "",
+        country: POS_BUSINESS.country || "DK",
+        phone: POS_BUSINESS.phone || "",
+        email: POS_BUSINESS.email || "",
+        industryCode: POS_BUSINESS.industryCode || "",
+        industryText: POS_BUSINESS.industryText || "",
+        activeModules: POS_BUSINESS.activeModules || [],
+        source: POS_BUSINESS.source || "missing"
+      };
+    }
+
+    function renderBusinessStatus() {
+      const status = document.getElementById("business-context-status");
+      if (!status) return;
+      const hasBusiness = Boolean(POS_BUSINESS.companyName || POS_BUSINESS.cvr || POS_BUSINESS.companyId);
+      const cloudReady = Boolean(posStore?.cloudEnabled);
+      status.dataset.state = cloudReady ? "ready" : "missing";
+      status.innerHTML = cloudReady && hasBusiness
+        ? `${escapeHtml(POS_BUSINESS.companyName || "Virksomhed")}${POS_BUSINESS.cvr ? ` · CVR ${escapeHtml(POS_BUSINESS.cvr)}` : ""} · Online`
+        : `POS-preview er lokal. ${getTerminalContextMessage()}`;
+    }
+
+    window.addEventListener("pos:store-ready", async (event) => {
+      posStore = event.detail || null;
+      setPosBusiness(posStore?.businessSnapshot || window.POS_PLATFORM_BUSINESS || {});
+      await maybeOfferLocalMigration();
+      await loadPosSettings();
+      await loadProductsFromStore();
+      await refreshSalesDashboard();
+      await loadZettleReaderSettings();
+    });
+
+    function getPaymentConfig(method) {
+      return PAYMENT_METHODS[method] || PAYMENT_METHODS.other;
+    }
+
+    function buildPayment(overrides = {}) {
+      const method = overrides.method || document.getElementById("payment-method")?.value || "cash";
+      const config = getPaymentConfig(method);
+      const reference = overrides.externalTransactionId ?? document.getElementById("payment-reference")?.value.trim() ?? "";
+      const note = overrides.note ?? document.getElementById("payment-note")?.value.trim() ?? "";
+      return {
+        method,
+        provider: config.provider,
+        providerMode: overrides.providerMode || config.providerMode || "manual",
+        externalTransactionId: method === "cash" ? "" : reference,
+        providerPaymentId: overrides.providerPaymentId || "",
+        paymentSessionId: overrides.paymentSessionId || "",
+        settlementAccountType: config.settlementAccountType,
+        settlementAccountLabel: config.settlementAccountLabel,
+        reconciliationStatus: "pending",
+        settledAt: "",
+        note,
+        cardDataHandledByProvider: method === "zettle_reader" || method === "external_card_terminal"
+      };
+    }
+
+    function getPaymentLabel(method) {
+      return getPaymentConfig(method).label;
+    }
+
+    function isPaymentMethodEnabled(method) {
+      return Boolean(PAYMENT_METHODS[method]) && posSettings.paymentMethods[method] !== false;
+    }
+
+    function getFirstEnabledPaymentMethod() {
+      return ["zettle_reader", "external_card_terminal", "mobilepay", "cash", "wise", "gift_card", "bank_transfer", "other"]
+        .find(isPaymentMethodEnabled) || "cash";
+    }
+
+    function ensureEnabledPaymentMethod(method) {
+      return isPaymentMethodEnabled(method) ? method : getFirstEnabledPaymentMethod();
+    }
+
+    async function loadPosSettings() {
+      const status = document.getElementById("pos-settings-sync-status");
+      try {
+        const cloudSettings = await posStore?.getPosSettings?.();
+        if (cloudSettings) {
+          posSettings = mergePosSettings(cloudSettings);
+          saveLocalPosSettings();
+          if (status) status.textContent = "Gemt for denne lokation";
+        } else if (status) {
+          status.textContent = posStore?.cloudEnabled ? "Standard for denne lokation" : "Lokale POS-indstillinger";
+        }
+      } catch (error) {
+        console.warn("[pos] settings fallback", error);
+        if (status) status.textContent = "Lokale POS-indstillinger";
+      }
+      renderPosSettingsPanel();
+      updatePaymentUi();
+    }
+
+    async function persistPosSettings() {
+      saveLocalPosSettings();
+      const status = document.getElementById("pos-settings-sync-status");
+      if (status) status.textContent = "Gemmer...";
+      try {
+        if (posStore?.savePosSettings) {
+          await posStore.savePosSettings(posSettings);
+          if (status) status.textContent = "Gemt for denne lokation";
+        } else if (status) {
+          status.textContent = "Lokale POS-indstillinger";
+        }
+      } catch (error) {
+        console.warn("[pos] settings save fallback", error);
+        if (status) status.textContent = "Gemt lokalt";
+      }
+    }
+
+    function updatePaymentAvailability() {
+      const fallback = getFirstEnabledPaymentMethod();
+      const select = document.getElementById("payment-method");
+      if (select) {
+        Array.from(select.options).forEach((option) => {
+          const enabled = isPaymentMethodEnabled(option.value);
+          option.disabled = !enabled;
+          option.hidden = !enabled;
+        });
+        if (!isPaymentMethodEnabled(select.value)) {
+          select.value = fallback;
+        }
+        selectedQuickPaymentMethod = select.value;
+      } else {
+        selectedQuickPaymentMethod = ensureEnabledPaymentMethod(selectedQuickPaymentMethod);
+      }
+      selectedModalPaymentMethod = ensureEnabledPaymentMethod(selectedModalPaymentMethod);
+      document.querySelectorAll("[data-quick-payment]").forEach((button) => {
+        button.hidden = !isPaymentMethodEnabled(button.dataset.quickPayment);
+      });
+      document.querySelectorAll("[data-modal-payment]").forEach((button) => {
+        button.hidden = !isPaymentMethodEnabled(button.dataset.modalPayment);
+      });
+    }
+
+    function renderPaymentSettingsList() {
+      const list = document.getElementById("payment-settings-list");
+      if (!list) return;
+      list.innerHTML = PAYMENT_SETTINGS_ROWS.map((item) => {
+        const enabled = isPaymentMethodEnabled(item.key);
+        const status = enabled ? "Til" : "Fra";
+        return `
+          <div class="settings-row">
+            <span class="settings-row-icon">${escapeHtml(item.icon)}</span>
+            <span class="settings-row-text">
+              <span class="settings-row-title">${escapeHtml(item.title)}</span>
+              <span class="settings-row-subtitle">${escapeHtml(item.subtitle)}</span>
+            </span>
+            <button class="switch-button" type="button" data-payment-toggle="${escapeHtml(item.key)}" aria-pressed="${enabled}" aria-label="${escapeHtml(item.title)} ${status}"></button>
+          </div>
+        `;
+      }).join("");
+      list.querySelectorAll("[data-payment-toggle]").forEach((button) => {
+        button.addEventListener("click", () => togglePaymentSetting(button.dataset.paymentToggle));
+      });
+    }
+
+    async function togglePaymentSetting(method) {
+      if (!PAYMENT_METHODS[method]) return;
+      const enabled = isPaymentMethodEnabled(method);
+      if (enabled) {
+        const enabledCount = Object.keys(PAYMENT_METHODS).filter(isPaymentMethodEnabled).length;
+        if (enabledCount <= 1) {
+          alert("Mindst én betalingsmetode skal være aktiv.");
+          return;
+        }
+      }
+      posSettings.paymentMethods[method] = !enabled;
+      if (!posSettings.paymentMethods[selectedQuickPaymentMethod]) {
+        selectedQuickPaymentMethod = getFirstEnabledPaymentMethod();
+      }
+      renderPosSettingsPanel();
+      updatePaymentUi();
+      await persistPosSettings();
+    }
+
+    function renderHardwareSettings() {
+      document.querySelectorAll("[data-hardware-toggle]").forEach((button) => {
+        const key = button.dataset.hardwareToggle;
+        const enabled = posSettings.hardware[key] !== false;
+        button.textContent = enabled ? "Til" : "Fra";
+        button.classList.toggle("ok", enabled);
+      });
+      const reader = document.getElementById("settings-reader-subtitle");
+      if (reader) {
+        reader.textContent = zettleSettings?.readerLinkId
+          ? `Valgt terminal: ${zettleSettings.readerLabel || zettleSettings.readerLinkId}`
+          : "Zettle Reader er klar til manuel reference";
+      }
+    }
+
+    function renderInventorySettings() {
+      const target = document.getElementById("settings-inventory-summary");
+      if (!target) return;
+      const tracked = products
+        .map(normalizeProductForDisplay)
+        .filter((product) => product.trackInventory || product.inventoryTracking || product.stockTracking);
+      if (!tracked.length) {
+        target.innerHTML = `
+          <span class="box-illustration" aria-hidden="true"></span>
+          <strong>Ingen sporede produkter</strong>
+          <span>Gå til dit produktbibliotek for at aktivere lagerstyring pr. produkt.</span>
+          <a class="btn primary" href="/modules/lagerkontrol/varebibliotek.html">Produktbibliotek</a>
+        `;
+        return;
+      }
+      target.innerHTML = `
+        <strong>${tracked.length} sporede produkter</strong>
+        <span>${tracked.filter((product) => Number(product.currentQuantity || product.stockQuantity || 0) <= 0).length} kræver optælling</span>
+        <a class="btn primary" href="/modules/lagerkontrol/varer.html">Åbn lager</a>
+      `;
+    }
+
+    function renderCashRegisterSettings() {
+      const configured = posSettings.cashRegister.configured === true;
+      const subtitle = document.getElementById("settings-register-subtitle");
+      const button = document.getElementById("settings-register-setup");
+      if (subtitle) subtitle.textContent = configured ? "Opsat til dagsrapporter" : "Ikke opsat";
+      if (button) button.textContent = configured ? "Opsat" : "Opsæt nu";
+    }
+
+    function renderPosSettingsPanel() {
+      renderPaymentSettingsList();
+      renderHardwareSettings();
+      renderInventorySettings();
+      renderCashRegisterSettings();
+      updatePaymentAvailability();
+    }
+
+    function openPosSettingsPanel() {
+      renderPosSettingsPanel();
+      const backdrop = document.getElementById("pos-settings-backdrop");
+      if (backdrop) backdrop.hidden = false;
+    }
+
+    function closePosSettingsPanel() {
+      const backdrop = document.getElementById("pos-settings-backdrop");
+      if (backdrop) backdrop.hidden = true;
+    }
+
+    function formatMoney(value) {
+      return `${Number(value || 0).toLocaleString("da-DK", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })} kr.`;
+    }
+
+    function normalizeCategory(value) {
+      const raw = cleanText(value || "");
+      return PRODUCT_CATEGORIES.includes(raw) ? raw : "Andet";
+    }
+
+    function normalizeProductForDisplay(product = {}) {
+      const image = normalizeProductImage(product);
+      return {
+        ...product,
+        category: normalizeCategory(product.category),
+        priceIncVat: Number(product.priceIncVat ?? product.price) || 0,
+        image,
+        imageUrl: image.secureUrl || image.thumbnailUrl || cleanText(product.imageUrl || ""),
+        imageStoragePath: cleanText(product.imageStoragePath || ""),
+        imageAlt: image.alt || cleanText(product.imageAlt || product.name || "")
+      };
+    }
+
+    function normalizeProductImage(product = {}) {
+      const rawImage = product && typeof product.image === "object" && product.image !== null
+        ? product.image
+        : {};
+      const fallbackUrl = cleanText(
+        rawImage.thumbnailUrl ||
+        rawImage.secureUrl ||
+        rawImage.thumbUrl ||
+        rawImage.url ||
+        product.imageUrl ||
+        ""
+      );
+
+      if (!fallbackUrl) {
+        return {
+          provider: "",
+          cloudinaryPublicId: "",
+          secureUrl: "",
+          thumbnailUrl: "",
+          width: null,
+          height: null,
+          format: "",
+          alt: cleanText(product.name || product.imageAlt || "Produktbillede") || "Produktbillede",
+          source: "placeholder",
+          prompt: "",
+          generatedAt: null,
+          updatedAt: null
+        };
+      }
+
+      return {
+        provider: cleanText(rawImage.provider || (product.imageUrl ? "external_fallback" : "cloudinary")),
+        cloudinaryPublicId: cleanText(rawImage.cloudinaryPublicId || rawImage.publicId || product.cloudinaryPublicId || ""),
+        secureUrl: cleanText(rawImage.secureUrl || rawImage.url || fallbackUrl),
+        thumbnailUrl: cleanText(rawImage.thumbnailUrl || rawImage.thumbUrl || fallbackUrl),
+        width: Number(rawImage.width || 0) || null,
+        height: Number(rawImage.height || 0) || null,
+        format: cleanText(rawImage.format || ""),
+        alt: cleanText(rawImage.alt || product.imageAlt || product.name || "Produktbillede") || "Produktbillede",
+        source: cleanText(rawImage.source || (product.imageUrl ? "legacy_url" : "unknown")) || "unknown",
+        prompt: cleanText(rawImage.prompt || ""),
+        generatedAt: rawImage.generatedAt || null,
+        updatedAt: rawImage.updatedAt || null
+      };
+    }
+
+    function getProductInitial(product = {}) {
+      return cleanText(product.name || "?").charAt(0).toUpperCase() || "?";
+    }
+
+    function renderProductImage(product = {}, className = "product-image") {
+      const normalized = normalizeProductForDisplay(product);
+      const src = normalized.image?.thumbnailUrl || normalized.image?.secureUrl || normalized.imageUrl || "";
+      if (src) {
+        return `<div class="${className}"><img src="${escapeHtml(src)}" alt="${escapeHtml(normalized.imageAlt || normalized.name)}" loading="lazy"></div>`;
+      }
+      return `<div class="${className}" aria-hidden="true">${escapeHtml(getProductInitial(normalized))}</div>`;
+    }
+
+    function parseSaleDate(value) {
+      if (!value) return new Date();
+      if (value?.toDate) return value.toDate();
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+    }
+
+    function localDateKey(value = new Date()) {
+      const date = parseSaleDate(value);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function addDays(date, days) {
+      const next = new Date(date);
+      next.setDate(next.getDate() + days);
+      return next;
+    }
+
+    function isCountedSale(sale = {}) {
+      const status = String(sale.status || "active").toLowerCase();
+      if (["deleted", "cancelled", "canceled", "draft", "pending_payment", "failed", "void"].includes(status)) return false;
+      return true;
+    }
+
+    function saleSign(sale = {}) {
+      return String(sale.type || "").toLowerCase() === "credit_note" ? -1 : 1;
+    }
+
+    function getSaleAmount(sale = {}) {
+      const total = Number(sale.totalInclVat ?? sale.totalIncVat ?? sale.total ?? 0) || 0;
+      return total * saleSign(sale);
+    }
+
+    function getSaleItems(sale = {}) {
+      const rows = Array.isArray(sale.items) ? sale.items : (Array.isArray(sale.lines) ? sale.lines : []);
+      return rows.length ? rows : [{
+        name: "Salg",
+        category: "Andet",
+        lineTotalIncVat: Math.abs(getSaleAmount(sale))
+      }];
+    }
+
+    function updatePaymentUi() {
+      updatePaymentAvailability();
+      const method = document.getElementById("payment-method")?.value || getFirstEnabledPaymentMethod();
+      const details = document.getElementById("payment-details");
+      if (!details) return;
+      const isCash = method === "cash";
+      details.hidden = isCash;
+      if (isCash) {
+        const reference = document.getElementById("payment-reference");
+        const note = document.getElementById("payment-note");
+        if (reference) reference.value = "";
+        if (note) note.value = "";
+      }
+      updateQuickPaymentUi();
+    }
+
+    function selectQuickPaymentMethod(method) {
+      selectedQuickPaymentMethod = ensureEnabledPaymentMethod(method || "zettle_reader");
+      const select = document.getElementById("payment-method");
+      if (select) select.value = selectedQuickPaymentMethod;
+      updatePaymentUi();
+    }
+
+    function updateQuickPaymentUi() {
+      document.querySelectorAll("[data-quick-payment]").forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.quickPayment === selectedQuickPaymentMethod));
+      });
+    }
+
+    function formatReceiptNumber(receiptNumber) {
+      return `BON-${String(receiptNumber).padStart(6, "0")}`;
+    }
+
+    function updateClock() {
+      const clock = document.getElementById("clock");
+      if (!clock) return;
+      clock.innerText = new Date().toLocaleTimeString("da-DK", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function renderProducts() {
+      const grid = document.getElementById("product-grid");
+      grid.innerHTML = "";
+      const query = document.getElementById("product-search")?.value.trim().toLowerCase() || "";
+      const visibleProducts = products
+        .map(normalizeProductForDisplay)
+        .filter((product) => product.status !== "inactive")
+        .filter((product) => selectedCategoryFilter === "Alle" || product.category === selectedCategoryFilter)
+        .filter((product) => !query || cleanText(product.name).toLowerCase().includes(query));
+
+      if (!visibleProducts.length) {
+        grid.innerHTML = '<p class="payment-help">Ingen varer matcher søgningen.</p>';
+        return;
+      }
+
+      visibleProducts.forEach((p) => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.onclick = () => addToCart(p.id);
+        card.innerHTML = `
+          ${renderProductImage(p)}
+          <div class="product-meta">
+            <div class="product-name">${escapeHtml(cleanText(p.name))}</div>
+            <div class="product-price">${formatMoney(p.price)}</div>
+            <div class="product-category">${escapeHtml(p.category)}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+    }
+
+    async function loadProductsFromStore() {
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        products = store?.cloudEnabled ? (await store.listProducts()).map(normalizeProductForDisplay) : [];
+      } catch (error) {
+        console.warn("[pos] Produktliste fra Firestore fejlede", error);
+        products = [];
+      }
+      renderProducts();
+      renderInventorySettings();
+    }
+
+    async function refreshSalesDashboard() {
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        if (store?.listSales) {
+          sales = store.cloudEnabled ? await store.listSales() : [];
+        } else {
+          sales = [];
+        }
+      } catch (error) {
+        console.warn("[pos] Salgstal kunne ikke hentes", error);
+        sales = [];
+      }
+      renderSalesDashboard();
+    }
+
+    function renderSalesDashboard() {
+      const countedSales = sales.filter(isCountedSale);
+      const todayKey = localDateKey(new Date());
+      const yesterdayKey = localDateKey(addDays(new Date(), -1));
+      const todaySales = countedSales.filter((sale) => localDateKey(sale.createdAtIso || sale.createdAt) === todayKey);
+      const yesterdaySales = countedSales.filter((sale) => localDateKey(sale.createdAtIso || sale.createdAt) === yesterdayKey);
+      const todayTotal = todaySales.reduce((sum, sale) => sum + getSaleAmount(sale), 0);
+      const yesterdayTotal = yesterdaySales.reduce((sum, sale) => sum + getSaleAmount(sale), 0);
+
+      document.getElementById("today-revenue").textContent = formatMoney(todayTotal);
+      document.getElementById("today-sales-count").textContent = `${todaySales.filter((sale) => saleSign(sale) > 0).length} salg`;
+      renderRevenueDelta(todayTotal, yesterdayTotal);
+      renderSevenDayChart(countedSales);
+      renderCategorySummary(countedSales);
+    }
+
+    function renderRevenueDelta(todayTotal, yesterdayTotal) {
+      const delta = document.getElementById("today-revenue-delta");
+      if (!delta) return;
+      delta.className = "metric-delta";
+      if (!yesterdayTotal) {
+        delta.textContent = "Ingen salg i går";
+        return;
+      }
+      const pct = ((todayTotal - yesterdayTotal) / Math.abs(yesterdayTotal)) * 100;
+      delta.classList.add(pct >= 0 ? "positive" : "negative");
+      delta.textContent = `${pct >= 0 ? "+" : ""}${pct.toFixed(1).replace(".", ",")}% i forhold til i går`;
+    }
+
+    function getSevenDaySeries(countedSales) {
+      const days = Array.from({ length: 7 }, (_, index) => {
+        const date = addDays(new Date(), index - 6);
+        return {
+          key: localDateKey(date),
+          label: date.toLocaleDateString("da-DK", { weekday: "short" }),
+          total: 0
+        };
+      });
+      const byKey = new Map(days.map((day) => [day.key, day]));
+      countedSales.forEach((sale) => {
+        const key = localDateKey(sale.createdAtIso || sale.createdAt);
+        if (byKey.has(key)) byKey.get(key).total += getSaleAmount(sale);
+      });
+      return days;
+    }
+
+    function renderSevenDayChart(countedSales) {
+      const target = document.getElementById("sales-chart");
+      if (!target) return;
+      const series = getSevenDaySeries(countedSales);
+      const max = Math.max(...series.map((day) => Math.max(0, day.total)), 0);
+      if (!max) {
+        target.innerHTML = '<p class="chart-empty">Ingen salg endnu</p>';
+        return;
+      }
+      const width = 420;
+      const height = 104;
+      const pad = 10;
+      const points = series.map((day, index) => {
+        const x = pad + (index * ((width - pad * 2) / 6));
+        const y = height - pad - ((Math.max(0, day.total) / max) * (height - pad * 2));
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(" ");
+      const area = `${pad},${height - pad} ${points} ${width - pad},${height - pad}`;
+      target.innerHTML = `
+        <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Omsætning de sidste 7 dage">
+          <polygon points="${area}" fill="rgba(35, 106, 58, 0.10)"></polygon>
+          <polyline points="${points}" fill="none" stroke="#236a3a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          ${series.map((day, index) => {
+            const [x, y] = points.split(" ")[index].split(",");
+            return `<circle cx="${x}" cy="${y}" r="4" fill="#236a3a"><title>${escapeHtml(day.label)}: ${escapeHtml(formatMoney(day.total))}</title></circle>`;
+          }).join("")}
+        </svg>
+        <div class="chart-labels">${series.map((day) => `<span>${escapeHtml(day.label)}</span>`).join("")}</div>
+      `;
+    }
+
+    function getProductCategory(productId) {
+      const product = products.find((item) => String(item.id) === String(productId) || String(item.productId) === String(productId));
+      return normalizeCategory(product?.category);
+    }
+
+    function renderCategorySummary(countedSales) {
+      const target = document.getElementById("category-summary");
+      if (!target) return;
+      const totals = Object.fromEntries(PRODUCT_CATEGORIES.map((category) => [category, 0]));
+      countedSales.forEach((sale) => {
+        const sign = saleSign(sale);
+        getSaleItems(sale).forEach((item) => {
+          const category = normalizeCategory(item.category || getProductCategory(item.productId));
+          const amount = Number(item.lineTotalIncVat ?? item.lineTotalInclVat ?? item.totalInclVat ?? item.total ?? 0) || 0;
+          totals[category] += amount * sign;
+        });
+      });
+      const grandTotal = Object.values(totals).reduce((sum, value) => sum + Math.max(0, value), 0);
+      if (!grandTotal) {
+        target.innerHTML = '<p class="chart-empty">Ingen salg endnu</p>';
+        return;
+      }
+      target.innerHTML = PRODUCT_CATEGORIES.map((category) => {
+        const amount = Math.max(0, totals[category] || 0);
+        const pct = grandTotal ? Math.round((amount / grandTotal) * 100) : 0;
+        return `
+          <div class="category-row">
+            <span>${escapeHtml(category)}</span>
+            <span class="category-track"><span class="category-fill" style="width:${pct}%;background:${CATEGORY_COLORS[category]};"></span></span>
+            <span>${pct}%</span>
+            <span>${escapeHtml(formatMoney(amount))}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function addNewProduct() {
+      const nameInput = document.getElementById("new-name");
+      const priceInput = document.getElementById("new-price");
+      const name = nameInput.value.trim();
+      const price = parseFloat(priceInput.value);
+
+      if (name && !Number.isNaN(price) && price >= 0) {
+        try {
+          const store = posStore || await window.POS_STORE_READY;
+          if (!store?.cloudEnabled) {
+            throw new Error("POS er ikke koblet til en virksomhed endnu.");
+          }
+          await store.createProduct({ name, price });
+          products = (await store.listProducts()).map(normalizeProductForDisplay);
+          renderProducts();
+          nameInput.value = "";
+          priceInput.value = "";
+        } catch (error) {
+          alert(error.message || "Produktet kunne ikke gemmes.");
+        }
+      } else {
+        alert("Venligst angiv et gyldigt navn og en pris.");
+      }
+    }
+
+    function addToCart(id) {
+      const product = products.find((p) => String(p.id) === String(id));
+      if (!product) return;
+
+      const cartItem = cart.find((item) => String(item.product.id) === String(id));
+      if (cartItem) {
+        cartItem.quantity++;
+      } else {
+        cart.push({ product, quantity: 1 });
+      }
+
+      updateCart();
+    }
+
+    function changeQty(id, delta) {
+      const cartItem = cart.find((item) => String(item.product.id) === String(id));
+      if (cartItem) {
+        cartItem.quantity += delta;
+        if (cartItem.quantity <= 0) {
+          cart = cart.filter((item) => String(item.product.id) !== String(id));
+        }
+      }
+
+      updateCart();
+    }
+
+    function clearCart() {
+      cart = [];
+      discountPercentage = 0;
+      updateCart();
+    }
+
+    function applyDiscount() {
+      const pct = prompt("Indtast rabat i procent (0-100):", "10");
+      const parsed = parseFloat(pct);
+
+      if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 100) {
+        discountPercentage = parsed;
+        updateCart();
+      }
+    }
+
+    function updateCart() {
+      const container = document.getElementById("cart-items");
+      container.innerHTML = "";
+
+      let subtotal = 0;
+      cart.forEach((item) => {
+        const itemTotal = item.product.price * item.quantity;
+        subtotal += itemTotal;
+        const product = normalizeProductForDisplay(item.product);
+
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        div.innerHTML = `
+          ${renderProductImage(product, "cart-thumb")}
+          <div class="cart-item-info">
+            <span>${escapeHtml(product.name)}</span>
+            <span class="cart-item-qty">${item.quantity} x ${formatMoney(product.price)}</span>
+          </div>
+          <div class="cart-item-controls">
+            <span style="margin-right:10px;">${formatMoney(itemTotal)}</span>
+            <button class="btn-qty" type="button" onclick="changeQty(${JSON.stringify(String(item.product.id))}, -1)">-</button>
+            <button class="btn-qty" type="button" onclick="changeQty(${JSON.stringify(String(item.product.id))}, 1)">+</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      const discountAmount = subtotal * (discountPercentage / 100);
+      const total = subtotal - discountAmount;
+      const totalExVat = total / (1 + POS_BUSINESS.vatRate);
+      const vatAmount = total - totalExVat;
+
+      document.getElementById("subtotal").innerText = formatMoney(subtotal);
+      document.getElementById("discount-display").innerText =
+        `${discountPercentage > 0 ? `(${discountPercentage}%) ` : ""}${formatMoney(discountAmount)}`;
+      document.getElementById("total-ex-vat").innerText = formatMoney(totalExVat);
+      document.getElementById("vat-amount").innerText = formatMoney(vatAmount);
+      document.getElementById("total").innerText = formatMoney(total);
+      const checkoutButton = document.getElementById("checkout-button");
+      if (checkoutButton) checkoutButton.textContent = cart.length ? `Betal ${formatMoney(total)}` : "Betal 0,00 kr.";
+    }
+
+    function calculateCartTotals() {
+      const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+      const discountAmount = subtotal * (discountPercentage / 100);
+      const totalInclVat = subtotal - discountAmount;
+      const totalExVat = totalInclVat / (1 + POS_BUSINESS.vatRate);
+      const vatAmount = totalInclVat - totalExVat;
+      return { subtotal, discountAmount, totalInclVat, totalExVat, vatAmount };
+    }
+
+    function buildSaleDraft(totals, payment) {
+      const businessSnapshot = getBusinessSnapshot();
+      return {
+        type: "sale",
+        correctionOf: "",
+        creditNoteReason: "",
+        businessSnapshot,
+        business: businessSnapshot,
+        payment,
+        paymentMethod: payment.method,
+        status: "draft",
+        paymentProvider: payment.provider || "manual",
+        paymentStatus: "draft",
+        externalPaymentId: payment.providerPaymentId || "",
+        paymentSessionId: payment.paymentSessionId || "",
+        currency: "DKK",
+        discountPercentage,
+        items: cart.map((item) => {
+          const product = normalizeProductForDisplay(item.product);
+          const image = product.image || normalizeProductImage(product);
+          const unitPriceIncVat = Number(product.price) || 0;
+          const lineTotalIncVat = unitPriceIncVat * item.quantity;
+          const lineTotalExVat = lineTotalIncVat / (1 + POS_BUSINESS.vatRate);
+          return {
+          productId: product.id,
+          name: cleanText(product.name),
+          quantity: item.quantity,
+            unitPrice: unitPriceIncVat,
+            unitPriceIncVat,
+            vatRate: POS_BUSINESS.vatRate,
+          category: product.category,
+          image: {
+            provider: image.provider,
+            cloudinaryPublicId: image.cloudinaryPublicId,
+            secureUrl: image.secureUrl,
+            thumbnailUrl: image.thumbnailUrl,
+            alt: image.alt || product.name
+          },
+          imageUrl: image.secureUrl || image.thumbnailUrl || product.imageUrl || "",
+          imageStoragePath: product.imageStoragePath,
+          imageAlt: image.alt || product.imageAlt || product.name,
+            lineTotalIncVat,
+            lineTotalInclVat: lineTotalIncVat,
+            lineTotalExVat,
+            lineVatAmount: lineTotalIncVat - lineTotalExVat
+          };
+        }),
+        subtotal: totals.subtotal,
+        discountAmount: totals.discountAmount,
+        totalInclVat: totals.totalInclVat,
+        total: totals.totalInclVat,
+        totalExVat: totals.totalExVat,
+        vatRate: POS_BUSINESS.vatRate,
+        vatSummary: {
+          rate: POS_BUSINESS.vatRate,
+          subtotalExVat: totals.totalExVat,
+          vatAmount: totals.vatAmount,
+          totalIncVat: totals.totalInclVat
+        },
+        vatAmount: totals.vatAmount,
+        vatTotal: totals.vatAmount,
+        affectsCashDrawer: payment.method === "cash",
+      };
+    }
+
+    async function saveSale(totals, paymentOverride = null) {
+      const store = posStore || await window.POS_STORE_READY;
+      if (!store?.cloudEnabled) {
+        throw new Error("Virksomhedsoplysninger mangler. Salg kan ikke bogføres uden valgt virksomhed og lokation.");
+      }
+      const payment = paymentOverride || buildPayment();
+      return store.createSale({
+        ...buildSaleDraft(totals, payment),
+        status: "paid",
+        paymentProvider: payment.provider || "manual",
+        paymentStatus: "paid"
+      });
+    }
+
+    async function checkout() {
+      if (cart.length === 0) {
+        alert("Kurven er tom!");
+        return;
+      }
+
+      pendingCheckoutTotals = calculateCartTotals();
+      openPaymentModal(selectedQuickPaymentMethod || "zettle_reader");
+    }
+
+    async function completeApprovedCheckout(payment) {
+      const totals = pendingCheckoutTotals || calculateCartTotals();
+      let sale;
+      try {
+        sale = await saveSale(totals, payment);
+      } catch (error) {
+        alert("Salget kunne ikke gemmes i Firebase. Kurven er bevaret.");
+        console.warn("[pos] Salg kunne ikke gemmes i Firestore", error);
+        return;
+      }
+      await finalizePaidSale(sale, totals);
+    }
+
+    async function finalizePaidSale(sale, totals = null) {
+      const resolvedTotals = totals || pendingCheckoutTotals || calculateCartTotals();
+      const paymentLabel = getPaymentLabel(sale.payment?.method || sale.paymentMethod);
+      const business = sale.businessSnapshot || getBusinessSnapshot();
+
+      let receiptHtml = `
+        <div class="receipt-header">
+          <h3>${escapeHtml(business.companyName || "Madkontrollen POS")}</h3>
+          ${business.cvr ? `<p>CVR ${escapeHtml(business.cvr)}</p>` : ""}
+          ${business.address ? `<p>${escapeHtml(business.address)}</p>` : ""}
+          ${(business.postalCode || business.city) ? `<p>${escapeHtml(business.postalCode)} ${escapeHtml(business.city)}</p>` : ""}
+          ${business.phone ? `<p>Tlf. ${escapeHtml(business.phone)}</p>` : ""}
+          <p>Bon ${escapeHtml(sale.receiptLabel || sale.receiptNumber || sale.id)}</p>
+          <p>${new Date(sale.createdAtIso || sale.createdAt).toLocaleString("da-DK")}</p>
+        </div>
+        <div class="receipt-divider"></div>
+      `;
+
+      cart.forEach((item) => {
+        receiptHtml += `
+          <div class="receipt-line">
+            <span>${item.quantity}x ${escapeHtml(item.product.name)}</span>
+            <span>${(item.product.price * item.quantity).toFixed(2)} kr.</span>
+          </div>
+        `;
+      });
+
+      receiptHtml += `
+        <div class="receipt-divider"></div>
+        <div class="receipt-line"><span>Subtotal:</span><span>${resolvedTotals.subtotal.toFixed(2)} kr.</span></div>
+        ${discountPercentage > 0 ? `<div class="receipt-line"><span>Rabat (${discountPercentage}%):</span><span>-${resolvedTotals.discountAmount.toFixed(2)} kr.</span></div>` : ""}
+        <div class="receipt-line"><span>Uden moms:</span><span>${resolvedTotals.totalExVat.toFixed(2)} kr.</span></div>
+        <div class="receipt-line"><span>Moms 25%:</span><span>${resolvedTotals.vatAmount.toFixed(2)} kr.</span></div>
+        <div class="receipt-line"><span>Betaling:</span><span>${escapeHtml(paymentLabel)}</span></div>
+        ${sale.payment?.externalTransactionId ? `<div class="receipt-line"><span>Reference:</span><span>${escapeHtml(sale.payment.externalTransactionId)}</span></div>` : ""}
+        <div class="receipt-divider"></div>
+        <div class="receipt-line" style="font-weight:bold; font-size:14px;"><span>TOTAL:</span><span>${resolvedTotals.totalInclVat.toFixed(2)} kr.</span></div>
+        <div class="receipt-divider"></div>
+        <p style="text-align:center; margin-top:15px;">Tak for dit besøg!</p>
+      `;
+
+      document.getElementById("print-receipt").innerHTML = receiptHtml;
+      window.print();
+      document.getElementById("payment-reference").value = "";
+      document.getElementById("payment-note").value = "";
+      closePaymentModal();
+      updatePaymentUi();
+      clearCart();
+      await refreshSalesDashboard();
+      pendingCheckoutTotals = null;
+      activePaymentSession = null;
+    }
+
+    function openPaymentModal(method = "zettle_reader") {
+      selectedModalPaymentMethod = method;
+      activePaymentSession = null;
+      const backdrop = document.getElementById("payment-modal-backdrop");
+      document.getElementById("modal-payment-reference").value = document.getElementById("payment-reference")?.value || "";
+      document.getElementById("modal-payment-note").value = document.getElementById("payment-note")?.value || "";
+      setModalStatus("");
+      updatePaymentModalUi();
+      backdrop.hidden = false;
+    }
+
+    function closePaymentModal() {
+      const backdrop = document.getElementById("payment-modal-backdrop");
+      if (backdrop) backdrop.hidden = true;
+    }
+
+    function setModalStatus(message) {
+      const status = document.getElementById("payment-modal-status");
+      if (status) status.textContent = message || "";
+    }
+
+    function updatePaymentModalUi() {
+      selectedModalPaymentMethod = ensureEnabledPaymentMethod(selectedModalPaymentMethod);
+      document.querySelectorAll("[data-modal-payment]").forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.modalPayment === selectedModalPaymentMethod));
+      });
+      const config = getPaymentConfig(selectedModalPaymentMethod);
+      const manualProvider = POS_PAYMENT_PROVIDERS.zettle_reader_manual;
+      const connectProvider = POS_PAYMENT_PROVIDERS.zettle_reader_connect;
+      const isZettle = selectedModalPaymentMethod === "zettle_reader";
+      const readerConnectReady = isZettleReaderConnectReady();
+      const isCash = selectedModalPaymentMethod === "cash";
+      const help = document.getElementById("modal-payment-help");
+      const referenceLabel = document.getElementById("modal-reference-label");
+      const confirmButton = document.getElementById("modal-confirm-payment");
+      const sendButton = document.getElementById("modal-send-reader");
+      const manualButton = document.getElementById("modal-manual-confirm");
+
+      document.getElementById("payment-method").value = selectedModalPaymentMethod;
+      if (help) {
+        if (isZettle) {
+          help.textContent = "Betal med Zettle gemmer først salget og sender derefter en betalingsanmodning via backend. Salget markeres ikke betalt, før backend/payment status er betalt.";
+        } else {
+          help.textContent = isCash
+            ? "Kontantbetaling bogføres først, når du trykker Betaling modtaget."
+            : "POS registrerer salget og dokumentationen. Selve betalingen håndteres af den valgte betalingsudbyder.";
+        }
+      }
+      if (referenceLabel) referenceLabel.hidden = isCash;
+      if (confirmButton) {
+        confirmButton.hidden = isZettle;
+        confirmButton.textContent = isZettle ? "Betaling modtaget" : `Betaling modtaget (${config.label})`;
+      }
+      if (sendButton) sendButton.hidden = !isZettle;
+      if (manualButton) manualButton.hidden = !isZettle;
+      if (manualProvider.active && isZettle) setModalStatus("");
+    }
+
+    function buildModalPayment(paymentSession = null, extra = {}) {
+      const reference = document.getElementById("modal-payment-reference")?.value.trim() || "";
+      const note = document.getElementById("modal-payment-note")?.value.trim() || "";
+      const config = getPaymentConfig(selectedModalPaymentMethod);
+      return buildPayment({
+        method: selectedModalPaymentMethod,
+        providerMode: extra.providerMode || config.providerMode,
+        externalTransactionId: reference,
+        providerPaymentId: extra.providerPaymentId || paymentSession?.providerPaymentId || "",
+        paymentSessionId: paymentSession?.id || activePaymentSession?.id || "",
+        note
+      });
+    }
+
+    function buildPaymentSessionDraft() {
+      const totals = pendingCheckoutTotals || calculateCartTotals();
+      const payment = buildModalPayment();
+      return buildSaleDraft(totals, payment);
+    }
+
+    async function createZettleSaleDraft() {
+      const store = posStore || await window.POS_STORE_READY;
+      if (!store?.cloudEnabled) {
+        throw new Error("Virksomhedsoplysninger mangler. Salget kan ikke gemmes uden valgt virksomhed og lokation.");
+      }
+      if (activePaymentSession?.saleId) return activePaymentSession;
+      const totals = pendingCheckoutTotals || calculateCartTotals();
+      const payment = buildModalPayment(null, {
+        providerMode: POS_PAYMENT_PROVIDERS.zettle_reader_connect.mode
+      });
+      const sale = await store.createSale({
+        ...buildSaleDraft(totals, payment),
+        status: "draft",
+        paymentProvider: "zettle",
+        paymentStatus: "draft",
+        currency: "DKK"
+      });
+      activePaymentSession = {
+        id: sale.paymentSessionId || "",
+        saleId: sale.id,
+        sale,
+        amount: totals.totalInclVat,
+        currency: "DKK"
+      };
+      return activePaymentSession;
+    }
+
+    async function ensureZettlePaymentSession(status = "pending") {
+      const store = posStore || await window.POS_STORE_READY;
+      if (!store?.cloudEnabled) {
+        throw new Error("Virksomhedsoplysninger mangler. Betalingssession kan ikke oprettes uden valgt virksomhed og lokation.");
+      }
+      if (activePaymentSession?.id) return activePaymentSession;
+      const totals = pendingCheckoutTotals || calculateCartTotals();
+      const providerMode = isZettleReaderConnectReady()
+        ? POS_PAYMENT_PROVIDERS.zettle_reader_connect.mode
+        : POS_PAYMENT_PROVIDERS.zettle_reader_manual.mode;
+      activePaymentSession = await store.createPaymentSession({
+        status,
+        amount: totals.totalInclVat,
+        currency: "DKK",
+        paymentMethod: "zettle_reader",
+        provider: "zettle",
+        providerMode,
+        readerLinkId: zettleSettings?.readerLinkId || "",
+        externalTransactionId: document.getElementById("modal-payment-reference")?.value.trim() || "",
+        saleDraft: buildPaymentSessionDraft()
+      });
+      return activePaymentSession;
+    }
+
+    async function confirmModalPayment(manualOverride = false) {
+      if (!pendingCheckoutTotals) pendingCheckoutTotals = calculateCartTotals();
+      if (selectedModalPaymentMethod === "zettle_reader" && manualOverride) {
+        return markZettleSalePaidManually();
+      }
+      if (selectedModalPaymentMethod === "zettle_reader") {
+        return sendPaymentToTerminal();
+      }
+      setModalStatus("Bogfører betaling...");
+      try {
+        let paymentSession = null;
+        if (selectedModalPaymentMethod === "zettle_reader") {
+          paymentSession = await ensureZettlePaymentSession("pending");
+          const store = posStore || await window.POS_STORE_READY;
+          paymentSession = await store.updatePaymentSession(paymentSession.id, {
+            status: "approved",
+            externalTransactionId: document.getElementById("modal-payment-reference")?.value.trim() || "",
+            approvedAtIso: new Date().toISOString()
+          });
+        }
+        const payment = buildModalPayment(paymentSession, {
+          providerMode: selectedModalPaymentMethod === "zettle_reader"
+            ? paymentSession?.providerMode || POS_PAYMENT_PROVIDERS.zettle_reader_manual.mode
+            : undefined
+        });
+        await completeApprovedCheckout(payment);
+      } catch (error) {
+        setModalStatus(error.message || "Betalingen kunne ikke bogføres. Kurven er bevaret.");
+      }
+    }
+
+    function zettleCallablePayload(extra = {}) {
+      const context = posStore?.context || {};
+      return {
+        companyId: context.companyId || "",
+        locationId: context.locationId || "",
+        ...extra
+      };
+    }
+
+    function isZettleReaderConnectReady() {
+      return Boolean(zettleSettings?.readerConnectEnabled && zettleSettings?.readerLinkId);
+    }
+
+    function setZettleSettingsStatus(message) {
+      const status = document.getElementById("zettle-settings-status");
+      if (status) status.textContent = message || "";
+    }
+
+    function renderZettleReaderSettings() {
+      const current = document.getElementById("zettle-reader-current");
+      const list = document.getElementById("zettle-reader-list");
+      const store = posStore;
+      if (current) {
+        current.textContent = !store?.cloudEnabled
+          ? "Zettle-terminal kræver live POS med valgt virksomhed og lokation."
+          : isZettleReaderConnectReady()
+          ? `Valgt terminal: ${zettleSettings.readerLabel || zettleSettings.readerLinkId}`
+          : "Zettle-terminal er forberedt. Manuel reference virker stadig.";
+      }
+      if (!list) return;
+      if (!store?.cloudEnabled) {
+        list.innerHTML = `<p class="payment-help">${getTerminalContextMessage()}</p>`;
+        renderHardwareSettings();
+        return;
+      }
+      if (!linkedZettleReaders.length) {
+        list.innerHTML = '<p class="payment-help">Der er ingen Zettle/PayPal Reader forbundet endnu. Forbind terminalen i Zettle/PayPal først.</p>';
+        renderHardwareSettings();
+        return;
+      }
+      list.innerHTML = linkedZettleReaders.map((reader) => `
+        <div class="reader-option">
+          <span>
+            <strong>${escapeHtml(reader.label || reader.name || "Zettle / PayPal Reader")}</strong>
+            <span>${escapeHtml(reader.readerLinkId || reader.linkId || "")}</span>
+          </span>
+          <button class="btn" type="button" data-select-zettle-reader="${escapeHtml(reader.readerLinkId || reader.linkId || "")}" data-reader-label="${escapeHtml(reader.label || reader.name || "Zettle / PayPal Reader")}">Vælg denne terminal</button>
+        </div>
+      `).join("");
+      list.querySelectorAll("[data-select-zettle-reader]").forEach((button) => {
+        button.addEventListener("click", () => saveSelectedZettleReader(button.dataset.selectZettleReader, button.dataset.readerLabel));
+      });
+      renderHardwareSettings();
+    }
+
+    async function loadZettleReaderSettings() {
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        zettleSettings = await store?.getZettleSettings?.() || null;
+      } catch (error) {
+        console.warn("[pos] Zettle settings fallback", error);
+        zettleSettings = null;
+      }
+      renderZettleReaderSettings();
+      updatePaymentModalUi();
+    }
+
+    async function fetchZettleLinkedReaders() {
+      setZettleSettingsStatus("Henter tilgængelige readers...");
+      linkedZettleReaders = [];
+      try {
+        const store = posStore || await window.POS_STORE_READY;
+        if (!store?.cloudEnabled) {
+          setZettleSettingsStatus("");
+          renderZettleReaderSettings();
+          return;
+        }
+        const response = await window.ZETTLE_READER_API.getLinkedReaders(zettleCallablePayload());
+        const payload = response?.data || {};
+        linkedZettleReaders = Array.isArray(payload.readers) ? payload.readers : [];
+        if (payload.status === "unavailable") {
+          setZettleSettingsStatus(payload.message || "Reader-hentning er ikke aktiveret endnu.");
+        } else {
+          setZettleSettingsStatus(linkedZettleReaders.length ? "Vælg en terminal fra listen." : "Der er ingen Zettle/PayPal Reader forbundet endnu. Forbind terminalen i Zettle/PayPal først.");
+        }
+      } catch (error) {
+        setZettleSettingsStatus(error?.message || "Terminalforbindelsen er ikke aktiveret endnu. Brug manuel reference.");
+      }
+      renderZettleReaderSettings();
+    }
+
+    async function saveSelectedZettleReader(readerLinkId, readerLabel) {
+      if (!readerLinkId) return;
+      setZettleSettingsStatus("Gemmer valgt terminal...");
+      try {
+        const response = await window.ZETTLE_READER_API.saveReaderForLocation(zettleCallablePayload({
+          readerLinkId,
+          readerLabel
+        }));
+        zettleSettings = response.data || {
+          provider: "zettle",
+          readerConnectEnabled: true,
+          readerLinkId,
+          readerLabel
+        };
+        setZettleSettingsStatus("Zettle Reader er gemt for denne lokation.");
+        renderZettleReaderSettings();
+        updatePaymentModalUi();
+      } catch (error) {
+        setZettleSettingsStatus(error?.message || "Terminalen kunne ikke gemmes.");
+      }
+    }
+
+    async function linkZettleReader() {
+      const store = posStore || await window.POS_STORE_READY;
+      if (!store?.cloudEnabled) {
+        setZettleSettingsStatus("");
+        renderZettleReaderSettings();
+        return;
+      }
+      setZettleSettingsStatus("Forbind terminalen i Zettle/PayPal først. Derefter kan POS hente linked readers.");
+      return fetchZettleLinkedReaders();
+    }
+
+    function androidZettleRequired(paymentSession) {
+      return {
+        ok: false,
+        provider: "zettle",
+        code: "ZETTLE_ANDROID_APP_REQUIRED",
+        reason: "Zettle betaling kræver Android POS-appen.",
+        message: "Zettle betaling kræver Android POS-appen.",
+        paymentSession
+      };
+    }
+
+    async function startZettleReaderPayment(paymentSession) {
+      try {
+        const adapter = window.MadkontrollenPaymentAdapter;
+        if (!adapter?.startZettlePayment) {
+          return androidZettleRequired(paymentSession);
+        }
+
+        const sdkResponse = await window.ZETTLE_READER_API.createSdkSession(zettleCallablePayload({
+          saleId: paymentSession?.saleId || paymentSession?.sale?.id || "",
+          readerLinkId: zettleSettings?.readerLinkId || "",
+          amount: paymentSession?.amount || 0,
+          currency: paymentSession?.currency || "DKK"
+        }));
+
+        const sdkSession = sdkResponse?.data || {};
+        if (!sdkSession.ok) {
+          return {
+            ok: false,
+            provider: "zettle",
+            code: sdkSession.code || "ZETTLE_SDK_SESSION_FAILED",
+            reason: sdkSession.message || "Zettle SDK-session kunne ikke oprettes.",
+            message: sdkSession.message || "Zettle SDK-session kunne ikke oprettes.",
+            paymentSession
+          };
+        }
+
+        const nativeResult = await adapter.startZettlePayment({
+          provider: "zettle",
+          sdkMode: sdkSession.sdkMode,
+          callbackUrl: sdkSession.callbackUrl,
+          companyId: posStore?.context?.companyId || "",
+          locationId: posStore?.context?.locationId || "",
+          saleId: paymentSession?.saleId || paymentSession?.sale?.id || "",
+          amount: paymentSession?.amount || 0,
+          currency: paymentSession?.currency || "DKK",
+          reference: paymentSession?.sale?.receiptLabel || paymentSession?.sale?.receiptNumber || paymentSession?.saleId || "",
+          readerLinkId: zettleSettings?.readerLinkId || ""
+        });
+
+        return {
+          ok: false,
+          provider: "zettle",
+          code: nativeResult?.code || "ZETTLE_NATIVE_NOT_COMPLETED",
+          reason: nativeResult?.message || "Zettle-betalingen er ikke gennemført i Android POS-appen.",
+          message: nativeResult?.message || "Zettle-betalingen er ikke gennemført i Android POS-appen.",
+          paymentSession
+        };
+      } catch (error) {
+        return { ok: false, reason: error?.message || "Zettle betaling kræver Android POS-appen.", paymentSession };
+      }
+    }
+
+    async function cancelZettleReaderPayment(paymentSessionId) {
+      const store = posStore || await window.POS_STORE_READY;
+      if (store?.cloudEnabled && paymentSessionId) {
+        await store.updatePaymentSession(paymentSessionId, {
+          status: "cancelled",
+          cancelledAtIso: new Date().toISOString()
+        });
+      }
+      try {
+        if (isZettleReaderConnectReady()) {
+          await window.ZETTLE_READER_API.cancelPaymentRequest(zettleCallablePayload({
+            paymentSessionId,
+            readerLinkId: zettleSettings.readerLinkId
+          }));
+        }
+      } catch (error) {
+        return { ok: false, reason: error?.message || "Terminalforbindelsen er ikke aktiveret endnu." };
+      }
+      return { ok: false, reason: "Terminalforbindelsen er ikke aktiveret endnu." };
+    }
+
+    async function handleZettleReaderEvent(event) {
+      return { ok: false, reason: "Terminalforbindelsen er ikke aktiveret endnu.", event };
+    }
+
+    async function sendPaymentToTerminal() {
+      try {
+        if (!pendingCheckoutTotals) pendingCheckoutTotals = calculateCartTotals();
+        setModalStatus("Gemmer salg...");
+        const session = await createZettleSaleDraft();
+        setModalStatus("Starter Zettle-betaling...");
+        const result = await startZettleReaderPayment(session);
+        if (result.paymentSessionId || result.providerReference) {
+          activePaymentSession = {
+            ...session,
+            id: result.paymentSessionId || session.id || "",
+            paymentSessionId: result.paymentSessionId || "",
+            providerReference: result.providerReference || ""
+          };
+        }
+        setModalStatus(result.message || result.reason || "Afventer betaling på terminal.");
+      } catch (error) {
+        setModalStatus(error.message || "Betalingen kunne ikke sendes til terminal.");
+      }
+    }
+
+    async function markZettleSalePaidManually() {
+      try {
+        if (!pendingCheckoutTotals) pendingCheckoutTotals = calculateCartTotals();
+        setModalStatus("Gemmer salg til manuel betaling...");
+        const session = await createZettleSaleDraft();
+        const response = await window.ZETTLE_READER_API.markSalePaidManually(zettleCallablePayload({
+          saleId: session.saleId,
+          reference: document.getElementById("modal-payment-reference")?.value.trim() || "",
+          note: document.getElementById("modal-payment-note")?.value.trim() || ""
+        }));
+        const sale = response?.data?.sale || session.sale;
+        setModalStatus("Betaling markeret manuelt.");
+        await finalizePaidSale(sale, pendingCheckoutTotals);
+      } catch (error) {
+        setModalStatus(error?.message || "Kun admin kan markere salget betalt manuelt.");
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function hasLegacyPosData() {
+      return ["pos_sales", "pos_products", "pos_receipt_sequence", "pos_reconciliations", "pos_audit_log"]
+        .some((key) => {
+          const value = localStorage.getItem(key);
+          return value && value !== "[]" && value !== "{}" && value !== "0";
+        });
+    }
+
+    async function maybeOfferLocalMigration() {
+      if (!posStore?.cloudEnabled || !hasLegacyPosData()) return;
+      const marker = `pos_migration_prompted_${posStore.context.companyId}_${posStore.context.locationId}`;
+      if (localStorage.getItem(marker)) return;
+      localStorage.setItem(marker, new Date().toISOString());
+      if (!confirm("Der findes lokale POS-data fra prototypen. Vil du flytte dem til skyen nu? Der oprettes først en lokal backup.")) return;
+      try {
+        const result = await posStore.migrateLocalStorageToFirestore();
+        alert(`Migration færdig. Backup: ${result.backupKey || "allerede udført"}`);
+      } catch (error) {
+        alert(error.message || "Migrationen kunne ikke gennemføres.");
+      }
+    }
+
+    window.addNewProduct = addNewProduct;
+    window.addToCart = addToCart;
+    window.changeQty = changeQty;
+    window.clearCart = clearCart;
+    window.applyDiscount = applyDiscount;
+    window.checkout = checkout;
+    window.linkZettleReader = linkZettleReader;
+    window.startZettleReaderPayment = startZettleReaderPayment;
+    window.cancelZettleReaderPayment = cancelZettleReaderPayment;
+    window.handleZettleReaderEvent = handleZettleReaderEvent;
+
+    renderBusinessStatus();
+    document.getElementById("pos-settings-open")?.addEventListener("click", openPosSettingsPanel);
+    document.getElementById("pos-settings-close")?.addEventListener("click", closePosSettingsPanel);
+    document.getElementById("pos-settings-backdrop")?.addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) closePosSettingsPanel();
+    });
+    document.getElementById("settings-connect-reader")?.addEventListener("click", linkZettleReader);
+    document.querySelectorAll("[data-hardware-toggle]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const key = button.dataset.hardwareToggle;
+        posSettings.hardware[key] = !(posSettings.hardware[key] !== false);
+        renderHardwareSettings();
+        await persistPosSettings();
+      });
+    });
+    document.getElementById("settings-register-setup")?.addEventListener("click", async () => {
+      posSettings.cashRegister.configured = true;
+      posSettings.cashRegister.certified = true;
+      renderCashRegisterSettings();
+      await persistPosSettings();
+    });
+    document.getElementById("payment-method")?.addEventListener("change", updatePaymentUi);
+    document.getElementById("product-search")?.addEventListener("input", renderProducts);
+    document.querySelectorAll("[data-category-filter]").forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedCategoryFilter = button.dataset.categoryFilter || "Alle";
+        document.querySelectorAll("[data-category-filter]").forEach((item) => {
+          item.setAttribute("aria-pressed", String(item === button));
+        });
+        renderProducts();
+      });
+    });
+    document.querySelectorAll("[data-quick-payment]").forEach((button) => {
+      button.addEventListener("click", () => selectQuickPaymentMethod(button.dataset.quickPayment));
+    });
+    document.getElementById("more-payments-button")?.addEventListener("click", () => {
+      const more = document.getElementById("quick-payment-more");
+      const button = document.getElementById("more-payments-button");
+      if (!more || !button) return;
+      more.hidden = !more.hidden;
+      button.setAttribute("aria-pressed", String(!more.hidden));
+    });
+    document.querySelectorAll("[data-modal-payment]").forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedModalPaymentMethod = button.dataset.modalPayment;
+        updatePaymentModalUi();
+      });
+    });
+    document.getElementById("modal-confirm-payment")?.addEventListener("click", () => confirmModalPayment(false));
+    document.getElementById("modal-manual-confirm")?.addEventListener("click", () => confirmModalPayment(true));
+    document.getElementById("modal-send-reader")?.addEventListener("click", sendPaymentToTerminal);
+    document.getElementById("modal-cancel-payment")?.addEventListener("click", async () => {
+      if (activePaymentSession?.id) {
+        await cancelZettleReaderPayment(activePaymentSession.id).catch(() => null);
+      }
+      closePaymentModal();
+      setModalStatus("");
+    });
+    document.getElementById("zettle-connect-button")?.addEventListener("click", linkZettleReader);
+    document.getElementById("zettle-fetch-readers-button")?.addEventListener("click", fetchZettleLinkedReaders);
+    renderPosSettingsPanel();
+    updatePaymentUi();
+    updateCart();
+  </script>
+</body>
+</html>
+
+

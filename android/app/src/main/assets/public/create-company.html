@@ -1,0 +1,675 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Opret virksomhed | Madkontrollen Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ... (samme CSS som før, uændret) ... */
+        :root{
+            --bg:#f4f7f3;
+            --panel:#ffffff;
+            --panel-soft:#f8fbf8;
+            --text:#182118;
+            --muted:#667267;
+            --border:#d9e4d9;
+            --green:#2e7d32;
+            --green-dark:#1f5a23;
+            --green-soft:#e8f5e9;
+            --shadow:0 18px 40px rgba(16,24,16,.08);
+            --radius-xl:26px;
+            --radius-lg:20px;
+            --radius-md:14px;
+        }
+        *{box-sizing:border-box;}
+        body{
+            margin:0;
+            font-family:Inter,system-ui,sans-serif;
+            color:var(--text);
+            background:linear-gradient(180deg,#f7faf7 0%, var(--bg) 100%);
+        }
+        .page-shell{
+            max-width:1380px;
+            margin:0 auto;
+            padding:28px;
+        }
+        .hero{
+            background:linear-gradient(135deg,#16371a 0%, #245a2b 55%, #2f7d32 100%);
+            color:#fff;
+            border-radius:32px;
+            padding:30px;
+            box-shadow:0 20px 50px rgba(31,90,35,.22);
+            position:relative;
+            overflow:hidden;
+        }
+        .hero::after{
+            content:"";
+            position:absolute;
+            right:-110px;
+            top:-110px;
+            width:300px;
+            height:300px;
+            border-radius:50%;
+            background:rgba(255,255,255,.08);
+        }
+        .hero-grid{
+            position:relative;
+            z-index:1;
+            display:grid;
+            grid-template-columns:1.15fr .85fr;
+            gap:22px;
+            align-items:start;
+        }
+        .hero-badge{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:10px 14px;
+            border-radius:999px;
+            background:rgba(255,255,255,.14);
+            border:1px solid rgba(255,255,255,.18);
+            font-size:13px;
+            font-weight:800;
+            margin-bottom:16px;
+        }
+        .hero h1{
+            margin:0 0 10px;
+            font-size:42px;
+            line-height:1.03;
+            letter-spacing:-.03em;
+            max-width:760px;
+        }
+        .hero p{
+            margin:0;
+            max-width:820px;
+            line-height:1.65;
+            color:rgba(255,255,255,.88);
+            font-size:16px;
+        }
+        .hero-card{
+            background:rgba(255,255,255,.12);
+            border:1px solid rgba(255,255,255,.16);
+            border-radius:24px;
+            padding:20px;
+            backdrop-filter:blur(6px);
+        }
+        .hero-card-title{
+            font-size:13px;
+            font-weight:800;
+            letter-spacing:.06em;
+            text-transform:uppercase;
+            color:rgba(255,255,255,.78);
+            margin-bottom:12px;
+        }
+        .hero-price{
+            font-size:36px;
+            font-weight:800;
+            line-height:1;
+            margin-bottom:8px;
+        }
+        .hero-small{
+            color:rgba(255,255,255,.78);
+            line-height:1.55;
+            font-size:14px;
+        }
+        .content-grid{
+            display:grid;
+            grid-template-columns:1.1fr .9fr;
+            gap:22px;
+            margin-top:22px;
+        }
+        .stack{display:grid;gap:22px;}
+        .card{
+            background:var(--panel);
+            border:1px solid var(--border);
+            border-radius:24px;
+            padding:22px;
+            box-shadow:var(--shadow);
+        }
+        .card h2{
+            margin:0 0 8px;
+            font-size:24px;
+            letter-spacing:-.02em;
+        }
+        .card-lead{
+            margin:0 0 18px;
+            color:var(--muted);
+            line-height:1.6;
+        }
+        .grid{
+            display:grid;
+            grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:16px;
+        }
+        .field-full{grid-column:1/-1;}
+        label{
+            display:block;
+            font-size:14px;
+            font-weight:700;
+            margin:0 0 8px;
+        }
+        input, select, textarea{
+            width:100%;
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:13px 14px;
+            font:inherit;
+            color:var(--text);
+            background:#fff;
+        }
+        textarea{
+            min-height:110px;
+            resize:vertical;
+        }
+        input:focus, select:focus, textarea:focus{
+            outline:none;
+            border-color:#8db58f;
+            box-shadow:0 0 0 4px rgba(47,125,50,.08);
+        }
+        .action-row{
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-top:22px;
+        }
+        .btn{
+            border:none;
+            border-radius:14px;
+            padding:14px 18px;
+            font:inherit;
+            font-weight:800;
+            cursor:pointer;
+            transition:.2s ease;
+        }
+        .btn:hover{transform:translateY(-1px);}
+        .btn-primary{background:linear-gradient(180deg,var(--green) 0%, var(--green-dark) 100%);color:#fff;box-shadow:0 12px 24px rgba(47,125,50,.18);}
+        .btn-secondary{background:#fff;border:1px solid var(--border);color:var(--text);}
+        .btn-dark{background:#172117;color:#fff;}
+        .inline-note{
+            margin-top:14px;
+            padding:14px 16px;
+            border-radius:16px;
+            border:1px solid #d7e6d7;
+            background:linear-gradient(180deg,#f8fcf8 0%, #eef8ef 100%);
+            color:#2f4d31;
+            line-height:1.6;
+            font-size:14px;
+        }
+        .pill-row{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            margin-top:14px;
+        }
+        .pill{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:8px 12px;
+            border-radius:999px;
+            border:1px solid transparent;
+            font-size:12px;
+            font-weight:800;
+        }
+        .pill.active{background:var(--green-soft);color:var(--green-dark);border-color:#cfe8d2;}
+        .pill.preview{background:#eff6ff;color:#1d4ed8;border-color:#c7ddff;}
+        .pill.locked{background:#fff7ed;color:#b45309;border-color:#fed7aa;}
+        .pricing-grid,
+        .summary-grid,
+        .step-grid,
+        .module-grid{
+            display:grid;
+            gap:14px;
+        }
+        .pricing-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+        .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+        .step-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+        .module-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+        .mini-card,
+        .step-card,
+        .module-card{
+            border:1px solid var(--border);
+            border-radius:18px;
+            background:var(--panel-soft);
+            padding:18px;
+        }
+        .mini-label{
+            color:var(--muted);
+            font-size:12px;
+            font-weight:800;
+            text-transform:uppercase;
+            letter-spacing:.05em;
+            margin-bottom:8px;
+        }
+        .mini-value{
+            font-size:26px;
+            font-weight:800;
+            line-height:1;
+            margin-bottom:6px;
+        }
+        .mini-sub,
+        .step-card p,
+        .module-card p{
+            color:var(--muted);
+            line-height:1.55;
+            margin:0;
+            font-size:14px;
+        }
+        .module-head{
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            align-items:start;
+            margin-bottom:10px;
+        }
+        .module-name{
+            font-size:18px;
+            font-weight:800;
+            line-height:1.2;
+            margin-bottom:4px;
+        }
+        .module-price{
+            font-size:24px;
+            font-weight:800;
+            line-height:1;
+            margin:12px 0 8px;
+        }
+        .summary-box{
+            background:linear-gradient(180deg,#f9fcf9 0%, #f1f8f1 100%);
+            border:1px solid #d7e7d8;
+            border-radius:22px;
+            padding:20px;
+        }
+        .summary-title{
+            font-size:22px;
+            font-weight:800;
+            margin-bottom:8px;
+        }
+        .summary-sub{
+            color:var(--muted);
+            line-height:1.6;
+            margin-bottom:16px;
+        }
+        .summary-item{
+            background:#fff;
+            border:1px solid var(--border);
+            border-radius:16px;
+            padding:14px;
+        }
+        .summary-item strong{
+            display:block;
+            margin-bottom:6px;
+            font-size:15px;
+        }
+        .status-box{
+            margin-top:16px;
+            border-radius:18px;
+            border:1px solid var(--border);
+            background:#fff;
+            padding:16px;
+        }
+        .status-title{
+            font-size:16px;
+            font-weight:800;
+            margin-bottom:10px;
+        }
+        .status-list{display:grid;gap:10px;}
+        .status-item{
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:12px 14px;
+            background:var(--panel-soft);
+            font-size:14px;
+            line-height:1.5;
+        }
+        .footer-note{
+            margin-top:18px;
+            color:var(--muted);
+            font-size:14px;
+            text-align:center;
+        }
+        @media (max-width:1180px){
+            .hero-grid,
+            .content-grid{grid-template-columns:1fr;}
+            .step-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+        }
+        @media (max-width:760px){
+            .page-shell{padding:16px;}
+            .hero{padding:22px;border-radius:24px;}
+            .hero h1{font-size:32px;}
+            .grid,
+            .pricing-grid,
+            .summary-grid,
+            .step-grid,
+            .module-grid{grid-template-columns:1fr;}
+        }
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <section class="hero">
+            <div class="hero-grid">
+                <div>
+                    <div class="hero-badge">🏢 Opret virksomhed</div>
+                    <h1>Opret ny virksomhed og gør den klar til hele Madkontrollen økosystemet</h1>
+                    <p>Brug denne side når en eksisterende konto vil oprette en ny virksomhed. Siden opretter firmaet, gør det klar til flere restauranter, viser pris pr. enhed og forbereder onboarding til hjemmesider, SEO og moduler.</p>
+                    <div class="action-row">
+                        <button class="btn btn-primary" id="fillDemoBtn" type="button">Indsæt eksempeldata</button>
+                        <button class="btn btn-secondary" id="resetBtn" type="button">Nulstil formular</button>
+                    </div>
+                </div>
+                <aside class="hero-card">
+                    <div class="hero-card-title">Kernen starter her</div>
+                    <div class="hero-price">99,- / md</div>
+                    <div class="hero-small">Pris pr. enhed + moms. Årlig betaling giver 10% rabat, og flere restauranter giver yderligere 10% rabat. Ét login kan styre alle virksomheder centralt.</div>
+                    <div class="pill-row">
+                        <span class="pill active">Kernen aktiv ved køb</span>
+                        <span class="pill preview">SEO kan previewes</span>
+                        <span class="pill locked">Add-ons låses op ved køb</span>
+                    </div>
+                </aside>
+            </div>
+        </section>
+        <section class="content-grid">
+            <div class="stack">
+                <section class="card">
+                    <h2>Virksomhedsoplysninger</h2>
+                    <p class="card-lead">Her opretter du selve virksomheden. Lokationer og restauranter kan oprettes bagefter under samme konto og samme organisation.</p>
+                    <div class="grid">
+                        <div>
+                            <label for="companyName">Firmanavn</label>
+                            <input id="companyName" placeholder="Fx Århus Burger ApS" />
+                        </div>
+                        <div>
+                            <label for="companySlug">Virksomheds-slug</label>
+                            <input id="companySlug" placeholder="fx aarhus-burger-group" />
+                        </div>
+                        <div>
+                            <label for="cvr">CVR</label>
+                            <input id="cvr" placeholder="12345678" />
+                        </div>
+                        <div>
+                            <label for="ownerName">Kontaktperson</label>
+                            <input id="ownerName" placeholder="Fx Michael Nielsen" />
+                        </div>
+                        <div>
+                            <label for="billingEmail">Faktura email</label>
+                            <input id="billingEmail" type="email" placeholder="faktura@firma.dk" />
+                        </div>
+                        <div>
+                            <label for="phone">Telefon</label>
+                            <input id="phone" placeholder="70123456" />
+                        </div>
+                        <div>
+                            <label for="planType">Virksomhedstype</label>
+                            <select id="planType">
+                                <option value="single-site">Enkelt restaurant</option>
+                                <option value="multi-site">Flere restauranter</option>
+                                <option value="group">Kæde / koncern</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="units">Antal enheder fra start</label>
+                            <input id="units" type="number" min="1" value="1" />
+                        </div>
+                        <div class="field-full">
+                            <label for="description">Kort beskrivelse</label>
+                            <textarea id="description" placeholder="Beskriv virksomheden, konceptet og hvad de driver."></textarea>
+                        </div>
+                    </div>
+                    <div class="inline-note">Denne side opretter først <strong>organization</strong> og forbereder derefter næste trin: <strong>locations</strong>, <strong>subscriptions</strong>, <strong>website</strong> og <strong>seo_pages</strong>.</div>
+                    <div class="action-row">
+                        <button class="btn btn-primary" id="createBtn" type="button">Opret virksomhed</button>
+                        <button class="btn btn-dark" id="previewBtn" type="button">Beregn setup</button>
+                    </div>
+                </section>
+                <section class="card">
+                    <h2>Sådan fortsætter flowet</h2>
+                    <p class="card-lead">Efter virksomheden er oprettet, kan systemet oprette restauranter, aktivere kernen og generere standardside og SEO preview.</p>
+                    <div class="step-grid">
+                        <div class="step-card">
+                            <strong>1. Virksomhed</strong>
+                            <p>Opret organization og bind den til den eksisterende konto via membership.</p>
+                        </div>
+                        <div class="step-card">
+                            <strong>2. Lokationer</strong>
+                            <p>Opret restaurant-enheder som kan faktureres pr. enhed og styres samlet.</p>
+                        </div>
+                        <div class="step-card">
+                            <strong>3. Kernen</strong>
+                            <p>Aktiver Madkontrollen Kernen pr. enhed og gør systemet klar til drift.</p>
+                        </div>
+                        <div class="step-card">
+                            <strong>4. Website & SEO</strong>
+                            <p>Generer standardside, subdomæne og SEO preview med et klik.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="stack">
+                <section class="card">
+                    <h2>Priser og moduler</h2>
+                    <p class="card-lead">Priser vises pr. enhed. År = 10% rabat. Flere restauranter = yderligere 10% rabat.</p>
+                    <div class="module-grid" id="moduleGrid"></div>
+                </section>
+                <section class="card">
+                    <h2>Opsummering</h2>
+                    <p class="card-lead">Her ser du hvad der bliver oprettet, hvilken prislogik der gælder, og hvad næste trin er.</p>
+                    <div class="summary-box">
+                        <div class="summary-title" id="summaryTitle">Ingen virksomhed oprettet endnu</div>
+                        <div class="summary-sub" id="summarySub">Udfyld felterne og klik på “Beregn setup” eller “Opret virksomhed”.</div>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <strong>Månedlig kernepris</strong>
+                                <span id="summaryMonthly">99,- / md pr. enhed + moms</span>
+                            </div>
+                            <div class="summary-item">
+                                <strong>Årlig pris</strong>
+                                <span id="summaryYearly">1069,- / år pr. enhed + moms</span>
+                            </div>
+                            <div class="summary-item">
+                                <strong>Multi-site rabat</strong>
+                                <span id="summaryDiscount">Aktiveres ved mere end 1 enhed</span>
+                            </div>
+                            <div class="summary-item">
+                                <strong>Login model</strong>
+                                <span id="summaryLogin">Ét login til alle virksomheder og lokationer</span>
+                            </div>
+                        </div>
+                        <div class="status-box">
+                            <div class="status-title">Der oprettes i databasen</div>
+                            <div class="status-list" id="statusList"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+        <div class="footer-note">Gem denne fil som <strong>public/create-company.html</strong>. Brug den til at oprette en ny organization fra en eksisterende konto.</div>
+    </main>
+    <script>
+        const modules = [
+            {
+                key: "core",
+                name: "Madkontrollen Kernen",
+                monthly: 99,
+                status: "Aktiv ved køb",
+                type: "base",
+                description: "Grundmodulet med egenkontrol, onboarding og standard hjemmeside."
+            },
+            {
+                key: "egenkontrol_plus",
+                name: "Udvidet Egenkontrol",
+                monthly: 79,
+                status: "Klar til køb",
+                type: "addon",
+                description: "Ekstra dokumentation, flere rutiner og avancerede rapporter."
+            },
+            {
+                key: "kalkulation",
+                name: "Kalkulation",
+                monthly: 69,
+                status: "Klar til køb",
+                type: "addon",
+                description: "Opskrifter, råvarer, dækningsbidrag og menu-kalkulation."
+            },
+            {
+                key: "seo_website",
+                name: "SEO & Hjemmeside",
+                monthly: 89,
+                status: "Preview mulig",
+                type: "addon",
+                description: "Autogenereret hjemmeside, SEO-sider og subdomæne."
+            }
+        ];
+        const demoCompany = {
+            companyName: "Århus Burger ApS",
+            companySlug: "aarhus-burger-group",
+            cvr: "12345678",
+            ownerName: "Michael Nielsen",
+            billingEmail: "faktura@aarhusburger.dk",
+            phone: "70123456",
+            planType: "multi-site",
+            units: 3,
+            description: "Århus Burger driver flere burger-restauranter og vil styre egenkontrol, website og SEO centralt fra ét login."
+        };
+        const els = {
+            companyName: document.getElementById("companyName"),
+            companySlug: document.getElementById("companySlug"),
+            cvr: document.getElementById("cvr"),
+            ownerName: document.getElementById("ownerName"),
+            billingEmail: document.getElementById("billingEmail"),
+            phone: document.getElementById("phone"),
+            planType: document.getElementById("planType"),
+            units: document.getElementById("units"),
+            description: document.getElementById("description"),
+            fillDemoBtn: document.getElementById("fillDemoBtn"),
+            resetBtn: document.getElementById("resetBtn"),
+            createBtn: document.getElementById("createBtn"),
+            previewBtn: document.getElementById("previewBtn"),
+            moduleGrid: document.getElementById("moduleGrid"),
+            summaryTitle: document.getElementById("summaryTitle"),
+            summarySub: document.getElementById("summarySub"),
+            summaryMonthly: document.getElementById("summaryMonthly"),
+            summaryYearly: document.getElementById("summaryYearly"),
+            summaryDiscount: document.getElementById("summaryDiscount"),
+            statusList: document.getElementById("statusList")
+        };
+        function slugify(text) {
+            return (text || "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "");
+        }
+        function getUnits() {
+            return Math.max(1, parseInt(els.units.value || "1", 10));
+        }
+        function getPortfolioMultiplier(units) {
+            return units > 1 ? 0.9 : 1;
+        }
+        function yearlyPrice(monthly, units) {
+            return Math.round(monthly * 12 * 0.9 * getPortfolioMultiplier(units));
+        }
+        function monthlyPrice(monthly, units) {
+            return Math.round(monthly * getPortfolioMultiplier(units));
+        }
+        function renderModules() {
+            const units = getUnits();
+            els.moduleGrid.innerHTML = modules.map((module) => {
+                const month = monthlyPrice(module.monthly, units);
+                const year = yearlyPrice(module.monthly, units);
+                const pillClass = module.key === "core" ? "active" : module.key === "seo_website" ? "preview" : "locked";
+                return `
+                    <article class="module-card">
+                        <div class="module-head">
+                            <div>
+                                <div class="module-name">${module.name}</div>
+                                <div class="pill ${pillClass}">${module.status}</div>
+                            </div>
+                        </div>
+                        <p>${module.description}</p>
+                        <div class="module-price">${month},- / md pr. enhed</div>
+                        <div class="mini-sub">År: ${year},- pr. enhed · 10% års-rabat${units > 1 ? " + 10% multi-site rabat" : ""}</div>
+                    </article>
+                `;
+            }).join("");
+        }
+        function renderSummary(mode = "preview") {
+            const name = els.companyName.value.trim() || "Ny virksomhed";
+            const slug = slugify(els.companySlug.value.trim() || name);
+            const units = getUnits();
+            const monthly = monthlyPrice(99, units);
+            const yearly = yearlyPrice(99, units);
+            els.companySlug.value = slug;
+            els.summaryTitle.textContent = `${name} er klar til oprettelse`;
+            els.summarySub.textContent = mode === "created"
+                ? `${name} er nu klar som organization. Næste trin er at oprette ${units} lokation(er), aktivere kernen og generere hjemmeside + SEO preview.`
+                : `${name} bliver oprettet som organization med slug “${slug}” og kan bagefter få lokationer, moduler og hjemmesider koblet på.`;
+            els.summaryMonthly.textContent = `${monthly},- / md pr. enhed + moms`;
+            els.summaryYearly.textContent = `${yearly},- / år pr. enhed + moms`;
+            els.summaryDiscount.textContent = units > 1
+                ? `Multi-site rabat aktiv for ${units} enheder`
+                : "Standard pris · ingen multi-site rabat endnu";
+            const statusItems = [
+                `organization oprettes med slug: ${slug}`,
+                `membership knyttes til eksisterende konto: ${els.ownerName.value.trim() || "ejerkonto"}`,
+                `${units} lokation(er) kan oprettes bagefter under samme virksomhed`,
+                `Madkontrollen Kernen beregnes til ${monthly},- / md pr. enhed + moms`,
+                `Årlig betaling bliver ${yearly},- / år pr. enhed + moms`,
+                `Ét login kan derefter styre alle virksomheder og restauranter centralt`
+            ];
+            els.statusList.innerHTML = statusItems
+                .map((item) => `<div class="status-item">${item}</div>`)
+                .join("");
+        }
+        function fillDemo() {
+            Object.entries(demoCompany).forEach(([key, value]) => {
+                if (els[key]) {
+                    els[key].value = value;
+                }
+            });
+            renderModules();
+            renderSummary("preview");
+        }
+        function resetForm() {
+            [
+                "companyName",
+                "companySlug",
+                "cvr",
+                "ownerName",
+                "billingEmail",
+                "phone",
+                "description"
+            ].forEach((key) => {
+                els[key].value = "";
+            });
+            els.planType.value = "single-site";
+            els.units.value = "1";
+            renderModules();
+            renderSummary("preview");
+        }
+        [els.companyName, els.companySlug, els.units, els.planType, els.ownerName].forEach((input) => {
+            input.addEventListener("input", () => {
+                renderModules();
+                renderSummary("preview");
+            });
+        });
+        els.fillDemoBtn.addEventListener("click", fillDemo);
+        els.resetBtn.addEventListener("click", resetForm);
+        els.previewBtn.addEventListener("click", () => {
+            renderModules();
+            renderSummary("preview");
+        });
+        els.createBtn.addEventListener("click", () => {
+            renderModules();
+            renderSummary("created");
+        });
+        renderModules();
+        renderSummary("preview");
+    </script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HACCP dokument | Madkontrollen Pro</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    :root{
+      --paper:#ffffff;
+      --ink:#111827;
+      --muted:#4b5563;
+      --line:#d1d5db;
+      --header:#0f172a;
+      --accent:#14532d;
+      --bg:#f3f6f3;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
+      font-family:"Inter", Arial, sans-serif;
+    }
+
+    .doc-shell{
+      max-width:1100px;
+      margin:24px auto 48px;
+      padding:0 16px;
+    }
+
+    .doc-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+    .doc-card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:14px;
+      box-shadow:0 16px 28px rgba(15, 23, 42, 0.08);
+      overflow:hidden;
+    }
+
+    .doc-header{
+      border-bottom:2px solid #0b0b0b;
+      padding:20px 22px;
+      display:grid;
+      gap:6px;
+    }
+
+    .doc-title{
+      margin:0;
+      font-size:28px;
+      line-height:1.15;
+      color:var(--header);
+      font-weight:900;
+    }
+
+    .doc-company{
+      margin:0;
+      font-size:16px;
+      font-weight:800;
+      color:var(--header);
+    }
+
+    .doc-meta{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:10px;
+      padding:14px 22px;
+      border-bottom:1px solid var(--line);
+      background:#f8faf8;
+    }
+
+    .meta-item{
+      display:grid;
+      gap:4px;
+    }
+
+    .meta-item strong{
+      font-size:12px;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+      color:#1f2937;
+    }
+
+    .meta-item span{
+      font-size:14px;
+      color:#111827;
+      font-weight:700;
+    }
+
+    .doc-content{
+      padding:18px 22px 24px;
+      display:grid;
+      gap:18px;
+    }
+
+    .doc-section h2{
+      margin:0 0 8px;
+      font-size:18px;
+      color:var(--header);
+      font-weight:800;
+    }
+
+    .doc-note{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55;
+    }
+
+    .official-table{
+      width:100%;
+      border-collapse:collapse;
+      border:1px solid #111827;
+      font-size:13px;
+    }
+
+    .official-table th,
+    .official-table td{
+      border:1px solid #111827;
+      padding:10px 9px;
+      text-align:left;
+      vertical-align:top;
+      line-height:1.45;
+    }
+
+    .official-table th{
+      background:#eef2ef;
+      font-size:12px;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+      color:#111827;
+      font-weight:800;
+    }
+
+    .empty-row{
+      color:#6b7280;
+      font-style:italic;
+    }
+
+    @media (max-width:900px){
+      .doc-meta{
+        grid-template-columns:1fr;
+      }
+
+      .doc-title{
+        font-size:24px;
+      }
+    }
+
+    @media print{
+      body{
+        background:#fff;
+      }
+
+      #headerMount,
+      #sidebarMount,
+      .doc-actions,
+      .topbar,
+      .sidebar,
+      nav,
+      .btn{
+        display:none !important;
+      }
+
+      .doc-shell{
+        margin:0;
+        max-width:none;
+        padding:0;
+      }
+
+      .doc-card{
+        border:none;
+        border-radius:0;
+        box-shadow:none;
+      }
+
+      .doc-title,
+      .doc-company,
+      .meta-item span{
+        font-weight:900;
+      }
+
+      .official-table{
+        page-break-inside:auto;
+      }
+
+      .official-table tr{
+        page-break-inside:avoid;
+        page-break-after:auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="headerMount"></div>
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+      <section class="page-content">
+        <div class="doc-shell">
+          <div class="doc-actions">
+            <a class="btn btn-secondary" href="/modules/egenkontrol/onboarding.html">Tilbage til onboarding</a>
+            <button id="printBtn" class="btn btn-primary" type="button">Print / Gem som PDF</button>
+          </div>
+
+          <article class="doc-card" id="haccpDocument">
+            <header class="doc-header">
+              <h1 id="docTitle" class="doc-title">Lovpligtig Risikoanalyse & HACCP</h1>
+              <p id="docCompany" class="doc-company">Virksomhed ikke angivet</p>
+            </header>
+
+            <section class="doc-meta">
+              <div class="meta-item">
+                <strong>CVR</strong>
+                <span id="docCvr">-</span>
+              </div>
+              <div class="meta-item">
+                <strong>Adresse</strong>
+                <span id="docAddress">-</span>
+              </div>
+              <div class="meta-item">
+                <strong>Oprettet</strong>
+                <span id="docCreatedAt">-</span>
+              </div>
+            </section>
+
+            <section class="doc-content">
+              <section class="doc-section">
+                <h2>Risici fundet</h2>
+                <p class="doc-note">Nedenstaende risici og kontrolpunkter er genereret ud fra onboarding-data og danner grundlag for den foerste HACCP-plan.</p>
+                <table class="official-table" aria-label="Risici fundet">
+                  <thead>
+                    <tr>
+                      <th style="width:35%">Risiko</th>
+                      <th style="width:12%">Niveau</th>
+                      <th style="width:38%">Kontrolforanstaltning</th>
+                      <th style="width:15%">Frekvens</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hazardsBody"></tbody>
+                </table>
+              </section>
+
+              <section class="doc-section">
+                <h2>Kontrolomraader</h2>
+                <table class="official-table" aria-label="Kontrolomraader">
+                  <thead>
+                    <tr>
+                      <th style="width:8%">Nr.</th>
+                      <th>Kontrolomraade</th>
+                    </tr>
+                  </thead>
+                  <tbody id="controlsBody"></tbody>
+                </table>
+              </section>
+            </section>
+          </article>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { loadLayout } from "/core/layout.js";
+    import { db } from "/core/firebase-config.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const HACCP_STORAGE_KEY = "mkp_latest_haccp_snapshot_v1";
+
+    const titleEl = document.getElementById("docTitle");
+    const companyEl = document.getElementById("docCompany");
+    const cvrEl = document.getElementById("docCvr");
+    const addressEl = document.getElementById("docAddress");
+    const createdAtEl = document.getElementById("docCreatedAt");
+    const hazardsBodyEl = document.getElementById("hazardsBody");
+    const controlsBodyEl = document.getElementById("controlsBody");
+
+    function formatDate(value) {
+      if (!value) return "-";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return "-";
+      return new Intl.DateTimeFormat("da-DK", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(d);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function renderHazards(hazards) {
+      if (!Array.isArray(hazards) || !hazards.length) {
+        hazardsBodyEl.innerHTML = '<tr><td colspan="4" class="empty-row">Ingen risici fundet i snapshot.</td></tr>';
+        return;
+      }
+
+      hazardsBodyEl.innerHTML = hazards.map((hazard) => `
+        <tr>
+          <td>${escapeHtml(hazard.name || "-")}</td>
+          <td>${escapeHtml(hazard.riskLevel || "-")}</td>
+          <td>${escapeHtml(hazard.control || "-")}</td>
+          <td>${escapeHtml(hazard.frequency || "-")}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderControls(controls) {
+      if (!Array.isArray(controls) || !controls.length) {
+        controlsBodyEl.innerHTML = '<tr><td colspan="2" class="empty-row">Ingen kontrolomraader fundet i snapshot.</td></tr>';
+        return;
+      }
+
+      controlsBodyEl.innerHTML = controls.map((control, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${escapeHtml(control)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderDocument(snapshot) {
+      const companyName = snapshot.companyName || snapshot.profile?.companyName || "Virksomhed";
+      const cvr = snapshot.cvr || snapshot.profile?.cvr || "-";
+      const address = snapshot.address || [snapshot.profile?.address, snapshot.profile?.zip, snapshot.profile?.city].filter(Boolean).join(", ") || "-";
+      const createdAt = snapshot.createdAtIso || snapshot.createdAt || "";
+      const hazards = snapshot.generated?.hazards || [];
+      const controls = snapshot.generated?.controls || [];
+
+      titleEl.textContent = `Lovpligtig Risikoanalyse & HACCP for ${companyName}`;
+      companyEl.textContent = companyName;
+      cvrEl.textContent = cvr;
+      addressEl.textContent = address;
+      createdAtEl.textContent = formatDate(createdAt);
+
+      renderHazards(hazards);
+      renderControls(controls);
+    }
+
+    async function loadSnapshot() {
+      const params = new URLSearchParams(window.location.search);
+      const snapshotId = params.get("snapshotId");
+
+      if (snapshotId) {
+        try {
+          const ref = doc(db, "haccp_snapshots", snapshotId);
+          const snap = await getDoc(ref);
+          if (snap.exists()) {
+            return { id: snap.id, ...snap.data() };
+          }
+        } catch (error) {
+          console.error("Kunne ikke hente HACCP snapshot:", error);
+        }
+      }
+
+      try {
+        const cached = localStorage.getItem(HACCP_STORAGE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && typeof parsed === "object") {
+            return parsed;
+          }
+        }
+      } catch (error) {
+        console.warn("Kunne ikke laese lokal HACCP cache:", error);
+      }
+
+      return null;
+    }
+
+    document.getElementById("printBtn")?.addEventListener("click", () => {
+      window.print();
+    });
+
+    await loadLayout();
+
+    const snapshot = await loadSnapshot();
+    if (snapshot) {
+      renderDocument(snapshot);
+    } else {
+      titleEl.textContent = "Lovpligtig Risikoanalyse & HACCP";
+      companyEl.textContent = "Ingen snapshot fundet";
+      hazardsBodyEl.innerHTML = '<tr><td colspan="4" class="empty-row">Der blev ikke fundet et snapshot. Gaa tilbage til onboarding og generer igen.</td></tr>';
+      controlsBodyEl.innerHTML = '<tr><td colspan="2" class="empty-row">Ingen data tilgaengelig.</td></tr>';
+    }
+  </script>
+</body>
+</html>

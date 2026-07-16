@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow">
     <title>Kom i gang | Madkontrollen Pro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,6 +66,17 @@
             color: var(--muted);
             font-size: 16px;
             line-height: 1.5;
+        }
+
+        .module-card-image {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, #f8fbf8, #e8f3e6);
         }
 
         /* Progress Indicator */
@@ -420,9 +432,25 @@
         <div class="step active" data-step="1">
             <h2 class="step-title">Firmaoplysninger</h2>
             
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="cvr">CVR-nummer</label>
+                    <input type="text" id="cvr" placeholder="12345678" maxlength="8" pattern="[0-9]{8}" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-secondary" id="cvrLookupBtn" style="width: 100%;">Hent CVR</button>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="companyName">Firmanavn</label>
                 <input type="text" id="companyName" required placeholder="Fx Restaurant Madglad" autocomplete="organization">
+            </div>
+
+            <div class="form-group">
+                <label for="contactPersonName">Kontaktperson / ansvarlig person</label>
+                <input type="text" id="contactPersonName" required placeholder="Fx Supawan Ponguttha" autocomplete="name">
             </div>
 
             <div class="form-group">
@@ -714,6 +742,11 @@
             </div>
 
             <div class="summary-item">
+                <div class="summary-label">Kontaktperson</div>
+                <div class="summary-value" id="summaryContactPerson">-</div>
+            </div>
+
+            <div class="summary-item">
                 <div class="summary-label">Adresse</div>
                 <div class="summary-value" id="summaryAddress">-</div>
             </div>
@@ -735,6 +768,65 @@
 
             <div class="button-group">
                 <button type="button" class="btn btn-secondary" onclick="prevStep()">← Tilbage</button>
+
+                <div class="form-section module-selection-section" id="moduleSelectionSection">
+                    <h2>Vælg moduler</h2>
+                    <p class="section-help">Vælg de moduler virksomheden skal starte med. Du kan altid tilføje flere senere.</p>
+
+                    <div class="module-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:18px 0 8px;">
+                        <label class="module-card" style="display:block;border:1px solid #dbe7d7;border-radius:16px;padding:16px;background:#fff;cursor:pointer;">
+                            <input type="checkbox" name="selectedModules" value="egenkontrol" data-module-slug="egenkontrol">
+                            <strong style="display:block;margin-top:8px;">Egenkontrol</strong>
+                            <span style="display:block;color:#667466;font-size:0.95rem;margin-top:4px;">Daglige rutiner, risikoanalyse og myndighedsrapport.</span>
+                        </label>
+
+                        <label class="module-card" style="display:block;border:1px solid #dbe7d7;border-radius:16px;padding:16px;background:#fff;cursor:pointer;">
+                            <input type="checkbox" name="selectedModules" value="pos" data-module-slug="pos">
+                            <img class="module-card-image" src="/assets/modules/pos-hero.png" alt="Madkontrollen POS">
+                            <strong style="display:block;margin-top:8px;">POS</strong>
+                            <span style="display:block;color:#667466;font-size:0.95rem;margin-top:4px;">Kasse, salg, dagsafslutning og betaling.</span>
+                        </label>
+
+                        <label class="module-card" style="display:block;border:1px solid #dbe7d7;border-radius:16px;padding:16px;background:#fff;cursor:pointer;">
+                            <input type="checkbox" name="selectedModules" value="lagerkontrol" data-module-slug="lagerkontrol">
+                            <img class="module-card-image" src="/assets/modules/lagerkontrol-hero.png" alt="Madkontrollen Lagerkontrol">
+                            <strong style="display:block;margin-top:8px;">Lagerkontrol</strong>
+                            <span style="display:block;color:#667466;font-size:0.95rem;margin-top:4px;">Varer, optælling, varemodtagelse og svind.</span>
+                        </label>
+
+                        <label class="module-card" style="display:block;border:1px solid #dbe7d7;border-radius:16px;padding:16px;background:#fff;cursor:pointer;">
+                            <input type="checkbox" name="selectedModules" value="menu" data-module-slug="menu">
+                            <strong style="display:block;margin-top:8px;">Menu / Opskrifter</strong>
+                            <span style="display:block;color:#667466;font-size:0.95rem;margin-top:4px;">Menuer, opskrifter, allergener og indhold.</span>
+                        </label>
+
+                        <label class="module-card" style="display:block;border:1px solid #dbe7d7;border-radius:16px;padding:16px;background:#fff;cursor:pointer;">
+                            <input type="checkbox" name="selectedModules" value="seo" data-module-slug="seo">
+                            <strong style="display:block;margin-top:8px;">SEO Automatik</strong>
+                            <span style="display:block;color:#667466;font-size:0.95rem;margin-top:4px;">Lokale landingssider, synlighed og søgemaskineoptimering.</span>
+                        </label>
+
+                        <label class="module-card" style="display:block;border:1px solid #dbe7d7;border-radius:16px;padding:16px;background:#fff;cursor:pointer;">
+                            <input type="checkbox" name="selectedModules" value="kalkulation" data-module-slug="kalkulation">
+                            <strong style="display:block;margin-top:8px;">Kalkulation</strong>
+                            <span style="display:block;color:#667466;font-size:0.95rem;margin-top:4px;">Opskrifter, dækningsbidrag og kostpriser.</span>
+                        </label>
+
+                        <label class="module-card" style="display:block;border:1px solid #dbe7d7;border-radius:16px;padding:16px;background:#fff;cursor:pointer;">
+                            <input type="checkbox" name="selectedModules" value="koerselskontrol" data-module-slug="koerselskontrol">
+                            <strong style="display:block;margin-top:8px;">Kørselskontrol</strong>
+                            <span style="display:block;color:#667466;font-size:0.95rem;margin-top:4px;">Ture, kørsel og dokumentation.</span>
+                        </label>
+
+                        <label class="module-card" style="display:block;border:1px solid #dbe7d7;border-radius:16px;padding:16px;background:#fff;cursor:pointer;">
+                            <input type="checkbox" name="selectedModules" value="bogforing" data-module-slug="bogforing">
+                            <img class="module-card-image" src="/assets/modules/bogforing-hero.png" alt="Madkontrollen Bogføringsappen">
+                            <strong style="display:block;margin-top:8px;">Bogføringsappen</strong>
+                            <span style="display:block;color:#667466;font-size:0.95rem;margin-top:4px;">Bilag, moms, kassekladde og bogføringsforslag.</span>
+                        </label>
+                    </div>
+                </div>
+
                 <button type="button" class="btn btn-primary" onclick="submitForm()" id="submitBtn">Opret Madkontrollen</button>
             </div>
         </div>
@@ -753,8 +845,25 @@
         import app, { auth } from "/core/firebase-config.js";
         import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+        import { moduleEntryUrl, modulesRequiringSetup } from "/core/onboarding-module-registry.js";
 
         const functions = getFunctions(app, "us-central1");
+
+        // Move the module-selection block into step 1 so module choice happens BEFORE module-specific
+        // setup steps (Enheder/Aktiviteter = egenkontrol setup). Keeps the HTML source untouched.
+        function relocateModuleSelection() {
+            const section = document.getElementById('moduleSelectionSection');
+            const step1 = document.querySelector('.step[data-step="1"]');
+            if (!section || !step1 || step1.contains(section)) return;
+            const anchor = step1.querySelector('.step-title');
+            if (anchor && anchor.nextSibling) step1.insertBefore(section, anchor.nextSibling);
+            else step1.appendChild(section);
+        }
+
+        // True when a setup-requiring module (currently only egenkontrol) is selected.
+        function needsEgenkontrolSetup() {
+            return modulesRequiringSetup(getSelectedModules()).some((m) => m.moduleId === 'egenkontrol');
+        }
         
         // State
         const state = {
@@ -764,28 +873,46 @@
         // Initialize
         updateProgressIndicator();
         setupQuestionButtons();
+        
+        // CVR lookup button
+        document.getElementById('cvrLookupBtn').addEventListener('click', lookupCVR);
 
         // Navigation
+        // Steps: 1 Firma+moduler, 2 Enheder (egenkontrol), 3 Aktiviteter (egenkontrol), 4 Opret.
+        // Egenkontrol-setup steps (2,3) are skipped entirely when egenkontrol is not selected.
         window.nextStep = function() {
             if (state.currentStep === 1) {
                 if (!validateStep1()) return;
-            }
-            
-            if (state.currentStep < 4) {
-                state.currentStep++;
-                showStep(state.currentStep);
-                
-                if (state.currentStep === 4) {
+                if (needsEgenkontrolSetup()) {
+                    state.currentStep = 2;
+                } else {
+                    state.currentStep = 4;
                     updateSummary();
                 }
+                showStep(state.currentStep);
+                return;
+            }
+            if (state.currentStep === 2) {
+                state.currentStep = 3;
+                showStep(3);
+                return;
+            }
+            if (state.currentStep === 3) {
+                state.currentStep = 4;
+                updateSummary();
+                showStep(4);
+                return;
             }
         };
 
         window.prevStep = function() {
-            if (state.currentStep > 1) {
-                state.currentStep--;
+            if (state.currentStep === 4) {
+                state.currentStep = needsEgenkontrolSetup() ? 3 : 1;
                 showStep(state.currentStep);
+                return;
             }
+            if (state.currentStep === 3) { state.currentStep = 2; showStep(2); return; }
+            if (state.currentStep === 2) { state.currentStep = 1; showStep(1); return; }
         };
 
         function showStep(step) {
@@ -815,9 +942,20 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const companyName = document.getElementById('companyName').value.trim();
+            const contactPersonName = document.getElementById('contactPersonName').value.trim();
 
-            if (!email || !password || !companyName) {
+            if (!email || !password || !companyName || !contactPersonName) {
                 showError("Udfyld venligst alle påkrævede felter.");
+                return false;
+            }
+
+            if (!getSelectedModules().length) {
+                showError("Vælg mindst ét modul for at fortsætte.");
+                return false;
+            }
+
+            if (contactPersonName.toLowerCase() === companyName.toLowerCase()) {
+                showError("Kontaktperson skal være et personnavn, ikke firmanavn.");
                 return false;
             }
 
@@ -847,10 +985,117 @@
             });
         }
 
+        async function lookupCVR() {
+            const cvrInput = document.getElementById('cvr');
+            const rawCvr = cvrInput.value || "";
+            const cleanedCvr = rawCvr.replace(/\D/g, "").trim();
+
+            if (!/^\d{8}$/.test(cleanedCvr)) {
+                showError("CVR-nummer skal være præcis 8 cifre.");
+                return;
+            }
+
+            console.log("[cvr lookup] input:", cleanedCvr);
+            
+            const cvrBtn = document.getElementById('cvrLookupBtn');
+            const originalText = cvrBtn.textContent;
+            cvrBtn.textContent = "Henter...";
+            cvrBtn.disabled = true;
+
+            try {
+                const resp = await fetch(`https://cvrapi.dk/api?search=${cleanedCvr}&country=dk`, {
+                    headers: { "User-Agent": "Madkontrollen - kontakt@madkontrollen.dk" }
+                });
+
+                if (!resp.ok) throw new Error(`CVR API svarede med ${resp.status}`);
+                const d = await resp.json();
+                
+                console.log("[cvr lookup] response:", d);
+                
+                if (d.error) throw new Error(d.error);
+
+                // Extract company data from CVR API response
+                const name = d.name || "";
+                const address = d.address || "";
+                const zip = String(d.zipcode || "");
+                const city = d.city || "";
+                const phone = d.phone || "";
+                const email = d.email || "";
+                
+                console.log("[cvr lookup] mapped company:", {
+                    cvr: cleanedCvr,
+                    name,
+                    address,
+                    zip,
+                    city,
+                    phone,
+                    email
+                });
+
+                // Only update fields that are currently empty (don't overwrite user edits)
+                const nameField = document.getElementById('companyName');
+                const addressField = document.getElementById('address');
+                const zipField = document.getElementById('postalCode');
+                const cityField = document.getElementById('city');
+                const phoneField = document.getElementById('phone');
+                const emailField = document.getElementById('email');
+
+                if (!nameField.value.trim() && name) {
+                    nameField.value = name;
+                }
+                
+                if (!addressField.value.trim() && address) {
+                    addressField.value = address;
+                }
+                
+                if (!zipField.value.trim() && zip) {
+                    zipField.value = zip;
+                }
+                
+                if (!cityField.value.trim() && city) {
+                    cityField.value = city;
+                }
+                
+                if (!phoneField.value.trim() && phone) {
+                    phoneField.value = phone;
+                }
+                
+                if (!emailField.value.trim() && email) {
+                    emailField.value = email;
+                }
+
+                // Update CVR field with cleaned value
+                cvrInput.value = cleanedCvr;
+
+                cvrBtn.textContent = "✓ Hentet";
+                setTimeout(() => {
+                    cvrBtn.textContent = originalText;
+                    cvrBtn.disabled = false;
+                }, 2000);
+
+            } catch (error) {
+                console.error("[cvr lookup] failed:", error);
+                
+                // Check if it's a CORS error
+                if (error.message.includes("CORS") || error.message.includes("NetworkError") || error.name === "TypeError") {
+                    console.error("⚠️ CORS BLOKERING DETEKTERET");
+                    console.error("Løsning: Implementer Firebase Function proxy for CVR lookup");
+                    console.error("Alternativ: Brug en CVR API med CORS support eller backend proxy");
+                    showError("CVR lookup blokeret af browser sikkerhed (CORS). Du kan indtaste virksomhedsoplysninger manuelt. Se console for tekniske detaljer.");
+                } else {
+                    showError("Kunne ikke hente CVR data: " + error.message + ". Du kan indtaste virksomhedsoplysninger manuelt.");
+                }
+                
+                cvrBtn.textContent = originalText;
+                cvrBtn.disabled = false;
+            }
+        }
+
         function updateSummary() {
             // Company
             const companyName = document.getElementById('companyName').value.trim();
             document.getElementById('summaryCompany').textContent = companyName || '-';
+            document.getElementById('summaryContactPerson').textContent = document.getElementById('contactPersonName').value.trim() || '-';
 
             // Address
             const address = document.getElementById('address').value.trim();
@@ -887,15 +1132,71 @@
             document.getElementById('summaryActivities').textContent = activitiesCount;
         }
 
+
+        function getSelectedModules() {
+            const checked = Array.from(document.querySelectorAll('input[name="selectedModules"]:checked'))
+                .map((input) => (input.value || '').trim())
+                .filter(Boolean);
+
+            return checked;
+        }
+
+        function normalizeRequestedModuleSlug(value) {
+            const slug = String(value || '').trim().toLowerCase();
+            const aliases = {
+                bogfoering: 'bogforing',
+                bogforing: 'bogforing',
+                'bogføring': 'bogforing',
+                accounting: 'bogforing'
+            };
+            return aliases[slug] || slug;
+        }
+
+        function applyModuleSelectionFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const raw = [
+                params.get('module'),
+                params.get('modules'),
+                params.get('selectedModules')
+            ].filter(Boolean).join(',');
+
+            const requested = raw
+                .split(',')
+                .map((item) => normalizeRequestedModuleSlug(item))
+                .filter(Boolean);
+
+            if (!requested.length) return;
+
+            const boxes = Array.from(document.querySelectorAll('input[name="selectedModules"][data-module-slug]'));
+            if (!boxes.length) return;
+
+            boxes.forEach((box) => {
+                if (!box.disabled) box.checked = false;
+            });
+
+            requested.forEach((slug) => {
+                const box = document.querySelector(`input[name="selectedModules"][data-module-slug="${slug}"]`);
+                if (box && !box.disabled) box.checked = true;
+            });
+
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            relocateModuleSelection();
+            applyModuleSelectionFromUrl();
+        });
+
         window.submitForm = async function() {
             hideError();
             showLoading();
 
             try {
                 // Collect data
+                const cvr = (document.getElementById('cvr').value || "").replace(/\D/g, "").trim();
                 const email = document.getElementById('email').value.trim().toLowerCase();
                 const password = document.getElementById('password').value;
                 const companyName = document.getElementById('companyName').value.trim();
+                const contactPersonName = document.getElementById('contactPersonName').value.trim();
                 const address = document.getElementById('address').value.trim();
                 const postalCode = document.getElementById('postalCode').value.trim();
                 const city = document.getElementById('city').value.trim();
@@ -933,20 +1234,43 @@
                     questions: questions
                 };
 
-                console.log('[Quick Onboarding] Payload:', { email, companyName, address, phone, industry, setup });
+                if (!contactPersonName) {
+                    throw new Error("Udfyld kontaktperson / ansvarlig person.");
+                }
+
+                if (contactPersonName.toLowerCase() === companyName.toLowerCase()) {
+                    throw new Error("Kontaktperson skal være et personnavn, ikke firmanavn.");
+                }
+
+                const selectedModules = getSelectedModules();
+                if (!selectedModules.length) {
+                    throw new Error("Vælg mindst ét modul for at fortsætte.");
+                }
+
+                console.log('[Quick Onboarding] Payload:', { cvr, email, companyName, contactPersonName, address, phone, industry, selectedModules, setup });
+
+                // moduleSetup is the new module-keyed draft schema. Egenkontrol setup is only
+                // collected/sent when egenkontrol is selected; `setup` is kept for backend compatibility.
+                const hasEgenkontrol = selectedModules.includes('egenkontrol');
+                const moduleSetup = {};
+                if (hasEgenkontrol) moduleSetup.egenkontrol = setup;
 
                 // Create account
                 const createAccount = httpsCallable(functions, 'createQuickOnboardingAccount');
                 const result = await createAccount({
+                    cvr,
                     email,
                     password,
                     companyName,
+                    contactPersonName,
                     address,
                     postalCode,
                     city,
                     phone,
                     industry,
-                    setup
+                    selectedModules,
+                    setup: hasEgenkontrol ? setup : {},
+                    moduleSetup
                 });
 
                 console.log('[Quick Onboarding] Result:', result.data);
@@ -955,7 +1279,9 @@
                 await signInWithEmailAndPassword(auth, email, password);
 
                 // Redirect
-                window.location.href = '/modules/egenkontrol/rutiner.html';
+                const selectedModulesAfterSignup = getSelectedModules();
+                const firstModule = selectedModulesAfterSignup[0] || '';
+                window.location.href = moduleEntryUrl(firstModule);
 
             } catch (error) {
                 console.error('[Quick Onboarding] Error:', error);
@@ -991,6 +1317,6 @@
             showStep(state.currentStep);
             document.getElementById('loadingIndicator').classList.remove('show');
         }
-    </script>
+</script>
 </body>
 </html>

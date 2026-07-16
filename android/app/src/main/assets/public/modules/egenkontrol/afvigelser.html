@@ -1,0 +1,2892 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Afvigelser | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    .reference-box{
+      margin-bottom:18px;
+      padding:18px;
+      border:1px solid #d5e4f8;
+      border-radius:18px;
+      background:linear-gradient(180deg,#f6fbff 0%, #eef6ff 100%);
+      box-shadow:var(--shadow-soft);
+    }
+
+    .reference-box[hidden],
+    .section[hidden]{
+      display:none !important;
+    }
+
+    .reference-title{
+      margin:0 0 8px;
+      font-size:16px;
+      font-weight:800;
+      color:#1f4f8c;
+    }
+
+    .reference-text{
+      margin:0;
+      color:#24518b;
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .reference-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .reference-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid #cfe0ff;
+      background:#fff;
+      color:#1f4f8c;
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .deviation-card{
+      display:grid;
+      grid-template-columns:auto minmax(0, 1fr) 260px;
+      gap:18px;
+      align-items:start;
+    }
+
+    .deviation-card:not(.is-open) .task-body{ display:none; }
+    .deviation-card:not(.is-open) .task-action{ display:none; }
+    .deviation-card.is-open .task-body{ display:block; }
+    .task-collapse-head{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      user-select:none;
+      flex-wrap:wrap;
+      margin:0;
+    }
+    .task-chevron{
+      margin-left:auto;
+      font-size:11px;
+      color:#9aaa9a;
+      flex-shrink:0;
+      transition:transform .2s;
+    }
+    .deviation-card.is-open .task-chevron{ transform:rotate(90deg); }
+
+    .deviation-card.is-targeted{
+      outline:2px solid rgba(29,78,216,0.22);
+      outline-offset:2px;
+      box-shadow:0 16px 40px rgba(29,78,216,0.10);
+    }
+
+    .deviation-card .task-check{
+      background:linear-gradient(180deg,#fff4df 0%, #ffe9c2 100%);
+      color:#a16207;
+      border:1px solid #f0d59d;
+    }
+
+    .deviation-card.is-closed .task-check{
+      background:linear-gradient(180deg,#eff8f0 0%, #e4f3e6 100%);
+      color:var(--green);
+      border:1px solid #d4e9d6;
+    }
+
+    .deviation-card.is-awaiting .task-check{
+      background:linear-gradient(180deg,#eef6ff 0%, #e3efff 100%);
+      color:#1d4ed8;
+      border:1px solid #cfe0ff;
+    }
+
+    .deviation-card.is-cancelled .task-check{
+      background:linear-gradient(180deg,#f6f6f6 0%, #ececec 100%);
+      color:#6b7280;
+      border:1px solid #dddddd;
+    }
+
+    .afvigelse-action-box{
+      margin-top:16px;
+      padding:16px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:linear-gradient(180deg,#fbfdfb 0%, #f7faf7 100%);
+    }
+
+    .afvigelse-action-title{
+      margin:0 0 12px;
+      font-size:15px;
+      font-weight:700;
+      color:var(--text);
+    }
+
+    .afvigelse-action-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+
+    .afvigelse-option{
+      display:grid;
+      grid-template-columns:20px 1fr;
+      align-items:start;
+      column-gap:12px;
+      padding:14px 16px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      cursor:pointer;
+      min-height:78px;
+      transition:border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+
+    .afvigelse-option:hover{
+      border-color:var(--border-strong);
+      transform:translateY(-1px);
+      box-shadow:var(--shadow-soft);
+    }
+
+    .afvigelse-option input{
+      margin:2px 0 0;
+      width:18px;
+      height:18px;
+      accent-color:var(--green);
+    }
+
+    .afvigelse-option span{
+      display:block;
+      font-size:15px;
+      line-height:1.45;
+      color:var(--text);
+      word-break:break-word;
+    }
+
+    .afvigelse-extra{
+      margin-top:14px;
+    }
+
+    .afvigelse-extra[hidden]{
+      display:none !important;
+    }
+
+    .afvigelse-note{
+      width:100%;
+      min-height:110px;
+      resize:vertical;
+    }
+
+    .afvigelse-help{
+      margin-top:8px;
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .afvigelse-status-box{
+      margin-top:14px;
+      padding-top:14px;
+      border-top:1px solid var(--border);
+    }
+
+    .afvigelse-status-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+
+    /* Compact Deviation List Styles */
+    .deviations-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .deviations-header {
+      margin-bottom: 24px;
+    }
+
+    .deviations-header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      margin: 0 0 8px;
+    }
+
+    .deviations-header p {
+      font-size: 14px;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .deviation-row {
+      display: grid;
+      grid-template-columns: 140px 1fr 200px 40px;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 20px;
+      margin-bottom: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .deviation-row:hover {
+      border-color: var(--border-strong);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transform: translateY(-1px);
+    }
+
+    .deviation-date {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .date-day {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .date-time {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .deviation-type {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .type-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .type-desc {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .deviation-status {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 20px;
+      text-align: center;
+    }
+
+    .status-open {
+      background: #fee;
+      color: #c00;
+      border: 1px solid #fcc;
+    }
+
+    .status-pending {
+      background: #fff4e6;
+      color: #d97706;
+      border: 1px solid #fed7aa;
+    }
+
+    .status-resolved {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .deviation-arrow {
+      font-size: 20px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      margin: 0;
+    }
+
+    /* Modal Styles */
+    #deviation-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #modal-content {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 1000px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .modal-close:hover {
+      background: var(--border);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .deviation-info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+      border-radius: 12px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .severity-critical {
+      color: #dc2626;
+    }
+
+    .severity-medium {
+      color: #d97706;
+    }
+
+    .images-comparison {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .image-section h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 12px;
+    }
+
+    .deviation-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .no-image {
+      width: 100%;
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .image-meta {
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .meta-row {
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .meta-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .ai-description {
+      padding: 8px 12px;
+      background: #fff;
+      border-left: 3px solid #3b82f6;
+      border-radius: 4px;
+      margin-top: 4px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .resolution-time {
+      padding: 12px 16px;
+      background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+      border: 1px solid #a7f3d0;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: #065f46;
+    }
+
+    .manual-note-section {
+      margin-bottom: 24px;
+    }
+
+    .manual-note-section label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .manual-note-input {
+      width: 100%;
+      min-height: 100px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    .manual-note-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .approved-badge {
+      padding: 12px 24px;
+      background: linear-gradient(180deg, #d4edda 0%, #c3e6cb 100%);
+      border: 1px solid #a7d4b0;
+      border-radius: 8px;
+      color: #155724;
+      font-weight: 700;
+      font-size: 14px;
+      margin-top:10px;
+    }
+
+    .status-option{
+      display:grid;
+      grid-template-columns:20px 1fr;
+      align-items:start;
+      column-gap:12px;
+      padding:14px 16px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      cursor:pointer;
+      transition:border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+
+    .status-option:hover{
+      border-color:var(--border-strong);
+      transform:translateY(-1px);
+      box-shadow:var(--shadow-soft);
+    }
+
+    .status-option input{
+      margin:2px 0 0;
+      width:18px;
+      height:18px;
+      accent-color:var(--green);
+    }
+
+    .status-option span{
+      display:block;
+      font-size:14px;
+      line-height:1.45;
+      color:var(--text);
+    }
+
+    .task-item[data-state="saving"]{
+      opacity:0.72;
+      pointer-events:none;
+    }
+
+    .deviation-card .task-action{
+      min-width:260px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .deviation-card .task-action .btn{
+      width:100%;
+    }
+
+    .history-box{
+      margin-top:14px;
+      padding:14px 16px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:linear-gradient(180deg,#fbfdfb 0%, #f7faf7 100%);
+    }
+
+    .history-box strong{
+      display:block;
+      margin-bottom:8px;
+      color:var(--text);
+    }
+
+    .history-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:10px;
+    }
+
+    .history-line{
+      font-size:14px;
+      color:#425142;
+      line-height:1.5;
+    }
+
+    .history-note{
+      margin-top:10px;
+      padding-top:10px;
+      border-top:1px solid var(--border);
+      font-size:14px;
+      color:var(--text);
+      white-space:pre-wrap;
+      line-height:1.6;
+    }
+
+    .context-guide{
+      margin-top:14px;
+      padding:14px 16px;
+      border:1px solid #d8e7d9;
+      border-radius:14px;
+      background:linear-gradient(180deg,#f7fcf8 0%, #eef8ef 100%);
+    }
+
+    .context-guide-summary{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      cursor:pointer;
+      font-size:13px;
+      font-weight:800;
+      color:#1f5a23;
+      list-style:none;
+      user-select:none;
+    }
+
+    .context-guide-summary::-webkit-details-marker{
+      display:none;
+    }
+
+    .context-guide-summary::after{
+      content:"Vis guide";
+      font-size:12px;
+      font-weight:700;
+      color:#2e7d32;
+      background:#e8f5e9;
+      border:1px solid #cfe5cf;
+      border-radius:999px;
+      padding:2px 8px;
+      white-space:nowrap;
+    }
+
+    .context-guide[open] .context-guide-summary::after{
+      content:"Skjul guide";
+    }
+
+    .context-guide-body{
+      margin-top:10px;
+      padding-top:10px;
+      border-top:1px solid #d8e7d9;
+    }
+
+    .context-guide-title{
+      margin:0 0 8px;
+      font-size:14px;
+      font-weight:800;
+      color:#1f5a23;
+    }
+
+    .context-guide-intro{
+      margin:0 0 8px;
+      color:#325536;
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .context-guide-list{
+      margin:0;
+      padding-left:18px;
+      color:#214225;
+      line-height:1.55;
+      font-size:13px;
+    }
+
+    .context-guide-list li{
+      margin-bottom:6px;
+    }
+
+    .context-guide-list li:last-child{
+      margin-bottom:0;
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+
+    .stat-box.is-clickable{
+      cursor:pointer;
+      transition:transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      user-select:none;
+    }
+
+    .stat-box.is-clickable:hover{
+      transform:translateY(-2px);
+      box-shadow:var(--shadow-soft);
+      border-color:var(--border-strong);
+    }
+
+    .stat-box.is-clickable:focus-visible{
+      outline:2px solid var(--green);
+      outline-offset:2px;
+    }
+
+    .stat-box.is-active{
+      border-color:rgba(46,125,50,0.35);
+      background:linear-gradient(180deg,#eef8ef 0%, #e7f4e8 100%);
+      box-shadow:0 10px 24px rgba(31,90,35,0.08);
+    }
+
+    .filter-summary{
+      margin:0 0 16px;
+      padding:14px 16px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:linear-gradient(180deg,#fbfdfb 0%, #f7faf7 100%);
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .filter-summary strong{
+      color:var(--text);
+    }
+
+    .filter-reset-btn{
+      border:none;
+      background:transparent;
+      color:var(--green-dark);
+      font-weight:700;
+      cursor:pointer;
+      padding:0;
+    }
+
+    .filter-reset-btn:hover{
+      text-decoration:underline;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
+    @media (max-width: 1100px){
+      .deviation-card{
+        grid-template-columns:auto minmax(0, 1fr);
+      }
+
+      .deviation-card .task-action{
+        grid-column:1 / -1;
+        min-width:100%;
+      }
+    }
+
+    @media (max-width: 980px){
+      .afvigelse-action-grid,
+      .history-grid,
+      .afvigelse-status-grid{
+        grid-template-columns:1fr;
+      }
+
+      .afvigelse-option,
+      .status-option{
+        min-height:auto;
+      }
+    }
+
+    @media (max-width: 700px){
+      .deviation-card{
+        grid-template-columns:1fr;
+        gap:14px;
+      }
+    }
+
+    @media (max-width: 640px){
+      .afvigelse-option,
+      .status-option{
+        grid-template-columns:18px 1fr;
+        padding:12px 14px;
+        column-gap:10px;
+      }
+
+      .afvigelse-option span,
+      .status-option span{
+        font-size:14px;
+      }
+
+      .filter-summary{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="headerMount"></div>
+
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+
+      <section class="page-content">
+        <section class="hero">
+          <div class="hero-saas">
+            <div class="hero-saas-content">
+              <div class="eyebrow">Egenkontrol • Afvigelser • Opfølgning</div>
+              <h1 class="hero-title">Afvigelser</h1>
+              <p class="hero-text">
+                Her kan du se åbne og lukkede afvigelser fra egenkontrollen. Afvigelser kan opstå
+                ved temperaturfejl, manglende udførte rutiner eller andre forhold, som kræver
+                opfølgning og dokumentation.
+              </p>
+
+              <div class="hero-chip-row">
+                <span class="chip">Opfølgning</span>
+                <span class="chip">Historik</span>
+                <span class="chip">Dokumentation</span>
+                <span class="chip">Flere enheder</span>
+              </div>
+            </div>
+
+            <div class="hero-saas-side">
+              <div class="stats-card">
+                <div class="stats-card-head">
+                  <h3>Overblik</h3>
+                  <span class="status-live">Live</span>
+                </div>
+
+                <div class="stats-grid">
+                  <div
+                    class="stat-box is-clickable is-active"
+                    id="statOpen"
+                    data-filter="open"
+                    role="button"
+                    tabindex="0"
+                    aria-pressed="true"
+                  >
+                    <span class="stat-label">Åbne</span>
+                    <strong id="kpiOpen">0</strong>
+                  </div>
+
+                  <div
+                    class="stat-box is-clickable"
+                    id="statAwaiting"
+                    data-filter="awaiting"
+                    role="button"
+                    tabindex="0"
+                    aria-pressed="false"
+                  >
+                    <span class="stat-label">Afventer</span>
+                    <strong id="kpiAwaiting">0</strong>
+                  </div>
+
+                  <div
+                    class="stat-box is-clickable"
+                    id="statClosed"
+                    data-filter="closed"
+                    role="button"
+                    tabindex="0"
+                    aria-pressed="false"
+                  >
+                    <span class="stat-label">Lukkede</span>
+                    <strong id="kpiClosed">0</strong>
+                  </div>
+
+                  <div
+                    class="stat-box is-clickable"
+                    id="statAll"
+                    data-filter="all"
+                    role="button"
+                    tabindex="0"
+                    aria-pressed="false"
+                  >
+                    <span class="stat-label">I alt</span>
+                    <strong id="kpiTotal">0</strong>
+                  </div>
+                </div>
+
+                <div class="small-muted">
+                  Viser afvigelser for <strong id="locationLabel">-</strong> fra Firestore collection
+                  <strong>alerts</strong>.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div id="referenceBox" class="reference-box" hidden>
+          <h3 class="reference-title">Afvigelse åbnet fra daglige rutiner</h3>
+          <p class="reference-text" id="referenceText">Siden er åbnet med reference til en opgave.</p>
+          <div class="reference-meta" id="referenceMeta"></div>
+        </div>
+
+        <div id="filterSummary" class="filter-summary">
+          <div>
+            Aktivt filter: <strong id="activeFilterLabel">Åbne</strong>
+          </div>
+          <button type="button" class="filter-reset-btn" id="resetFilterBtn">
+            Vis alle
+          </button>
+        </div>
+
+        <section class="section" id="openSection">
+          <div class="section-header">
+            <div>
+              <h2>Åbne og aktive afvigelser</h2>
+              <p>Afvigelser der kræver handling, opfølgning eller afventer ekstern hjælp.</p>
+            </div>
+          </div>
+
+          <div id="openAlertsList" class="task-list">
+            <div class="loading-box">Henter åbne afvigelser...</div>
+          </div>
+        </section>
+
+        <section class="section" id="closedSection">
+          <div class="section-header">
+            <div>
+              <h2>Lukkede og annullerede afvigelser</h2>
+              <p>Afsluttede eller annullerede sager med historik.</p>
+            </div>
+          </div>
+
+          <div id="closedAlertsList" class="task-list">
+            <div class="loading-box">Henter lukkede afvigelser...</div>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { setupAuthGate } from "/core/auth.js";
+    import { loadLayout } from "/core/layout.js";
+    import { db } from "/core/firebase-config.js";
+    import {
+      collection,
+      getDocs,
+      query,
+      where,
+      orderBy,
+      doc,
+      updateDoc,
+      serverTimestamp,
+      deleteField,
+      addDoc,
+      getDoc,
+      limit
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    await loadLayout();
+
+    const SETTINGS = {
+      companyId: "",
+      companyLegacyId: "",
+      unitId: "",
+      locationId: "",
+      locationLegacyId: "",
+      createdBy: "",
+      employeeName: "",
+      currentUserName: "",
+      currentUserLocations: [],
+      currentUserCompanyId: ""
+    };
+
+    function toLegacyId(value = "") {
+      return String(value || "").replace(/_/g, "-");
+    }
+
+    function normalizeLocationIds(value) {
+      const values = [];
+
+      const pushValue = (item) => {
+        const normalized = String(item || "").trim();
+        if (normalized) values.push(normalized);
+      };
+
+      if (Array.isArray(value)) {
+        value.forEach(pushValue);
+      } else if (value && typeof value === "object") {
+        if (Array.isArray(value.locationIds)) {
+          value.locationIds.forEach(pushValue);
+        }
+        pushValue(value.primaryLocationId);
+        pushValue(value.locationId);
+      } else {
+        pushValue(value);
+      }
+
+      return [...new Set(values)];
+    }
+
+    function getStoredLocationId() {
+      try {
+        return String(sessionStorage.getItem("mkp_selected_locationId") || "").trim();
+      } catch {
+        return "";
+      }
+    }
+
+    function getProfileCompanyId(profile) {
+      return String(profile?.companyId || profile?.organizationId || "").trim();
+    }
+
+    function resolveLocationForUser() {
+      const allowed = Array.isArray(SETTINGS.currentUserLocations)
+        ? SETTINGS.currentUserLocations.filter(Boolean)
+        : [];
+
+      const requested = String(FOLLOW_UP_CONTEXT.locationId || "").trim();
+      const stored = getStoredLocationId();
+
+      if (requested && (!allowed.length || allowed.includes(requested))) {
+        return requested;
+      }
+
+      if (stored && (!allowed.length || allowed.includes(stored))) {
+        return stored;
+      }
+
+      if (allowed.length) return allowed[0];
+      return requested || SETTINGS.locationId || "";
+    }
+
+    function readFollowUpContext() {
+      const params = new URLSearchParams(window.location.search);
+
+      return {
+        taskInstanceId: params.get("taskInstanceId") || "",
+        taskId: params.get("taskId") || "",
+        actionType: params.get("actionType") || "",
+        locationId: params.get("locationId") || SETTINGS.locationId,
+        title: params.get("title") || "",
+        equipmentName: params.get("equipmentName") || "",
+        machineName: params.get("machineName") || "",
+        specificLabel: params.get("specificLabel") || "",
+        areaName: params.get("areaName") || "",
+        areaType: params.get("areaType") || "",
+        category: params.get("category") || "",
+        comment: params.get("comment") || ""
+      };
+    }
+
+    function readInitialFilter() {
+      const params = new URLSearchParams(window.location.search);
+      const raw = String(params.get("filter") || "").trim().toLowerCase();
+      if (["open", "awaiting", "closed", "all"].includes(raw)) {
+        return raw;
+      }
+      return "open";
+    }
+
+    const FOLLOW_UP_CONTEXT = readFollowUpContext();
+
+    const openAlertsListEl = document.getElementById("openAlertsList");
+    const closedAlertsListEl = document.getElementById("closedAlertsList");
+
+    function bindFoldDelegation(listEl) {
+      listEl.addEventListener("click", (e) => {
+        const head = e.target.closest(".task-collapse-head");
+        if (head) head.closest(".task-item")?.classList.toggle("is-open");
+      });
+    }
+    bindFoldDelegation(openAlertsListEl);
+    bindFoldDelegation(closedAlertsListEl);
+
+    const kpiOpenEl = document.getElementById("kpiOpen");
+    const kpiAwaitingEl = document.getElementById("kpiAwaiting");
+    const kpiClosedEl = document.getElementById("kpiClosed");
+    const kpiTotalEl = document.getElementById("kpiTotal");
+    const locationLabelEl = document.getElementById("locationLabel");
+
+    const statOpenEl = document.getElementById("statOpen");
+    const statAwaitingEl = document.getElementById("statAwaiting");
+    const statClosedEl = document.getElementById("statClosed");
+    const statAllEl = document.getElementById("statAll");
+
+    const openSectionEl = document.getElementById("openSection");
+    const closedSectionEl = document.getElementById("closedSection");
+
+    const activeFilterLabelEl = document.getElementById("activeFilterLabel");
+    const resetFilterBtnEl = document.getElementById("resetFilterBtn");
+
+    const referenceBoxEl = document.getElementById("referenceBox");
+    const referenceTextEl = document.getElementById("referenceText");
+    const referenceMetaEl = document.getElementById("referenceMeta");
+
+    let allAlerts = [];
+    let activeFilter = readInitialFilter();
+    let highlightedAlertId = null;
+
+if (locationLabelEl) {
+            locationLabelEl.textContent = SETTINGS.locationDisplayName || "";
+          }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatDateKey(dateKey) {
+      if (!dateKey) return "-";
+      const [year, month, day] = String(dateKey).split("-");
+      if (!year || !month || !day) return String(dateKey);
+      return `${day}-${month}-${year}`;
+    }
+
+    function getTodayKey() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function getDateFromTimestampLike(value) {
+      if (!value) return null;
+
+      try {
+        if (typeof value.toDate === "function") {
+          return value.toDate();
+        }
+
+        if (typeof value?.seconds === "number") {
+          return new Date(value.seconds * 1000);
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return null;
+        return date;
+      } catch {
+        return null;
+      }
+    }
+
+    function formatTimestampValue(value) {
+      const date = getDateFromTimestampLike(value);
+      return date ? date.toLocaleString("da-DK") : "-";
+    }
+
+    function getSortableTime(alertItem) {
+      return (
+        getDateFromTimestampLike(alertItem.createdAt)?.getTime() ||
+        getDateFromTimestampLike(alertItem.updatedAt)?.getTime() ||
+        getDateFromTimestampLike(alertItem.lastHandledAt)?.getTime() ||
+        0
+      );
+    }
+
+    function getAlvorlighedLabel(severity) {
+      if (severity === "critical" || severity === "high") return "Høj";
+      if (severity === "warning" || severity === "medium") return "Mellem";
+      if (severity === "low") return "Lav";
+      return "Ikke angivet";
+    }
+
+    function getAfvigelsesTypeLabel(type) {
+      if (type === "temperature_out_of_range") return "Temperatur uden for grænse";
+      if (type === "freezer_temperature_out_of_range") return "Frysertemperatur uden for grænse";
+      if (type === "task_failure") return "Rutine ikke udført";
+      if (type === "cleaning_required") return "Mangler rengøring";
+      if (type === "manual_deviation") return "Manuel afvigelse";
+      return "Afvigelse";
+    }
+
+    function getStatusLabel(status) {
+      if (status === "open") return "Åben";
+      if (status === "in_progress") return "Under behandling";
+      if (status === "awaiting_external") return "Afventer ekstern hjælp";
+      if (status === "resolved") return "Løst";
+      if (status === "closed") return "Lukket";
+      if (status === "cancelled") return "Annulleret";
+      return status || "-";
+    }
+
+    function formatAreaLabel(raw = "") {
+      const value = String(raw || "").trim();
+      if (!value) return "";
+
+      const normalized = value.toLowerCase();
+      if (normalized.includes("varm")) return "Varmkøkken";
+      if (normalized.includes("kold")) return "Koldkøkken";
+      if (normalized.includes("grønt") || normalized.includes("gront")) return "Grøntsagsrum";
+      if (normalized.includes("walk") && normalized.includes("køl")) return "Walk-in køl";
+      if (normalized.includes("walk") && normalized.includes("frys")) return "Walk-in fryser";
+      if (normalized.includes("modtag")) return "Modtagerrum";
+      if (normalized.includes("vask")) return "Vaskerum";
+
+      return value;
+    }
+
+    function getReadableTaskReference(taskId) {
+      const raw = String(taskId || "").trim();
+      if (!raw) return "";
+
+      const autoMatch = raw.match(/auto_task_(\d+)/i);
+      if (autoMatch?.[1]) {
+        return `Auto-rutine #${autoMatch[1]}`;
+      }
+
+      const tail = raw.split("__").pop() || raw;
+      const cleaned = tail.replace(/-/g, " ").replace(/\s+/g, " ").trim();
+      if (!cleaned) return "";
+
+      const pretty = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      return pretty.length > 42 ? `${pretty.slice(0, 42)}...` : pretty;
+    }
+
+    function getReadableInstanceReference(instanceId) {
+      const raw = String(instanceId || "").trim();
+      if (!raw) return "";
+      if (raw.length <= 16) return raw;
+      return `${raw.slice(0, 8)}...${raw.slice(-6)}`;
+    }
+
+    function getAreaName(item) {
+      const raw =
+        item.areaName ||
+        item.deviceName ||
+        item.unitName ||
+        item.sourceName ||
+        item.assetName ||
+        FOLLOW_UP_CONTEXT.areaName ||
+        "";
+
+      return formatAreaLabel(raw);
+    }
+
+    function getSpecificLabel(item) {
+      const raw =
+        item.specificLabel ||
+        FOLLOW_UP_CONTEXT.specificLabel ||
+        "";
+
+      return String(raw || "").trim();
+    }
+
+    function getMachineName(item) {
+      const raw =
+        item.machineName ||
+        item.equipmentName ||
+        item.deviceName ||
+        item.unitName ||
+        FOLLOW_UP_CONTEXT.machineName ||
+        FOLLOW_UP_CONTEXT.equipmentName ||
+        "";
+
+      return String(raw || "").trim();
+    }
+
+    function getAreaType(item) {
+      const raw =
+        item.areaType ||
+        item.equipmentType ||
+        item.deviceType ||
+        item.unitType ||
+        item.assetType ||
+        FOLLOW_UP_CONTEXT.areaType ||
+        "";
+
+      return formatAreaLabel(raw);
+    }
+
+    function renderAreaInfo(alertItem) {
+      const areaName = getAreaName(alertItem);
+      const areaType = getAreaType(alertItem);
+      const machineName = getMachineName(alertItem);
+      const specificLabel = getSpecificLabel(alertItem);
+
+      if (!areaName && !areaType && !machineName && !specificLabel) {
+        const sourceRef =
+          String(alertItem.sourceTaskTitle || "").trim() ||
+          getReadableTaskReference(alertItem.sourceTaskId) ||
+          getReadableInstanceReference(alertItem.sourceTaskInstanceId);
+
+        if (sourceRef) {
+          return `<span class="task-pill is-warning">Reference: ${escapeHtml(sourceRef)}</span>`;
+        }
+
+        return `<span class="task-pill is-warning">Område: Ikke angivet</span>`;
+      }
+
+      const parts = [];
+      if (specificLabel) parts.push(`Gælder: ${escapeHtml(specificLabel)}`);
+      if (machineName) parts.push(`Maskine: ${escapeHtml(machineName)}`);
+      if (areaName) parts.push(`Område: ${escapeHtml(areaName)}`);
+      if (areaType) parts.push(`Områdetype: ${escapeHtml(areaType)}`);
+      return `<span class="task-pill is-warning">${parts.join(" | ")}</span>`;
+    }
+
+    function getVisningsTitel(alertItem) {
+      const specificLabel = getSpecificLabel(alertItem);
+      const machineName = getMachineName(alertItem);
+      const areaName = getAreaName(alertItem);
+      const contextLabel = specificLabel || (machineName && areaName ? `${machineName} i ${areaName}` : machineName || areaName || "");
+
+      if (alertItem.title && contextLabel && !String(alertItem.title).includes(contextLabel)) {
+        return `${alertItem.title} – ${contextLabel}`;
+      }
+
+      return alertItem.title || alertItem.message || "Afvigelse";
+    }
+
+    function getVisningsBeskrivelse(alertItem) {
+      const areaName = getAreaName(alertItem);
+      const beskrivelse = alertItem.description || alertItem.message || "Ingen beskrivelse angivet.";
+      const sourceComment = String(alertItem.sourceComment || "").trim();
+      let composed = beskrivelse;
+
+      if (sourceComment) {
+        composed += ` Afvigelsesårsag: ${sourceComment}.`;
+      }
+
+      if (!areaName) return composed;
+      if (String(composed).includes(areaName)) return composed;
+
+      return `${composed} Område: ${areaName}.`;
+    }
+
+    function getContextGuide(alertItem) {
+      const searchable = [
+        getAreaName(alertItem),
+        getAreaType(alertItem),
+        alertItem.equipmentName,
+        alertItem.equipmentType,
+        alertItem.title,
+        alertItem.description,
+        alertItem.alertType
+      ].map((value) => String(value || "").toLowerCase()).join(" ");
+
+      const areaName = getAreaName(alertItem) || "området";
+
+      if (searchable.includes("softice") || searchable.includes("soft ice")) {
+        return {
+          title: `Guide: ${areaName}`,
+          intro: "Softice-maskine skal adskilles og rengøres i alle produktberørte dele.",
+          steps: [
+            "Stop drift, tøm maskinen og adskil tappetud, slanger, pakninger og drypbakke.",
+            "Rengør og desinficér delene, skyl grundigt og kontroller for rester i kroge.",
+            "Saml maskinen igen, kør test/skyl og dokumentér handling samt temperaturstatus."
+          ]
+        };
+      }
+
+      if (searchable.includes("ovn") || searchable.includes("oven")) {
+        return {
+          title: `Guide: ${areaName}`,
+          intro: "Ovn kræver både rengøring og temperaturverificering.",
+          steps: [
+            "Rengør ovnrum, riste, plader, lister og pakninger for fedt og fastbrændte rester.",
+            "Kontrollér blæser/ventilation og se efter utætheder eller skader i tætninger.",
+            "Forvarm og mål temperatur med kalibreret termometer, registrér afvigelser."
+          ]
+        };
+      }
+
+      if (searchable.includes("opvask") || searchable.includes("dishwasher") || searchable.includes("industriopvask")) {
+        return {
+          title: `Guide: ${areaName}`,
+          intro: "Industriopvaskemaskine skal være ren og holde korrekt vaske-/skylletemperatur.",
+          steps: [
+            "Rengør filtre, dyser, skyllearme og tank grundigt.",
+            "Kontrollér sæbe/afspænding og inspicér pakninger for utætheder.",
+            "Kør testprogram og dokumentér vaske- og slutskylletemperatur."
+          ]
+        };
+      }
+
+      if (searchable.includes("walk") && (searchable.includes("køl") || searchable.includes("kol") || searchable.includes("cool"))) {
+        return {
+          title: `Guide: ${areaName}`,
+          intro: "Walk-in køl skal kontrolleres for temperatur, kondens og tæthed.",
+          steps: [
+            "Mål temperatur flere steder i rummet og dokumentér værdier.",
+            "Kontrollér lister/pakninger samt dør for utætheder.",
+            "Se efter kondens/frost i hjørner og omkring blæser/luftflow."
+          ]
+        };
+      }
+
+      if (searchable.includes("walk") && (searchable.includes("frys") || searchable.includes("freez"))) {
+        return {
+          title: `Guide: ${areaName}`,
+          intro: "Walk-in fryser kræver fokus på frost, luftcirkulation og temperaturstabilitet.",
+          steps: [
+            "Mål temperatur i både koldeste og varmeste zone.",
+            "Fjern is/frost på kritiske kontaktpunkter og kontroller tætningslister.",
+            "Kontrollér blæserdrift og noter afvigelser i nedkølingsflow."
+          ]
+        };
+      }
+
+      if (searchable.includes("køleskab") || searchable.includes("koleskab") || searchable.includes("fridge")) {
+        return {
+          title: `Guide: ${areaName}`,
+          intro: "Køleskab kontrolleres for temperatur, renhed og tæthed.",
+          steps: [
+            "Mål temperatur centralt i køleskabet og sammenhold med grænseværdier.",
+            "Rengør hylder, hjørner, lister og pakninger for rester og biofilm.",
+            "Kontrollér kondens og at døren lukker tæt uden utætheder."
+          ]
+        };
+      }
+
+      return {
+        title: `Guide: ${areaName}`,
+        intro: "Følg standardprocedure for området/maskinen og dokumentér handlingen tydeligt.",
+        steps: [
+          "Rengør kontaktflader, hjørner, lister og pakninger grundigt.",
+          "Kontrollér synlige tegn på fejl: kondens, frost, utætheder og unormal drift.",
+          "Registrér målinger/handling og angiv tydelig kommentar om hvad der er gjort."
+        ]
+      };
+    }
+
+    function renderContextGuide(alertItem) {
+      const guide = getContextGuide(alertItem);
+      return `
+        <details class="context-guide">
+          <summary class="context-guide-summary">Udførlig guide til område/maskine</summary>
+          <div class="context-guide-body">
+            <h5 class="context-guide-title">${escapeHtml(guide.title)}</h5>
+            <p class="context-guide-intro">${escapeHtml(guide.intro)}</p>
+            <ul class="context-guide-list">
+              ${guide.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
+            </ul>
+          </div>
+        </details>
+      `;
+    }
+
+    function getStatusBadge(status) {
+      const label = getStatusLabel(status);
+
+      if (status === "open") {
+        return `<span class="task-pill is-warning">Status: ${escapeHtml(label)}</span>`;
+      }
+
+      if (status === "in_progress" || status === "awaiting_external") {
+        return `<span class="task-pill is-pending">Status: ${escapeHtml(label)}</span>`;
+      }
+
+      if (status === "closed" || status === "resolved") {
+        return `<span class="task-pill is-completed">Status: ${escapeHtml(label)}</span>`;
+      }
+
+      if (status === "cancelled") {
+        return `<span class="task-pill">Status: ${escapeHtml(label)}</span>`;
+      }
+
+      return `<span class="task-pill">Status: ${escapeHtml(label)}</span>`;
+    }
+
+    function getSeverityBadge(severity) {
+      const label = getAlvorlighedLabel(severity);
+
+      if (severity === "critical" || severity === "high") {
+        return `<span class="task-pill is-danger">Alvorlighed: ${escapeHtml(label)}</span>`;
+      }
+
+      if (severity === "warning" || severity === "medium") {
+        return `<span class="task-pill is-warning">Alvorlighed: ${escapeHtml(label)}</span>`;
+      }
+
+      if (severity === "low") {
+        return `<span class="task-pill is-pending">Alvorlighed: ${escapeHtml(label)}</span>`;
+      }
+
+      return `<span class="task-pill">Alvorlighed: ${escapeHtml(label)}</span>`;
+    }
+
+    function getCorrectiveActionLabel(actionType) {
+      if (actionType === "out_of_service") return "Enhed taget ud af drift";
+      if (actionType === "cleaned_unit") return "Enhed rengjort";
+      if (actionType === "needs_service") return "Enhed skal efterses";
+      if (actionType === "cleaned_area") return "Område / lokation rengjort";
+      if (actionType === "temporary_solution") return "Midlertidig løsning udført";
+      if (actionType === "other") return "Andet";
+      return "";
+    }
+
+    function getDefaultCorrectiveNote(actionType) {
+      if (actionType === "out_of_service") {
+        return "Enheden er taget ud af drift og markeret som ikke i brug indtil problemet er løst.";
+      }
+
+      if (actionType === "cleaned_unit") {
+        return "Enheden er rengjort i henhold til rengøringsproceduren.";
+      }
+
+      if (actionType === "cleaned_area") {
+        return "Område/lokation er rengjort i henhold til rengøringsproceduren.";
+      }
+
+      return "";
+    }
+
+    function requiresDetailedCorrectiveNote(alertItem, actionType, targetStatus) {
+      const alertType = String(alertItem?.alertType || "").trim().toLowerCase();
+
+      if (actionNeedsNote(actionType)) return true;
+
+      if (targetStatus === "resolved" || targetStatus === "closed") {
+        return [
+          "temperature_out_of_range",
+          "freezer_temperature_out_of_range",
+          "manual_deviation",
+          "cleaning_required",
+          "task_failure",
+          "task_overdue"
+        ].includes(alertType);
+      }
+
+      if (targetStatus === "awaiting_external") {
+        return actionType === "needs_service" || alertType === "temperature_out_of_range" || alertType === "freezer_temperature_out_of_range";
+      }
+
+      return false;
+    }
+
+    function buildCorrectiveDocumentation(alertItem, actionType, rawNote = "") {
+      const trimmed = String(rawNote || "").trim();
+      const contextLabel =
+        getSpecificLabel(alertItem) ||
+        (getMachineName(alertItem) && getAreaName(alertItem)
+          ? `${getMachineName(alertItem)} i ${getAreaName(alertItem)}`
+          : getMachineName(alertItem) || getAreaName(alertItem) || alertItem.title || "Afvigelse");
+
+      const actionLabel = getCorrectiveActionLabel(actionType) || "Korrigerende handling";
+      const timeLabel = new Intl.DateTimeFormat("da-DK", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(new Date());
+
+      if (trimmed) {
+        return `${contextLabel}: ${actionLabel} kl. ${timeLabel}. ${trimmed}`;
+      }
+
+      const defaultNote = getDefaultCorrectiveNote(actionType);
+      if (defaultNote) {
+        return `${contextLabel}: ${actionLabel} kl. ${timeLabel}. ${defaultNote}`;
+      }
+
+      return `${contextLabel}: ${actionLabel} kl. ${timeLabel}. Handling udført og dokumenteret.`;
+    }
+
+    function updateKpis(alerts) {
+      const openCount = alerts.filter((a) => a.status === "open" || a.status === "in_progress").length;
+      const awaitingCount = alerts.filter((a) => a.status === "awaiting_external").length;
+      const closedCount = alerts.filter((a) => a.status === "closed" || a.status === "resolved" || a.status === "cancelled").length;
+
+      kpiOpenEl.textContent = String(openCount);
+      kpiAwaitingEl.textContent = String(awaitingCount);
+      kpiClosedEl.textContent = String(closedCount);
+      kpiTotalEl.textContent = String(alerts.length);
+    }
+
+    function actionNeedsNote(actionType) {
+      return actionType === "temporary_solution" || actionType === "other" || actionType === "needs_service";
+    }
+
+    function getCardStateClass(alertItem) {
+      if (alertItem.status === "closed" || alertItem.status === "resolved") return "is-closed";
+      if (alertItem.status === "awaiting_external") return "is-awaiting";
+      if (alertItem.status === "cancelled") return "is-cancelled";
+      return "";
+    }
+
+    function getOpenFilteredAlerts(alerts) {
+      if (activeFilter === "awaiting") {
+        return alerts.filter((a) => a.status === "awaiting_external");
+      }
+
+      if (activeFilter === "closed") {
+        return [];
+      }
+
+      if (activeFilter === "all") {
+        return alerts.filter((a) =>
+          a.status === "open" ||
+          a.status === "in_progress" ||
+          a.status === "awaiting_external"
+        );
+      }
+
+      return alerts.filter((a) => a.status === "open" || a.status === "in_progress");
+    }
+
+    function getClosedFilteredAlerts(alerts) {
+      if (activeFilter === "open" || activeFilter === "awaiting") {
+        return [];
+      }
+
+      return alerts.filter((a) =>
+        a.status === "closed" ||
+        a.status === "resolved" ||
+        a.status === "cancelled"
+      );
+    }
+
+    function getFilterLabel(filter) {
+      if (filter === "open") return "Åbne";
+      if (filter === "awaiting") return "Afventer";
+      if (filter === "closed") return "Lukkede";
+      return "Alle";
+    }
+
+    function updateSectionVisibility() {
+      const showOpen = activeFilter !== "closed";
+      const showClosed = activeFilter === "closed" || activeFilter === "all";
+
+      openSectionEl.hidden = !showOpen;
+      closedSectionEl.hidden = !showClosed;
+    }
+
+    function updateFilterUi() {
+      const statBoxes = [statOpenEl, statAwaitingEl, statClosedEl, statAllEl];
+
+      statBoxes.forEach((box) => {
+        const isActive = box.dataset.filter === activeFilter;
+        box.classList.toggle("is-active", isActive);
+        box.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+
+      activeFilterLabelEl.textContent = getFilterLabel(activeFilter);
+      resetFilterBtnEl.hidden = activeFilter === "all";
+      updateSectionVisibility();
+    }
+
+    function scrollToRelevantSection() {
+      if (activeFilter === "closed") {
+        closedSectionEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      openSectionEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function setActiveFilter(filter, shouldScroll = true) {
+      activeFilter = filter;
+      updateFilterUi();
+      renderLists();
+
+      if (shouldScroll) {
+        scrollToRelevantSection();
+      }
+    }
+
+    function renderReferenceBox() {
+      const hasContext =
+        FOLLOW_UP_CONTEXT.taskInstanceId ||
+        FOLLOW_UP_CONTEXT.taskId ||
+        FOLLOW_UP_CONTEXT.title ||
+        FOLLOW_UP_CONTEXT.equipmentName ||
+        FOLLOW_UP_CONTEXT.areaName ||
+        FOLLOW_UP_CONTEXT.areaType;
+
+      if (!hasContext) {
+        referenceBoxEl.hidden = true;
+        return;
+      }
+
+      const actionMap = {
+        manual_deviation: "Opret afvigelse",
+        cleaning_required: "Mangler rengøring",
+        not_in_use: "Ikke i brug",
+        save: "Fuldført"
+      };
+
+      referenceTextEl.textContent =
+        "Denne side blev åbnet fra daglige rutiner med reference til en konkret opgave. Valgt rum/område bliver medtaget, og den relevante afvigelse bliver forsøgt fundet eller oprettet automatisk.";
+
+      const meta = [];
+
+      if (FOLLOW_UP_CONTEXT.title) {
+        meta.push(`<span class="reference-pill">Opgave: ${escapeHtml(FOLLOW_UP_CONTEXT.title)}</span>`);
+      }
+
+      if (FOLLOW_UP_CONTEXT.equipmentName) {
+        meta.push(`<span class="reference-pill">Område: ${escapeHtml(FOLLOW_UP_CONTEXT.equipmentName)}</span>`);
+      }
+
+      if (FOLLOW_UP_CONTEXT.areaName) {
+        meta.push(`<span class="reference-pill">Valgt rum: ${escapeHtml(formatAreaLabel(FOLLOW_UP_CONTEXT.areaName))}</span>`);
+      }
+
+      if (FOLLOW_UP_CONTEXT.areaType) {
+        meta.push(`<span class="reference-pill">Områdetype: ${escapeHtml(formatAreaLabel(FOLLOW_UP_CONTEXT.areaType))}</span>`);
+      }
+
+      if (FOLLOW_UP_CONTEXT.category) {
+        meta.push(`<span class="reference-pill">Kategori: ${escapeHtml(FOLLOW_UP_CONTEXT.category)}</span>`);
+      }
+
+      if (FOLLOW_UP_CONTEXT.actionType) {
+        meta.push(`<span class="reference-pill">Handling: ${escapeHtml(actionMap[FOLLOW_UP_CONTEXT.actionType] || FOLLOW_UP_CONTEXT.actionType)}</span>`);
+      }
+
+      if (FOLLOW_UP_CONTEXT.taskInstanceId) {
+        meta.push(`<span class="reference-pill">Reference: ${escapeHtml(getReadableInstanceReference(FOLLOW_UP_CONTEXT.taskInstanceId))}</span>`);
+      }
+
+      referenceMetaEl.innerHTML = meta.join("");
+      referenceBoxEl.hidden = false;
+    }
+
+    function renderCorrectiveActionBox(alertItem) {
+      const alertId = escapeHtml(alertItem.id);
+      const currentStatus = alertItem.status || "open";
+      const currentAction = alertItem.correctiveActionType || "";
+      const currentNote = alertItem.correctiveActionNote || "";
+
+      return `
+        <div class="afvigelse-action-box" data-alert-id="${alertId}">
+          <div class="afvigelse-action-title">Korrigerende handling</div>
+
+          <div class="afvigelse-action-grid">
+            <label class="afvigelse-option">
+              <input type="radio" name="correctiveAction_${alertId}" value="out_of_service" ${currentAction === "out_of_service" ? "checked" : ""}>
+              <span>Enhed taget ud af drift</span>
+            </label>
+
+            <label class="afvigelse-option">
+              <input type="radio" name="correctiveAction_${alertId}" value="cleaned_unit" ${currentAction === "cleaned_unit" ? "checked" : ""}>
+              <span>Enhed rengjort</span>
+            </label>
+
+            <label class="afvigelse-option">
+              <input type="radio" name="correctiveAction_${alertId}" value="needs_service" ${currentAction === "needs_service" ? "checked" : ""}>
+              <span>Enhed skal efterses</span>
+            </label>
+
+            <label class="afvigelse-option">
+              <input type="radio" name="correctiveAction_${alertId}" value="cleaned_area" ${currentAction === "cleaned_area" ? "checked" : ""}>
+              <span>Område / lokation rengjort</span>
+            </label>
+
+            <label class="afvigelse-option">
+              <input type="radio" name="correctiveAction_${alertId}" value="temporary_solution" ${currentAction === "temporary_solution" ? "checked" : ""}>
+              <span>Midlertidig løsning udført</span>
+            </label>
+
+            <label class="afvigelse-option">
+              <input type="radio" name="correctiveAction_${alertId}" value="other" ${currentAction === "other" ? "checked" : ""}>
+              <span>Andet</span>
+            </label>
+          </div>
+
+          <div class="afvigelse-extra" data-extra-for="${alertId}" ${actionNeedsNote(currentAction) ? "" : "hidden"}>
+            <label class="form-label">Beskrivelse / dokumentation</label>
+            <textarea
+              class="task-input afvigelse-note"
+              data-note-for="${alertId}"
+              rows="4"
+              placeholder="Beskriv hvad der er gjort, hvad der skal efterses, eller hvilken midlertidig løsning der er udført"
+            >${escapeHtml(currentNote)}</textarea>
+            <div class="afvigelse-help">
+              Tekst er påkrævet ved midlertidig løsning, servicebehov, andet og ved lukning af temperatur- eller hygiejneafvigelser.
+            </div>
+          </div>
+
+          <div class="afvigelse-status-box">
+            <div class="afvigelse-action-title">Sagsstatus</div>
+
+            <div class="afvigelse-status-grid">
+              <label class="status-option">
+                <input type="radio" name="caseStatus_${alertId}" value="in_progress" ${currentStatus === "in_progress" || currentStatus === "open" ? "checked" : ""}>
+                <span>Under behandling</span>
+              </label>
+
+              <label class="status-option">
+                <input type="radio" name="caseStatus_${alertId}" value="awaiting_external" ${currentStatus === "awaiting_external" ? "checked" : ""}>
+                <span>Afventer ekstern hjælp / håndværker</span>
+              </label>
+
+              <label class="status-option">
+                <input type="radio" name="caseStatus_${alertId}" value="resolved" ${currentStatus === "resolved" ? "checked" : ""}>
+                <span>Problemet er løst</span>
+              </label>
+
+              <label class="status-option">
+                <input type="radio" name="caseStatus_${alertId}" value="cancelled" ${currentStatus === "cancelled" ? "checked" : ""}>
+                <span>Fejlklik / annuller afvigelse</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderClosedHistory(alertItem) {
+      const actionLabel = alertItem.correctiveActionLabel || getCorrectiveActionLabel(alertItem.correctiveActionType);
+      const actionNote = alertItem.correctiveActionNote || "";
+      const completedAt = formatTimestampValue(
+        alertItem.correctiveActionCompletedAt ||
+        alertItem.closedAt ||
+        alertItem.cancelledAt ||
+        alertItem.updatedAt
+      );
+      const completedBy =
+        alertItem.correctiveActionCompletedByName ||
+        alertItem.correctiveActionCompletedBy ||
+        alertItem.closedByName ||
+        alertItem.closedBy ||
+        alertItem.cancelledByName ||
+        alertItem.cancelledBy ||
+        "-";
+      const caseStatus = getStatusLabel(alertItem.status);
+
+      return `
+        <div class="history-box">
+          <strong>Sagshistorik</strong>
+
+          <div class="history-grid">
+            <div class="history-line"><strong>Handling:</strong> ${escapeHtml(actionLabel || "-")}</div>
+            <div class="history-line"><strong>Udført af:</strong> ${escapeHtml(completedBy)}</div>
+            <div class="history-line"><strong>Registreret:</strong> ${escapeHtml(completedAt)}</div>
+            <div class="history-line"><strong>Status:</strong> ${escapeHtml(caseStatus)}</div>
+          </div>
+
+          ${
+            actionNote
+              ? `<div class="history-note"><strong>Dokumentation:</strong><br>${escapeHtml(actionNote)}</div>`
+              : ""
+          }
+        </div>
+      `;
+    }
+
+    function renderOpenAlerts(alerts) {
+      const openAlerts = getOpenFilteredAlerts(alerts);
+
+      if (!openAlerts.length) {
+        let message = "Ingen åbne afvigelser lige nu.";
+
+        if (activeFilter === "awaiting") {
+          message = "Ingen afvigelser afventer ekstern hjælp lige nu.";
+        }
+
+        openAlertsListEl.innerHTML = `<div class="empty-box">${message}</div>`;
+        return;
+      }
+
+      openAlertsListEl.innerHTML = openAlerts.map((alertItem) => {
+        const isAwaiting = alertItem.status === "awaiting_external";
+        const isTargeted = highlightedAlertId && alertItem.id === highlightedAlertId;
+
+        return `
+          <article class="task-item deviation-card ${getCardStateClass(alertItem)} ${isTargeted ? "is-targeted" : ""}" data-alert-id="${escapeHtml(alertItem.id)}" data-alert-type="${escapeHtml(alertItem.alertType || '')}" data-source-collection="${escapeHtml(alertItem.sourceCollection || 'alerts')}">
+            <div class="task-check">!</div>
+
+            <div class="task-content">
+              <h4 class="task-collapse-head">
+                ${escapeHtml(getVisningsTitel(alertItem))}
+                ${getStatusBadge(alertItem.status)}
+                ${getSeverityBadge(alertItem.severity)}
+                <span class="task-chevron">&#9654;</span>
+              </h4>
+              <div class="task-body">
+              <p>${escapeHtml(getVisningsBeskrivelse(alertItem))}</p>
+
+              <div class="task-meta">
+                <span class="task-pill">Type: ${escapeHtml(getAfvigelsesTypeLabel(alertItem.alertType))}</span>
+                ${renderAreaInfo(alertItem)}
+                <span class="task-pill">Dato: ${escapeHtml(formatDateKey(alertItem.dateKey || alertItem.taskDateKey || ""))}</span>
+                <span class="task-pill">Ansvarlig: ${escapeHtml(alertItem.assignedTo || alertItem.createdByName || alertItem.createdBy || "-")}</span>
+              </div>
+
+              ${renderContextGuide(alertItem)}
+
+              ${renderCorrectiveActionBox(alertItem)}
+              </div>
+            </div>
+
+            <div class="task-action">
+              <button
+                type="button"
+                class="btn btn-secondary save-alert-btn"
+                data-alert-id="${escapeHtml(alertItem.id)}"
+                data-mode="save"
+              >
+                Gem handling
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-secondary save-awaiting-btn"
+                data-alert-id="${escapeHtml(alertItem.id)}"
+                data-mode="awaiting"
+              >
+                ${isAwaiting ? "Opdater afventer-sag" : "Gem som afventer"}
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-primary resolve-alert-btn"
+                data-alert-id="${escapeHtml(alertItem.id)}"
+                data-mode="resolve"
+              >
+                Markér som løst
+              </button>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      bindCorrectiveFields();
+      bindCaseStatusFields();
+      bindActionButtons();
+      initializeCorrectiveExtras();
+    }
+
+    function renderClosedAlerts(alerts) {
+      const closedAlerts = getClosedFilteredAlerts(alerts);
+
+      if (!closedAlerts.length) {
+        closedAlertsListEl.innerHTML = `<div class="empty-box">Ingen lukkede afvigelser endnu.</div>`;
+        return;
+      }
+
+      closedAlertsListEl.innerHTML = closedAlerts.map((alertItem) => {
+        return `
+          <article class="task-item deviation-card ${getCardStateClass(alertItem)}" data-alert-id="${escapeHtml(alertItem.id)}" data-alert-type="${escapeHtml(alertItem.alertType || "")}" data-source-collection="${escapeHtml(alertItem.sourceCollection || "alerts")}">
+            <div class="task-check">&#10003;</div>
+
+            <div class="task-content">
+              <h4 class="task-collapse-head">
+                ${escapeHtml(getVisningsTitel(alertItem))}
+                ${getStatusBadge(alertItem.status)}
+                <span class="task-chevron">&#9654;</span>
+              </h4>
+              <div class="task-body">
+              <p>${escapeHtml(getVisningsBeskrivelse(alertItem))}</p>
+
+              <div class="task-meta">
+                <span class="task-pill">Type: ${escapeHtml(getAfvigelsesTypeLabel(alertItem.alertType))}</span>
+                ${renderAreaInfo(alertItem)}
+                <span class="task-pill">Dato: ${escapeHtml(formatDateKey(alertItem.dateKey || alertItem.taskDateKey || ""))}</span>
+                <span class="task-pill">Ansvarlig: ${escapeHtml(alertItem.assignedTo || alertItem.createdByName || alertItem.createdBy || "-")}</span>
+                ${getSeverityBadge(alertItem.severity)}
+              </div>
+
+              ${renderClosedHistory(alertItem)}
+              </div>
+            </div>
+
+            <div class="task-action">
+              <button
+                type="button"
+                class="btn btn-secondary reopen-alert-btn"
+                data-alert-id="${escapeHtml(alertItem.id)}"
+              >
+                Genåbn
+              </button>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      bindReopenButtons();
+    }
+
+    function renderLists() {
+      updateFilterUi();
+      renderOpenAlerts(allAlerts);
+      renderClosedAlerts(allAlerts);
+    }
+
+    function getSelectedCorrectiveAction(alertId) {
+      const selected = document.querySelector(`input[name="correctiveAction_${alertId}"]:checked`);
+      return selected ? selected.value : "";
+    }
+
+    function getSelectedCaseStatus(alertId) {
+      const selected = document.querySelector(`input[name="caseStatus_${alertId}"]:checked`);
+      return selected ? selected.value : "in_progress";
+    }
+
+    function getCorrectiveNote(alertId) {
+      const field = document.querySelector(`[data-note-for="${alertId}"]`);
+      return field ? field.value.trim() : "";
+    }
+
+    const ALERT_TYPES_REQUIRING_NOTE_ON_RESOLVE = ["temperature_out_of_range", "freezer_temperature_out_of_range", "manual_deviation", "cleaning_required", "task_failure", "task_overdue"];
+
+    function toggleCorrectiveExtra(alertId) {
+      const actionType = getSelectedCorrectiveAction(alertId);
+      const extraBox = document.querySelector(`[data-extra-for="${alertId}"]`);
+      if (!extraBox) return;
+
+      const card = document.querySelector(`.task-item[data-alert-id="${alertId}"]`);
+      const alertType = card ? (card.dataset.alertType || "") : "";
+      const needsNoteForType = actionType && ALERT_TYPES_REQUIRING_NOTE_ON_RESOLVE.includes(alertType);
+
+      extraBox.hidden = !actionNeedsNote(actionType) && !needsNoteForType;
+    }
+
+    function clearCorrectiveAction(alertId) {
+      document.querySelectorAll(`input[name="correctiveAction_${alertId}"]`).forEach((input) => {
+        input.checked = false;
+      });
+
+      const noteField = document.querySelector(`[data-note-for="${alertId}"]`);
+      if (noteField) {
+        noteField.value = "";
+      }
+
+      toggleCorrectiveExtra(alertId);
+    }
+
+    function initializeCorrectiveExtras() {
+      document.querySelectorAll("[data-extra-for]").forEach((box) => {
+        const alertId = box.getAttribute("data-extra-for");
+        if (alertId) {
+          toggleCorrectiveExtra(alertId);
+        }
+      });
+    }
+
+    function bindCorrectiveFields() {
+      document.querySelectorAll('input[type="radio"][name^="correctiveAction_"]').forEach((input) => {
+        input.addEventListener("change", () => {
+          const alertId = input.name.replace("correctiveAction_", "");
+
+          const selectedStatus = getSelectedCaseStatus(alertId);
+          if (selectedStatus === "cancelled" && input.checked) {
+            document.querySelectorAll(`input[name="caseStatus_${alertId}"]`).forEach((statusInput) => {
+              if (statusInput.value === "in_progress") {
+                statusInput.checked = true;
+              }
+            });
+          }
+
+          toggleCorrectiveExtra(alertId);
+        });
+      });
+    }
+
+    function bindCaseStatusFields() {
+      document.querySelectorAll('input[type="radio"][name^="caseStatus_"]').forEach((input) => {
+        input.addEventListener("change", () => {
+          const alertId = input.name.replace("caseStatus_", "");
+          if (input.value === "cancelled" && input.checked) {
+            clearCorrectiveAction(alertId);
+          }
+        });
+      });
+    }
+
+    function setAlertLoading(alertId, isLoading, label = "Gemmer...") {
+      const card = document.querySelector(`.task-item[data-alert-id="${alertId}"]`);
+      if (!card) return;
+
+      if (isLoading) {
+        card.dataset.state = "saving";
+      } else {
+        delete card.dataset.state;
+      }
+
+      const buttons = card.querySelectorAll("button");
+      buttons.forEach((button) => {
+        button.disabled = isLoading;
+        if (isLoading && button.dataset.busy === "true") {
+          button.textContent = label;
+        }
+      });
+
+      const inputs = card.querySelectorAll("input, textarea");
+      inputs.forEach((input) => {
+        input.disabled = isLoading;
+      });
+    }
+
+    function getSaveSuccessMessage(mode, previousStatus, targetStatus) {
+      if (mode === "awaiting") {
+        if (previousStatus === "awaiting_external") {
+          return "Afventer-sagen er opdateret.";
+        }
+        return "Afvigelsen er gemt som afventer.";
+      }
+
+      if (mode === "resolve") {
+        return "Afvigelsen er markeret som løst.";
+      }
+
+      if (targetStatus === "cancelled") {
+        return "Afvigelsen er annulleret og rutinen er sendt tilbage til dagens opgaver.";
+      }
+
+      if (targetStatus === "in_progress") {
+        return "Afvigelsen er gemt som under behandling.";
+      }
+
+      return "Afvigelsen er gemt.";
+    }
+
+    async function resetTaskInstanceFromCancelledAlert(alertItem) {
+      const taskInstanceId = alertItem?.sourceTaskInstanceId;
+      if (!taskInstanceId) return;
+
+      await updateDoc(doc(db, "task_instances", taskInstanceId), {
+        status: "pending",
+        completedAt: deleteField(),
+        completedBy: deleteField(),
+        completedByName: deleteField(),
+        updatedAt: serverTimestamp()
+      });
+    }
+
+    function redirectBackToRutiner(alertItem) {
+      const url = new URL("/modules/egenkontrol/rutiner.html", window.location.origin);
+      url.searchParams.set("locationId", FOLLOW_UP_CONTEXT.locationId || SETTINGS.locationId);
+
+      if (alertItem?.sourceTaskInstanceId) {
+        url.searchParams.set("reopenedTaskInstanceId", alertItem.sourceTaskInstanceId);
+      }
+
+      window.location.href = url.toString();
+    }
+
+    async function saveAlertState(alertId, mode = "save") {
+      const currentAlert = allAlerts.find((item) => item.id === alertId);
+      const previousStatus = currentAlert?.status || "open";
+
+      const actionType = getSelectedCorrectiveAction(alertId);
+      let targetStatus = getSelectedCaseStatus(alertId);
+
+      if (mode === "awaiting") {
+        targetStatus = "awaiting_external";
+      }
+
+      if (mode === "resolve") {
+        targetStatus = "resolved";
+      }
+
+      let note = getCorrectiveNote(alertId);
+      const actionLabel = getCorrectiveActionLabel(actionType);
+
+      if ((targetStatus === "resolved" || mode === "resolve") && !actionType) {
+        throw new Error("Vælg en korrigerende handling før afvigelsen markeres som løst.");
+      }
+
+      if (targetStatus === "cancelled" && actionType) {
+        throw new Error("Du kan ikke vælge korrigerende handling, hvis afvigelsen annulleres som fejlklik.");
+      }
+
+      if (actionType && actionNeedsNote(actionType) && !note) {
+        throw new Error("Du skal skrive en beskrivelse til den valgte handling.");
+      }
+
+      // Pre-build note with defaults so the strict check below can use any auto-generated text
+      if (actionType) {
+        note = buildCorrectiveDocumentation(currentAlert, actionType, note);
+      }
+
+      if (requiresDetailedCorrectiveNote(currentAlert, actionType, targetStatus) && !note) {
+        throw new Error("Du skal dokumentere hvad der konkret blev gjort, før afvigelsen kan gemmes eller lukkes.");
+      }
+
+      const payload = {
+        status: targetStatus,
+        resolved: targetStatus === "resolved" || targetStatus === "closed",
+        updatedAt: serverTimestamp(),
+        lastHandledBy: SETTINGS.createdBy,
+        lastHandledByName: SETTINGS.employeeName,
+        lastHandledAt: serverTimestamp()
+      };
+
+      if (actionType) {
+        payload.correctiveActionType = actionType;
+        payload.correctiveActionLabel = actionLabel;
+        payload.correctiveActionNote = note || "";
+        payload.correctiveActionCompletedAt = serverTimestamp();
+        payload.correctiveActionCompletedBy = SETTINGS.createdBy;
+        payload.correctiveActionCompletedByName = SETTINGS.employeeName;
+      } else if (targetStatus === "cancelled") {
+        payload.correctiveActionType = deleteField();
+        payload.correctiveActionLabel = deleteField();
+        payload.correctiveActionNote = deleteField();
+        payload.correctiveActionCompletedAt = deleteField();
+        payload.correctiveActionCompletedBy = deleteField();
+        payload.correctiveActionCompletedByName = deleteField();
+      }
+
+      if (targetStatus === "resolved" || targetStatus === "closed") {
+        payload.closedAt = serverTimestamp();
+        payload.closedBy = SETTINGS.createdBy;
+        payload.closedByName = SETTINGS.employeeName;
+        payload.cancelledAt = deleteField();
+        payload.cancelledBy = deleteField();
+        payload.cancelledByName = deleteField();
+      }
+
+      if (targetStatus === "cancelled") {
+        payload.resolved = false;
+        payload.cancelledAt = serverTimestamp();
+        payload.cancelledBy = SETTINGS.createdBy;
+        payload.cancelledByName = SETTINGS.employeeName;
+        payload.closedAt = deleteField();
+        payload.closedBy = deleteField();
+        payload.closedByName = deleteField();
+      }
+
+      if (targetStatus === "in_progress" || targetStatus === "awaiting_external" || targetStatus === "open") {
+        payload.resolved = false;
+        payload.closedAt = deleteField();
+        payload.closedBy = deleteField();
+        payload.closedByName = deleteField();
+        payload.cancelledAt = deleteField();
+        payload.cancelledBy = deleteField();
+        payload.cancelledByName = deleteField();
+      }
+
+      const targetCollection = currentAlert?.sourceCollection || "alerts";
+      await updateDoc(doc(db, targetCollection, alertId), payload);
+
+      if (targetStatus === "cancelled" && currentAlert?.sourceTaskInstanceId) {
+        await resetTaskInstanceFromCancelledAlert(currentAlert);
+      }
+
+      return {
+        previousStatus,
+        targetStatus,
+        shouldRedirectToRutiner: targetStatus === "cancelled",
+        alertItem: currentAlert
+      };
+    }
+
+    async function reopenAlert(alertId, sourceCollection = "alerts") {
+      await updateDoc(doc(db, sourceCollection, alertId), {
+        status: "open",
+        resolved: false,
+        updatedAt: serverTimestamp(),
+        reopenedAt: serverTimestamp(),
+        reopenedBy: SETTINGS.createdBy,
+        reopenedByName: SETTINGS.employeeName,
+        closedAt: deleteField(),
+        closedBy: deleteField(),
+        closedByName: deleteField(),
+        cancelledAt: deleteField(),
+        cancelledBy: deleteField(),
+        cancelledByName: deleteField()
+      });
+    }
+
+    function bindActionButtons() {
+      const buttons = document.querySelectorAll(".save-alert-btn, .save-awaiting-btn, .resolve-alert-btn");
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          const alertId = button.dataset.alertId;
+          const mode = button.dataset.mode;
+          if (!alertId || !mode) return;
+
+          const card = button.closest(".task-item");
+          if (!card) return;
+
+          card.querySelectorAll("button").forEach((btn) => {
+            btn.dataset.busy = btn === button ? "true" : "false";
+          });
+
+          setAlertLoading(
+            alertId,
+            true,
+            mode === "resolve" ? "Lukker..." : "Gemmer..."
+          );
+
+          try {
+            const result = await saveAlertState(alertId, mode);
+            const successMessage = getSaveSuccessMessage(mode, result.previousStatus, result.targetStatus);
+
+            if (result.shouldRedirectToRutiner) {
+              alert(successMessage);
+              redirectBackToRutiner(result.alertItem);
+              return;
+            }
+
+            await loadAlerts(false);
+            alert(successMessage);
+          } catch (error) {
+            console.error("Fejl ved opdatering af afvigelse:", error);
+            alert(error.message || "Kunne ikke gemme afvigelsen.");
+            setAlertLoading(alertId, false);
+          } finally {
+            card.querySelectorAll("button").forEach((btn) => {
+              delete btn.dataset.busy;
+            });
+          }
+        });
+      });
+    }
+
+    function bindReopenButtons() {
+      const buttons = document.querySelectorAll(".reopen-alert-btn");
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          const alertId = button.dataset.alertId;
+          if (!alertId) return;
+
+          const card = button.closest(".task-item");
+          if (!card) return;
+
+          card.querySelectorAll("button").forEach((btn) => {
+            btn.dataset.busy = btn === button ? "true" : "false";
+          });
+
+          setAlertLoading(alertId, true, "Genåbner...");
+
+          try {
+            const sourceCollection = card.dataset.sourceCollection || "alerts";
+            await reopenAlert(alertId, sourceCollection);
+            await loadAlerts(false);
+            alert("Afvigelsen er genåbnet.");
+          } catch (error) {
+            console.error("Fejl ved genåbning:", error);
+            alert(error.message || "Kunne ikke genåbne afvigelsen.");
+            setAlertLoading(alertId, false);
+          } finally {
+            card.querySelectorAll("button").forEach((btn) => {
+              delete btn.dataset.busy;
+            });
+          }
+        });
+      });
+    }
+
+    function bindStatFilters() {
+      document.querySelectorAll(".stat-box.is-clickable").forEach((box) => {
+        const activate = () => {
+          const filter = box.dataset.filter;
+          if (!filter) return;
+          setActiveFilter(filter, true);
+        };
+
+        box.addEventListener("click", activate);
+
+        box.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            activate();
+          }
+        });
+      });
+
+      resetFilterBtnEl?.addEventListener("click", () => {
+        setActiveFilter("all", true);
+      });
+    }
+
+    function normalizeAlert(docItem) {
+      const data = docItem.data();
+
+      const derivedStatus =
+        data.status ||
+        (data.resolved === true ? "resolved" : "open");
+
+      const derivedTitle =
+        data.title ||
+        data.message ||
+        "Afvigelse";
+
+      const derivedDescription =
+        data.description ||
+        data.message ||
+        "Ingen beskrivelse angivet.";
+
+      const derivedAlertType =
+        data.alertType ||
+        (data.taskId ? "task_failure" : "manual_deviation");
+
+      const derivedDateKey =
+        data.dateKey ||
+        data.taskDateKey ||
+        (() => {
+          const date = getDateFromTimestampLike(data.createdAt || data.updatedAt);
+          if (!date) return "";
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        })();
+
+      return {
+        id: docItem.id,
+        sourceCollection: "alerts",
+        ...data,
+        status: derivedStatus,
+        title: derivedTitle,
+        description: derivedDescription,
+        alertType: derivedAlertType,
+        dateKey: derivedDateKey
+      };
+    }
+
+    function normalizeDeviation(docItem) {
+      const data = docItem.data();
+
+      const hasAfterImage = !!data.afterImage;
+      const rawStatus = String(data.status || "").trim().toLowerCase();
+
+      let derivedStatus = "open";
+
+      if (["resolved", "closed", "approved_for_report"].includes(rawStatus)) {
+        derivedStatus = "resolved";
+      } else if (["cancelled"].includes(rawStatus)) {
+        derivedStatus = "cancelled";
+      } else if (hasAfterImage) {
+        derivedStatus = "in_progress";
+      }
+
+      const createdDate = getDateFromTimestampLike(data.createdAt || data.updatedAt || data.beforeImage?.detectedAt);
+      const derivedDateKey = data.dateKey || (() => {
+        if (!createdDate) return "";
+        const year = createdDate.getFullYear();
+        const month = String(createdDate.getMonth() + 1).padStart(2, "0");
+        const day = String(createdDate.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      })();
+
+      const beforeDescription =
+        data.beforeImage?.aiDescription ||
+        data.aiAnalysis?.beskrivelse ||
+        "";
+
+      const afterDescription =
+        data.afterImage?.aiDescription ||
+        "";
+
+      const descriptionParts = [];
+
+      if (beforeDescription) {
+        descriptionParts.push(`FØR: ${beforeDescription}`);
+      }
+
+      if (afterDescription) {
+        descriptionParts.push(`EFTER: ${afterDescription}`);
+      }
+
+      if (data.manualNote) {
+        descriptionParts.push(`Note: ${data.manualNote}`);
+      }
+
+      return {
+        id: docItem.id,
+        sourceCollection: "deviations",
+        ...data,
+        status: derivedStatus,
+        resolved: derivedStatus === "resolved" || derivedStatus === "closed",
+        title: data.taskTitle || data.equipmentName || data.areaName || "Afvigelse",
+        description: descriptionParts.join(" – ") || "Afvigelse registreret i deviations collection.",
+        alertType: data.alertType || "manual_deviation",
+        severity: data.severity || "medium",
+        dateKey: derivedDateKey,
+        areaName: data.areaName || "",
+        areaType: data.areaType || "",
+        equipmentName: data.equipmentName || "",
+        equipmentType: data.equipmentType || "",
+        machineName: data.equipmentName || data.machineName || "",
+        specificLabel: data.specificLabel || "",
+        createdByName: data.createdByName || data.approvedBy || data.createdBy || "",
+        sourceTaskInstanceId: data.sourceTaskInstanceId || data.taskInstanceId || "",
+        sourceTaskId: data.sourceTaskId || data.taskId || "",
+        sourceTaskTitle: data.taskTitle || "",
+        correctiveActionType: data.correctiveActionType || "",
+        correctiveActionLabel: data.correctiveActionLabel || "",
+        correctiveActionNote: data.manualNote || data.correctiveActionNote || "",
+        correctiveActionCompletedAt: data.approvedAt || data.updatedAt || data.createdAt || null,
+        correctiveActionCompletedBy: data.approvedBy || data.createdBy || "",
+        correctiveActionCompletedByName: data.approvedByName || data.createdByName || "",
+        closedAt: data.approvedAt || data.updatedAt || null,
+        closedBy: data.approvedBy || "",
+        closedByName: data.approvedByName || "",
+        updatedAt: data.updatedAt || data.createdAt || null,
+        createdAt: data.createdAt || null
+      };
+    }
+
+    async function tryScopedQuery(collectionName, companyField, companyValue, locationId) {
+      const snap = await getDocs(
+        query(
+          collection(db, collectionName),
+          where(companyField, "==", companyValue),
+          where("locationId", "==", locationId)
+        )
+      );
+
+      return snap.docs.map((docItem) => ({
+        id: `${collectionName}:${docItem.id}`,
+        collectionName,
+        docItem
+      }));
+    }
+
+    async function fetchAllDeviationSources() {
+      const locationVariants = [
+        SETTINGS.locationId,
+        SETTINGS.locationLegacyId,
+        FOLLOW_UP_CONTEXT.locationId
+      ].filter(Boolean);
+
+      const companyVariants = [
+        { field: "companyId", value: SETTINGS.companyId },
+        { field: "organizationId", value: SETTINGS.companyId }
+      ].filter((item) => item.value);
+
+      const seen = new Set();
+      const results = [];
+
+      for (const locationId of [...new Set(locationVariants)]) {
+        for (const company of companyVariants) {
+          for (const collectionName of ["alerts", "deviations"]) {
+            try {
+              const rows = await tryScopedQuery(collectionName, company.field, company.value, locationId);
+
+              for (const row of rows) {
+                if (seen.has(row.id)) continue;
+                seen.add(row.id);
+                results.push(row);
+              }
+            } catch (error) {
+              console.warn(`Query fejlede for ${collectionName} (${company.field} / ${locationId})`, error);
+            }
+          }
+        }
+      }
+
+      return results;
+    }
+
+    async function enrichAlertsWithTaskContext(alerts) {
+      const itemsNeedingContext = alerts.filter((item) => {
+        const hasAreaContext =
+          String(item.areaName || "").trim() ||
+          String(item.equipmentName || "").trim() ||
+          String(item.areaType || "").trim() ||
+          String(item.equipmentType || "").trim();
+
+        return !hasAreaContext && String(item.sourceTaskInstanceId || "").trim();
+      });
+
+      if (!itemsNeedingContext.length) {
+        return alerts;
+      }
+
+      const taskIds = [...new Set(itemsNeedingContext
+        .map((item) => String(item.sourceTaskInstanceId || "").trim())
+        .filter(Boolean))];
+
+      const taskMap = new Map();
+
+      await Promise.all(taskIds.map(async (taskId) => {
+        try {
+          const snap = await getDoc(doc(db, "task_instances", taskId));
+          if (!snap.exists()) return;
+          taskMap.set(taskId, snap.data() || {});
+        } catch (error) {
+          console.warn("Kunne ikke berige alert fra task instance:", taskId, error);
+        }
+      }));
+
+      return alerts.map((item) => {
+        const task = taskMap.get(String(item.sourceTaskInstanceId || "").trim());
+        if (!task) return item;
+
+        return {
+          ...item,
+          machineName: item.machineName || task.machineName || task.equipmentName || "",
+          specificLabel: item.specificLabel || task.specificLabel || "",
+          areaName: item.areaName || task.areaName || task.equipmentName || "",
+          areaType: item.areaType || task.areaType || task.equipmentType || "",
+          equipmentName: item.equipmentName || task.equipmentName || "",
+          equipmentType: item.equipmentType || task.equipmentType || "",
+          sourceTaskTitle: item.sourceTaskTitle || task.title || ""
+        };
+      });
+    }
+
+    async function findAlertByTaskInstanceId(taskInstanceId) {
+      if (!taskInstanceId) return null;
+
+      if (!SETTINGS.companyId) return null;
+
+      const locationVariants = [
+        FOLLOW_UP_CONTEXT.locationId || SETTINGS.locationId,
+        SETTINGS.locationId,
+        SETTINGS.locationLegacyId
+      ].filter(Boolean);
+
+      for (const locationId of locationVariants) {
+        const queryVariants = [
+          query(
+            collection(db, "alerts"),
+            where("companyId", "==", SETTINGS.companyId),
+            where("locationId", "==", locationId),
+            where("sourceTaskInstanceId", "==", taskInstanceId),
+            limit(10)
+          ),
+          query(
+            collection(db, "alerts"),
+            where("organizationId", "==", SETTINGS.companyId),
+            where("locationId", "==", locationId),
+            where("sourceTaskInstanceId", "==", taskInstanceId),
+            limit(10)
+          )
+        ];
+
+        for (const alertsQuery of queryVariants) {
+          try {
+            const snapshot = await getDocs(alertsQuery);
+            if (!snapshot.empty) {
+              const alerts = snapshot.docs.map(normalizeAlert);
+              alerts.sort((a, b) => getSortableTime(b) - getSortableTime(a));
+              return alerts[0];
+            }
+          } catch (error) {
+            console.warn("findAlertByTaskInstanceId query fejlede:", error);
+          }
+        }
+      }
+
+      return null;
+    }
+
+    async function getTaskInstance(taskInstanceId) {
+      if (!taskInstanceId) return null;
+
+      try {
+        const snap = await getDoc(doc(db, "task_instances", taskInstanceId));
+        if (!snap.exists()) return null;
+
+        return {
+          id: snap.id,
+          ...snap.data()
+        };
+      } catch (error) {
+        console.warn("Kunne ikke hente task instance:", error);
+        return null;
+      }
+    }
+
+    function buildAlertPayloadFromContext(task) {
+      const title =
+        task?.title ||
+        FOLLOW_UP_CONTEXT.title ||
+        "Manuel afvigelse";
+
+      const equipmentName =
+        task?.equipmentName ||
+        FOLLOW_UP_CONTEXT.equipmentName ||
+        "";
+
+      const areaName =
+        task?.areaName ||
+        FOLLOW_UP_CONTEXT.areaName ||
+        equipmentName ||
+        "";
+
+      const areaType =
+        task?.areaType ||
+        task?.equipmentType ||
+        FOLLOW_UP_CONTEXT.areaType ||
+        "";
+
+      const category =
+        task?.category ||
+        FOLLOW_UP_CONTEXT.category ||
+        "Generel";
+
+      const actionType = FOLLOW_UP_CONTEXT.actionType || "manual_deviation";
+
+      let alertType = "manual_deviation";
+      let severity = "medium";
+      let description = "Der er oprettet en afvigelse fra daglige rutiner.";
+
+      if (actionType === "cleaning_required") {
+        alertType = "cleaning_required";
+        severity = "medium";
+        description = areaName
+          ? `${formatAreaLabel(areaName)} er markeret som mangler rengøring.`
+          : "Et område er markeret som mangler rengøring.";
+      }
+
+      if (actionType === "manual_deviation") {
+        alertType = "manual_deviation";
+        severity = "medium";
+        description = areaName
+          ? `Der er registreret en manuel afvigelse for ${formatAreaLabel(areaName)}.`
+          : "Der er registreret en manuel afvigelse.";
+      }
+
+      return {
+        companyId: SETTINGS.companyId,
+        organizationId: SETTINGS.companyId,
+        unitId: SETTINGS.unitId,
+        locationId: SETTINGS.locationId,
+        alertType,
+        severity,
+        status: "open",
+        resolved: false,
+        title,
+        description,
+        equipmentId: task?.equipmentId || "",
+        equipmentName,
+        equipmentType: task?.equipmentType || "",
+        riskId: Array.isArray(task?.linkedRiskIds) && task.linkedRiskIds.length ? task.linkedRiskIds[0] : "",
+        sourceTaskId: task?.taskId || FOLLOW_UP_CONTEXT.taskId || "",
+        sourceTaskInstanceId: task?.id || FOLLOW_UP_CONTEXT.taskInstanceId || "",
+        sourceComment: FOLLOW_UP_CONTEXT.comment || "",
+        sourceType: "task_entry",
+        dateKey: task?.dateKey || getTodayKey(),
+        assignedTo: SETTINGS.employeeName,
+        requiresAction: true,
+        areaName: formatAreaLabel(areaName) || null,
+        areaType: formatAreaLabel(areaType) || null,
+        sourceActionType: actionType,
+        sourceCategory: category,
+        createdBy: SETTINGS.createdBy,
+        createdByName: SETTINGS.employeeName,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+    }
+
+    async function ensureFollowUpAlertExists() {
+      if (!FOLLOW_UP_CONTEXT.taskInstanceId) return;
+
+      const existing = await findAlertByTaskInstanceId(FOLLOW_UP_CONTEXT.taskInstanceId);
+      if (existing) {
+        highlightedAlertId = existing.id;
+        return;
+      }
+
+      if (FOLLOW_UP_CONTEXT.actionType !== "manual_deviation" && FOLLOW_UP_CONTEXT.actionType !== "cleaning_required") {
+        return;
+      }
+
+      const task = await getTaskInstance(FOLLOW_UP_CONTEXT.taskInstanceId);
+      const payload = buildAlertPayloadFromContext(task);
+      const docRef = await addDoc(collection(db, "alerts"), payload);
+      highlightedAlertId = docRef.id;
+    }
+
+    function scrollToHighlightedCard() {
+      if (!highlightedAlertId) return;
+
+      const card = document.querySelector(`.task-item[data-alert-id="${highlightedAlertId}"]`);
+      if (!card) return;
+
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    async function loadAlerts(keepScrollPosition = true) {
+      openAlertsListEl.innerHTML = `<div class="loading-box">Henter åbne afvigelser...</div>`;
+      closedAlertsListEl.innerHTML = `<div class="loading-box">Henter lukkede afvigelser...</div>`;
+
+      try {
+        if (!SETTINGS.companyId || !SETTINGS.locationId) {
+          throw new Error("Brugerens companyId/lokation mangler i users/[uid].");
+        }
+
+        const rows = await fetchAllDeviationSources();
+
+        const normalized = rows.map(({ collectionName, docItem }) => {
+          if (collectionName === "deviations") {
+            return normalizeDeviation(docItem);
+          }
+          return normalizeAlert(docItem);
+        });
+
+        allAlerts = await enrichAlertsWithTaskContext(normalized);
+        allAlerts.sort((a, b) => getSortableTime(b) - getSortableTime(a));
+
+        updateKpis(allAlerts);
+        renderLists();
+
+        if (!keepScrollPosition) {
+          scrollToRelevantSection();
+        }
+
+        if (highlightedAlertId) {
+          requestAnimationFrame(() => {
+            scrollToHighlightedCard();
+          });
+        }
+      } catch (error) {
+        console.error("Fejl ved hentning af afvigelser:", error);
+
+        openAlertsListEl.innerHTML = `
+          <div class="error-box">
+            Kunne ikke hente åbne afvigelser fra Firestore.
+          </div>
+        `;
+
+        closedAlertsListEl.innerHTML = `
+          <div class="error-box">
+            Kunne ikke hente lukkede afvigelser fra Firestore.
+          </div>
+        `;
+      }
+    }
+
+    bindStatFilters();
+    updateFilterUi();
+    renderReferenceBox();
+
+    setupAuthGate({
+      appName: "Madkontrollen Pro",
+      onAuthenticated: async ({ user, profile }) => {
+        SETTINGS.createdBy = user.uid;
+        SETTINGS.employeeName = String(
+          profile?.displayName || user.displayName || user.email || user.uid
+        );
+        SETTINGS.currentUserName = SETTINGS.employeeName;
+        SETTINGS.currentUserCompanyId = getProfileCompanyId(profile);
+        SETTINGS.currentUserLocations = normalizeLocationIds(profile);
+
+        SETTINGS.companyId = SETTINGS.currentUserCompanyId || SETTINGS.companyId;
+        SETTINGS.companyLegacyId = toLegacyId(SETTINGS.companyId);
+
+        const selectedLocation = resolveLocationForUser();
+
+        SETTINGS.locationId = selectedLocation;
+        SETTINGS.locationLegacyId = toLegacyId(selectedLocation);
+
+if (locationLabelEl) {
+            locationLabelEl.textContent = SETTINGS.locationDisplayName || "";
+          }
+
+        await ensureFollowUpAlertExists();
+        await loadAlerts();
+      },
+      onSignedOut: async () => {
+        if (openAlertsListEl) {
+          openAlertsListEl.innerHTML = `<div class="loading-box">Log ind for at se åbne afvigelser.</div>`;
+        }
+        if (closedAlertsListEl) {
+          closedAlertsListEl.innerHTML = `<div class="loading-box">Log ind for at se lukkede afvigelser.</div>`;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
+

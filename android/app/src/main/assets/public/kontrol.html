@@ -1,0 +1,617 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kontrol-mode | Madkontrollen Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    .page-shell{
+      padding-top:20px;
+    }
+
+    .control-layout{
+      display:grid;
+      grid-template-columns:280px minmax(0, 1fr);
+      gap:18px;
+      align-items:start;
+    }
+
+    .control-main{
+      min-width:0;
+    }
+
+    .control-main .container{
+      width:100%;
+      margin:0;
+    }
+
+    .control-stack{
+      display:grid;
+      gap:22px;
+    }
+
+    .control-hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:32px;
+      padding:28px;
+      color:#fff;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,.12) 0%, transparent 26%),
+        linear-gradient(135deg,#16325a 0%, #1e4b87 54%, #1565c0 100%);
+      box-shadow:0 20px 50px rgba(21,101,192,.20);
+    }
+
+    .control-hero::after{
+      content:"";
+      position:absolute;
+      right:-90px;
+      bottom:-90px;
+      width:260px;
+      height:260px;
+      border-radius:50%;
+      background:rgba(255,255,255,.08);
+      pointer-events:none;
+    }
+
+    .control-hero-grid{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:minmax(0, 1.15fr) minmax(280px, .85fr);
+      gap:20px;
+      align-items:stretch;
+    }
+
+    .control-eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.16);
+      font-size:13px;
+      font-weight:800;
+      margin-bottom:16px;
+    }
+
+    .control-hero h1{
+      margin:0 0 10px;
+      font-size:40px;
+      line-height:1.02;
+      letter-spacing:-0.03em;
+      max-width:760px;
+      color:#fff;
+    }
+
+    .control-hero p{
+      margin:0;
+      max-width:760px;
+      color:rgba(255,255,255,.88);
+      line-height:1.65;
+      font-size:16px;
+    }
+
+    .control-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:24px;
+    }
+
+    .control-side{
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:24px;
+      padding:18px;
+      backdrop-filter:blur(6px);
+    }
+
+    .control-side-title{
+      margin:0 0 12px;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.76);
+    }
+
+    .control-side-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .control-side-item{
+      padding:12px 14px;
+      border-radius:16px;
+      background:rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.12);
+    }
+
+    .control-side-item strong{
+      display:block;
+      font-size:14px;
+      margin-bottom:4px;
+      color:#fff;
+    }
+
+    .control-side-item span{
+      display:block;
+      font-size:13px;
+      line-height:1.5;
+      color:rgba(255,255,255,.78);
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:16px;
+    }
+
+    .stat-card{
+      background:var(--panel, #fff);
+      border:1px solid var(--border, #d9e4d9);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:var(--shadow-soft, 0 8px 24px rgba(16,24,16,0.06));
+    }
+
+    .stat-value{
+      font-size:30px;
+      font-weight:800;
+      line-height:1;
+      margin-bottom:8px;
+      color:var(--text, #182118);
+    }
+
+    .stat-label{
+      color:var(--muted, #667267);
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    .content-grid{
+      display:grid;
+      grid-template-columns:1.08fr .92fr;
+      gap:22px;
+    }
+
+    .stack{
+      display:grid;
+      gap:22px;
+      min-width:0;
+    }
+
+    .card{
+      background:var(--panel, #fff);
+      border:1px solid var(--border, #d9e4d9);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:var(--shadow, 0 14px 34px rgba(16,24,16,0.08));
+    }
+
+    .card h2{
+      margin:0 0 8px;
+      font-size:22px;
+      letter-spacing:-0.02em;
+      color:var(--text, #182118);
+    }
+
+    .card-lead{
+      margin:0 0 18px;
+      color:var(--muted, #667267);
+      line-height:1.6;
+    }
+
+    .document-list{
+      display:grid;
+      gap:14px;
+    }
+
+    .document-item{
+      display:grid;
+      grid-template-columns:auto minmax(0, 1fr) auto;
+      gap:14px;
+      align-items:flex-start;
+      padding:16px;
+      border-radius:18px;
+      border:1px solid var(--border, #d9e4d9);
+      background:#fff;
+    }
+
+    .document-icon{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      font-size:18px;
+      background:#edf4ff;
+      color:#1f4f8a;
+      border:1px solid #d8e4f6;
+      flex-shrink:0;
+    }
+
+    .document-item h3{
+      margin:0 0 6px;
+      font-size:17px;
+      color:var(--text, #182118);
+    }
+
+    .document-item p{
+      margin:0;
+      color:var(--muted, #667267);
+      line-height:1.55;
+      font-size:14px;
+    }
+
+    .document-status{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:34px;
+      padding:8px 10px;
+      border-radius:999px;
+      background:#f4f8f4;
+      border:1px solid var(--border, #d9e4d9);
+      font-size:12px;
+      font-weight:800;
+      color:#425442;
+      white-space:nowrap;
+    }
+
+    .quick-actions{
+      display:grid;
+      gap:12px;
+    }
+
+    .quick-action{
+      padding:16px;
+      border-radius:18px;
+      border:1px solid var(--border, #d9e4d9);
+      background:var(--panel-2, #f8fbf8);
+    }
+
+    .quick-action strong{
+      display:block;
+      margin-bottom:6px;
+      font-size:15px;
+      color:var(--text, #182118);
+    }
+
+    .quick-action span{
+      display:block;
+      color:var(--muted, #667267);
+      line-height:1.5;
+      font-size:14px;
+    }
+
+    .control-note{
+      padding:18px;
+      border-radius:20px;
+      border:1px solid #d8e4f6;
+      background:linear-gradient(180deg,#f8fbff 0%, #eef5ff 100%);
+      color:#24476b;
+      line-height:1.6;
+    }
+
+    .control-note strong{
+      display:block;
+      margin-bottom:8px;
+      font-size:16px;
+    }
+
+    .footer-note{
+      color:var(--muted, #667267);
+      text-align:center;
+      font-size:14px;
+      padding:8px 0 4px;
+    }
+
+    @media (max-width: 1200px){
+      .control-layout,
+      .control-hero-grid,
+      .content-grid,
+      .stats-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 860px){
+      .document-item{
+        grid-template-columns:auto minmax(0, 1fr);
+      }
+
+      .document-status{
+        grid-column:1 / -1;
+        justify-self:start;
+      }
+    }
+
+    @media (max-width: 760px){
+      .page-shell{
+        padding-top:16px;
+      }
+
+      .control-hero{
+        padding:22px;
+        border-radius:24px;
+      }
+
+      .control-hero h1{
+        font-size:32px;
+      }
+
+      .control-actions{
+        flex-direction:column;
+      }
+
+      .control-actions .btn{
+        width:100%;
+      }
+    }
+  </style>
+</head>
+<body data-page="kontrol">
+  <div id="headerMount"></div>
+
+  <main class="page-shell">
+    <div class="container control-layout">
+      <div id="sidebarMount"></div>
+
+      <div class="control-main">
+        <div class="control-stack">
+          <section class="control-hero">
+            <div class="control-hero-grid">
+              <div>
+                <div class="control-eyebrow">🛂 Kontrolklar visning</div>
+                <h1>Kontrol-mode</h1>
+                <p>
+                  Vis hurtigt de vigtigste dokumenter, rutiner, afvigelser og rapporter,
+                  så du er klar ved kontrolbesøg uden at lede rundt i systemet.
+                </p>
+
+                <div class="control-actions">
+                  <a href="/modules/egenkontrol/rapporter.html" class="btn btn-primary">Åbn rapporter</a>
+                  <a href="/modules/egenkontrol/afvigelser.html" class="btn btn-secondary">Se afvigelser</a>
+                </div>
+              </div>
+
+              <aside class="control-side">
+                <p class="control-side-title">Vis hurtigt</p>
+
+                <div class="control-side-list">
+                  <div class="control-side-item">
+                    <strong>Dagens rutiner</strong>
+                    <span>Hvad er udført, og hvad mangler endnu.</span>
+                  </div>
+
+                  <div class="control-side-item">
+                    <strong>Afvigelser</strong>
+                    <span>Åbne og lukkede hændelser med historik.</span>
+                  </div>
+
+                  <div class="control-side-item">
+                    <strong>Risikoanalyse</strong>
+                    <span>Procestrin, grænser og overvågning.</span>
+                  </div>
+
+                  <div class="control-side-item">
+                    <strong>Dokumentation</strong>
+                    <span>Eksport, rapporter og kontrolmappe.</span>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="controlTasksDone">0</div>
+              <div class="stat-label">Rutiner udført i dag</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-value" id="controlTasksOpen">0</div>
+              <div class="stat-label">Rutiner mangler</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-value" id="controlAlerts">0</div>
+              <div class="stat-label">Åbne afvigelser</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-value" id="controlDocs">4</div>
+              <div class="stat-label">Hurtige dokumenter</div>
+            </div>
+          </section>
+
+          <section class="content-grid">
+            <div class="stack">
+              <section class="card">
+                <h2>Hurtige dokumenter</h2>
+                <p class="card-lead">
+                  De vigtigste områder samlet, så kontrolbesøg kan håndteres roligt og hurtigt.
+                </p>
+
+                <div class="document-list">
+                  <article class="document-item">
+                    <div class="document-icon">📋</div>
+                    <div>
+                      <h3>Daglige rutiner</h3>
+                      <p>Oversigt over dagens kontroller, signeringer og registreringer.</p>
+                    </div>
+                    <div class="document-status">Klar</div>
+                  </article>
+
+                  <article class="document-item">
+                    <div class="document-icon">⚠️</div>
+                    <div>
+                      <h3>Afvigelser</h3>
+                      <p>Registrerede fejl, handlinger og opfølgning samlet ét sted.</p>
+                    </div>
+                    <div class="document-status">Klar</div>
+                  </article>
+
+                  <article class="document-item">
+                    <div class="document-icon">🧪</div>
+                    <div>
+                      <h3>Risikoanalyse / HACCP</h3>
+                      <p>Procestrin, kritiske grænser, overvågning og korrigerende handlinger.</p>
+                    </div>
+                    <div class="document-status">Klar</div>
+                  </article>
+
+                  <article class="document-item">
+                    <div class="document-icon">📄</div>
+                    <div>
+                      <h3>Rapporter og eksport</h3>
+                      <p>Historik og dokumentation til print eller gennemgang ved kontrol.</p>
+                    </div>
+                    <div class="document-status">Klar</div>
+                  </article>
+                </div>
+              </section>
+            </div>
+
+            <div class="stack">
+              <section class="card">
+                <h2>Hurtige handlinger</h2>
+                <p class="card-lead">
+                  Gå direkte til den del af systemet, der typisk bliver brugt under besøg og gennemgang.
+                </p>
+
+                <div class="quick-actions">
+                  <a href="/modules/egenkontrol/rutiner.html" class="quick-action">
+                    <strong>Åbn rutiner</strong>
+                    <span>Se dagens opgaver og registreringer.</span>
+                  </a>
+
+                  <a href="/modules/egenkontrol/afvigelser.html" class="quick-action">
+                    <strong>Åbn afvigelser</strong>
+                    <span>Vis åbne sager og korrigerende handlinger.</span>
+                  </a>
+
+                  <a href="/modules/egenkontrol/risikoanalyse.html" class="quick-action">
+                    <strong>Åbn risikoanalyse</strong>
+                    <span>Gennemgå HACCP og faste kontrolpunkter.</span>
+                  </a>
+
+                  <a href="/modules/egenkontrol/rapporter.html" class="quick-action">
+                    <strong>Åbn rapporter</strong>
+                    <span>Eksportér dokumentation og historik.</span>
+                  </a>
+                </div>
+              </section>
+
+              <section class="card">
+                <h2>Notat</h2>
+                <div class="control-note">
+                  <strong>Formålet med kontrol-mode</strong>
+                  Her skal der ikke være ekstra støj. Kun det, der hjælper hurtigt ved et kontrolbesøg:
+                  rutiner, afvigelser, risikoanalyse og dokumentation.
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <div class="footer-note">
+            Kontrol-mode følger nu samme struktur som resten af platformen med sidebar og topbar fra layout.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { loadLayout } from "/core/layout.js";
+    import { db } from "/core/firebase-config.js";
+    import {
+      collection,
+      getDocs,
+      query,
+      where
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    if (typeof loadLayout === "function") {
+      await loadLayout();
+    }
+
+    const SETTINGS = {
+      locationId: "",
+      locationLegacyId: ""
+    };
+
+    const controlTasksDoneEl = document.getElementById("controlTasksDone");
+    const controlTasksOpenEl = document.getElementById("controlTasksOpen");
+    const controlAlertsEl = document.getElementById("controlAlerts");
+
+    function getTodayKey() {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "Europe/Copenhagen",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      });
+      return formatter.format(now);
+    }
+
+    async function loadControlStats() {
+      try {
+        const todayKey = getTodayKey();
+
+        const tasksQuery = query(
+          collection(db, "task_instances"),
+          where("dateKey", "==", todayKey)
+        );
+
+        const tasksSnapshot = await getDocs(tasksQuery);
+
+        const tasks = tasksSnapshot.docs
+          .map((doc) => doc.data())
+          .filter((task) =>
+            [SETTINGS.locationId, SETTINGS.locationLegacyId].includes(task.locationId)
+          );
+
+        const doneCount = tasks.filter((task) => task.status === "completed").length;
+        const openCount = tasks.filter((task) => task.status !== "completed").length;
+
+        controlTasksDoneEl.textContent = String(doneCount);
+        controlTasksOpenEl.textContent = String(openCount);
+
+        const alertsQuery = query(
+          collection(db, "alerts"),
+          where("dateKey", "==", todayKey)
+        );
+
+        const alertsSnapshot = await getDocs(alertsQuery);
+
+        const alerts = alertsSnapshot.docs
+          .map((doc) => doc.data())
+          .filter((item) =>
+            [SETTINGS.locationId, SETTINGS.locationLegacyId].includes(item.locationId)
+          );
+
+        controlAlertsEl.textContent = String(alerts.length);
+      } catch (error) {
+        console.error("Fejl ved hentning af kontrol-statistik:", error);
+        controlTasksDoneEl.textContent = "0";
+        controlTasksOpenEl.textContent = "0";
+        controlAlertsEl.textContent = "0";
+      }
+    }
+
+    loadControlStats();
+  </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lagerkontrol modul - staging read-only</title>
+  <meta name="description" content="Read-only staging-side for fremtidig selvstændigt Lagerkontrol modul i Madkontrollen. Ingen production writes.">
+  <link rel="stylesheet" href="./assets/css/lagerkontrol.css">
+</head>
+<body data-route-file="index.html">
+  <main class="staging-shell">
+    <section class="hero">
+      <p class="eyebrow">Madkontrollen modulstruktur</p>
+      <h1>Lagerkontrol modul - staging read-only</h1>
+      <p class="lead">
+        Denne side er en isoleret staging-flade for den fremtidige selvstændige Lagerkontrol web- og APK-app.
+      </p>
+      <div class="status-grid" aria-label="Modulstatus">
+        <article>
+          <span>Status</span>
+          <strong>staging-readonly</strong>
+        </article>
+        <article>
+          <span>Entitlement key</span>
+          <strong>lagerkontrol</strong>
+        </article>
+        <article>
+          <span>Production writes</span>
+          <strong>Ingen</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Adapterstatus</h2>
+      <div class="contract-grid" id="adapterStatus" aria-live="polite">
+        <article>
+          <h3>PlatformContext adapter</h3>
+          <p data-adapter-status="platform">Ikke initialiseret</p>
+        </article>
+        <article>
+          <h3>Firestore adapter</h3>
+          <p data-adapter-status="firestore">Ikke initialiseret</p>
+        </article>
+        <article>
+          <h3>Functions adapter</h3>
+          <p data-adapter-status="functions">Ikke initialiseret</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Route-navigation</h2>
+      <div id="routeNavigation"></div>
+    </section>
+
+    <section id="routeShell"></section>
+
+    <section class="section">
+      <h2>Planlagte funktioner</h2>
+      <ul class="feature-list">
+        <li>Varelager og varebibliotek</li>
+        <li>Varemodtagelse og batch-sporing</li>
+        <li>Optælling, svind og lagerbevægelser</li>
+        <li>Leverandørbilag og fremtidig bogføringsbro</li>
+        <li>Kostpris til menu, kalkulation og POS</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>API-kontrakter</h2>
+      <div class="contract-grid">
+        <article>
+          <h3>Slået fra i read-only</h3>
+          <p><code>lagerProcessSupplierDocument</code></p>
+        </article>
+        <article>
+          <h3>Tilladte read-only actions</h3>
+          <p><code>getStockStatus</code>, <code>getCostPrice</code>, <code>listSupplierDocuments</code></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Live routes i parity-checklisten</h2>
+      <ul class="route-list" id="routeList"></ul>
+    </section>
+
+    <section class="section warning">
+      <h2>Ingen production writes</h2>
+      <p>
+        Ingen production writes er aktiveret. Denne staging-side importerer ikke Firebase production-konfiguration og skriver ikke til Firestore, Functions eller Storage.
+      </p>
+    </section>
+  </main>
+  <script type="module" src="./assets/js/lagerkontrol.js"></script>
+</body>
+</html>

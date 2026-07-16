@@ -11,7 +11,7 @@
 import app from "/core/firebase-config.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { getFirestore, collection, doc, addDoc, setDoc, deleteDoc, getDoc, onSnapshot, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, setDoc, getDoc, onSnapshot, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const LS_KEY        = "mk_active_cooling_runs";   // array
 const LS_KEY_LEGACY = "mk_active_cooling_run";    // old single-run key
@@ -104,6 +104,8 @@ async function writeRunToFirestore(run) {
         const db = getFirestore(app);
         await setDoc(doc(db, "activeCoolingRuns", run.runId), {
             ...run,
+            active: true,
+            archived: false,
             // Write both companyId and organizationId so security rules match regardless of profile field name
             organizationId: run.companyId,
             _syncedAt: serverTimestamp()
@@ -122,9 +124,15 @@ function deleteRun(runId) {
 async function deleteRunFromFirestore(runId) {
     try {
         const db = getFirestore(app);
-        await deleteDoc(doc(db, "activeCoolingRuns", runId));
+        await setDoc(doc(db, "activeCoolingRuns", runId), {
+            active: false,
+            archived: true,
+            status: "inactive",
+            archivedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        }, { merge: true });
     } catch (e) {
-        console.warn("[cooling] Firestore delete failed:", e);
+        console.warn("[cooling] Firestore archive failed:", e);
     }
 }
 
@@ -485,6 +493,9 @@ async function finishRun(runData, endTemp, note) {
     const startTemp       = Number(runData.startTemp);
     const methodLabel     = getCoolingMethodLabel(runData.coolingMethod);
     const passed          = startTemp >= 65 && endTemp <= 10 && coolingDuration <= 240;
+    const foodItem        = String(runData.foodItem || runData.productName || "").trim();
+    const performedByUid  = String(runData.performedByUid || runData.completedBy || "").trim();
+    const performedByName = String(runData.performedByName || runData.completedByName || performedByUid || "").trim();
 
     let failureReason = null;
     if (!passed) {
@@ -501,10 +512,19 @@ async function finishRun(runData, endTemp, note) {
 
     const entryData = {
         entryType: "cooling_control",
+        foodItem,
+        productName: foodItem,
+        performedByUid,
+        performedByName,
+        completedBy: performedByUid,
+        completedByName: performedByName,
+        method: methodLabel,
+        documentation: noteText,
         measurementValue: endTemp,
         coolingData: {
             runId: runData.runId,
-            productName: runData.productName,
+            foodItem,
+            productName: foodItem,
             quantityBucket: runData.quantityBucket,
             coolingMethod: runData.coolingMethod,
             coolingMethodLabel: methodLabel,
@@ -523,7 +543,7 @@ async function finishRun(runData, endTemp, note) {
         entryData.requiresDeviation = true;
         entryData.deviationData = {
             templateKey: "nedkoeling",
-            productName: runData.productName,
+            productName: foodItem,
             quantityBucket: runData.quantityBucket,
             coolingMethod: runData.coolingMethod,
             coolingMethodLabel: methodLabel,
@@ -548,24 +568,73 @@ async function finishRun(runData, endTemp, note) {
     };
 
     const functions = getFunctions(app, "us-central1");
-    await httpsCallable(functions, "saveRoutineTask")({
+    const saveResponse = await httpsCallable(functions, "saveRoutineTask")({
         companyId: runData.companyId,
         locationId: runData.locationId,
         unitId: runData.unitId || "",
         taskInstanceId: runData.instanceId,
         taskId: runData.taskId || "",
+        templateId: runData.templateId || "",
+        templateKey: runData.templateKey || "",
+        routineKey: runData.routineKey || "",
+        routineType: runData.routineType || "",
+        title: runData.title || "",
+        controlPoint: runData.controlPoint || "",
+        category: runData.category || "",
         taskDateKey: runData.dateKey,
         actionType: "cooling_run_finish",
         completedBy: runData.completedBy || "",
         completedByName: runData.completedByName || "",
+        performedByUid,
+        performedByName,
+        foodItem,
+        productName: foodItem,
+        method: methodLabel,
+        measurement: endTemp,
+        measurementValue: endTemp,
+        documentation: noteText,
+        completedAt: finishedAtIso,
         deadlineAt: runData.deadlineAt || "",
         completedLate: false,
         overdueLogged: false,
         entryData,
         result
     });
+    const saveData = saveResponse?.data || saveResponse || {};
 
-    return { passed, coolingDuration, endTemp };
+    return {
+        passed,
+        coolingDuration,
+        endTemp,
+        saveResult: saveData,
+        taskEntryId: saveData.taskEntryId || saveData.entryId || saveData.latestEntryId || "",
+        entryId: saveData.entryId || saveData.taskEntryId || saveData.latestEntryId || "",
+        taskInstanceId: saveData.taskInstanceId || runData.taskInstanceId || runData.instanceId || "",
+        dateKey: saveData.dateKey || runData.dateKey || "",
+        latestEntryAt: saveData.latestEntryAt || saveData.completedAt || finishedAtIso,
+        latestEntryStatus: saveData.latestEntryStatus || saveData.entryStatus || saveData.status || (passed ? "completed" : "deviation"),
+        latestEntrySummary: saveData.latestEntrySummary || noteText,
+        latestEntryByName: saveData.latestEntryByName || saveData.performedByName || saveData.completedByName || performedByName,
+        latestMeasurement: saveData.latestMeasurement ?? saveData.measurementValue ?? endTemp,
+        latestComment: saveData.latestComment || saveData.comment || "",
+        completedAt: saveData.completedAt || finishedAtIso,
+        completedByName: saveData.completedByName || saveData.performedByName || performedByName,
+        performedByName: saveData.performedByName || saveData.completedByName || performedByName,
+        performedByUid: saveData.performedByUid || performedByUid,
+        completedByUid: saveData.completedByUid || saveData.completedBy || performedByUid,
+        foodItem: saveData.foodItem || foodItem,
+        productName: saveData.productName || foodItem,
+        method: saveData.method || methodLabel,
+        routineKey: runData.routineKey || "",
+        routineType: runData.routineType || "",
+        templateId: runData.templateId || "",
+        templateKey: runData.templateKey || "",
+        taskId: runData.taskId || "",
+        title: runData.title || "",
+        controlPoint: runData.controlPoint || "",
+        category: runData.category || "",
+        actionType: "cooling_run_finish"
+    };
 }
 
 // ── Handle finish click ────────────────────────────────────────────────────────
@@ -587,7 +656,8 @@ async function handleFinish(runId) {
     if (finBtn) { finBtn.disabled = true; finBtn.textContent = "Gemmer..."; }
 
     try {
-        const { passed, coolingDuration, endTemp: finalTemp } = await finishRun(runData, endTemp, note);
+        const finishResult = await finishRun(runData, endTemp, note);
+        const { passed, coolingDuration, endTemp: finalTemp } = finishResult;
         deleteRun(runId);
         expandedRunIds.delete(runId);
 
@@ -613,7 +683,7 @@ async function handleFinish(runId) {
             }, 3000);
         }
 
-        if (window.__mkCoolingRunFinished) window.__mkCoolingRunFinished(runData.instanceId);
+        if (window.__mkCoolingRunFinished) window.__mkCoolingRunFinished(runData.instanceId, finishResult);
     } catch (err) {
         console.error("[cooling] finishRun error:", err);
         if (finBtn) { finBtn.disabled = false; finBtn.textContent = "\u2705 Afslut"; }
@@ -634,13 +704,25 @@ async function handleAbort(runId) {
         ? Math.max(0, Math.round((abortedAt - new Date(runData.startedAt)) / 60000))
         : 0;
     const methodLabel = getCoolingMethodLabel(runData.coolingMethod);
+    const foodItem = String(runData.foodItem || runData.productName || "").trim();
+    const performedByUid = String(runData.performedByUid || runData.completedBy || "").trim();
+    const performedByName = String(runData.performedByName || runData.completedByName || performedByUid || "").trim();
     const noteText = note || `Nedkøling afbrudt efter ${coolingDuration} min. Metode: ${methodLabel}.`;
 
     const entryData = {
         entryType: "cooling_control",
+        foodItem,
+        productName: foodItem,
+        performedByUid,
+        performedByName,
+        completedBy: performedByUid,
+        completedByName: performedByName,
+        method: methodLabel,
+        documentation: noteText,
         coolingData: {
             runId: runData.runId,
-            productName: runData.productName,
+            foodItem,
+            productName: foodItem,
             quantityBucket: runData.quantityBucket,
             coolingMethod: runData.coolingMethod,
             coolingMethodLabel: methodLabel,
@@ -697,10 +779,24 @@ async function handleAbort(runId) {
             unitId: runData.unitId || "",
             taskInstanceId: runData.instanceId,
             taskId: runData.taskId || "",
+            templateId: runData.templateId || "",
+            templateKey: runData.templateKey || "",
+            routineKey: runData.routineKey || "",
+            routineType: runData.routineType || "",
+            title: runData.title || "",
+            controlPoint: runData.controlPoint || "",
+            category: runData.category || "",
             taskDateKey: runData.dateKey,
             actionType: "cooling_run_abort",
             completedBy: runData.completedBy || "",
             completedByName: runData.completedByName || "",
+            performedByUid,
+            performedByName,
+            foodItem,
+            productName: foodItem,
+            method: methodLabel,
+            documentation: noteText,
+            completedAt: abortedAt.toISOString(),
             deadlineAt: runData.deadlineAt || "",
             completedLate: false,
             overdueLogged: false,
@@ -792,7 +888,7 @@ export function initCoolingOverlay() {
 
             firestoreUnsub = onSnapshot(q, (snapshot) => {
                 const fsRuns  = snapshot.docs.map(d => d.data());
-                const fsRaw   = fsRuns.filter(r => r?.startedAt && getElapsedMs(r.startedAt) < 6 * 3600000);
+                const fsRaw   = fsRuns.filter(r => r?.startedAt && r.active !== false && r.archived !== true && getElapsedMs(r.startedAt) < 6 * 3600000);
                 console.log("[cooling] onSnapshot fired — docs:", snapshot.docs.length, "valid:", fsRaw.length);
 
                 // Merge: keep local runs that are <90s old and not yet confirmed by Firestore

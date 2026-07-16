@@ -365,6 +365,53 @@ function buildCloudinaryTransformUrl(rawUrl, transform) {
   return `${prefix}/image/upload/${transform}/${cleanRest}`;
 }
 
+const DEFAULT_HERO_IMAGE_EFFECTS = {
+  brightness: 8,
+  contrast: 4,
+  blur: 0,
+  saturation: 8,
+  overlayDarkness: 0.38,
+  zoom: 1
+};
+
+function clampNumber(value, min, max, fallback) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.min(max, Math.max(min, num));
+}
+
+function normalizeHeroImageEffects(value = {}) {
+  const effects = value && typeof value === "object" ? value : {};
+  return {
+    brightness: Math.round(clampNumber(effects.brightness, -40, 50, DEFAULT_HERO_IMAGE_EFFECTS.brightness)),
+    contrast: Math.round(clampNumber(effects.contrast, -30, 40, DEFAULT_HERO_IMAGE_EFFECTS.contrast)),
+    blur: Math.round(clampNumber(effects.blur, 0, 12, DEFAULT_HERO_IMAGE_EFFECTS.blur)),
+    saturation: Math.round(clampNumber(effects.saturation, -40, 60, DEFAULT_HERO_IMAGE_EFFECTS.saturation)),
+    overlayDarkness: Number(clampNumber(effects.overlayDarkness, 0.2, 0.75, DEFAULT_HERO_IMAGE_EFFECTS.overlayDarkness).toFixed(2)),
+    zoom: Number(clampNumber(effects.zoom, 1, 1.35, DEFAULT_HERO_IMAGE_EFFECTS.zoom).toFixed(2))
+  };
+}
+
+function buildTransformedHeroImageUrl(url, effects = {}) {
+  const clean = String(url || "").trim();
+  if (!clean || !clean.includes("res.cloudinary.com") || !clean.includes("/image/upload/")) return clean;
+  const normalized = normalizeHeroImageEffects(effects);
+  const transforms = ["f_auto", "q_auto", "c_fill", "g_auto", "w_1800", "h_1000"];
+  if (normalized.zoom > 1) transforms.push(`z_${String(normalized.zoom.toFixed(2)).replace(/0+$/, "").replace(/\.$/, "")}`);
+  if (normalized.brightness) transforms.push(`e_brightness:${normalized.brightness}`);
+  if (normalized.contrast) transforms.push(`e_contrast:${normalized.contrast}`);
+  if (normalized.saturation) transforms.push(`e_saturation:${normalized.saturation}`);
+  if (normalized.blur) transforms.push(`e_blur:${normalized.blur * 100}`);
+  const [prefix, rest] = clean.split("/image/upload/");
+  return `${prefix}/image/upload/${transforms.join(",")}/${String(rest || "").replace(/^\/+/, "")}`;
+}
+
+function buildHeroOverlayCss(effects = {}) {
+  const darkness = normalizeHeroImageEffects(effects).overlayDarkness;
+  const top = Math.max(0.2, darkness - 0.08).toFixed(2);
+  return `linear-gradient(to bottom,rgba(0,0,0,${top}),rgba(0,0,0,${darkness.toFixed(2)}))`;
+}
+
 function normalizeHeroImage(rawImage = {}, fallbackUrl = "") {
   const originalUrl = rawImage.originalUrl || rawImage.secureUrl || rawImage.url || fallbackUrl || "";
   const optimizedUrl = rawImage.optimizedUrl || buildCloudinaryTransformUrl(originalUrl, "f_auto,q_auto,c_fill,w_1600,h_900,g_auto");
@@ -640,6 +687,9 @@ export function renderSeoHtml({ website, page, parsed }) {
   const cityLabel = escapeHtml(displayCityName);
   const h2 = escapeHtml(pageDoc.h2 || (displayCityName ? `Velkommen til ${displayBusinessName} i ${displayCityName}` : "Velkommen"));
   const domain = parsed.host || `${parsed.businessSlug}.${ALLOWED_ROOT_DOMAIN}`;
+  const heroEffects = normalizeHeroImageEffects(data.heroImageEffects || websiteDoc.heroImageEffects);
+  const transformedHeroImage = escapeHtml(buildTransformedHeroImageUrl(heroImage, heroEffects));
+  const heroOverlay = escapeHtml(buildHeroOverlayCss(heroEffects));
   const explicitCtaButtons = Array.isArray(data.ctaButtons) && data.ctaButtons.length
     ? data.ctaButtons.map((button) => ({ label: button.label || button.text || "", href: normalizeCta({ cta: button.href || button.url || button.value, fallbackText: button.label || button.text || "" }).href, kind: button.kind || "secondary" })).filter((button) => button.label && button.href)
     : [];
@@ -660,9 +710,13 @@ export function renderSeoHtml({ website, page, parsed }) {
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="${canonicalUrl}">
 <style>
-body{margin:0;font-family:Inter,Arial,sans-serif;color:#1f2937;background:#f7f7f4;line-height:1.6}
-.hero{min-height:520px;display:grid;place-items:center;text-align:center;color:#fff;padding:64px 20px;background:${themePrimary};background-image:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.42)),url('${heroImage}');background-size:cover;background-position:center}
-.hero h1{font-size:clamp(38px,7vw,82px);line-height:.98;margin:0 0 18px;font-weight:900}
+html,body{margin:0;overflow-x:hidden}
+body{font-family:Inter,Arial,sans-serif;color:#1f2937;background:#f7f7f4;line-height:1.6}
+.site-hero,.hero{position:relative;overflow:hidden;min-height:420px;border-radius:24px;display:grid;place-items:center;text-align:center;color:#fff;background:${themePrimary};margin:24px clamp(16px,4vw,48px) 0}
+.hero-bg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;background-image:url('${transformedHeroImage}')}
+.hero-overlay{position:absolute;inset:0;z-index:1;background:${heroOverlay}}
+.hero-content{position:relative;z-index:2;padding:72px 28px;color:#fff}
+.hero h1{font-size:clamp(38px,7vw,82px);line-height:1.04;margin:0 0 18px;font-weight:900}
 .hero p{max-width:780px;margin:0 auto;font-size:clamp(18px,2vw,28px);font-weight:700}
 .actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:28px}
 .action{display:inline-flex;align-items:center;justify-content:center;padding:14px 24px;border-radius:12px;text-decoration:none;font-weight:800;color:#fff;background:${themeAccent};box-shadow:0 8px 18px rgba(0,0,0,.18)}
@@ -670,12 +724,16 @@ body{margin:0;font-family:Inter,Arial,sans-serif;color:#1f2937;background:#f7f7f
 .panel{background:#fff;border-top:6px solid ${themeAccent};border-radius:10px;padding:28px;box-shadow:0 8px 28px rgba(0,0,0,.07)}
 .meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;color:${themePrimary};font-weight:800}
 .pill{background:${themeSecondary};border-radius:999px;padding:8px 12px}
+@media(max-width:700px){.site-hero,.hero{min-height:360px;border-radius:18px;margin:16px 12px 0}.hero-content{padding:54px 20px}.hero-content h1,.hero h1{font-size:clamp(2rem,9vw,3.1rem);line-height:1.04}.actions{display:flex;flex-wrap:wrap;gap:10px}.action{box-sizing:border-box;max-width:100%;width:auto;min-width:min(180px,100%)}}
+@media(max-width:420px){.site-hero,.hero{min-height:330px}.hero-content{padding:46px 18px}}
 </style>
 </head>
 <body>
 <main>
-  <section class="hero">
-    <div>
+  <section class="hero site-hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-overlay" aria-hidden="true"></div>
+    <div class="hero-content">
       <h1>${h1}</h1>
       <p>${intro}</p>
       ${actionsHtml ? `<div class="actions">${actionsHtml}</div>` : ""}
@@ -712,9 +770,11 @@ function renderStaticSeoIndex({ website, pages = [], logger = console }) {
   const accent = escapeHtml(theme.accent || site.themeAccent || "#b91c1c");
   const textColor = escapeHtml(theme.text || site.themeText || "#1f2937");
   const heroImage = normalizeHeroImage(data.heroImage || data.images?.hero || data.cloudinaryImages?.hero || site.images?.hero || {}, site.heroImageUrl || "");
-  const heroImageUrl = escapeHtml(heroImage.optimizedUrl || heroImage.url || heroImage.originalUrl || site.heroImageUrl || "");
+  const heroEffects = normalizeHeroImageEffects(data.heroImageEffects || site.heroImageEffects);
+  const heroImageUrl = escapeHtml(buildTransformedHeroImageUrl(heroImage.optimizedUrl || heroImage.url || heroImage.originalUrl || site.heroImageUrl || "", heroEffects));
   const ogImageUrl = escapeHtml(heroImage.ogImageUrl || heroImageUrl);
   const heroAlt = escapeHtml(heroImage.alt || `${businessName} hero`);
+  const heroOverlay = escapeHtml(buildHeroOverlayCss(heroEffects));
   const canonicalCtaButtons = buildCanonicalCtaButtons({ data, site });
   const ctaButtons = Array.isArray(data.ctaButtons) && data.ctaButtons.length
     ? dedupeCtaButtons([...buildActionButtons({ data, site }), ...data.ctaButtons.map((button) => ({ label: button.label || button.text || "", href: normalizeCta({ cta: button.href || button.url || button.value, fallbackText: button.label || button.text || "" }).href, kind: button.kind || "secondary" })).filter((button) => button.label && button.href)], { domain })
@@ -793,13 +853,16 @@ function renderStaticSeoIndex({ website, pages = [], logger = console }) {
   <link rel="canonical" href="https://${escapeHtml(domain)}/">
   <script type="application/ld+json">${escapeJsonForHtml(schema)}</script>
   <style>
-    body{margin:0;font-family:Inter,Arial,sans-serif;background:#fafaf8;color:${textColor};line-height:1.6}
+    html,body{margin:0;overflow-x:hidden}
+    body{font-family:Inter,Arial,sans-serif;background:#fafaf8;color:${textColor};line-height:1.6}
     .topbar{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:24px clamp(20px,5vw,72px);color:#fff}
     .brand{font-weight:900;font-size:22px}.nav{display:flex;gap:18px}.nav a{color:#fff;text-decoration:none;font-weight:800}
-    .hero{position:relative;min-height:620px;display:grid;place-items:center;text-align:center;color:#fff;padding:104px 20px 78px;background:${primary};${heroImageUrl ? `background-image:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.58)),url('${heroImageUrl}');` : ""}background-size:cover;background-position:center}
-    .hero-inner{max-width:850px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.18);border-radius:28px;padding:42px 30px;backdrop-filter:blur(8px);box-shadow:0 22px 70px rgba(0,0,0,.24)}.hero h1{max-width:850px;margin:0 auto 18px;font-size:clamp(34px,6vw,72px);line-height:1.04;font-weight:950}.hero p{max-width:760px;margin:0 auto 28px;font-size:clamp(17px,2vw,24px);line-height:1.45;font-weight:650}
+    .site-hero,.hero{position:relative;overflow:hidden;min-height:420px;border-radius:24px;display:grid;place-items:center;text-align:center;color:#fff;background:${primary};margin:24px clamp(16px,4vw,48px) 0}
+    .hero-bg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;${heroImageUrl ? `background-image:url('${heroImageUrl}');` : ""}}.hero-overlay{position:absolute;inset:0;z-index:1;background:${heroOverlay}}
+    .hero-inner{position:relative;z-index:2;max-width:850px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.18);border-radius:28px;padding:72px 30px 42px;backdrop-filter:blur(8px);box-shadow:0 22px 70px rgba(0,0,0,.24)}.hero h1{max-width:850px;margin:0 auto 18px;font-size:clamp(34px,6vw,72px);line-height:1.04;font-weight:950}.hero p{max-width:760px;margin:0 auto 28px;font-size:clamp(17px,2vw,24px);line-height:1.45;font-weight:650}
     .actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}.action{display:inline-flex;align-items:center;justify-content:center;padding:15px 24px;border-radius:16px;text-decoration:none;font-weight:900}.action-primary{background:${accent};color:#fff}.action-secondary{background:#fff;color:${primary}}.action-ghost{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);color:#fff}
-    @media(max-width:760px){.hero{min-height:520px;padding:84px 16px 54px}.hero-inner{padding:30px 20px;border-radius:22px}.actions{flex-direction:column}.action{width:100%}}
+    @media(max-width:700px){.site-hero,.hero{min-height:360px;border-radius:18px;margin:16px 12px 0}.hero-inner{padding:54px 20px 30px;border-radius:22px}.hero h1{font-size:clamp(2rem,9vw,3.1rem);line-height:1.04}.actions{display:flex;flex-wrap:wrap;gap:10px}.action{box-sizing:border-box;max-width:100%;width:auto;min-width:min(180px,100%)}}
+    @media(max-width:420px){.site-hero,.hero{min-height:330px}.hero-inner{padding:46px 18px 28px}}
     .content{max-width:1120px;margin:0 auto;padding:54px 20px}.info-grid,.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.info-card,.feature-card,.section-block{background:#fff;border-radius:12px;padding:22px;box-shadow:0 8px 26px rgba(0,0,0,.06)}.info-card span{display:block;color:#6b7280;font-size:13px;font-weight:800;text-transform:uppercase}.info-card strong{font-size:18px}.band{margin:28px 0}.about{font-size:19px}
     .section-block h2{margin:0 0 10px}
     .menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
@@ -812,7 +875,9 @@ function renderStaticSeoIndex({ website, pages = [], logger = console }) {
 <body>
   <main>
     <nav class="topbar"><div class="brand">${escapeHtml(rawBusinessName)}</div><div class="nav"><a href="#about">Om</a><a href="#menu">Menu</a><a href="#faq">FAQ</a></div></nav>
-    <section class="hero">
+    <section class="hero site-hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="hero-overlay" aria-hidden="true"></div>
       <div class="hero-inner">
         ${heroImageUrl ? `<img class="visually-hidden" src="${heroImageUrl}" alt="${heroAlt}">` : ""}
         <h1>${h1}</h1>

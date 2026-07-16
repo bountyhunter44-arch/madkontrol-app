@@ -1,0 +1,93 @@
+{
+  "hosting": {
+    "site": "madkontrollen-inventory",
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Strict-Transport-Security",
+            "value": "max-age=31536000; includeSubDomains; preload"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "Content-Security-Policy",
+            "value": "upgrade-insecure-requests"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(html|js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/dashboard",
+        "destination": "/dashboard.html"
+      },
+      {
+        "source": "/varer",
+        "destination": "/varer.html"
+      },
+      {
+        "source": "/bilag",
+        "destination": "/bilag.html"
+      },
+      {
+        "source": "/varemodtagelse",
+        "destination": "/varemodtagelse.html"
+      },
+      {
+        "source": "/optaelling",
+        "destination": "/optaelling.html"
+      },
+      {
+        "source": "/presentation",
+        "destination": "/presentation.html"
+      },
+      {
+        "source": "/rapporter",
+        "destination": "/rapporter.html"
+      },
+      {
+        "source": "/settings",
+        "destination": "/settings.html"
+      },
+      {
+        "source": "/supplier-import",
+        "destination": "/supplier-import.html"
+      },
+      {
+        "source": "/svind",
+        "destination": "/svind.html"
+      },
+      {
+        "source": "/varebibliotek",
+        "destination": "/varebibliotek.html"
+      }
+    ]
+  }
+}

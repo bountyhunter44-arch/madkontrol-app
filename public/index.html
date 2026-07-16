@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Madkontrollen Pro – Digitale løsninger til fødevaresikkerhed, egenkontrol og temperaturmåling i professionelle køkkener." />
-    <title>Madkontrollen Pro – Digital Egenkontrol til dit Køkken</title>
+  <meta property="og:url" content="https://madkontrollen.dk/">
+  <meta property="og:description" content="V?lg POS, lagerkontrol, egenkontrol, bogf?ring, QR-menu og SEO som selvst?ndige moduler i Madkontrollen.">
+  <meta property="og:title" content="Madkontrollen | Modulplatform til restaurant, caf?, takeaway og butikker">
+  <meta property="og:type" content="website">
+  <link rel="canonical" href="https://madkontrollen.dk/">
+  <meta name="robots" content="index,follow">
+    <meta name="description" content="V?lg POS, lagerkontrol, egenkontrol, bogf?ring, QR-menu og SEO som selvst?ndige moduler i Madkontrollen.">
+    <title>Madkontrollen | Modulplatform til restaurant, caf?, takeaway og butikker</title>
     
     <script>
     // Subdomain-baseret landing page routing
@@ -1251,9 +1257,13 @@
     <section class="module-preview-links" aria-label="Preview af moduler">
         <div class="module-preview-links-inner">
             <span class="module-preview-title">Preview moduler:</span>
-            <a class="module-preview-link" href="/modules/egenkontrol/front.html">Egenkontrol Preview</a>
+            <a class="module-preview-link" href="/modules/egenkontrol/rutiner.html">Egenkontrol Preview</a>
             <a class="module-preview-link" href="/modules/kalkulation/index.html">Kalkulation Preview</a>
+            <a class="module-preview-link" href="https://madkontrollen-pos.web.app/pos/index.html">POS Preview</a>
+            <a class="module-preview-link" href="/modules/lagerkontrol/index.html">Lagerkontrol Preview</a>
+            <a class="module-preview-link" href="/modules/menu/index.html">Menu Preview</a>
             <a class="module-preview-link" href="/modules/seo/generator.html">SEO & Hjemmeside Preview</a>
+            <a class="module-preview-link" href="/modules/koerselskontrol/index.html">Kørselskontrol Preview</a>
             <a class="module-preview-link" href="/modules/drift/index.html">Drift Preview</a>
         </div>
     </section>
@@ -1546,7 +1556,17 @@
                     const locationId = profile.primaryLocationId || profile.locationId || 
                         (Array.isArray(profile.locationIds) && profile.locationIds.length > 0 ? profile.locationIds[0] : null);
 
-                    if (!profile.role || !orgId || !locationId) {
+                    // Platform/super-admins log in WITHOUT companyId/locationId (mirrors core/platform-admin.js).
+                    const isPlatformAdminUser = (typeof window.isPlatformAdmin === "function")
+                        ? window.isPlatformAdmin(user, profile)
+                        : (
+                            user.uid === "oQNTYi5NRdW1r0QHKW7FcwDGks52" ||
+                            ["mn@madkontrollen.dk", "mn@aroid.dk", "michael@madkontrollen.dk"].includes(String(user.email || profile.email || "").toLowerCase()) ||
+                            String(profile.role || "").toLowerCase() === "super-admin" ||
+                            profile.isSuperAdmin === true || profile.isPlatformAdmin === true || profile.crmAccess === true
+                        );
+
+                    if (!isPlatformAdminUser && (!profile.role || !orgId || !locationId)) {
                         statusEl.textContent = "Din brugerprofil mangler rolle eller virksomhed. Kontakt support.";
                         statusEl.classList.add("is-error");
                         console.log("[login] profile invalid", {
@@ -1558,14 +1578,18 @@
                         return;
                     }
 
-                    console.log("[login] redirecting /dashboard");
-                    statusEl.textContent = "Åbner dashboard...";
-                    
                     // Set flag to prevent auth.js from also redirecting
                     window.__loginRedirectInProgress = true;
-                    
-                    // Use assign for immediate redirect
-                    window.location.assign("/dashboard");
+
+                    if (isPlatformAdminUser) {
+                        console.log("[login] platform-admin → owner-dashboard");
+                        statusEl.textContent = "Åbner platform...";
+                        window.location.assign("/admin/owner-dashboard.html");
+                    } else {
+                        console.log("[login] redirecting /dashboard");
+                        statusEl.textContent = "Åbner dashboard...";
+                        window.location.assign("/dashboard");
+                    }
                 } catch (error) {
                     console.error("Landing login failed:", error);
                     statusEl.textContent = "Login mislykkedes. Tjek email og adgangskode, og prøv igen.";

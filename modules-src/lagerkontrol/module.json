@@ -1,0 +1,97 @@
+{
+  "id": "lagerkontrol",
+  "name": "Lagerkontrol",
+  "type": "web-apk",
+  "status": "staging-readonly",
+  "version": "0.1.0-staging",
+  "entitlementKey": "lagerkontrol",
+  "readOnly": true,
+  "requiredEntitlements": [
+    "lagerkontrol"
+  ],
+  "entrypoints": {
+    "stagingWeb": "public/index.html",
+    "currentCompatibilityWeb": "/modules/lagerkontrol/index.html",
+    "futureWeb": "https://lager.madkontrollen.dk/",
+    "androidPackage": "dk.madkontrollen.lagerkontrol"
+  },
+  "hosting": {
+    "firebaseProject": "madkontrollen-inventory",
+    "site": "madkontrollen-inventory",
+    "domains": [
+      "lager.madkontrollen.dk",
+      "madkontrollen-inventory.web.app",
+      "madkontrollen-inventory.firebaseapp.com"
+    ],
+    "publicDirectory": "public"
+  },
+  "firestoreCollections": [
+    "global_inventory_catalog",
+    "supplier_profiles",
+    "supplier_catalog_items",
+    "supplier_catalog_imports",
+    "companies/{companyId}/inventory_items",
+    "companies/{companyId}/inventory_batches",
+    "companies/{companyId}/inventory_counts",
+    "companies/{companyId}/inventory_movements",
+    "companies/{companyId}/inventory_spillage",
+    "companies/{companyId}/supplier_documents",
+    "companies/{companyId}/goods_receipts",
+    "companies/{companyId}/inventory_reports",
+    "companies/{companyId}/inventory_settings",
+    "companies/{companyId}/menu_cost_profiles",
+    "companies/{companyId}/pricing_indexes"
+  ],
+  "storagePaths": [
+    "companies/{companyId}/lagerkontrol/{locationId}/{kind}/{fileName}"
+  ],
+  "callableFunctions": [
+    "lagerProcessSupplierDocument"
+  ],
+  "integrations": {
+    "platform": [
+      "platform.context",
+      "platform.entitlements",
+      "platform.launcher"
+    ],
+    "pos": [
+      "api: sales-consumption-events",
+      "api: stock-reservation-events"
+    ],
+    "bogfoering": [
+      "api: supplier-document-export",
+      "api: posting-draft-events"
+    ],
+    "menu": [
+      "api: ingredient-cost-read-model",
+      "api: recipe-cost-events"
+    ],
+    "kalkulation": [
+      "api: cost-price-read-api",
+      "api: margin-inputs"
+    ],
+    "egenkontrol": [
+      "api: documented-goods-receipt-events",
+      "api: haccp-metadata-api-only"
+    ]
+  },
+  "eventsPublished": [
+    "lagerkontrol.item.created",
+    "lagerkontrol.stock.adjusted",
+    "lagerkontrol.goods.received",
+    "lagerkontrol.inventory.counted",
+    "lagerkontrol.waste.registered",
+    "lagerkontrol.supplierDocument.uploaded",
+    "lagerkontrol.cost.updated"
+  ],
+  "eventsConsumed": [
+    "pos.sale.completed",
+    "menu.recipe.updated",
+    "bogfoering.supplierDocument.booked"
+  ],
+  "currentRuntime": {
+    "sourcePath": "public/modules/lagerkontrol",
+    "legacyInventoryPath": "public/modules/lager",
+    "liveRuntimeModifiedInThisPhase": false
+  }
+}
