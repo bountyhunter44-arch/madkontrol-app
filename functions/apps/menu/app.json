@@ -1,0 +1,8 @@
+{
+  "appKey": "menu",
+  "name": "Menu & Retter",
+  "version": "0.1.0",
+  "status": "active",
+  "providesContracts": ["MenuContract"],
+  "consumesContracts": ["RecipeContract", "CalculationContract", "SeoContract", "OrderingContract"]
+}

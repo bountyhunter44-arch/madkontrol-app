@@ -1,0 +1,8 @@
+{
+  "appKey": "recipes",
+  "name": "Opskrifter",
+  "version": "0.1.0",
+  "status": "active",
+  "providesContracts": ["RecipeContract"],
+  "consumesContracts": ["MenuContract", "CalculationContract", "SeoContract"]
+}

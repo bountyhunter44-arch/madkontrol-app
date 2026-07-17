@@ -339,6 +339,25 @@ async function assertAdminAccess({ uid, email, companyId, locationId }) {
   return { userData, role, isSuperAdmin: false };
 }
 
+async function assertSuperAdminAccess({ uid, email }) {
+  const userData = await getUserProfile(uid, email);
+  if (!userData) throw new HttpsError("permission-denied", "Brugerprofil blev ikke fundet.");
+
+  const role = sanitizeString(userData.role, 80).toLowerCase();
+  const isSuperAdmin = role === "super-admin" || role === "superadmin";
+  if (!isSuperAdmin) {
+    throw new HttpsError("permission-denied", "Kun super-admin kan aktivere moduler uden betaling.");
+  }
+
+  const tokenEmail = sanitizeString(email, 180).toLowerCase();
+  const profileEmail = sanitizeString(userData.email, 180).toLowerCase();
+  if (!SUPER_ADMIN_EMAILS.has(tokenEmail) && !SUPER_ADMIN_EMAILS.has(profileEmail)) {
+    throw new HttpsError("permission-denied", "Super-admin email er ikke godkendt til intern adgangsstyring.");
+  }
+
+  return { userData, role, isSuperAdmin: true };
+}
+
 async function assertTargetUserAllowed({ userId, companyId, isSuperAdmin }) {
   if (!userId) return null;
   const snap = await db.collection("users").doc(userId).get();
@@ -457,6 +476,31 @@ async function listUsers(companyId) {
 
 exports.adminSetModuleAccess = onCall({ region: "us-central1" }, async (request) => {
   const effective = await setModuleAccess({ auth: request.auth, payload: request.data || {} });
+  return { ok: true, ...effective };
+});
+
+exports.superAdminActivateModuleWithoutPayment = onCall({ region: "us-central1" }, async (request) => {
+  if (!request.auth?.uid) throw new HttpsError("unauthenticated", "Log ind for at aktivere modulet.");
+
+  await assertSuperAdminAccess({
+    uid: request.auth.uid,
+    email: request.auth.token?.email || ""
+  });
+
+  const data = request.data || {};
+  const reason = sanitizeString(data.reason, 500) || "Super-admin aktiverede modulet uden betaling.";
+  const effective = await setModuleAccess({
+    auth: request.auth,
+    payload: {
+      companyId: data.companyId,
+      locationId: data.locationId,
+      userId: data.userId,
+      moduleKey: data.moduleKey,
+      status: ACTIVE_STATUS,
+      source: ADMIN_SOURCE,
+      reason
+    }
+  });
   return { ok: true, ...effective };
 });
 

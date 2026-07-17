@@ -1,0 +1,8 @@
+{
+  "appKey": "calculation",
+  "name": "Kalkulation",
+  "version": "0.1.0",
+  "status": "active",
+  "providesContracts": ["CalculationContract"],
+  "consumesContracts": ["MenuContract", "RecipeContract"]
+}
