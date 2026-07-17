@@ -1,0 +1,9 @@
+{
+  "name": "madkontrollen-audit-tools",
+  "private": true,
+  "description": "Statiske måleværktøjer til madkontrollen. Se README.md.",
+  "dependencies": {
+    "acorn": "^8.17.0",
+    "acorn-walk": "^8.3.5"
+  }
+}

@@ -55,3 +55,7 @@ git-name-status-before-*.txt
 backup-*-audit.txt
 restore-candidates-from-backup.txt
 functions_config_export.json
+
+# Recovery-caches — reproducerbare fra GCS via recovery/functions/REMOTE-FUNCTIONS-INVENTORY.json
+recovery/functions/source-zips/
+recovery/functions/snapshots/
