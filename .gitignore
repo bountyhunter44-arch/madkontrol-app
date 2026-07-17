@@ -59,3 +59,9 @@ functions_config_export.json
 # Recovery-caches — reproducerbare fra GCS via recovery/functions/REMOTE-FUNCTIONS-INVENTORY.json
 recovery/functions/source-zips/
 recovery/functions/snapshots/
+
+# Genererede audit-outputs
+tools/audit/index-analysis.json
+tools/audit/*-plan.json
+tools/audit/deployed*.json
+tools/audit/h-hashes.json
