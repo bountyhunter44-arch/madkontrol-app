@@ -39,6 +39,7 @@ const provisioning = require("./provisioning");
 Object.assign(exports, require("./modules/pos"));
 const Stripe = require("stripe");
 const { OWNER_KIND, buildOwnerScopeMetadata } = require("./lib/ownerScope");
+const { normalizeRoutineType } = require("./js/canonicalRoutines");
 
 // === AI RULES ===
 // Read functions/egenkontrol/operationalTemplateReference.js first
@@ -112,6 +113,7 @@ function getStripeClient() {
 // â”€â”€â”€ STRIPE WEBHOOK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const { onRequest } = require("firebase-functions/v2/https");
+const { sanitizeString, sanitizeStringList, sanitizeBoolean, toArray, toPositiveInt, toDocSafeId, toAsciiSlug, toLegacyId, getDateKey, addDays, daysBetween, normalizeDateKey, removeUndefinedFields, getWeekdayFromDateKey, sanitizeRelativePath, parsePageCount } = require("./lib/util");
 
 exports.stripeWebhook = onRequest(
   {
@@ -260,33 +262,6 @@ const ADDON_CATALOG = {
   connector: { name: "Connector Support", amount: 29900 }
 };
 
-function toAsciiSlug(value, maxLen = 120) {
-  return String(value || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, maxLen);
-}
-
-function toLegacyId(value) {
-  const raw = String(value || "").trim();
-  if (!raw) return "";
-  if (raw.startsWith("onboarding_")) {
-    return raw.replace(/^onboarding_/, "");
-  }
-  return raw;
-}
-
-function sanitizeRelativePath(value, fallback) {
-  const raw = String(value || "").trim();
-  if (!raw) return fallback;
-  if (!raw.startsWith("/")) return fallback;
-  if (raw.includes("..") || raw.includes("\\")) return fallback;
-  return raw;
-}
-
 const CHECKOUT_FALLBACK_ORIGIN = "https://madkontrollen.dk";
 
 function isAllowedCheckoutHost(hostname) {
@@ -326,15 +301,6 @@ function normalizeCheckoutOrigin(value) {
   } catch (_error) {
     return CHECKOUT_FALLBACK_ORIGIN;
   }
-}
-
-function parsePageCount(value, fallback = 50) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return fallback;
-  const rounded = Math.floor(parsed);
-  if (rounded < 1) return 1;
-  if (rounded > 300) return 300;
-  return rounded;
 }
 
 function buildSeoLandingPages(config, count) {
@@ -539,47 +505,6 @@ function sanitizeAddonKeys(raw) {
 //
 // ðŸ”¹ HJÃ†LPEFUNKTIONER
 //
-function getDateKey() {
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat("sv-SE", {
-    timeZone: "Europe/Copenhagen",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  });
-  return formatter.format(now);
-}
-
-function addDays(dateKey, days) {
-  const [y, m, d] = dateKey.split("-").map(Number);
-  const date = new Date(Date.UTC(y, m - 1, d));
-  date.setUTCDate(date.getUTCDate() + days);
-
-  return date.toISOString().slice(0, 10);
-}
-
-function daysBetween(dateKey1, dateKey2) {
-  const [y1, m1, d1] = dateKey1.split("-").map(Number);
-  const [y2, m2, d2] = dateKey2.split("-").map(Number);
-  const date1 = new Date(Date.UTC(y1, m1 - 1, d1));
-  const date2 = new Date(Date.UTC(y2, m2 - 1, d2));
-  const diffMs = date2 - date1;
-  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
-}
-
-function getWeekdayFromDateKey(dateKey) {
-  const [y, m, d] = String(dateKey || "").split("-").map(Number);
-  if (!y || !m || !d) return null;
-  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
-}
-
-function normalizeDateKey(value) {
-  if (!value) return null;
-  const str = String(value).trim();
-  const match = str.match(/^(\d{4})[-_](\d{2})[-_](\d{2})/);
-  return match ? `${match[1]}-${match[2]}-${match[3]}` : null;
-}
-
 function normalizeTaskInstanceDateInId(instanceId = "", dateKey = "") {
   const id = sanitizeString(instanceId, 240);
   const normalizedDateKey = normalizeDateKey(dateKey);
@@ -591,10 +516,6 @@ function buildRoutineInstanceId(companyId = "", locationId = "", dateKey = "", i
   const normalizedDateKey = normalizeDateKey(dateKey) || getDateKey();
   const identityKey = toDocSafeId(identity || "routine");
   return `${companyId}__${locationId}__${normalizedDateKey}__${identityKey}`.slice(0, 180);
-}
-
-function sanitizeString(value, maxLen = 500) {
-  return String(value || "").trim().slice(0, maxLen);
 }
 
 function parseFrequencyConfig(template, prefix = "frequency") {
@@ -651,21 +572,6 @@ function parseFrequencyConfig(template, prefix = "frequency") {
     type: type || "daily",
     days: Math.max(1, days)
   };
-}
-
-function toArray(value) {
-  return Array.isArray(value) ? value : [];
-}
-
-function sanitizeBoolean(value) {
-  return value === true;
-}
-
-function sanitizeStringList(value, maxItems = 50, maxLen = 140) {
-  return toArray(value)
-    .map((item) => sanitizeString(item, maxLen))
-    .filter(Boolean)
-    .slice(0, maxItems);
 }
 
 function sanitizeOnboardingProfile(profile = {}) {
@@ -1085,25 +991,6 @@ function buildHaccpSnapshotPayload({ profile = {}, riskModel = {}, companyId, lo
   };
 }
 
-function removeUndefinedFields(obj) {
-  if (obj === null || obj === undefined) return null;
-  if (typeof obj !== 'object') return obj;
-  if (Array.isArray(obj)) {
-    return obj.map(item => removeUndefinedFields(item)).filter(item => item !== undefined);
-  }
-  
-  const cleaned = {};
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const value = obj[key];
-      if (value !== undefined) {
-        cleaned[key] = removeUndefinedFields(value);
-      }
-    }
-  }
-  return cleaned;
-}
-
 function buildOwnerScopeUpdatePatch(existing = {}, ownerScopeMetadata = {}) {
   const patch = {};
   for (const field of ["ownerKind", "ownerLabel", "isDemoScope", "scopeType"]) {
@@ -1450,15 +1337,6 @@ function buildScopedUserResponse(userId, data = {}) {
     createdAt,
     status: sanitizeString(data.status || "active", 60).toLowerCase() || "active"
   };
-}
-
-function toDocSafeId(value) {
-  return String(value || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 120);
 }
 
 async function deleteScopedCollectionDocs({ collectionName, companyId, locationId }) {
@@ -3230,12 +3108,6 @@ function buildStartDayTargets({ template, templateDocId, equipmentByType, allEqu
   }
 
   return [{ suffix: "default" }];
-}
-
-function toPositiveInt(value) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return 0;
-  return Math.max(0, Math.floor(n));
 }
 
 function buildEquipmentSeedKey({ companyId, locationId, equipmentType, unitNumber }) {
@@ -5668,7 +5540,7 @@ exports.saveRoutineTask = functions.https.onCall(async (request) => {
   const isCoolingEntry =
     entryType === "cooling_control" ||
     String(data?.actionType || entryData?.actionType || "").toLowerCase().includes("cooling") ||
-    normalizeRoutineEntryKey(resolvedRoutineKey || resolvedTemplateKey || task.routineKey || task.templateKey || "") === "nedkoeling";
+    normalizeRoutineType(resolvedRoutineKey || resolvedTemplateKey || task.routineKey || task.templateKey || "") === "nedkoeling";
   const coolingFoodItem = sanitizeString(
     entryData.foodItem ||
     entryData.productName ||
