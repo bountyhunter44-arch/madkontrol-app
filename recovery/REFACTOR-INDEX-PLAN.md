@@ -70,3 +70,12 @@ Kør den. Grøn = færdig.
 - [ ] Trin 1: lib/
 - [ ] Trin 2-9: domæner
 - [ ] Trin 10: transport-test grøn
+
+---
+
+## BESLUTNING 2026-07-17 (bruger)
+- **Kerne (14 filtrede exports + 41 bro-helpers):** ét `functions/provisioning/`-modul nu, split senere.
+- **De 50 ensomme:** trækkes ud domæne for domæne NU, autonomt, commit ved hver grøn port.
+- **Mønster:** DI-factory `module.exports = ({deps}) => {...; return api}`, wired via
+  `Object.assign(exports, require("./modules/x")({deps}))`. Husstil (jf. modules/pos).
+  Transport-test (trin 10) skrives til at tillade denne form, ikke accountings strengere regex.
