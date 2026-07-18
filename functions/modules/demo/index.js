@@ -4,15 +4,15 @@
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const { guardDangerousOperation } = require("./security/environmentGuard");
-const demoMode = require("./admin/demoMode");
-const { OWNER_KIND, buildOwnerScopeMetadata } = require("./lib/ownerScope");
-const { sanitizeString, sanitizeStringList, sanitizeBoolean, toArray, toPositiveInt, toDocSafeId, toAsciiSlug, toLegacyId, getDateKey, addDays, daysBetween, normalizeDateKey, removeUndefinedFields, getWeekdayFromDateKey, sanitizeRelativePath, parsePageCount } = require("./lib/util");
+const { guardDangerousOperation } = require("../../security/environmentGuard");
+const demoMode = require("../../admin/demoMode");
+const { OWNER_KIND, buildOwnerScopeMetadata } = require("../../lib/ownerScope");
+const { sanitizeString, sanitizeStringList, sanitizeBoolean, toArray, toPositiveInt, toDocSafeId, toAsciiSlug, toLegacyId, getDateKey, addDays, daysBetween, normalizeDateKey, removeUndefinedFields, getWeekdayFromDateKey, sanitizeRelativePath, parsePageCount } = require("../../lib/util");
 const {
   generateCanonicalTaskTemplates,
   ensureSingleTaskInstance,
   startDayForLocationCanonical
-} = require("./canonicalTaskEngine");
+} = require("../../canonicalTaskEngine");
 
 module.exports = ({
   FieldValue,

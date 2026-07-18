@@ -5,9 +5,9 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { guardDangerousOperation } = require("./security/environmentGuard");
-const softArchive = require("./admin/softArchive");
-const { sanitizeString, sanitizeStringList, sanitizeBoolean, toArray, toPositiveInt, toDocSafeId, toAsciiSlug, toLegacyId, getDateKey, addDays, daysBetween, normalizeDateKey, removeUndefinedFields, getWeekdayFromDateKey, sanitizeRelativePath, parsePageCount } = require("./lib/util");
+const { guardDangerousOperation } = require("../../security/environmentGuard");
+const softArchive = require("../../admin/softArchive");
+const { sanitizeString, sanitizeStringList, sanitizeBoolean, toArray, toPositiveInt, toDocSafeId, toAsciiSlug, toLegacyId, getDateKey, addDays, daysBetween, normalizeDateKey, removeUndefinedFields, getWeekdayFromDateKey, sanitizeRelativePath, parsePageCount } = require("../../lib/util");
 
 module.exports = ({
   FieldValue,
