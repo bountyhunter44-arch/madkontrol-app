@@ -4,14 +4,14 @@
 
 const functions = require("firebase-functions");
 const { logger } = require("firebase-functions");
-const { OWNER_KIND, buildOwnerScopeMetadata } = require("./lib/ownerScope");
-const { normalizeRoutineType } = require("./js/canonicalRoutines");
-const { sanitizeString, sanitizeStringList, sanitizeBoolean, toArray, toPositiveInt, toDocSafeId, toAsciiSlug, toLegacyId, getDateKey, addDays, daysBetween, normalizeDateKey, removeUndefinedFields, getWeekdayFromDateKey, sanitizeRelativePath, parsePageCount } = require("./lib/util");
+const { OWNER_KIND, buildOwnerScopeMetadata } = require("../../lib/ownerScope");
+const { normalizeRoutineType } = require("../../js/canonicalRoutines");
+const { sanitizeString, sanitizeStringList, sanitizeBoolean, toArray, toPositiveInt, toDocSafeId, toAsciiSlug, toLegacyId, getDateKey, addDays, daysBetween, normalizeDateKey, removeUndefinedFields, getWeekdayFromDateKey, sanitizeRelativePath, parsePageCount } = require("../../lib/util");
 const {
   generateCanonicalTaskTemplates,
   ensureSingleTaskInstance,
   startDayForLocationCanonical
-} = require("./canonicalTaskEngine");
+} = require("../../canonicalTaskEngine");
 
 module.exports = ({
   FieldValue,
@@ -704,7 +704,7 @@ api.generateRisksForLocation = functions.https.onCall(async (request) => {
 
   await assertAdminAccess({ uid, email, companyId, locationId });
 
-  const { generateRisksFromOnboardingAnswers } = require("./admin/generateRisksFromOnboardingAnswers");
+  const { generateRisksFromOnboardingAnswers } = require("../../admin/generateRisksFromOnboardingAnswers");
   const result = await generateRisksFromOnboardingAnswers({ locationId });
 
   return { ok: true, ...result };
@@ -729,7 +729,7 @@ api.generateTemplatesForLocation = functions.https.onCall(async (request) => {
 
   await assertAdminAccess({ uid, email, companyId, locationId });
 
-  const { generateEgenkontrolFromRiskAnalysis } = require("./admin/generateEgenkontrolFromRiskAnalysis");
+  const { generateEgenkontrolFromRiskAnalysis } = require("../../admin/generateEgenkontrolFromRiskAnalysis");
   const result = await generateEgenkontrolFromRiskAnalysis({ locationId, db });
 
   return { ok: true, ...result };
@@ -776,7 +776,7 @@ api.manualGenerateRiskAnalysis = functions.https.onCall(async (data, context) =>
     const profile = snapshot?.profile || snapshot || {};
 
     console.log("ðŸ“¦ Loading buildStructuredHaccpData...");
-    const { buildStructuredHaccpData } = require("./provisioning");
+    const { buildStructuredHaccpData } = require("../../provisioning");
 
     if (!buildStructuredHaccpData) {
       throw new Error("buildStructuredHaccpData not found in provisioning module");

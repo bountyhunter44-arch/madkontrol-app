@@ -5,17 +5,17 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { generateComprehensiveHaccp, generateTaskTemplatesFromKcps } = require("./generateComprehensiveHaccp");
-const { generateScenarioBasedHaccp } = require("./scenarioBasedHaccp");
-const { guardDangerousOperation } = require("./security/environmentGuard");
+const { generateComprehensiveHaccp, generateTaskTemplatesFromKcps } = require("../../generateComprehensiveHaccp");
+const { generateScenarioBasedHaccp } = require("../../scenarioBasedHaccp");
+const { guardDangerousOperation } = require("../../security/environmentGuard");
 const Stripe = require("stripe");
-const { OWNER_KIND, buildOwnerScopeMetadata } = require("./lib/ownerScope");
-const { sanitizeString, sanitizeStringList, sanitizeBoolean, toArray, toPositiveInt, toDocSafeId, toAsciiSlug, toLegacyId, getDateKey, addDays, daysBetween, normalizeDateKey, removeUndefinedFields, getWeekdayFromDateKey, sanitizeRelativePath, parsePageCount } = require("./lib/util");
+const { OWNER_KIND, buildOwnerScopeMetadata } = require("../../lib/ownerScope");
+const { sanitizeString, sanitizeStringList, sanitizeBoolean, toArray, toPositiveInt, toDocSafeId, toAsciiSlug, toLegacyId, getDateKey, addDays, daysBetween, normalizeDateKey, removeUndefinedFields, getWeekdayFromDateKey, sanitizeRelativePath, parsePageCount } = require("../../lib/util");
 const {
   generateCanonicalTaskTemplates,
   ensureSingleTaskInstance,
   startDayForLocationCanonical
-} = require("./canonicalTaskEngine");
+} = require("../../canonicalTaskEngine");
 
 module.exports = ({
   FUNCTIONS_CONFIG,
@@ -3772,11 +3772,11 @@ api.adminReprovisionEquipment = functions.https.onCall(async (request) => {
   const waterResult = await syncWaterControlTemplates({ db, companyId, locationId });
 
   // Steg 4: Generer/opdater risks fra onboarding
-  const { generateRisksFromOnboardingAnswers } = require("./admin/generateRisksFromOnboardingAnswers");
+  const { generateRisksFromOnboardingAnswers } = require("../../admin/generateRisksFromOnboardingAnswers");
   const risksResult = await generateRisksFromOnboardingAnswers({ locationId });
 
   // Steg 5: Byg task_templates fra risks
-  const { generateEgenkontrolFromRiskAnalysis } = require("./admin/generateEgenkontrolFromRiskAnalysis");
+  const { generateEgenkontrolFromRiskAnalysis } = require("../../admin/generateEgenkontrolFromRiskAnalysis");
   const templatesResult = await generateEgenkontrolFromRiskAnalysis({ locationId, db });
 
   return {
@@ -5058,7 +5058,7 @@ api.createOnboardingCheckoutSession = functions.https.onCall(
   let quickOnboardingSetup = null;
   if (data?.setup && typeof data.setup === "object") {
     try {
-      const { normalizeQuickOnboardingSetup } = require("./js/setupToCanonicalRoutines");
+      const { normalizeQuickOnboardingSetup } = require("../../js/setupToCanonicalRoutines");
       quickOnboardingSetup = normalizeQuickOnboardingSetup(data.setup || {});
     } catch (setupErr) {
       console.warn("[createOnboardingCheckoutSession] quick setup normalization failed:", setupErr.message);
@@ -5342,7 +5342,7 @@ api.createHaccpSnapshotFromOnboarding = functions.https.onCall(async (data, cont
 
 api.provisionRiskAnalysisSnapshot = functions.https.onCall(async (request, context) => {
   const data = request.data || request;
-  const { generateRiskAnalysisSnapshot } = require("./riskAnalysisLibrary");
+  const { generateRiskAnalysisSnapshot } = require("../../riskAnalysisLibrary");
   
   const companyId = sanitizeString(data?.companyId || "", 120);
   const locationId = sanitizeString(data?.locationId || "", 120);
@@ -5458,7 +5458,7 @@ api.provisionRiskAnalysisSnapshot = functions.https.onCall(async (request, conte
 });
 
 api.createQuickOnboardingAccount = onCall(async (request) => {
-  const { generateRiskAnalysisSnapshot } = require("./riskAnalysisLibrary");
+  const { generateRiskAnalysisSnapshot } = require("../../riskAnalysisLibrary");
   
   // V2 callable: payload is in request.data
   const payload = request.data || {};
@@ -5735,7 +5735,7 @@ api.createQuickOnboardingAccount = onCall(async (request) => {
     // Module-driven provisioning via the central MODULE_PROVISIONERS map (no scattered if-statements).
     // selectedModules decide which provisioner runs; egenkontrol keeps its exact previous behavior,
     // other modules are registry-ready no-ops until they have their own setup/runtime.
-    const { runModuleProvisioners } = require("./modules/onboarding/moduleProvisioners");
+    const { runModuleProvisioners } = require("../../modules/onboarding/moduleProvisioners");
     const moduleSetup = (payload.moduleSetup && typeof payload.moduleSetup === "object") ? payload.moduleSetup : {};
     const provisionResults = await runModuleProvisioners(enabledModules, {
       db,
@@ -5793,7 +5793,7 @@ api.completeQuickOnboarding = onCall({ region: "us-central1" }, async (request) 
     normalizeQuickOnboardingSetup,
     resolveCanonicalRoutineKeysFromSetup,
     buildEquipmentFromSetup
-  } = require("./js/setupToCanonicalRoutines");
+  } = require("../../js/setupToCanonicalRoutines");
   
   if (!request.auth?.uid) {
     throw new HttpsError("unauthenticated", "Du skal vÃ¦re logget ind.");
@@ -5949,7 +5949,7 @@ api.completeQuickOnboarding = onCall({ region: "us-central1" }, async (request) 
 
 api.provisionQuickOnboardingAccount = functions.https.onCall(async (request, context) => {
   const data = request.data || request;
-  const { generateRiskAnalysisSnapshot } = require("./riskAnalysisLibrary");
+  const { generateRiskAnalysisSnapshot } = require("../../riskAnalysisLibrary");
   
   const uid = sanitizeString(data?.uid || "", 160);
   const email = sanitizeString(data?.email || "", 160);
@@ -6214,7 +6214,7 @@ api.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
       if (!riskSnap.exists) {
         console.log('ðŸ” Risk analysis missing, generating now...');
         try {
-          const { buildStructuredHaccpData } = require('./provisioning');
+          const { buildStructuredHaccpData } = require('../../provisioning');
           const controlPoints = buildStructuredHaccpData(profile);
 
           await riskRef.set({
@@ -6262,7 +6262,7 @@ api.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
         normalizeQuickOnboardingSetup,
         resolveCanonicalRoutineKeysFromSetup,
         buildEquipmentFromSetup
-      } = require("./js/setupToCanonicalRoutines");
+      } = require("../../js/setupToCanonicalRoutines");
       quickOnboardingSetup = normalizeQuickOnboardingSetup(draft.quickOnboardingSetup || draft.setup || {});
       quickRoutineKeys = resolveCanonicalRoutineKeysFromSetup(quickOnboardingSetup);
       quickEquipmentUnits = buildEquipmentFromSetup(quickOnboardingSetup, {
@@ -6344,7 +6344,7 @@ api.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
     // â”€â”€â”€ PIPELINE: onboarding_answers â†’ risks â†’ task_templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Steg 1: Skriv risks fra onboarding (processer â†’ CCP/GAG regler)
     try {
-      const { generateRisksFromOnboardingAnswers } = require("./admin/generateRisksFromOnboardingAnswers");
+      const { generateRisksFromOnboardingAnswers } = require("../../admin/generateRisksFromOnboardingAnswers");
       const risksResult = await generateRisksFromOnboardingAnswers({ locationId });
       console.log("[provisioning] generateRisksFromOnboardingAnswers:", risksResult);
     } catch (risksErr) {
@@ -6353,7 +6353,7 @@ api.finalizeOnboardingCheckoutProvisioning = functions.https.onCall(
 
     // Steg 2: Byg task_templates fra risks (aggregeret per kontrolkategori)
     try {
-      const { generateEgenkontrolFromRiskAnalysis } = require("./admin/generateEgenkontrolFromRiskAnalysis");
+      const { generateEgenkontrolFromRiskAnalysis } = require("../../admin/generateEgenkontrolFromRiskAnalysis");
       const templatesResult = await generateEgenkontrolFromRiskAnalysis({ locationId, db });
       console.log("[provisioning] generateEgenkontrolFromRiskAnalysis:", templatesResult);
     } catch (templatesErr) {
