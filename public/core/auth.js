@@ -376,7 +376,6 @@ const ONBOARDING_GATE_BYPASS_PATHS = [
 	"/create-company",
 	"/create-location",
 	"/admin/",
-	"/modules/admin/",
 	"/modules/egenkontrol/onboarding",
 ];
 

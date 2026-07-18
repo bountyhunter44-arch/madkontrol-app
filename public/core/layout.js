@@ -255,44 +255,12 @@ function getNavItems() {
       module: "drift"
     },
     {
-      key: "akademi",
-      labelKey: "nav.akademi",
-      label: "Akademi",
-      short: "AK",
-      href: "/modules/akademi/akademi.html",
-      module: "akademi"
-    },
-    {
       key: "kalkulation",
       labelKey: "nav.kalkulation",
       label: "Kalkulation",
       short: "KL",
       href: "/modules/kalkulation/index.html",
       module: "kalkulation"
-    },
-    {
-      key: "sensorer",
-      labelKey: "nav.sensorer",
-      label: "Sensorer",
-      short: "SN",
-      href: "/modules/sensorer/index.html",
-      module: "sensorer"
-    },
-    {
-      key: "vedligehold",
-      labelKey: "nav.vedligehold",
-      label: "Vedligehold",
-      short: "VH",
-      href: "/modules/vedligehold/index.html",
-      module: "vedligehold"
-    },
-    {
-      key: "vandsystem",
-      labelKey: "nav.vandsystem",
-      label: "Vandsystem",
-      short: "VS",
-      href: "/modules/water/dashboard.html",
-      module: "vandsystem"
     }
   ];
 }
