@@ -11567,10 +11567,18 @@ const buildFryerRoutineCompletionEntry = () => {
                                     aiSuggestion: aiResult,
                                     finance: aiResult.finance,
                                     documentType: aiResult.documentType || (String(aiResult.kategori || "").toLowerCase() === "finance" ? "invoice" : ""),
-                                    beskrivelse: [aiResult.beskrivelse, task?.title, task?.description, task?.category].filter(Boolean).join(" "),
+                                    beskrivelse: String(aiResult.beskrivelse || ""),
                                     observationer: aiResult.observationer || []
                                 });
-                                const documentLooksValid = documentClassification.acceptedAsDocumentation && String(aiResult.image_clarity || "").toLowerCase() !== "unclear" && Number(aiResult.confidence || 0) >= 0.4;
+                                const aiCategory = String(aiResult.kategori || "").toLowerCase();
+                                const documentLooksValid =
+                                    aiCategory !== "finance" &&
+                                    aiCategory !== "institution" &&
+                                    documentClassification.acceptedAsDocumentation === true &&
+                                    documentClassification.foodSafetyRelevant === true &&
+                                    documentClassification.requiresManualReview !== true &&
+                                    String(aiResult.image_clarity || "").toLowerCase() !== "unclear" &&
+                                    Number(aiResult.confidence || 0) >= 0.9;
 
                                 if (documentLooksValid) {
                                     if (mediaAssetRef) {
