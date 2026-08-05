@@ -1,5 +1,5 @@
 // SLET FRA HER
-import { t } from "/modules/i18n/index.js";
+import { t } from "/i18n/index.js";
 
 function escapeHtml(value = "") {
   return String(value)

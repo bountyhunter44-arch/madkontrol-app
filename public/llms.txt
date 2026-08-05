@@ -1,22 +1,13 @@
 # Madkontrollen
 
-Madkontrollen er en dansk modulplatform til restaurant, café, takeaway, foodtruck og butikker.
-Kunder kan vælge enkelte moduler eller kombinere flere efter behov.
+Madkontrollen er en dansk platform til digital egenkontrol for restauranter, caféer, takeaway, foodtrucks og professionelle køkkener.
+Platformen samler HACCP, rutiner, temperaturkontrol, afvigelser og dokumentation.
 
-Vigtige produkter:
-- POS: kasse, salg, boner, betalinger og dagsrapporter.
-- Lagerkontrol: varelager, optælling, varemodtagelse, svind og leverandøroverblik.
+Madkontrollens produkt:
 - Egenkontrol: HACCP, rutiner, temperaturkontrol, rapporter og dokumentation.
-- Bogføringsappen: bilag, bankafstemning og bogføringsforslag.
-- Menu/QR: digital menu, QR-menu og menustyring.
-- SEO Automatik: lokale SEO-sider, forslag, rapporter og synlighed.
 
 Canonical links:
 - https://madkontrollen.dk/
-- https://madkontrollen.dk/modules/pos/presentation.html
-- https://madkontrollen.dk/modules/lagerkontrol/presentation.html
-- https://madkontrollen.dk/modules/accounting/presentation.html
-- https://madkontrollen.dk/modules/seo/
 - https://madkontrollen.dk/support.html
 - https://madkontrollen.dk/privatlivspolitik
 - https://madkontrollen.dk/vilkaar-og-betingelser

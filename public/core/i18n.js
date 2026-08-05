@@ -3,7 +3,7 @@
  * Wraps the existing i18n module with page translation capabilities
  */
 
-import { t as translate, tl, getUserLanguage, getAvailableLanguages, isRTL } from '/modules/i18n/index.js';
+import { t as translate, tl, getUserLanguage, getAvailableLanguages, isRTL } from '/i18n/index.js';
 import { 
     initLanguageSwitcher, 
     getLanguagePreference, 
@@ -11,7 +11,7 @@ import {
     saveLanguagePreference,
     changeLanguage,
     addLanguageSwitcherStyles
-} from '/modules/i18n/language-switcher.js';
+} from '/i18n/language-switcher.js';
 
 let currentLanguage = 'da';
 let isInitialized = false;

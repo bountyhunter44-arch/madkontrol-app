@@ -227,15 +227,7 @@ function getNavItems() {
       labelKey: "nav.billedarkiv",
       label: "Billedarkiv",
       short: "BA",
-      href: "/modules/core/billed-arkiv.html",
-      module: CORE_MODULE_KEY
-    },
-    {
-      key: "seo",
-      labelKey: "nav.seo",
-      label: "SEO Generator",
-      short: "SE",
-      href: "/modules/seo/generator.html",
+      href: "/core/billed-arkiv.html",
       module: CORE_MODULE_KEY
     },
     {
@@ -246,22 +238,6 @@ function getNavItems() {
       href: "/kontrol.html",
       module: CORE_MODULE_KEY
     },
-    {
-      key: "drift",
-      labelKey: "nav.drift",
-      label: "Drift",
-      short: "DR",
-      href: "/modules/drift/menu.html",
-      module: "drift"
-    },
-    {
-      key: "kalkulation",
-      labelKey: "nav.kalkulation",
-      label: "Kalkulation",
-      short: "KL",
-      href: "/modules/kalkulation/index.html",
-      module: "kalkulation"
-    }
   ];
 }
 
