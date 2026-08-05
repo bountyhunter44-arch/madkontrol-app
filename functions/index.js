@@ -58,6 +58,7 @@ const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
 const FUNCTIONS_CONFIG = defineJsonSecret("FUNCTIONS_CONFIG_EXPORT");
 
 // === provisioning — flyttet til ./modules/provisioning ===
+const { sanitizeOnboardingProfile, sanitizeRiskModelInput } = require("./lib/onboarding-sanitize");
 Object.assign(exports, require("./modules/provisioning")({ FUNCTIONS_CONFIG, FieldValue, assertAdminAccess, assertLexiCustomerAccess, assertSeoGeneratorAccess, assertStartDayAccess, db, getUserAccessProfile, getUserLocationIds, sanitizeOnboardingProfile, sanitizeRiskModelInput }));
 
 
@@ -66,7 +67,6 @@ Object.assign(exports, require("./modules/provisioning")({ FUNCTIONS_CONFIG, Fie
 
 const { onRequest } = require("firebase-functions/v2/https");
 const { sanitizeString, sanitizeStringList, sanitizeBoolean, toArray, toPositiveInt, toDocSafeId, toAsciiSlug, toLegacyId, getDateKey, addDays, daysBetween, normalizeDateKey, removeUndefinedFields, getWeekdayFromDateKey, sanitizeRelativePath, parsePageCount } = require("./lib/util");
-const { sanitizeOnboardingProfile, sanitizeRiskModelInput } = require("./lib/onboarding-sanitize");
 
 // === payment-webhook — flyttet til ./modules/payment-webhook ===
 Object.assign(exports, require("./modules/payment-webhook")({ FieldValue, db }));

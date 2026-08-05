@@ -255,7 +255,7 @@ function scoreStockPhoto(photo) {
   return score;
 }
 
-api.getCloudinarySignature = onCall({ region: "us-central1", secrets: ["FUNCTIONS_CONFIG_EXPORT"] }, async (request) => {
+api.getCloudinarySignature = onCall({ region: "us-central1", secrets: ["FUNCTIONS_CONFIG_EXPORT", "CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"] }, async (request) => {
   const data = request.data;
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Log ind for at uploade billeder.");
