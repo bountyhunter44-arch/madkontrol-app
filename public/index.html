@@ -447,16 +447,26 @@
         }
 
         .product-box {
+            display: flex;
+            flex-direction: column;
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 24px;
             background: #fff;
             transition: .2s;
+            text-decoration: none;
+            color: inherit;
         }
 
         .product-box:hover {
             border-color: var(--primary);
             box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .product-box:focus-visible {
+            outline: 3px solid var(--primary);
+            outline-offset: 3px;
         }
 
         .product-box h4 {
@@ -469,9 +479,10 @@
             margin-bottom: 16px;
         }
 
-        .product-box a {
+        .product-box .product-more {
             display: inline-flex;
             gap: 6px;
+            margin-top: auto;
             color: var(--primary);
             font-weight: 600;
             font-size: 0.9rem;
@@ -1044,7 +1055,7 @@
             </a>
             <ul class="nav-links">
                 <li><a href="#features">Funktioner</a></li>
-                <li><a href="#products">Løsninger</a></li>
+                <li><a href="#funktioner">Løsninger</a></li>
                 <li><a href="#about">Om Madkontrollen</a></li>
                 <li><a href="#contact">Kontakt</a></li>
             </ul>
@@ -1188,50 +1199,50 @@
         </div>
     </section>
 
-    <!-- Products -->
-    <section class="products" id="products">
+    <!-- Funktioner -->
+    <section class="products" id="funktioner">
         <div class="products-inner">
             <div class="section-header">
-                <h2>Hvad Du Kan Gøre Med Madkontrollen Pro</h2>
-                <p>Moduler og funktioner tilpasset dit køkkens behov</p>
+                <h2>Hvad du kan gøre med Madkontrollen Pro</h2>
+                <p>Funktioner til den daglige egenkontrol</p>
             </div>
 
             <div class="products-grid">
-                <div class="product-box">
-                    <h4>Digital Egenkontrol</h4>
+                <a class="product-box" href="/funktioner/digital-egenkontrol.html">
+                    <h4>Digital egenkontrol</h4>
                     <p>Opret og gennemfør daglige rutiner, temperaturkontrol og rengøringsopgaver med dokumentation.</p>
-                    <a href="#features">Læs mere →</a>
-                </div>
+                    <span class="product-more">Læs mere →</span>
+                </a>
 
-                <div class="product-box">
+                <a class="product-box" href="/funktioner/risikoanalyse-haccp.html">
                     <h4>Risikoanalyse (HACCP)</h4>
-                    <p>Automatisk generering af risikoanalyse ud fra dit køkkens profil – lovpligtig og opdateret.</p>
-                    <a href="#features">Læs mere →</a>
-                </div>
+                    <p>Få forslag til relevante risici og kontrolpunkter ud fra dit køkkens aktiviteter og udstyr.</p>
+                    <span class="product-more">Læs mere →</span>
+                </a>
 
-                <div class="product-box">
+                <a class="product-box" href="/funktioner/afvigelsesrapporter.html">
                     <h4>Afvigelsesrapporter</h4>
-                    <p>Registrer og separer afvigelser, med korrigerende handlinger og opfølgning.</p>
-                    <a href="#features">Læs mere →</a>
-                </div>
+                    <p>Registrér afvigelser med korrigerende handlinger, ansvar og opfølgning.</p>
+                    <span class="product-more">Læs mere →</span>
+                </a>
 
-                <div class="product-box">
-                    <h4>Dashboard & Statistik</h4>
-                    <p>Overblik over status, trends og dokumentation – til møder og inspektioner.</p>
-                    <a href="#features">Læs mere →</a>
-                </div>
+                <a class="product-box" href="/funktioner/dashboard-statistik.html">
+                    <h4>Dashboard og statistik</h4>
+                    <p>Overblik over status, udførte og manglende rutiner samt åbne afvigelser.</p>
+                    <span class="product-more">Læs mere →</span>
+                </a>
 
-                <div class="product-box">
-                    <h4>Onboarding & Setup</h4>
-                    <p>Guidet onboarding gennem køkkenfaciliteter, udstyr og arbejdsgange – med automatisk opbygning af dine rutiner.</p>
-                    <a href="/quick-onboarding.html">Læs mere →</a>
-                </div>
+                <a class="product-box" href="/funktioner/onboarding-setup.html">
+                    <h4>Onboarding og setup</h4>
+                    <p>Guidet opsætning af virksomhed, aktiviteter og udstyr, så programmet passer til din drift.</p>
+                    <span class="product-more">Læs mere →</span>
+                </a>
 
-                <div class="product-box">
-                    <h4>Rapporter til Myndigheder</h4>
-                    <p>Eksport af egenkontroldata, risikoanalyse og afvigelsesdokumentation til miljøstyrelsens brug.</p>
-                    <a href="#contact">Læs mere →</a>
-                </div>
+                <a class="product-box" href="/funktioner/myndighedsrapporter.html">
+                    <h4>Rapporter til myndigheder</h4>
+                    <p>Saml egenkontroldokumentation, risikoanalyse og afvigelser til visning eller eksport.</p>
+                    <span class="product-more">Læs mere →</span>
+                </a>
             </div>
         </div>
     </section>
