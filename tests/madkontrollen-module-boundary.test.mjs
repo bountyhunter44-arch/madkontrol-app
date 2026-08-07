@@ -78,11 +78,17 @@ test("regression: dashboard.html billedarkiv-link peger på /core/ (ikke gammel 
     "dashboard.html skal linke til den flyttede /core/billed-arkiv.html");
 });
 
-test("platform-registre er egenkontrol-only", () => {
-  const showcaseEntries = (readFileSync(join(PUBLIC, "platform/module-showcase.js"), "latin1").match(/^ {2}[a-zA-Z]+: \{/gm) || []).map((x) => x.trim());
-  assert.deepEqual(showcaseEntries, ["egenkontrol: {"], "module-showcase entries: " + showcaseEntries.join(", "));
-  const appKeys = readFileSync(join(PUBLIC, "platform/app-registry.js"), "latin1").match(/appKey: "([^"]+)"/g) || [];
-  assert.deepEqual(appKeys, ['appKey: "madkontrollen-core"', 'appKey: "egenkontrol"'], "app-registry keys: " + appKeys.join(", "));
+test("platform-registre: egenkontrol + kun verificeret-genoprettede eksterne moduler (pos, accounting)", () => {
+  const showcaseSrc = readFileSync(join(PUBLIC, "platform/module-showcase.js"), "latin1");
+  const showcaseEntries = (showcaseSrc.match(/^ {2}[a-zA-Z]+: \{/gm) || []).map((x) => x.trim());
+  assert.deepEqual(showcaseEntries, ["egenkontrol: {", "pos: {", "accounting: {"], "module-showcase entries: " + showcaseEntries.join(", "));
+  const appSrc = readFileSync(join(PUBLIC, "platform/app-registry.js"), "latin1");
+  const appKeys = appSrc.match(/appKey: "([^"]+)"/g) || [];
+  assert.deepEqual(appKeys, ['appKey: "madkontrollen-core"', 'appKey: "egenkontrol"', 'appKey: "pos"', 'appKey: "accounting"'], "app-registry keys: " + appKeys.join(", "));
+  // De genoprettede moduler skal pege på verificerede EKSTERNE destinationer — aldrig en død lokal /modules/-sti.
+  assert.ok(appSrc.includes('entryUrl: "https://pos.madkontrollen.dk"'), "pos entryUrl = verificeret domæne");
+  assert.ok(appSrc.includes('entryUrl: "https://regnskab.ewcp.dk"'), "accounting entryUrl = verificeret domæne");
+  assert.ok(!/entryUrl: "\/modules\/(pos|accounting)\//.test(appSrc), "ingen død lokal modulsti for genoprettede moduler");
 });
 
 test("Quick onboarding genintroducerer ikke modulvælger (regression)", () => {

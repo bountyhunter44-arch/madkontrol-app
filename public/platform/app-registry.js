@@ -41,6 +41,52 @@ export const PLATFORM_APP_REGISTRY = [
     ownsFunctions: ["generateRisksForLocation", "generateTemplatesForLocation"],
     demoContentAllowed: true
   },
+  // Verificeret-genoprettede selvstændige EWCP-moduler (egen app + eget domæne).
+  // Ejerskab afgøres af eksisterende entitlement/module-state (selectedModules), ikke her.
+  // entryUrl er en absolut, verificeret destination — ingen lokal /modules/-sti, intet dødt link.
+  {
+    appKey: "pos",
+    name: "POS",
+    description: "Kassesystem til salg, betaling, kvitteringer og dagsopgørelse. Åbnes som selvstændig app.",
+    group: "commerce",
+    entryUrl: "https://pos.madkontrollen.dk",
+    standalone: true,
+    canActAsShell: false,
+    status: "active",
+    requiredEntitlement: "pos",
+    requiredRoles: ["owner", "hq_admin", "admin", "manager", "employee"],
+    providesContracts: [],
+    consumesContracts: ["platform.context"],
+    provides: [],
+    consumes: [],
+    optionalIntegrations: [],
+    relatedApps: [],
+    ownsCollections: [],
+    ownsFunctions: [],
+    demoContentAllowed: false
+  },
+  {
+    appKey: "accounting",
+    aliases: ["bogforing", "bogfoering", "bogføring", "regnskab"],
+    name: "Regnskab",
+    description: "Bogføring, bilag, moms og bank. Åbnes som selvstændig app på regnskab.ewcp.dk.",
+    group: "finance",
+    entryUrl: "https://regnskab.ewcp.dk",
+    standalone: true,
+    canActAsShell: false,
+    status: "active",
+    requiredEntitlement: "bogforing",
+    requiredRoles: ["owner", "hq_admin", "admin", "manager", "employee"],
+    providesContracts: [],
+    consumesContracts: ["platform.context"],
+    provides: [],
+    consumes: [],
+    optionalIntegrations: [],
+    relatedApps: [],
+    ownsCollections: [],
+    ownsFunctions: [],
+    demoContentAllowed: false
+  },
 ];
 
 export function getAppRegistry() {

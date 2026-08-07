@@ -1,4 +1,4 @@
-export const MODULE_SHOWCASE_ORDER = ["egenkontrol"];
+export const MODULE_SHOWCASE_ORDER = ["egenkontrol", "pos", "accounting"];
 
 export const MODULE_SHOWCASES = {
   egenkontrol: {
@@ -23,6 +23,54 @@ export const MODULE_SHOWCASES = {
     audience: ["Restaurant", "Café", "Foodtruck", "Catering", "Institutionskøkken"],
     integrations: [],
     integrationText: "Egenkontrol samler dokumentation og daglige processer i et samlet workflow."
+  },
+  // Verificeret-genoprettede selvstændige EWCP-moduler. landingPage/entryUrl er de
+  // verificerede eksterne domæner, så "Se mere" (ikke-ejet) og "Åbn" (ejet) begge går til
+  // modulets egen app — ALDRIG til Madkontrollen quick-onboarding/checkout. Bevidst INGEN
+  // checkoutModuleKey. Ejerskab udledes generisk af activeModules (entitlement/module-state).
+  pos: {
+    key: "pos",
+    appKey: "pos",
+    activeKeys: ["pos"],
+    name: "POS",
+    badge: "Salg og kasse",
+    category: "Salg og kasse",
+    image: "",
+    imageAlt: "Kassesystem med salg, betaling og kvitteringer",
+    landingPage: "https://pos.madkontrollen.dk",
+    entryUrl: "https://pos.madkontrollen.dk",
+    priceLabel: "Selvstændigt modul",
+    teaser: "Kassesystem til salg, betaling, kvitteringer og dagsopgørelse.",
+    headline: "POS – kassesystem til din virksomhed.",
+    subheading: "Sælg, tag betaling og hold styr på kvitteringer og dagsafslutning.",
+    intro: "POS er Madkontrollens selvstændige kassesystem på pos.madkontrollen.dk. Adgang styres via dit eksisterende abonnement.",
+    value: "Ét samlet kasseflow, der spiller sammen med resten af Madkontrollen.",
+    features: ["Salg og betaling", "Kvitteringer", "Dagsopgørelse", "Åbnes som selvstændig app"],
+    audience: ["Restaurant", "Café", "Foodtruck", "Kiosk"],
+    integrations: [],
+    integrationText: "POS åbnes som selvstændig applikation på pos.madkontrollen.dk."
+  },
+  accounting: {
+    key: "accounting",
+    appKey: "accounting",
+    activeKeys: ["accounting", "bogforing"],
+    name: "Regnskab",
+    badge: "Økonomi",
+    category: "Økonomi",
+    image: "",
+    imageAlt: "Bogføring med bilag, moms og bank",
+    landingPage: "https://regnskab.ewcp.dk",
+    entryUrl: "https://regnskab.ewcp.dk",
+    priceLabel: "Selvstændigt modul",
+    teaser: "Bogføring, bilag, moms og bank i én app.",
+    headline: "Regnskab – bogføring uden bøvl.",
+    subheading: "Bilagsscanning, moms, bank og SAF-T samlet ét sted.",
+    intro: "Regnskab er Madkontrollens selvstændige bogføringsapp på regnskab.ewcp.dk. Adgang styres via dit eksisterende abonnement.",
+    value: "Automatiseret bogføring, der reducerer manuelt arbejde.",
+    features: ["Bilagsscanning", "Moms", "Bankafstemning", "Åbnes som selvstændig app"],
+    audience: ["Restaurant", "Café", "Catering", "Detail"],
+    integrations: [],
+    integrationText: "Regnskab åbnes som selvstændig applikation på regnskab.ewcp.dk."
   },
 };
 
