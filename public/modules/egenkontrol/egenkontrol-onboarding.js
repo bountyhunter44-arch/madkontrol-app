@@ -1421,70 +1421,254 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
             focusStepHeading();
         }
 
+        // ---- Diverse/vedligeholdelse/årlig kontrol: 6 UI-trin over de 16 eksisterende items ----
+        // KUN en præsentationsgruppering. Hvert item skriver fortsat til
+        // state.checks[sectionKey].answers[itemIndex]; de 3 eksisterende section.approved-flag
+        // og CHECK_SECTIONS/generator-payload er UÆNDREDE. UX-progress er runtime (ikke persisteret).
+        const CHECK_UI_STEPS = [
+            { title: "APV og ændringer i virksomheden", items: [["apv_update", 0], ["annual_review", 4]] },
+            { title: "Temperatur og termometre", items: [["maintenance_pest", 0], ["annual_review", 5]] },
+            { title: "Skadedyrssikring og bygning", items: [["maintenance_pest", 1], ["maintenance_pest", 2], ["maintenance_pest", 3], ["annual_review", 1]] },
+            { title: "Vedligeholdelse", items: [["maintenance_pest", 4], ["maintenance_pest", 5], ["annual_review", 0]] },
+            { title: "Rengøring og medarbejdere", items: [["annual_review", 2], ["annual_review", 3], ["annual_review", 6]] },
+            { title: "Årlig gennemgang af egenkontrollen", items: [["annual_review", 7], ["annual_review", 8]] }
+        ];
+        let checksCursor = 0;
+        let checksEditFromDone = false;
+        const checksUiDone = new Array(CHECK_UI_STEPS.length).fill(false);
+
+        function firstIncompleteCheckUiStep() {
+            return checksUiDone.findIndex((d) => !d);
+        }
+        function allChecksApproved() {
+            return CHECK_SECTIONS.every((s) => state.checks[s.key]?.approved);
+        }
+        function checkUiStepOfItem(key, idx) {
+            return CHECK_UI_STEPS.findIndex((s) => s.items.some(([k, i]) => k === key && i === idx));
+        }
+        // Sæt eksisterende section.approved når alle sektionens items er gennemgået i UI-trin.
+        function syncCheckSectionApprovals() {
+            CHECK_SECTIONS.forEach((section) => {
+                const allDone = section.items.every((_, i) => {
+                    const st = checkUiStepOfItem(section.key, i);
+                    return st >= 0 && checksUiDone[st];
+                });
+                if (allDone) state.checks[section.key].approved = true;
+            });
+        }
+        function focusCheckUiHeading() {
+            const h = stepContentEl.querySelector("[data-checkui-heading]");
+            if (!h) return;
+            h.setAttribute("tabindex", "-1");
+            try { h.focus({ preventScroll: false }); } catch (e) { h.focus(); }
+        }
+
+        function renderCheckItem(sectionKey, itemIndex) {
+            const item = state.checks[sectionKey].answers[itemIndex];
+            return `
+                <div class="question-card">
+                    <h4>${escapeHtml(item.label)}</h4>
+                    <div class="chip-row">
+                        ${["Ja", "Nej", "Ikke relevant"].map((value) => `
+                            <button
+                                class="toggle-btn ${item.value === value ? "active" : ""}"
+                                type="button"
+                                data-check-section="${escapeHtml(sectionKey)}"
+                                data-check-index="${itemIndex}"
+                                data-check-value="${escapeHtml(value)}"
+                            >${escapeHtml(value)}</button>
+                        `).join("")}
+                    </div>
+                    <div class="field" style="margin-top:12px;">
+                        <label>Indtast evt. en kommentar</label>
+                        <textarea data-check-comment="${escapeHtml(sectionKey)}" data-check-index="${itemIndex}">${escapeHtml(item.comment || "")}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Entry: kaldes af render() ved hovednavigation.
         function renderChecksStep() {
+            checksEditFromDone = false;
+            if (allChecksApproved()) {
+                renderChecksDone();
+                return;
+            }
+            const inc = firstIncompleteCheckUiStep();
+            checksCursor = inc === -1 ? 0 : inc;
+            renderCheckUiStep();
+        }
+
+        function renderCheckUiStep() {
+            const total = CHECK_UI_STEPS.length;
+            if (checksCursor < 0) checksCursor = 0;
+            if (checksCursor > total - 1) checksCursor = total - 1;
+            const idx = checksCursor;
+            const step = CHECK_UI_STEPS[idx];
+            const doneCount = checksUiDone.filter(Boolean).length;
+            const incFrontier = firstIncompleteCheckUiStep();
+            const frontier = incFrontier === -1 ? total - 1 : incFrontier;
+
+            const dots = CHECK_UI_STEPS.map((s, i) => {
+                const done = checksUiDone[i];
+                const isCurrent = i === idx;
+                const reachable = done || i <= frontier;
+                const sym = done ? "✓" : (isCurrent ? "●" : "○");
+                const word = done ? "gennemført" : (isCurrent ? "aktuelt trin" : "ikke gennemført endnu");
+                const cls = `pp-dot${done ? " done" : ""}${isCurrent ? " current" : ""}`;
+                return `<button type="button" class="${cls}" data-checkui-goto="${i}" ${reachable ? "" : `disabled aria-disabled="true"`} aria-label="Trin ${i + 1}: ${word}"><span aria-hidden="true">${sym}</span> ${i + 1}</button>`;
+            }).join("");
+
+            const questions = step.items.map(([k, ii]) => renderCheckItem(k, ii)).join("");
+            const approveLabel = checksEditFromDone
+                ? "Gem og luk"
+                : (idx === total - 1 ? "Godkend og afslut" : "Godkend og fortsæt");
+
             stepContentEl.innerHTML = `
                 <div class="title-row">
                     <div>
-                        <h2>Diverse, vedligeholdelse og årlig kontrol</h2>
-                        <p>Her registreres APV, vedligeholdelse og skadedyrssikring samt den årlige kontrol og revision.</p>
+                        <h2 data-checkui-heading tabindex="-1">${idx + 1}. ${escapeHtml(step.title)}</h2>
+                        <p class="helper" aria-live="polite">Diverse, vedligeholdelse og årlig kontrol – ${idx + 1} af ${total} · ${doneCount} af ${total} gennemført</p>
                     </div>
-                    <div class="badge">Trin 5 af 6</div>
+                    <div class="badge">Trin ${idx + 1} / ${total}</div>
                 </div>
 
-                <div class="section-stack">
-                    ${CHECK_SECTIONS.map((section) => {
-                        const store = state.checks[section.key];
+                <div class="pp-status" role="group" aria-label="Status for de ${total} kontroltrin">${dots}</div>
 
-                        return `
-                            <article class="program-card">
-                                <div class="program-head">
-                                    <h3>${escapeHtml(section.title)}</h3>
-                                    <p>Svar på hvert punkt med Ja, Nej eller Ikke relevant. Tilføj kommentar hvor det er nødvendigt.</p>
-                                </div>
+                <article class="program-card">
+                    <div class="program-body">${questions}</div>
+                </article>
 
-                                <div class="program-body">
-                                    ${store.answers.map((item, index) => `
-                                        <div class="question-card">
-                                            <h4>${escapeHtml(item.label)}</h4>
-
-                                            <div class="chip-row">
-                                                ${["Ja", "Nej", "Ikke relevant"].map((value) => `
-                                                    <button
-                                                        class="toggle-btn ${item.value === value ? "active" : ""}"
-                                                        type="button"
-                                                        data-check-section="${escapeHtml(section.key)}"
-                                                        data-check-index="${index}"
-                                                        data-check-value="${escapeHtml(value)}"
-                                                    >${escapeHtml(value)}</button>
-                                                `).join("")}
-                                            </div>
-
-                                            <div class="field" style="margin-top:12px;">
-                                                <label>Indtast evt. en kommentar</label>
-                                                <textarea data-check-comment="${escapeHtml(section.key)}" data-check-index="${index}">${escapeHtml(item.comment || "")}</textarea>
-                                            </div>
-
-                                            <div class="btn-row">
-                                                <button class="answer-btn" type="button" data-save-check="${escapeHtml(section.key)}">Gem svar</button>
-                                            </div>
-                                        </div>
-                                    `).join("")}
-
-                                    <div class="btn-row" style="margin-top:16px;">
-                                        <button class="approve-btn ${store.approved ? "done" : ""}" type="button" data-approve-check="${escapeHtml(section.key)}">
-                                            ${store.approved ? "Godkendt" : "Godkend"}
-                                        </button>
-                                    </div>
-
-                                    ${store.approved ? `<div class="status-note">Sektionen er godkendt</div>` : ""}
-                                </div>
-                            </article>
-                        `;
-                    }).join("")}
+                <div class="pp-actions">
+                    <button class="btn btn-secondary" type="button" data-checkui-back>${idx === 0 ? "← Til egenkontrolprogram" : "← Forrige trin"}</button>
+                    <button class="btn btn-primary approve-btn" type="button" data-checkui-approve>${approveLabel}</button>
                 </div>
             `;
 
+            nextStepBtn.style.display = "none";
             bindCheckEvents();
+            bindCheckUiNav();
+        }
+
+        function renderChecksDone() {
+            const total = CHECK_UI_STEPS.length;
+            const list = CHECK_UI_STEPS.map((s, i) => `
+                <li class="pp-done-item">
+                    <span class="pp-done-check" aria-hidden="true">✓</span>
+                    <span class="pp-done-title">${i + 1}. ${escapeHtml(s.title)}</span>
+                    <button class="answer-btn" type="button" data-checkui-edit="${i}">Ret</button>
+                </li>
+            `).join("");
+
+            stepContentEl.innerHTML = `
+                <div class="title-row">
+                    <div>
+                        <h2 data-checkui-heading tabindex="-1">Diverse, vedligeholdelse og årlig kontrol er gennemført</h2>
+                        <p class="helper">Alle ${total} trin er gennemført. Gennemse eller ret et trin, eller fortsæt til betaling.</p>
+                    </div>
+                    <div class="badge">${total} / ${total} gennemført</div>
+                </div>
+
+                <ul class="pp-done-list">${list}</ul>
+
+                <div class="pp-actions">
+                    <button class="btn btn-secondary" type="button" data-checkui-back-main>← Til egenkontrolprogram</button>
+                    <button class="btn btn-primary" type="button" data-checkui-continue>Fortsæt til betaling</button>
+                </div>
+            `;
+
+            nextStepBtn.style.display = "none";
+
+            stepContentEl.querySelectorAll("[data-checkui-edit]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    checksEditFromDone = true;
+                    checksCursor = Number(btn.dataset.checkuiEdit);
+                    renderCheckUiStep();
+                    focusCheckUiHeading();
+                });
+            });
+            const cont = stepContentEl.querySelector("[data-checkui-continue]");
+            if (cont) cont.addEventListener("click", goToSummaryFromChecks);
+            const back = stepContentEl.querySelector("[data-checkui-back-main]");
+            if (back) back.addEventListener("click", goToProgramFromChecks);
+
+            focusCheckUiHeading();
+        }
+
+        function bindCheckUiNav() {
+            stepContentEl.querySelectorAll("[data-checkui-goto]").forEach((btn) => {
+                if (btn.hasAttribute("disabled")) return;
+                btn.addEventListener("click", () => {
+                    checksEditFromDone = false;
+                    checksCursor = Number(btn.dataset.checkuiGoto);
+                    renderCheckUiStep();
+                    focusCheckUiHeading();
+                });
+            });
+
+            const backBtn = stepContentEl.querySelector("[data-checkui-back]");
+            if (backBtn) backBtn.addEventListener("click", () => {
+                if (checksEditFromDone) {
+                    checksEditFromDone = false;
+                    renderChecksStep();
+                    focusCheckUiHeading();
+                    return;
+                }
+                if (checksCursor > 0) {
+                    checksCursor -= 1;
+                    renderCheckUiStep();
+                    focusCheckUiHeading();
+                } else {
+                    goToProgramFromChecks();
+                }
+            });
+
+            const appBtn = stepContentEl.querySelector("[data-checkui-approve]");
+            if (appBtn) appBtn.addEventListener("click", () => {
+                saveDraftToLocalStorage();
+                checksUiDone[checksCursor] = true;
+                syncCheckSectionApprovals();
+                saveDraftToLocalStorage();
+                updateSaveIndicator("Trin gennemført");
+                updateSidebarStats();
+
+                if (checksEditFromDone) {
+                    checksEditFromDone = false;
+                    renderChecksStep();
+                    focusCheckUiHeading();
+                    return;
+                }
+                const nextInc = firstIncompleteCheckUiStep();
+                if (nextInc === -1) {
+                    goToSummaryFromChecks();
+                } else {
+                    checksCursor = nextInc;
+                    renderCheckUiStep();
+                    focusCheckUiHeading();
+                }
+            });
+        }
+
+        // Efter 6/6: verificér at de 3 eksisterende CHECK_SECTIONS er godkendt, fortsæt til summary.
+        function goToSummaryFromChecks() {
+            syncCheckSectionApprovals();
+            if (!allChecksApproved()) {
+                const inc = firstIncompleteCheckUiStep();
+                checksCursor = inc === -1 ? 0 : inc;
+                renderCheckUiStep();
+                updateSaveIndicator("Gennemgå alle trin først");
+                focusCheckUiHeading();
+                return;
+            }
+            state.currentStep = STEP_DEFS.findIndex((s) => s.key === "summary");
+            render();
+            focusStepHeading();
+        }
+
+        function goToProgramFromChecks() {
+            state.currentStep = STEP_DEFS.findIndex((s) => s.key === "program");
+            render();
+            focusStepHeading();
         }
 
         function renderSummaryStep() {
@@ -1637,7 +1821,7 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                     const index = Number(btn.dataset.checkIndex);
                     state.checks[sectionKey].answers[index].value = btn.dataset.checkValue;
                     saveDraftToLocalStorage();
-                    render();
+                    renderCheckUiStep();
                 });
             });
 
