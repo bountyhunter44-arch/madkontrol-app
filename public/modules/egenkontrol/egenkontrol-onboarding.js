@@ -6,8 +6,6 @@
 
         const db = getFirestore(app);
         const functions = getFunctions(app, "us-central1");
-        const getCloudinarySignatureCallable = httpsCallable(functions, "getCloudinarySignature");
-        const analyzeCloudinaryAssetCallable = httpsCallable(functions, "analyzeCloudinaryAsset");
         const createOnboardingCheckoutSessionCallable = httpsCallable(
         functions,
          "createOnboardingCheckoutSession"
@@ -520,7 +518,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
         const progressFillEl = document.getElementById("progressFill");
         const progressValueEl = document.getElementById("progressValue");
         const approvedCountEl = document.getElementById("approvedCount");
-        const uploadCountEl = document.getElementById("uploadCount");
         const unitCountEl = document.getElementById("unitCount");
         const productCountEl = document.getElementById("productCount");
         const saveIndicatorEl = document.getElementById("saveIndicator");
@@ -528,7 +525,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
         const nextStepBtn = document.getElementById("nextStepBtn");
         const saveDraftBtn = document.getElementById("saveDraftBtn");
         const submitBtn = document.getElementById("submitBtn");
-        const hiddenImageInput = document.getElementById("hiddenImageInput");
 
         function safeJsonParse(value, fallback = null) {
             try {
@@ -762,15 +758,8 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
             return sectionCount + checkCount;
         }
 
-        function getUploadCount() {
-            const sectionUploads = Object.values(state.sections).reduce((sum, item) => sum + (item.images?.length || 0), 0);
-            const checkUploads = Object.values(state.checks).reduce((sum, item) => sum + (item.images?.length || 0), 0);
-            return sectionUploads + checkUploads;
-        }
-
         function updateSidebarStats() {
             approvedCountEl.textContent = String(getApprovedCount());
-            uploadCountEl.textContent = String(getUploadCount());
             unitCountEl.textContent = String(state.equipment.units.length);
             productCountEl.textContent = String(state.business.products.length);
         }
@@ -1168,26 +1157,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
             });
         }
 
-        function renderUploadPreview(items = []) {
-            if (!items.length) {
-                return `<div class="helper">Der er ikke valgt nogen fil</div>`;
-            }
-
-            return `
-                <div class="upload-list">
-                    ${items.map((item) => `
-                        <div class="upload-item">
-                            <img class="upload-thumb" src="${escapeHtml(item.secureUrl)}" alt="Upload">
-                            <div class="upload-meta">
-                                ${escapeHtml(item.originalFilename || "Billede")}<br>
-                                Gemmes til: ${escapeHtml(item.routineTarget || item.sectionKey || "-")}
-                            </div>
-                        </div>
-                    `).join("")}
-                </div>
-            `;
-        }
-
         function getDefaultAnswer(sectionKey, questionId) {
             const section = PROGRAM_SECTIONS.find((item) => item.key === sectionKey);
             const question = section?.questions.find((item) => item.id === questionId);
@@ -1227,7 +1196,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                 const isChoice = question.type === "choice";
                 const answerValue = store.answers[question.id] ?? "";
                 const choiceValue = store.choices[question.id] ?? "";
-                const uploadTargets = (section.uploadTargets || []).filter((target) => target.questionId === question.id);
 
                 return `
                     <div class="question-card">
@@ -1257,17 +1225,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                             ` : ""}
                             <button class="answer-btn" type="button" data-save-section="${escapeHtml(section.key)}">Gem svar</button>
                         </div>
-
-                        ${uploadTargets.map((target) => `
-                            <div class="upload-box">
-                                <div class="helper">${escapeHtml(target.label)}</div>
-                                <div class="btn-row" style="margin-top:10px;">
-                                    <button class="btn btn-secondary" type="button" data-upload-section="${escapeHtml(target.sectionKey)}">Kamera</button>
-                                    <button class="btn btn-soft" type="button" data-upload-section="${escapeHtml(target.sectionKey)}">Vælg fil</button>
-                                </div>
-                                ${renderUploadPreview(state.sections[target.sectionKey]?.images || [])}
-                            </div>
-                        `).join("")}
                     </div>
                 `;
             }).join("");
@@ -1513,15 +1470,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                                         </div>
                                     `).join("")}
 
-                                    <div class="upload-box">
-                                        <div class="helper">Kamera og filer kan bruges som dokumentation for sektionen.</div>
-                                        <div class="btn-row" style="margin-top:10px;">
-                                            <button class="btn btn-secondary" type="button" data-upload-check="${escapeHtml(section.key)}">Kamera</button>
-                                            <button class="btn btn-soft" type="button" data-upload-check="${escapeHtml(section.key)}">Vælg fil</button>
-                                        </div>
-                                        ${renderUploadPreview(store.images || [])}
-                                    </div>
-
                                     <div class="btn-row" style="margin-top:16px;">
                                         <button class="approve-btn ${store.approved ? "done" : ""}" type="button" data-approve-check="${escapeHtml(section.key)}">
                                             ${store.approved ? "Godkendt" : "Godkend"}
@@ -1590,7 +1538,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                         <h4>Dokumentation</h4>
                         <ul class="summary-list">
                             <li>Godkendte sektioner: ${getApprovedCount()}</li>
-                            <li>Uploadede billeder: ${getUploadCount()}</li>
                             <li>Egenkontrolprogram-sektioner: ${PROGRAM_SECTIONS.length}</li>
                             <li>Kontrolsektioner: ${CHECK_SECTIONS.length}</li>
                         </ul>
@@ -1681,14 +1628,6 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                 });
             });
 
-            stepContentEl.querySelectorAll("[data-upload-section]").forEach((btn) => {
-                btn.addEventListener("click", () => {
-                    openImagePickerForTarget({
-                        type: "section",
-                        sectionKey: btn.dataset.uploadSection
-                    });
-                });
-            });
         }
 
         function bindCheckEvents() {
@@ -1725,136 +1664,10 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                 });
             });
 
-            stepContentEl.querySelectorAll("[data-upload-check]").forEach((btn) => {
-                btn.addEventListener("click", () => {
-                    openImagePickerForTarget({
-                        type: "check",
-                        sectionKey: btn.dataset.uploadCheck
-                    });
-                });
-            });
         }
 
-        let pendingUploadTarget = null;
-
-        function openImagePickerForTarget(target) {
-            pendingUploadTarget = target;
-            hiddenImageInput.value = "";
-            hiddenImageInput.click();
-        }
-
-        function getUploadMeta(target) {
-            const map = ONBOARDING_ROUTINE_MAP[target.sectionKey] || {};
-            return {
-                sectionKey: target.sectionKey,
-                routineTarget: map.routineTarget || target.sectionKey,
-                subType: map.subType || "",
-                guideKey: map.guideKey || ""
-            };
-        }
-
-        hiddenImageInput.addEventListener("change", async (event) => {
-            const file = event.target.files?.[0];
-            if (!file || !pendingUploadTarget) return;
-
-            try {
-                updateSaveIndicator("Uploader billede...");
-                await uploadImageToCloudinary(file, pendingUploadTarget);
-                saveDraftToLocalStorage();
-                render();
-                updateSaveIndicator("Billede gemt til rutinen");
-            } catch (error) {
-                console.error(error);
-                alert("Kunne ikke uploade billedet.");
-                updateSaveIndicator("Upload fejlede");
-            } finally {
-                pendingUploadTarget = null;
-                hiddenImageInput.value = "";
-            }
-        });
-
-        async function uploadImageToCloudinary(file, target) {
-            const profile = getProfile();
-            const companyId = String(profile.companyId || "company_1").trim();
-            const locationId = String(profile.locationId || "location_1").trim();
-            const meta = getUploadMeta(target);
-
-            const signatureResult = await getCloudinarySignatureCallable({
-                companyId,
-                locationId,
-                moduleType: "Egenkontrol",
-                itemId: meta.sectionKey
-            });
-
-            const signatureData = signatureResult?.data || {};
-            if (!signatureData.cloudName || !signatureData.apiKey || !signatureData.timestamp || !signatureData.signature) {
-                throw new Error("Cloudinary signaturdata mangler.");
-            }
-
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("api_key", signatureData.apiKey);
-            formData.append("timestamp", String(signatureData.timestamp));
-            formData.append("signature", signatureData.signature);
-            formData.append("folder", signatureData.folder);
-            formData.append("public_id", signatureData.publicId);
-            if (signatureData.tags) {
-                formData.append("tags", signatureData.tags);
-            }
-            if (signatureData.context) {
-                formData.append("context", signatureData.context);
-            }
-
-            const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`, {
-                method: "POST",
-                body: formData
-            });
-
-            if (!uploadResponse.ok) {
-                throw new Error(await uploadResponse.text());
-            }
-
-            const uploadData = await uploadResponse.json();
-
-            let analysisData = null;
-            try {
-                const analysisResult = await analyzeCloudinaryAssetCallable({
-                    publicId: uploadData.public_id,
-                    secureUrl: uploadData.secure_url,
-                    companyId,
-                    locationId,
-                    sectionKey: meta.sectionKey
-                });
-                analysisData = analysisResult?.data || null;
-            } catch (error) {
-                console.warn("Asset analyse fejlede:", error);
-            }
-
-            const item = {
-                provider: "cloudinary",
-                publicId: uploadData.public_id,
-                secureUrl: uploadData.secure_url,
-                originalFilename: uploadData.original_filename || file.name,
-                width: uploadData.width || null,
-                height: uploadData.height || null,
-                bytes: uploadData.bytes || file.size || null,
-                createdAt: new Date().toISOString(),
-                sectionKey: meta.sectionKey,
-                routineTarget: meta.routineTarget,
-                subType: meta.subType,
-                guideKey: meta.guideKey,
-                analysis: analysisData
-            };
-
-            if (target.type === "section") {
-                if (!state.sections[target.sectionKey]) {
-                    state.sections[target.sectionKey] = { approved: false, answers: {}, choices: {}, images: [] };
-                }
-                state.sections[target.sectionKey].images.push(item);
-            } else {
-                state.checks[target.sectionKey].images.push(item);
-            }
-        }
+        // Billedupload er fjernet fra quick-onboarding (kræver login og indgår ikke i onboarding).
+        // Datamodellen (state.sections[key].images, uploadTargets) bevares for bagudkompatibilitet.
 
         function buildOnboardingProfile() {
             const sel = state.equipment.selected || {};

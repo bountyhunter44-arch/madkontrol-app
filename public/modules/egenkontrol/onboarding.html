@@ -22,9 +22,9 @@
                     <div class="eyebrow">Produktions-onboarding</div>
                     <h1>Opsæt egenkontrol, checkout og live profil i ét flow</h1>
                     <p>
-                        Onboarding samler virksomhed, produktion, udstyr, egne svar, billeder og godkendelser.
+                        Onboarding samler virksomhed, produktion, udstyr, egne svar og godkendelser.
                         Når du trykker <strong>Gem og betal</strong>, gemmes onboarding i Firestore,
-                        Cloudinary-assets bindes til sektionerne, Stripe checkout starter, og succes går videre til <strong>tak.html</strong>.
+                        Stripe checkout starter, og succes går videre til <strong>tak.html</strong>.
                     </p>
                 </div>
 
@@ -36,7 +36,6 @@
                     </span>
 
                     <div class="pill-row">
-                        <span class="status-pill">Cloudinary upload</span>
                         <span class="status-pill">Firestore save</span>
                         <span class="status-pill">Stripe checkout</span>
                     </div>
@@ -63,17 +62,13 @@
                 <section class="card sidebar-card">
                     <h3 style="margin:0 0 10px;">Status</h3>
                     <p class="helper" style="margin:0;">
-                        Billeder gemmes direkte i Cloudinary og bindes til sektion/rutine.
+                        Dine svar gemmes løbende som kladde.
                     </p>
 
                     <div class="meta-grid">
                         <div class="meta-box">
                             <strong id="approvedCount">0</strong>
                             <span>Godkendt</span>
-                        </div>
-                        <div class="meta-box">
-                            <strong id="uploadCount">0</strong>
-                            <span>Billeder</span>
                         </div>
                         <div class="meta-box">
                             <strong id="unitCount">0</strong>
@@ -110,8 +105,6 @@
             </div>
         </div>
     </div>
-
-    <input id="hiddenImageInput" class="hidden-input" type="file" accept="image/*" capture="environment" />
 
         <script type="module" src="./egenkontrol-onboarding.js"></script>
 </body>
