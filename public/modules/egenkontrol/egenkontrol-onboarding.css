@@ -293,6 +293,96 @@
             outline-offset:2px;
         }
 
+        /* EGENKONTROLPROGRAM: ét punkt ad gangen */
+        .pp-status{
+            display:flex;
+            flex-wrap:wrap;
+            gap:6px;
+            margin:2px 0 14px;
+        }
+        .pp-dot{
+            display:inline-flex;
+            align-items:center;
+            gap:5px;
+            min-width:38px;
+            justify-content:center;
+            padding:6px 9px;
+            border:1px solid var(--border);
+            border-radius:999px;
+            background:#fff;
+            color:var(--muted);
+            font-size:12px;
+            font-weight:700;
+            cursor:pointer;
+        }
+        .pp-dot.done{
+            border-color:#cfe8d2;
+            background:var(--green-soft);
+            color:var(--green);
+        }
+        .pp-dot.current{
+            border-color:var(--green);
+            color:var(--text);
+            box-shadow:0 0 0 2px rgba(47,125,50,.18);
+        }
+        .pp-dot[disabled]{
+            opacity:.5;
+            cursor:not-allowed;
+        }
+        .pp-details summary{
+            cursor:pointer;
+            font-weight:600;
+            color:var(--green);
+        }
+        .pp-details p{
+            margin-top:10px;
+        }
+        .pp-actions{
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-top:18px;
+        }
+        .pp-actions .btn-primary{
+            margin-left:auto;
+        }
+        .pp-done-list{
+            list-style:none;
+            padding:0;
+            margin:0 0 8px;
+            display:grid;
+            gap:8px;
+        }
+        .pp-done-item{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:10px 12px;
+            border:1px solid var(--border);
+            border-radius:12px;
+            background:#fff;
+        }
+        .pp-done-check{
+            color:var(--green);
+            font-weight:800;
+        }
+        .pp-done-title{
+            flex:1;
+            font-size:14px;
+        }
+        @media (max-width:560px){
+            .pp-actions{
+                flex-direction:column-reverse;
+            }
+            .pp-actions .btn{
+                width:100%;
+            }
+            .pp-actions .btn-primary{
+                margin-left:0;
+            }
+        }
+
         .meta-grid{
             display:grid;
             grid-template-columns:1fr 1fr;

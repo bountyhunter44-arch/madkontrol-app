@@ -1199,92 +1199,269 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
             return question.defaultAnswer || "";
         }
 
+        // ---- EGENKONTROLPROGRAM: ét af de 13 punkter ad gangen ----
+        // Punkt-ID'er (section.key), rækkefølge, felter, svar og godkendelsesværdier er UÆNDREDE.
+        // Totalen udledes af PROGRAM_SECTIONS (ingen hardkodet 13 i styringslogikken).
+        let programCursor = 0;
+        let programEditFromDone = false;
+
+        function firstUnapprovedProgramIndex() {
+            return PROGRAM_SECTIONS.findIndex((s) => !state.sections[s.key]?.approved);
+        }
+        function programApprovedCount() {
+            return PROGRAM_SECTIONS.filter((s) => state.sections[s.key]?.approved).length;
+        }
+        function programFrontierIndex() {
+            const u = firstUnapprovedProgramIndex();
+            return u === -1 ? PROGRAM_SECTIONS.length - 1 : u;
+        }
+        function focusProgramHeading() {
+            const h = stepContentEl.querySelector("[data-program-heading]");
+            if (!h) return;
+            h.setAttribute("tabindex", "-1");
+            try { h.focus({ preventScroll: false }); } catch (e) { h.focus(); }
+        }
+
+        function renderProgramQuestions(section, store) {
+            return section.questions.map((question) => {
+                const isChoice = question.type === "choice";
+                const answerValue = store.answers[question.id] ?? "";
+                const choiceValue = store.choices[question.id] ?? "";
+                const uploadTargets = (section.uploadTargets || []).filter((target) => target.questionId === question.id);
+
+                return `
+                    <div class="question-card">
+                        <h4>${escapeHtml(question.label)}</h4>
+
+                        ${isChoice ? `
+                            <div class="chip-row">
+                                ${(question.options || []).map((option) => `
+                                    <button
+                                        class="toggle-btn ${choiceValue === option ? "active" : ""}"
+                                        type="button"
+                                        data-choice-section="${escapeHtml(section.key)}"
+                                        data-choice-question="${escapeHtml(question.id)}"
+                                        data-choice-value="${escapeHtml(option)}"
+                                    >${escapeHtml(option)}</button>
+                                `).join("")}
+                            </div>
+                        ` : question.type === "text" ? `
+                            <input data-answer-section="${escapeHtml(section.key)}" data-answer-question="${escapeHtml(question.id)}" value="${escapeHtml(answerValue)}">
+                        ` : `
+                            <textarea data-answer-section="${escapeHtml(section.key)}" data-answer-question="${escapeHtml(question.id)}">${escapeHtml(answerValue)}</textarea>
+                        `}
+
+                        <div class="btn-row" style="margin-top:12px;">
+                            ${!isChoice ? `
+                                <button class="answer-btn" type="button" data-default-section="${escapeHtml(section.key)}" data-default-question="${escapeHtml(question.id)}">Brug standardtekst</button>
+                            ` : ""}
+                            <button class="answer-btn" type="button" data-save-section="${escapeHtml(section.key)}">Gem svar</button>
+                        </div>
+
+                        ${uploadTargets.map((target) => `
+                            <div class="upload-box">
+                                <div class="helper">${escapeHtml(target.label)}</div>
+                                <div class="btn-row" style="margin-top:10px;">
+                                    <button class="btn btn-secondary" type="button" data-upload-section="${escapeHtml(target.sectionKey)}">Kamera</button>
+                                    <button class="btn btn-soft" type="button" data-upload-section="${escapeHtml(target.sectionKey)}">Vælg fil</button>
+                                </div>
+                                ${renderUploadPreview(state.sections[target.sectionKey]?.images || [])}
+                            </div>
+                        `).join("")}
+                    </div>
+                `;
+            }).join("");
+        }
+
+        // Entry: kaldes af render() ved hovednavigation. Åbner første ikke-godkendte punkt,
+        // eller færdig-status hvis alle er godkendt.
         function renderProgramStep() {
+            programEditFromDone = false;
+            if (firstUnapprovedProgramIndex() === -1) {
+                renderProgramDone();
+            } else {
+                programCursor = firstUnapprovedProgramIndex();
+                renderProgramPoint();
+            }
+        }
+
+        function renderProgramPoint() {
+            const total = PROGRAM_SECTIONS.length;
+            if (programCursor < 0) programCursor = 0;
+            if (programCursor > total - 1) programCursor = total - 1;
+            const idx = programCursor;
+            const section = PROGRAM_SECTIONS[idx];
+            const store = state.sections[section.key];
+            const frontier = programFrontierIndex();
+            const approvedN = programApprovedCount();
+
+            const dots = PROGRAM_SECTIONS.map((s, i) => {
+                const approved = !!state.sections[s.key]?.approved;
+                const isCurrent = i === idx;
+                const reachable = approved || i <= frontier;
+                const sym = approved ? "✓" : (isCurrent ? "●" : "○");
+                const word = approved ? "godkendt" : (isCurrent ? "aktuelt punkt" : "ikke behandlet endnu");
+                const cls = `pp-dot${approved ? " done" : ""}${isCurrent ? " current" : ""}`;
+                return `<button type="button" class="${cls}" data-program-goto="${i}" ${reachable ? "" : `disabled aria-disabled="true"`} aria-label="Punkt ${i + 1}: ${word}"><span aria-hidden="true">${sym}</span> ${i + 1}</button>`;
+            }).join("");
+
+            const longDesc = (section.description || "").length > 180;
+            const descBlock = longDesc
+                ? `<details class="pp-details"><summary>Vis forklaring</summary><p>${escapeHtml(section.description)}</p></details>`
+                : `<p>${escapeHtml(section.description)}</p>`;
+
+            const approveLabel = programEditFromDone
+                ? "Gem og luk"
+                : (idx === total - 1 ? "Godkend og afslut" : "Godkend og fortsæt");
+
             stepContentEl.innerHTML = `
                 <div class="title-row">
                     <div>
-                        <h2>EGENKONTROLPROGRAM</h2>
-                        <p>Her ligger fagtekster, standardsvar, kamera/upload, svar-knapper og godkendelse for de egentlige egenkontrolsektioner.</p>
+                        <h2 data-program-heading tabindex="-1">${idx + 1}. ${escapeHtml(section.title)}</h2>
+                        <p class="helper" aria-live="polite">Egenkontrolprogram – ${idx + 1} af ${total} · ${approvedN} af ${total} godkendt</p>
                     </div>
-                    <div class="badge">Trin 4 af 6</div>
+                    <div class="badge">Punkt ${idx + 1} / ${total}</div>
                 </div>
 
-                <div class="section-stack">
-                    ${PROGRAM_SECTIONS.map((section) => {
-                        const store = state.sections[section.key];
+                <div class="pp-status" role="group" aria-label="Status for de ${total} programpunkter">${dots}</div>
 
-                        return `
-                            <article class="program-card">
-                                <div class="program-head">
-                                    <h3>${escapeHtml(section.title)}</h3>
-                                    <p>${escapeHtml(section.description)}</p>
-                                </div>
+                <article class="program-card">
+                    <div class="program-head">${descBlock}</div>
+                    <div class="program-body">
+                        ${renderProgramQuestions(section, store)}
+                        ${store.approved ? `<div class="status-note">Dette punkt er godkendt – du kan rette og godkende igen.</div>` : ""}
+                    </div>
+                </article>
 
-                                <div class="program-body">
-                                    ${section.questions.map((question) => {
-                                        const isChoice = question.type === "choice";
-                                        const answerValue = store.answers[question.id] ?? "";
-                                        const choiceValue = store.choices[question.id] ?? "";
-                                        const uploadTargets = (section.uploadTargets || []).filter((target) => target.questionId === question.id);
-
-                                        return `
-                                            <div class="question-card">
-                                                <h4>${escapeHtml(question.label)}</h4>
-
-                                                ${isChoice ? `
-                                                    <div class="chip-row">
-                                                        ${(question.options || []).map((option) => `
-                                                            <button
-                                                                class="toggle-btn ${choiceValue === option ? "active" : ""}"
-                                                                type="button"
-                                                                data-choice-section="${escapeHtml(section.key)}"
-                                                                data-choice-question="${escapeHtml(question.id)}"
-                                                                data-choice-value="${escapeHtml(option)}"
-                                                            >${escapeHtml(option)}</button>
-                                                        `).join("")}
-                                                    </div>
-                                                ` : question.type === "text" ? `
-                                                    <input data-answer-section="${escapeHtml(section.key)}" data-answer-question="${escapeHtml(question.id)}" value="${escapeHtml(answerValue)}">
-                                                ` : `
-                                                    <textarea data-answer-section="${escapeHtml(section.key)}" data-answer-question="${escapeHtml(question.id)}">${escapeHtml(answerValue)}</textarea>
-                                                `}
-
-                                                <div class="btn-row" style="margin-top:12px;">
-                                                    ${!isChoice ? `
-                                                        <button class="answer-btn" type="button" data-default-section="${escapeHtml(section.key)}" data-default-question="${escapeHtml(question.id)}">Brug standardtekst</button>
-                                                    ` : ""}
-                                                    <button class="answer-btn" type="button" data-save-section="${escapeHtml(section.key)}">Gem svar</button>
-                                                </div>
-
-                                                ${uploadTargets.map((target) => `
-                                                    <div class="upload-box">
-                                                        <div class="helper">${escapeHtml(target.label)}</div>
-                                                        <div class="btn-row" style="margin-top:10px;">
-                                                            <button class="btn btn-secondary" type="button" data-upload-section="${escapeHtml(target.sectionKey)}">Kamera</button>
-                                                            <button class="btn btn-soft" type="button" data-upload-section="${escapeHtml(target.sectionKey)}">Vælg fil</button>
-                                                        </div>
-                                                        ${renderUploadPreview(state.sections[target.sectionKey]?.images || [])}
-                                                    </div>
-                                                `).join("")}
-                                            </div>
-                                        `;
-                                    }).join("")}
-
-                                    <div class="btn-row" style="margin-top:16px;">
-                                        <button class="approve-btn ${store.approved ? "done" : ""}" type="button" data-approve-section="${escapeHtml(section.key)}">
-                                            ${store.approved ? "Godkendt" : "Godkend"}
-                                        </button>
-                                    </div>
-
-                                    ${store.approved ? `<div class="status-note">Sektionen er godkendt</div>` : ""}
-                                </div>
-                            </article>
-                        `;
-                    }).join("")}
+                <div class="pp-actions">
+                    <button class="btn btn-secondary" type="button" data-program-back>${idx === 0 ? "← Til produktion" : "← Forrige punkt"}</button>
+                    <button class="btn btn-primary approve-btn" type="button" data-program-approve>${approveLabel}</button>
                 </div>
             `;
 
+            nextStepBtn.style.display = "none";
             bindProgramEvents();
+            bindProgramPointNav();
+        }
+
+        function renderProgramDone() {
+            const total = PROGRAM_SECTIONS.length;
+            const list = PROGRAM_SECTIONS.map((s, i) => `
+                <li class="pp-done-item">
+                    <span class="pp-done-check" aria-hidden="true">✓</span>
+                    <span class="pp-done-title">${i + 1}. ${escapeHtml(s.title)}</span>
+                    <button class="answer-btn" type="button" data-program-edit="${i}">Ret</button>
+                </li>
+            `).join("");
+
+            stepContentEl.innerHTML = `
+                <div class="title-row">
+                    <div>
+                        <h2 data-program-heading tabindex="-1">Egenkontrolprogram er gennemført</h2>
+                        <p class="helper">Alle ${total} punkter er godkendt. Gennemse eller ret et punkt, eller fortsæt til kontrol og revision.</p>
+                    </div>
+                    <div class="badge">${total} / ${total} godkendt</div>
+                </div>
+
+                <ul class="pp-done-list">${list}</ul>
+
+                <div class="pp-actions">
+                    <button class="btn btn-secondary" type="button" data-program-back>← Til produktion</button>
+                    <button class="btn btn-primary" type="button" data-program-continue>Fortsæt til kontrol og revision</button>
+                </div>
+            `;
+
+            nextStepBtn.style.display = "none";
+
+            stepContentEl.querySelectorAll("[data-program-edit]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    programEditFromDone = true;
+                    programCursor = Number(btn.dataset.programEdit);
+                    renderProgramPoint();
+                    focusProgramHeading();
+                });
+            });
+            const cont = stepContentEl.querySelector("[data-program-continue]");
+            if (cont) cont.addEventListener("click", goToChecksFromProgram);
+            const back = stepContentEl.querySelector("[data-program-back]");
+            if (back) back.addEventListener("click", goToProductionFromProgram);
+
+            focusProgramHeading();
+        }
+
+        function bindProgramPointNav() {
+            stepContentEl.querySelectorAll("[data-program-goto]").forEach((btn) => {
+                if (btn.hasAttribute("disabled")) return;
+                btn.addEventListener("click", () => {
+                    programEditFromDone = false;
+                    programCursor = Number(btn.dataset.programGoto);
+                    renderProgramPoint();
+                    focusProgramHeading();
+                });
+            });
+
+            const backBtn = stepContentEl.querySelector("[data-program-back]");
+            if (backBtn) backBtn.addEventListener("click", () => {
+                if (programEditFromDone) {
+                    programEditFromDone = false;
+                    renderProgramStep();
+                    focusProgramHeading();
+                    return;
+                }
+                if (programCursor > 0) {
+                    programCursor -= 1;
+                    renderProgramPoint();
+                    focusProgramHeading();
+                } else {
+                    goToProductionFromProgram();
+                }
+            });
+
+            const appBtn = stepContentEl.querySelector("[data-program-approve]");
+            if (appBtn) appBtn.addEventListener("click", () => {
+                const key = PROGRAM_SECTIONS[programCursor].key;
+                state.sections[key].approved = true;
+                saveDraftToLocalStorage();
+                updateSaveIndicator("Punkt godkendt");
+                updateSidebarStats();
+
+                if (programEditFromDone) {
+                    programEditFromDone = false;
+                    renderProgramStep();
+                    focusProgramHeading();
+                    return;
+                }
+                const nextUn = firstUnapprovedProgramIndex();
+                if (nextUn === -1) {
+                    goToChecksFromProgram();
+                } else {
+                    programCursor = nextUn;
+                    renderProgramPoint();
+                    focusProgramHeading();
+                }
+            });
+        }
+
+        // Eksisterende validering: alle programpunkter skal være godkendt, før hovedflowet
+        // fortsætter til det interne checks-trin.
+        function goToChecksFromProgram() {
+            if (firstUnapprovedProgramIndex() !== -1) {
+                programEditFromDone = false;
+                programCursor = firstUnapprovedProgramIndex();
+                renderProgramPoint();
+                updateSaveIndicator("Godkend alle punkter først");
+                focusProgramHeading();
+                return;
+            }
+            state.currentStep = STEP_DEFS.findIndex((s) => s.key === "checks");
+            render();
+            focusStepHeading();
+        }
+
+        function goToProductionFromProgram() {
+            state.currentStep = STEP_DEFS.findIndex((s) => s.key === "production");
+            render();
+            focusStepHeading();
         }
 
         function renderChecksStep() {
@@ -1475,7 +1652,7 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                     const questionId = btn.dataset.choiceQuestion;
                     state.sections[sectionKey].choices[questionId] = btn.dataset.choiceValue;
                     saveDraftToLocalStorage();
-                    render();
+                    renderProgramPoint();
                 });
             });
 
@@ -1485,7 +1662,7 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                     const questionId = btn.dataset.defaultQuestion;
                     state.sections[sectionKey].answers[questionId] = getDefaultAnswer(sectionKey, questionId);
                     saveDraftToLocalStorage();
-                    render();
+                    renderProgramPoint();
                 });
             });
 
