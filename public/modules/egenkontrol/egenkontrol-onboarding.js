@@ -14,6 +14,8 @@
         const ONBOARDING_DRAFT_KEY = "mkp_onboarding_draft_v5";
         const ONBOARDING_CHECKOUT_SUMMARY_KEY = "mkp_onboarding_checkout_summary_v1";
         const ONBOARDING_CREDENTIALS_KEY = "mkp_onboarding_credentials_v1";
+        // UI-only progress for checks-6-trins-visning — SEPARAT nøgle, ikke i state/payload/generator.
+        const CHECKS_UI_PROGRESS_KEY = "mkp_checks_ui_progress_v1";
 
         const PRICE_EX_VAT = 149;
         const VAT_RATE = 0.25;
@@ -698,6 +700,7 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                 localStorage.removeItem(ONBOARDING_CREDENTIALS_KEY);
                 localStorage.removeItem(ONBOARDING_CHECKOUT_SUMMARY_KEY);
                 localStorage.removeItem(PROFILE_KEY);
+                localStorage.removeItem(CHECKS_UI_PROGRESS_KEY);
 
                 alert(" Testdata slettet fra localStorage. Genindlæs siden for at starte forfra.");
                 location.reload();
@@ -1435,7 +1438,16 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
         ];
         let checksCursor = 0;
         let checksEditFromDone = false;
-        const checksUiDone = new Array(CHECK_UI_STEPS.length).fill(false);
+        function loadChecksUiProgress() {
+            const raw = safeJsonParse(localStorage.getItem(CHECKS_UI_PROGRESS_KEY));
+            if (Array.isArray(raw) && raw.length === CHECK_UI_STEPS.length) return raw.map((v) => v === true);
+            return new Array(CHECK_UI_STEPS.length).fill(false);
+        }
+        function saveChecksUiProgress() {
+            try { localStorage.setItem(CHECKS_UI_PROGRESS_KEY, JSON.stringify(checksUiDone)); } catch (e) {}
+        }
+        // Genoptag UX-progressen efter reload/ny session (UI-only; state.checks/approvals uændret).
+        const checksUiDone = loadChecksUiProgress();
 
         function firstIncompleteCheckUiStep() {
             return checksUiDone.findIndex((d) => !d);
@@ -1629,6 +1641,7 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                 checksUiDone[checksCursor] = true;
                 syncCheckSectionApprovals();
                 saveDraftToLocalStorage();
+                saveChecksUiProgress();
                 updateSaveIndicator("Trin gennemført");
                 updateSidebarStats();
 
@@ -2086,6 +2099,7 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                 console.log("[onboarding] payload built with full onboarding data");
 
                 localStorage.removeItem(ONBOARDING_DRAFT_KEY);
+                localStorage.removeItem(CHECKS_UI_PROGRESS_KEY);
                 console.log("[onboarding] draft removed from localStorage");
 
                 updateSaveIndicator("Starter betaling...");
