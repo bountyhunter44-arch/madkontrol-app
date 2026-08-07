@@ -281,6 +281,18 @@
             line-height:1.5;
         }
 
+        .step-btn.done .no{
+            background:var(--green);
+            color:#fff;
+        }
+
+        .step-btn:focus-visible,
+        button:focus-visible,
+        a:focus-visible{
+            outline:3px solid var(--green);
+            outline-offset:2px;
+        }
+
         .meta-grid{
             display:grid;
             grid-template-columns:1fr 1fr;

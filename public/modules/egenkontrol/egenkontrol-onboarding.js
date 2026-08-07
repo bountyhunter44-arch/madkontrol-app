@@ -29,6 +29,20 @@
             { key: "summary", title: "Betaling", sub: "Opsummering og Stripe checkout" }
         ];
 
+        // UI-faser: de 6 interne STEP_DEFS-trin præsenteres som 4 faser i progress + trin-nav.
+        // Payload, checkout-kontrakt og den interne 6-trins state-maskine (state.currentStep) er UÆNDRET.
+        const PHASE_DEFS = [
+            { title: "Virksomhed", sub: "CVR, kontakt og login", steps: ["company"] },
+            { title: "Enheder og aktiviteter", sub: "Produktion, aktiviteter og udstyr", steps: ["production", "equipment"] },
+            { title: "Risikoprofil", sub: "Egenkontrolprogram og revision", steps: ["program", "checks"] },
+            { title: "Gennemse og betal", sub: "Opsummering og Stripe checkout", steps: ["summary"] }
+        ];
+        function phaseIndexForStep(stepIndex) {
+            const key = (STEP_DEFS[stepIndex] || STEP_DEFS[0]).key;
+            const idx = PHASE_DEFS.findIndex((p) => p.steps.includes(key));
+            return idx >= 0 ? idx : 0;
+        }
+
         const BUSINESS_TYPES = [
             "Pizzeria",
             "Grillbar",
@@ -773,28 +787,49 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
         }
 
         function updateProgress() {
-            const human = state.currentStep + 1;
-            progressValueEl.textContent = `${human} / ${STEP_DEFS.length}`;
-            progressFillEl.style.width = `${(human / STEP_DEFS.length) * 100}%`;
+            // Vis fase (1 af 4) i stedet for internt trin (x/6). Knap-logik følger stadig det interne trin.
+            const phaseIdx = phaseIndexForStep(state.currentStep);
+            progressValueEl.textContent = `Trin ${phaseIdx + 1} af ${PHASE_DEFS.length}`;
+            progressFillEl.style.width = `${((phaseIdx + 1) / PHASE_DEFS.length) * 100}%`;
 
             prevStepBtn.disabled = state.currentStep === 0;
             nextStepBtn.style.display = state.currentStep === STEP_DEFS.length - 1 ? "none" : "inline-flex";
             submitBtn.style.display = "none";
         }
 
-        function renderStepNav() {
-            stepNavEl.innerHTML = STEP_DEFS.map((step, index) => `
-                <button class="step-btn ${index === state.currentStep ? "active" : ""}" data-step-index="${index}" type="button">
-                    <span class="no">${index + 1}</span>
-                    <strong>${escapeHtml(step.title)}</strong>
-                    <span class="sub">${escapeHtml(step.sub)}</span>
-                </button>
-            `).join("");
+        function focusStepHeading() {
+            // a11y: flyt fokus til trinnets overskrift ved trinskift (kun brugerudløst navigation).
+            const heading = stepContentEl.querySelector("h1, h2");
+            if (!heading) return;
+            heading.setAttribute("tabindex", "-1");
+            try { heading.focus({ preventScroll: false }); } catch (e) { heading.focus(); }
+        }
 
-            stepNavEl.querySelectorAll("[data-step-index]").forEach((btn) => {
+        function renderStepNav() {
+            // Vis 4 faser. Klik på en fase går til det FØRSTE interne trin i fasen (6-trins-flow uændret).
+            const currentPhase = phaseIndexForStep(state.currentStep);
+            stepNavEl.innerHTML = PHASE_DEFS.map((phase, index) => {
+                const cls = index === currentPhase ? "active" : (index < currentPhase ? "done" : "");
+                const current = index === currentPhase ? ' aria-current="step"' : "";
+                return `
+                <button class="step-btn ${cls}" data-phase-index="${index}" type="button"${current}>
+                    <span class="no">${index + 1}</span>
+                    <strong>${escapeHtml(phase.title)}</strong>
+                    <span class="sub">${escapeHtml(phase.sub)}</span>
+                </button>
+            `;
+            }).join("");
+
+            stepNavEl.querySelectorAll("[data-phase-index]").forEach((btn) => {
                 btn.addEventListener("click", () => {
-                    state.currentStep = Number(btn.dataset.stepIndex);
-                    render();
+                    const phaseIdx = Number(btn.dataset.phaseIndex);
+                    const firstKey = PHASE_DEFS[phaseIdx].steps[0];
+                    const target = STEP_DEFS.findIndex((s) => s.key === firstKey);
+                    if (target >= 0) {
+                        state.currentStep = target;
+                        render();
+                        focusStepHeading();
+                    }
                 });
             });
         }
@@ -1952,6 +1987,7 @@ window.location.href = result.data.url;
             if (state.currentStep > 0) {
                 state.currentStep -= 1;
                 render();
+                focusStepHeading();
             }
         });
 
@@ -1959,6 +1995,7 @@ window.location.href = result.data.url;
             if (state.currentStep < STEP_DEFS.length - 1) {
                 state.currentStep += 1;
                 render();
+                focusStepHeading();
             }
         });
 
