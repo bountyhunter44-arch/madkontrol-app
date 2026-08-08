@@ -291,6 +291,7 @@
     <script type="module">
         import { setupAuthGate } from "/core/auth.js";
         import { auth, db } from "/core/firebase-config.js";
+        import { computeCvrDuplicateCounts, cvrDuplicateCount, cvrDuplicateLabel, shortCompanyId } from "/admin/cvr-identity.js";
         import {
             collection,
             getDocs,
@@ -401,6 +402,8 @@
             // Join map: deviation.companyId -> company doc (for name/CVR/location lookups).
             const companyById = {};
             companies.forEach((c) => { if (c && c.id) companyById[c.id] = c; });
+            // Admin-diagnostik: hvilke normaliserede CVR deles af flere company-records.
+            const cvrCounts = computeCvrDuplicateCounts(companies);
 
             root.innerHTML = `
                 <div class="owner-header">
@@ -445,6 +448,7 @@
                             <tr>
                                 <th>Virksomhed</th>
                                 <th>CVR</th>
+                                <th>Firma-ID</th>
                                 <th>Brugere</th>
                                 <th>Status</th>
                                 <th>Handlinger</th>
@@ -467,11 +471,15 @@
                                 const statusLabel = isArchived ? 'Arkiveret' : (isLocked ? 'Pauset / betaling mangler' : 'Aktiv');
                                 const statusClass = isArchived ? 'status-archived' : (isLocked ? 'status-locked' : 'status-active');
                                 const safeName = (company.companyName || company.name || '').replace(/'/g, "\\'");
+                                const dupCount = cvrDuplicateCount(company, cvrCounts);
+                                const dupBadge = cvrDuplicateLabel(dupCount);
+                                const shortId = shortCompanyId(company.id);
 
                                 return `
                                     <tr>
                                         <td class="company-name">${company.companyName || company.name || 'Unavngivet'}</td>
-                                        <td>${company.cvr || '-'}</td>
+                                        <td>${company.cvr || '-'}${dupBadge ? ` <span style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:#fef2f2;color:#9b1c1c;font-size:11px;font-weight:700;white-space:nowrap;" title="Samme normaliserede CVR findes på ${dupCount} company-records">${dupBadge}</span>` : ''}</td>
+                                        <td><code style="font-size:12px;color:#374151;" title="${company.id}">${shortId}</code><button type="button" title="Kopiér fuldt Firma-ID: ${company.id}" onclick="copyCompanyId('${company.id}')" style="margin-left:5px;border:none;background:transparent;cursor:pointer;font-size:13px;color:#6b7280;">⧉</button></td>
                                         <td>${companyUsers.length} brugere</td>
                                         <td>
                                             <span class="company-status ${statusClass}">${statusLabel}</span>
@@ -546,6 +554,15 @@
         function todayDateKeyCph() {
             return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Copenhagen", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
         }
+
+        // Admin-diagnostik: kopiér det fulde, autoritative companyId (Firestore document-id).
+        window.copyCompanyId = async function(companyId) {
+            try {
+                await navigator.clipboard.writeText(String(companyId || ''));
+            } catch (e) {
+                console.warn('Kunne ikke kopiere companyId:', e);
+            }
+        };
 
         // Pause: lock new registrations from a chosen date (payment overdue). No delete.
         window.pauseCompany = async function(companyId, companyName) {
