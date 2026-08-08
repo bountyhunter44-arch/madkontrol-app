@@ -557,6 +557,7 @@
     moduleIsActive as showcaseModuleIsActive
   } from "./platform/module-showcase.js";
   import { getEffectiveActiveModules, formatModuleSources } from "./core/module-access.js";
+  import { countPaidModules, nextModulePriceLabelExVat } from "./core/module-pricing.js";
   import { 
     isImpersonating, 
     getEffectiveCompanyId, 
@@ -901,6 +902,9 @@
     if (!upgradeModulesContainerEl) return;
 
     const modules = getModuleShowcases();
+    // Dynamisk pris (§17): 149 kr. hvis virksomheden har 0 BETALTE moduler, ellers 49 kr.
+    // Kun 'paid_subscription'-moduler tæller — prisen afhænger af antal, ikke af moduleKey.
+    const paidCount = countPaidModules(SETTINGS.moduleSources);
 
     if (!modules.length) {
       upgradeModulesContainerEl.innerHTML = '<p style="color:#6b7280;text-align:center;">Modulkataloget er ikke klar endnu.</p>';
@@ -913,7 +917,7 @@
           const owned = showcaseModuleIsActive(module, activeModules);
           const targetUrl = owned ? (module.entryUrl || module.landingPage || getModulePurchaseUrl(module)) : getModulePurchaseUrl(module);
           const actionLabel = owned ? "Åbn" : "Læs mere";
-          const statusLabel = owned ? "Aktivt modul" : (module.priceLabel || "Se pris");
+          const statusLabel = owned ? "Aktivt modul" : nextModulePriceLabelExVat(paidCount);
           const badgeLabel = owned ? "Ejet" : (module.badge || module.category || "Modul");
           const features = Array.isArray(module.features) ? module.features.slice(0, 4) : [];
           const imageMarkup = module.image
