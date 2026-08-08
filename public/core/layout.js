@@ -13,6 +13,7 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { resolvePrettyCompanyInfo } from "./prettyName.js";
+import { isImpersonating, getEffectiveCompanyId, getEffectiveLocationId, getImpersonatedCompanyName } from "./impersonation.js";
 
 const CORE_MODULE_KEY = "core";
 
@@ -363,9 +364,18 @@ async function populateTopbarFromProfile() {
     if (!user) return;
 
     const userProfile = await getCurrentUserProfile();
+
+    // "Se som kunde": når en admin impersonerer, skal company-headeren vise det VALGTE
+    // kundeselskab — samme effektive companyId/locationId som dashboardet allerede bruger —
+    // ikke adminens eget. Genbruger de eksisterende impersonation-helpers (ingen ny
+    // sessionmodel, ingen hardkodning). Ved normal login er companyId/locationId tomme,
+    // så resolvePrettyCompanyInfo udleder dem fra brugerens egen profil præcis som før.
+    const impersonating = isImpersonating();
     const pretty = await resolvePrettyCompanyInfo({
       uid: user.uid,
-      userData: userProfile || {}
+      userData: userProfile || {},
+      companyId: impersonating ? getEffectiveCompanyId("") : "",
+      locationId: impersonating ? getEffectiveLocationId("") : ""
     });
     const userName = await resolveTopbarUserName({ user, profile: userProfile });
 
@@ -377,7 +387,7 @@ async function populateTopbarFromProfile() {
       if (el) el.textContent = val || "";
     };
     set("mkpTopbarUser", userName);
-    set("mkpTopbarCompany", pretty.displayCompany || pretty.companyName);
+    set("mkpTopbarCompany", pretty.displayCompany || pretty.companyName || (impersonating ? getImpersonatedCompanyName() : ""));
     set("mkpTopbarAddress", pretty.address || pretty.displayLocation);
     set("mkpTopbarEmail", pretty.contactEmail || "Ikke angivet");
     set("mkpTopbarPhone", pretty.phone);
