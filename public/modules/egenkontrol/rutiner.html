@@ -586,10 +586,11 @@ requiredBeforeEdit:
         .routine-pager-label{color:#2457d6;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
         .routine-pager-next{margin-top:4px;color:#142044;font-size:14px;font-weight:800}
         .routine-pager-count{flex:0 0 auto;color:#42506b;font-size:13px;font-weight:800}
-        .routine-page-numbers{display:flex;gap:7px;max-width:100%;overflow-x:auto;padding:2px 1px 5px;scrollbar-width:thin;scroll-snap-type:x proximity}
+        .routine-page-numbers{display:flex;justify-content:center;align-items:center;gap:7px;max-width:100%;padding:2px 1px 5px}
         .routine-page-number{flex:0 0 34px;width:34px;height:34px;padding:0;border:1px solid #c6d5f2;border-radius:10px;background:#fff;color:#142044;font-size:13px;font-weight:850;cursor:pointer;scroll-snap-align:center}
         .routine-page-number:hover{border-color:#2457d6;color:#2457d6}
         .routine-page-number.is-current{border-color:#2457d6;background:#2457d6;color:#fff;box-shadow:0 5px 12px rgba(36,87,214,.22)}
+        .routine-page-ellipsis{flex:0 0 auto;color:#65718a;font-size:14px;font-weight:800;letter-spacing:.08em}
         .routine-pager-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
         .routine-pager-actions .btn{width:100%;min-height:44px}
         @media(max-width:600px){.routine-pager-top{display:block}.routine-pager-count{margin-top:8px}}
@@ -2483,6 +2484,13 @@ requiredBeforeEdit:
             fitCurrentRoutineToViewport();
             window.setTimeout(fitCurrentRoutineToViewport, 180);
             window.setTimeout(fitCurrentRoutineToViewport, 650);
+        }
+
+        function getCompactRoutinePageItems(total, currentIndex) {
+            if (total <= 7) return Array.from({ length: total }, (_, index) => index);
+            if (currentIndex <= 3) return [0, 1, 2, 3, 4, "ellipsis", total - 1];
+            if (currentIndex >= total - 4) return [0, "ellipsis", total - 5, total - 4, total - 3, total - 2, total - 1];
+            return [0, "ellipsis", currentIndex - 1, currentIndex, currentIndex + 1, "ellipsis", total - 1];
         }
 
         function scrollToCurrentRoutine({ behavior = "smooth", delay = 0 } = {}) {
@@ -8460,15 +8468,19 @@ ${(() => {
                         <div class="routine-pager-count">Rutine ${currentRoutinePage + 1} af ${openTasks.length}</div>
                     </div>
                     <div class="routine-page-numbers" aria-label="Vælg rutine">
-                        ${openTasks.map((task, index) => `
-                            <button
-                                type="button"
-                                class="routine-page-number${index === currentRoutinePage ? " is-current" : ""}"
-                                data-routine-go="${index}"
-                                aria-label="Åbn rutine ${index + 1}: ${escapeHtml(getVisibleTitle(task))}"
-                                aria-current="${index === currentRoutinePage ? "step" : "false"}"
-                            >${index + 1}</button>
-                        `).join("")}
+                        ${getCompactRoutinePageItems(openTasks.length, currentRoutinePage).map((item, itemIndex) => {
+                            if (item === "ellipsis") return `<span class="routine-page-ellipsis" aria-hidden="true" data-ellipsis-index="${itemIndex}">…</span>`;
+                            const task = openTasks[item];
+                            return `
+                                <button
+                                    type="button"
+                                    class="routine-page-number${item === currentRoutinePage ? " is-current" : ""}"
+                                    data-routine-go="${item}"
+                                    aria-label="Åbn rutine ${item + 1}: ${escapeHtml(getVisibleTitle(task))}"
+                                    aria-current="${item === currentRoutinePage ? "step" : "false"}"
+                                >${item + 1}</button>
+                            `;
+                        }).join("")}
                     </div>
                 </section>`;
             const pagerActionsHtml = filtersAreActive ? "" : `
