@@ -17,6 +17,9 @@ const LS_KEY        = "mk_active_cooling_runs";   // array
 const LS_KEY_LEGACY = "mk_active_cooling_run";    // old single-run key
 const PANEL_ID      = "mk-cooling-panel";
 const LIMIT_MS      = 4 * 60 * 60 * 1000;
+// One-time boundary for orphaned timers created before the persistent timer
+// release. It is fixed deliberately, so future overdue runs are never hidden.
+const LEGACY_ORPHAN_CUTOFF_MS = new Date("2026-08-27T22:00:00.000Z").getTime();
 
 const PHASES = [
     { upTo: 1 * 3600000, label: "I gang",           bg: "#0d3d1a", accent: "#2e9e4a", timerColor: "#a8f0b8", barColor: "#2e9e4a", icon: "/images/lexi_icons/cooling-happy-green.svg"   },
@@ -49,6 +52,11 @@ function formatElapsed(ms) {
 }
 
 function getElapsedMs(startedAt) { return Date.now() - new Date(startedAt).getTime(); }
+
+function isLegacyOrphan(run) {
+    const startedMs = new Date(run?.startedAt).getTime();
+    return !Number.isFinite(startedMs) || startedMs < LEGACY_ORPHAN_CUTOFF_MS;
+}
 
 function getPhase(ms) {
     for (let i = 0; i < PHASES.length; i++) {
@@ -849,7 +857,9 @@ export function getActiveCoolingRuns() {
 export function initCoolingOverlay() {
     // 1. Render from localStorage immediately (fast, works offline)
     const runs = loadRuns();   // also migrates legacy single-run key
-    if (runs.length) {
+    const currentRuns = runs.filter(run => !isLegacyOrphan(run));
+    if (currentRuns.length !== runs.length) saveRunsRaw(currentRuns);
+    if (currentRuns.length) {
         isPanelMin = false;
         renderPanel();
     }
@@ -884,7 +894,7 @@ export function initCoolingOverlay() {
 
             firestoreUnsub = onSnapshot(q, (snapshot) => {
                 const fsRuns  = snapshot.docs.map(d => d.data());
-                const fsRaw   = fsRuns.filter(r => r?.startedAt && r.active !== false && r.archived !== true);
+                const fsRaw   = fsRuns.filter(r => r?.startedAt && r.active !== false && r.archived !== true && !isLegacyOrphan(r));
                 console.log("[cooling] onSnapshot fired — docs:", snapshot.docs.length, "valid:", fsRaw.length);
 
                 // Keep every local run that Firestore has not seen yet. This makes the
@@ -893,7 +903,7 @@ export function initCoolingOverlay() {
                 const allFsRunIds = new Set(fsRuns.map(r => r?.runId).filter(Boolean));
                 const localRuns   = loadRunsRaw();
                 const unsyncedLocal = localRuns.filter(r =>
-                    r?.runId && r?.startedAt && !allFsRunIds.has(r.runId)
+                    r?.runId && r?.startedAt && !isLegacyOrphan(r) && !allFsRunIds.has(r.runId)
                 );
                 const merged = [...fsRaw, ...unsyncedLocal];
                 console.log("[cooling] merged:", merged.length, "(fs:", fsRaw.length, "+ local pending:", unsyncedLocal.length, ")");
