@@ -767,13 +767,101 @@ requiredBeforeEdit:
             .task-item.is-open .task-meta,
             .task-item.is-open .routine-card-activity,
             .task-item.is-open .recall-feed-panel,
-            .task-item.is-open .task-docs-panel,
             .task-item.is-open .task-action-secondary{
                 display:none;
             }
 
             .task-item.is-open .routine-compact-tools{
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:8px;
+                margin:8px 0 0;
+            }
+
+            .task-item.is-open .task-docs-panel{
                 display:block;
+                min-width:0;
+                margin:0;
+                padding:0;
+                border:0;
+                background:transparent;
+                box-shadow:none;
+            }
+
+            .task-item.is-open .task-docs-head{
+                display:block;
+            }
+
+            .task-item.is-open .task-docs-copy,
+            .task-item.is-open .task-docs-body{
+                display:none;
+            }
+
+            .task-item.is-open .task-camera-btn,
+            .task-item.is-open .routine-guide-open{
+                width:100%;
+                min-height:44px;
+                margin:0;
+                padding:9px 8px;
+                border:1px solid #b9ccef;
+                border-radius:12px;
+                background:#fff;
+                color:#174ba8;
+                font-size:13px;
+                font-weight:800;
+            }
+
+            .task-item.is-open .task-camera-btn::before{
+                content:'📷 ';
+            }
+
+            .task-item.is-open{
+                border-color:#c9d9f7;
+                border-radius:18px;
+                box-shadow:0 12px 32px rgba(20,55,110,.10);
+            }
+
+            .task-item.is-open .task-content h4{
+                color:#102044;
+                font-size:17px;
+                line-height:1.2;
+            }
+
+            .task-item.is-open .routine-layout-grid{
+                margin-top:8px;
+            }
+
+            .task-item.is-open .routine-layout-grid .routine-form{
+                padding:0;
+                border:0;
+                background:transparent;
+            }
+
+            .task-item.is-open .routine-assessment-options{
+                grid-template-columns:1fr;
+            }
+
+            .task-item.is-open .routine-assessment-option{
+                min-height:46px;
+                border:1px solid #d4def0;
+                border-radius:12px;
+                background:#f8faff;
+            }
+
+            .task-item.is-open .task-save-btn{
+                min-height:48px;
+                border-radius:12px;
+                font-size:15px;
+                font-weight:850;
+            }
+
+            .task-item.is-open .task-camera-btn{
+                font-size:0;
+            }
+
+            .task-item.is-open .task-camera-btn::after{
+                content:'📷 Kamera · AI/OCR';
+                font-size:13px;
             }
 
             .task-item.is-open .routine-guide-open{

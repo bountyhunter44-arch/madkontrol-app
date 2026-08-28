@@ -1254,6 +1254,48 @@
             }
             .stat-item h3 { font-size: 2rem; }
             .footer-bottom { justify-content: center; text-align: center; }
+
+            /* On small screens the slides must participate in normal document flow.
+               Absolute desktop slides overlap when the browser uses larger text. */
+            .hero-sales-card {
+                min-height: 0;
+                padding: 20px 16px;
+            }
+            .hero-sales-slider {
+                position: static;
+                min-height: 0;
+                flex: none;
+            }
+            .hero-sales-slide {
+                display: none;
+                position: static;
+                inset: auto;
+                transform: none;
+                opacity: 1;
+            }
+            .hero-sales-slide.active {
+                display: block;
+                transform: none;
+            }
+            .hero-sales-card-footer {
+                position: static;
+                margin-top: 18px;
+                flex-wrap: wrap;
+            }
+            .hero-sales-card-footer .btn {
+                margin-left: auto;
+            }
+            .slide-headline,
+            .slide-points li,
+            .hero-subtitle-below {
+                overflow-wrap: anywhere;
+            }
+            .hero-subtitle-below {
+                margin: 20px auto 0;
+                max-width: 42rem;
+                font-size: 1rem !important;
+                line-height: 1.65;
+            }
         }
     </style>
 </head>
