@@ -796,6 +796,49 @@ function ensureLayoutStyles() {
         margin:0 auto !important;
       }
 
+      @media (max-width: 640px){
+        .mkp-layout-sidebar,
+        .mkp-layout-sidebar.sidebar{
+          left:8px !important;
+          right:8px !important;
+          bottom:calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+          padding:4px 0 !important;
+        }
+
+        .mkp-layout-sidebar .sidebar-inner{
+          grid-template-columns:repeat(4, minmax(0, 1fr)) !important;
+          gap:3px !important;
+        }
+
+        .mkp-layout-sidebar .sidebar-link,
+        .mkp-layout-sidebar .sidebar-link:hover,
+        .mkp-layout-sidebar .sidebar-link.active{
+          min-height:44px !important;
+          padding:3px 2px !important;
+          gap:2px !important;
+          border-radius:10px !important;
+          font-size:8px !important;
+          line-height:1 !important;
+          overflow:hidden !important;
+        }
+
+        .mkp-layout-sidebar .sidebar-link > span:last-child{
+          display:block !important;
+          width:100% !important;
+          overflow:hidden !important;
+          text-overflow:ellipsis !important;
+          white-space:nowrap !important;
+        }
+
+        .mkp-layout-sidebar .sidebar-badge{
+          width:20px !important;
+          height:20px !important;
+          min-width:20px !important;
+          border-radius:6px !important;
+          font-size:12px !important;
+        }
+      }
+
       .mkp-layout-topbar{
         min-height:auto !important;
       }

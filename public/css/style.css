@@ -1970,21 +1970,29 @@ textarea:focus{
   }
 
   .sidebar-link{
-    min-height:58px !important;
-    padding:7px 4px;
-    font-size:9px;
-    border-radius:14px;
-    padding:7px 4px !important;
-    font-size:16px !important;
-    border-radius:14px !important;
+    min-height:44px !important;
+    padding:3px 2px !important;
+    gap:2px !important;
+    font-size:8px !important;
+    line-height:1 !important;
+    border-radius:10px !important;
+    overflow:hidden !important;
+  }
+
+  .sidebar-link > span:last-child{
+    display:block !important;
+    width:100% !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
   }
 
   .sidebar-badge{
-    width:26px !important;
-    height:26px !important;
-    min-width:26px !important;
-    font-size:9px !important;
-    border-radius:8px !important;
+    width:20px !important;
+    height:20px !important;
+    min-width:20px !important;
+    font-size:12px !important;
+    border-radius:6px !important;
   }
 }
 
@@ -1994,15 +2002,15 @@ textarea:focus{
   }
 
   .sidebar-link{
-    min-height:56px !important;
-    font-size:8.5px !important;
+    min-height:42px !important;
+    font-size:7.5px !important;
   }
 
   .sidebar-badge{
-    width:24px !important;
-    height:24px !important;
-    min-width:24px !important;
-    font-size:15px !important;
+    width:19px !important;
+    height:19px !important;
+    min-width:19px !important;
+    font-size:11px !important;
   }
 }
 
