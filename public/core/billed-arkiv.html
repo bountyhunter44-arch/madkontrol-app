@@ -103,7 +103,7 @@
     function resolveModuleLink(asset) {
       const moduleType = String(asset.moduleType || "").toLowerCase();
       if (moduleType === "egenkontrol") {
-        return `/modules/egenkontrol/rapporter.html?taskInstanceId=${encodeURIComponent(asset.taskInstanceId || "")}`;
+        return `/modules/egenkontrol/rapporter.html?mode=authority&taskInstanceId=${encodeURIComponent(asset.taskInstanceId || "")}`;
       }
       return "";
     }

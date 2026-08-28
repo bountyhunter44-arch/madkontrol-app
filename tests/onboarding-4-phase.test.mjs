@@ -49,11 +49,10 @@ test("5. Trin-nav rendrer 4 faser (data-phase-index), ikke 6 trin", () => {
   assert.ok(!js.includes("data-step-index"), "gammelt data-step-index er væk");
 });
 
-test("6. Begge shells viser fase-default 'Trin 1 af 4' og ikke '1 / 6'", () => {
-  for (const [name, html] of [["quick-onboarding", quick], ["module onboarding", modulePage]]) {
-    assert.ok(html.includes('id="progressValue">Trin 1 af 4<'), `${name} progress-default`);
-    assert.ok(!html.includes("1 / 6"), `${name} intet 1/6`);
-  }
+test("6. Den canonical quick-onboarding viser fase-default 'Trin 1 af 4' og ikke '1 / 6'", () => {
+  assert.ok(quick.includes('id="progressValue">Trin 1 af 4<'), "quick-onboarding progress-default");
+  assert.ok(!quick.includes("1 / 6"), "quick-onboarding intet 1/6");
+  assert.ok(modulePage.includes("/quick-onboarding.html"), "legacy modul-URL sender videre til canonical onboarding");
 });
 
 test("7. Checkout-kontrakten er uændret (payload + createOnboardingCheckoutSession)", () => {
@@ -72,11 +71,16 @@ test("8. Success-route er uændret (/tak.html)", () => {
 test("9. Ingen ny hardkodet pris — eksisterende PRICE_EX_VAT er source", () => {
   assert.ok(js.includes("PRICE_EX_VAT = 149"), "PRICE_EX_VAT bevaret");
   assert.ok(js.includes("VAT_RATE = 0.25"), "VAT_RATE bevaret");
+  assert.ok(quick.includes("149 kr./md."), "quick onboarding viser månedsprisen ekskl. moms");
+  assert.ok(quick.includes("1.609,20 kr./år"), "quick onboarding viser årsbetalingen ekskl. moms");
+  assert.ok(js.includes("149 kr./md. ekskl. moms"), "månedsknappen følger EWCP-præsentationen");
+  assert.ok(js.includes("1.609,20 kr./år ekskl. moms"), "årsknappen følger EWCP-præsentationen");
+  assert.ok(!quick.includes("186,25 kr/md"), "quick onboarding viser ikke længere inkl. moms som hovedpris");
 });
 
-test("10. Begge sider bruger fortsat den delte komponent", () => {
+test("10. Quick-onboarding bruger fortsat den delte komponent", () => {
   assert.ok(quick.includes("/modules/egenkontrol/egenkontrol-onboarding.js"), "quick loader delt komponent");
-  assert.ok(modulePage.includes("./egenkontrol-onboarding.js"), "modulside loader delt komponent");
+  assert.ok(modulePage.includes("window.location.replace(canonicalOnboarding)"), "legacy modulside viderestiller til canonical onboarding");
 });
 
 test("11. quick-onboarding er fortsat noindex", () => {

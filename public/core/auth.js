@@ -207,6 +207,29 @@ function ensureAuthStyles() {
 			display: none !important;
 		}
 
+		.mkp-logout-mount {
+			display: flex;
+			align-items: center;
+			flex: 0 0 auto;
+		}
+
+		.mkp-logout-mount .mkp-logout-btn {
+			position: static;
+			min-height: 38px;
+			border-color: #cbd7f4;
+			background: #ffffff;
+			color: #142044;
+			box-shadow: none;
+			font-size: 13px;
+			padding: 8px 14px;
+		}
+
+		.mkp-logout-mount .mkp-logout-btn:hover {
+			border-color: #2f5fe0;
+			background: #eef3ff;
+			color: #1f4fc9;
+		}
+
 		.mkp-demo-banner {
 			position: fixed;
 			right: 16px;
@@ -305,6 +328,7 @@ function ensureAuthUi(appName = "Madkontrollen Pro") {
 
 	let gate = document.getElementById("mkpAuthGate");
 	let logoutBtn = document.getElementById("mkpLogoutBtn");
+	const logoutMount = document.getElementById("mkpLogoutMount");
 
 	if (!gate) {
 		gate = document.createElement("div");
@@ -358,7 +382,9 @@ function ensureAuthUi(appName = "Madkontrollen Pro") {
 		logoutBtn.type = "button";
 		logoutBtn.hidden = true;
 		logoutBtn.textContent = "Log ud";
-		document.body.appendChild(logoutBtn);
+		(logoutMount || document.body).appendChild(logoutBtn);
+	} else if (logoutMount && logoutBtn.parentElement !== logoutMount) {
+		logoutMount.appendChild(logoutBtn);
 	}
 
 	return { gate, logoutBtn };
@@ -478,6 +504,7 @@ function clearSessionScope() {
 
 let demoBannerElements = null;
 let demoBannerIntervalId = null;
+let demoExpiryInProgress = false;
 
 function ensureDemoBanner() {
 	if (demoBannerElements) return demoBannerElements;
@@ -550,6 +577,25 @@ function getDemoCountdownLabel(expiresAt) {
 	return `${totalMinutes} min`;
 }
 
+export function isExpiredDemoProfile(profile = {}) {
+	if (profile.isDemo !== true && profile.demoMode !== true) return false;
+	const expiresAt = parseDemoDateValue(profile.demoExpiresAt);
+	return !expiresAt || expiresAt.getTime() <= Date.now();
+}
+
+async function endExpiredDemoSession() {
+	if (demoExpiryInProgress) return;
+	demoExpiryInProgress = true;
+	stopDemoBannerTimer();
+	try {
+		await signOut(auth);
+	} catch (error) {
+		console.warn("Kunne ikke afslutte udløbet demo-session rent:", error);
+	} finally {
+		window.location.replace("/?demo=expired");
+	}
+}
+
 function syncDemoBanner(profile = {}) {
 	const companyId = String(profile.companyId || profile.organizationId || "").trim();
 	const locationId = String(profile.primaryLocationId || profile.locationId || "").trim();
@@ -566,11 +612,14 @@ function syncDemoBanner(profile = {}) {
 		return;
 	}
 
+	if (isExpiredDemoProfile(profile)) {
+		void endExpiredDemoSession();
+		return;
+	}
+
 	const banner = ensureDemoBanner();
 	const countdown = getDemoCountdownLabel(demoExpiresAt);
-	const upgradeHref = companyId && locationId
-		? `/modules/egenkontrol/onboarding.html?mode=convert-demo&companyId=${encodeURIComponent(companyId)}&locationId=${encodeURIComponent(locationId)}`
-		: "/modules/egenkontrol/onboarding.html?mode=convert-demo";
+	const upgradeHref = "/modul.html?modul=egenkontrol&from=demo";
 
 	if (banner.titleEl) {
 		banner.titleEl.textContent = "Demo aktiv";
@@ -719,6 +768,14 @@ export async function setupAuthGate(options = {}) {
 				const profile = userSnap.data();
 				console.log("[login] profile", profile);
 
+				if (isExpiredDemoProfile(profile)) {
+					await signOut(auth);
+					errorEl.textContent = "Demoen er udløbet. Start en ny demo fra forsiden.";
+					submitBtn.disabled = false;
+					submitBtn.textContent = "Log ind";
+					return;
+				}
+
 				const orgId = profile.organizationId || profile.companyId;
 				const locationId = profile.primaryLocationId || profile.locationId || 
 					(Array.isArray(profile.locationIds) && profile.locationIds.length > 0 ? profile.locationIds[0] : null);
@@ -823,6 +880,12 @@ export async function setupAuthGate(options = {}) {
 			locationIds: profile?.locationIds,
 			primaryLocationId: profile?.primaryLocationId
 		});
+
+		if (isExpiredDemoProfile(profile)) {
+			console.info("[auth] Demo expired; signing out.");
+			await endExpiredDemoSession();
+			return;
+		}
 
 		// Validate profile has MINIMAL required fields
 		// CRITICAL: If Firebase Auth user exists AND users/{uid} exists, accept the user

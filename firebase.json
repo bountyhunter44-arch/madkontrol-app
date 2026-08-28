@@ -31,9 +31,49 @@
         "source": "/modules/egenkontrol/front",
         "destination": "/",
         "type": 301
+      },
+      {
+        "source": "/funktioner/digital-egenkontrol.html",
+        "destination": "/digital-egenkontrol/",
+        "type": 301
+      },
+      {
+        "source": "/funktioner/risikoanalyse-haccp.html",
+        "destination": "/risikoanalyse-haccp/",
+        "type": 301
+      },
+      {
+        "source": "/egenkontrol-restaurant",
+        "destination": "/egenkontrol-restaurant/",
+        "type": 301
+      },
+      {
+        "source": "/egenkontrol-takeaway",
+        "destination": "/egenkontrol-takeaway/",
+        "type": 301
       }
     ],
     "headers": [
+      {
+        "source": "/admin/**",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      },
+      {
+        "source": "/modules/**",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      },
+      {
+        "source": "/dashboard{,/**,.html}",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      },
+      {
+        "source": "/{login,quick-onboarding,onboarding,tak,create-company,create-location}.html",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      },
+      {
+        "source": "/{core,platform,sso}/**",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      },
       {
         "source": "**",
         "headers": [
@@ -96,6 +136,14 @@
       {
         "source": "/landing",
         "destination": "/index.html"
+      },
+      {
+        "source": "/digital-egenkontrol/**",
+        "destination": "/funktioner/digital-egenkontrol.html"
+      },
+      {
+        "source": "/risikoanalyse-haccp/**",
+        "destination": "/funktioner/risikoanalyse-haccp.html"
       },
       {
         "source": "/fn/saveRoutineTask",

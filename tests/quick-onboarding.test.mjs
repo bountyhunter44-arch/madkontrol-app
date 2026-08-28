@@ -63,9 +63,9 @@ test("7-9. Ingen gratis account-flow / modul-redirect-symboler", () => {
   }
 });
 
-test("10. Den delte komponent genbruges af begge sider (ingen duplikeret logik)", () => {
+test("10. Quick-onboarding bruger den delte komponent, og legacy modul-URL viderestiller", () => {
   assert.ok(quick.includes('/modules/egenkontrol/egenkontrol-onboarding.js'), "quick loader den delte komponent (absolut)");
-  assert.ok(modules.includes('./egenkontrol-onboarding.js'), "modul-siden loader den delte komponent (relativ)");
+  assert.ok(modules.includes('window.location.replace(canonicalOnboarding)'), "modul-siden viderestiller til canonical onboarding");
   assert.ok(existsSync(P(SHARED_JS)) && existsSync(P(SHARED_CSS)), "delte filer findes");
   // Modul-siden må ikke længere have sin egen store inline module-logik:
   assert.ok(!/<script type="module">[\s\S]*createOnboardingCheckoutSession/.test(modules), "ingen stor inline onboardinglogik i modul-siden");
@@ -99,7 +99,7 @@ test("18. Root /onboarding.html er ikke længere brudt", () => {
 
 test("19. Modul-onboarding-URL findes fortsat (kompatibel, ingen 404)", () => {
   assert.ok(existsSync(P(MODULES)), "modules/egenkontrol/onboarding.html findes");
-  assert.ok(modules.includes("egenkontrol-onboarding.js"), "er en wrapper om den delte komponent");
+  assert.ok(modules.includes("/quick-onboarding.html"), "viderestiller til den canonical onboarding");
 });
 
 test("20. Ingen /login.html-links i onboarding-fladen", () => {

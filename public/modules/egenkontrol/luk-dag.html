@@ -77,7 +77,7 @@
           summaryEl.innerHTML = `
             <div class="report-link-box">
               <p>Rapporten er klar til visning:</p>
-              <a href="/modules/egenkontrol/rapporter.html?reportId=${runData.reportId}" class="btn btn-primary">
+              <a href="/modules/egenkontrol/rapporter.html?mode=authority&reportId=${runData.reportId}" class="btn btn-primary">
                 📄 Se rapport
               </a>
             </div>
@@ -267,7 +267,7 @@
         summaryEl.innerHTML = `
           <div class="report-link-box">
             <p><strong>Dagen er arkiveret!</strong> Rapporten er låst og klar til PDF.</p>
-            <a href="/modules/egenkontrol/rapporter.html?reportId=${data.reportId}" class="btn btn-primary">
+            <a href="/modules/egenkontrol/rapporter.html?mode=authority&reportId=${data.reportId}" class="btn btn-primary">
               📄 Se rapport
             </a>
             <a href="/modules/egenkontrol/rutiner.html" class="btn btn-secondary" style="margin-left: 12px;">

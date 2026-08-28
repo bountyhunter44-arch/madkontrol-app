@@ -250,6 +250,7 @@
       <!-- Location switcher skjult men funktionel -->
       <select id="locationSwitcher" class="location-switcher" aria-label="Vælg lokation" style="display:none"></select>
       <div id="languageSwitcherContainer" style="flex:0 0 auto;margin-left:auto;"></div>
+      <div id="mkpLogoutMount" class="mkp-logout-mount" aria-label="Brugermenu"></div>
     </div>
   </header>
 
@@ -262,37 +263,42 @@
               <div class="sidebar-label">Egenkontrol</div>
 
               <a href="dashboard.html" class="sidebar-link active" aria-current="page">
-                <span class="sidebar-badge">DB</span>
+                <span class="sidebar-badge" aria-hidden="true">📊</span>
                 <span>Dashboard</span>
               </a>
 
               <a href="modules/egenkontrol/rutiner.html" class="sidebar-link">
-                <span class="sidebar-badge">RU</span>
+                <span class="sidebar-badge" aria-hidden="true">📋</span>
                 <span>Rutiner</span>
               </a>
 
               <a href="modules/egenkontrol/afvigelser.html" class="sidebar-link">
-                <span class="sidebar-badge">AF</span>
+                <span class="sidebar-badge" aria-hidden="true">🚨</span>
                 <span>Afvigelser</span>
               </a>
 
               <a href="modules/egenkontrol/risikoanalyse.html" class="sidebar-link">
-                <span class="sidebar-badge">RI</span>
+                <span class="sidebar-badge" aria-hidden="true">🛡️</span>
                 <span>Risikoanalyse</span>
               </a>
 
+              <a href="modules/egenkontrol/risikoanalyse-inspiration.html" class="sidebar-link">
+                <span class="sidebar-badge" aria-hidden="true">💡</span>
+                <span>Inspiration til risikoanalyse</span>
+              </a>
+
               <a href="/modules/egenkontrol/rapporter.html?mode=authority" class="sidebar-link">
-                <span class="sidebar-badge">MR</span>
+                <span class="sidebar-badge" aria-hidden="true">📑</span>
                 <span>Myndighedsrapport</span>
               </a>
 
               <a href="/core/billed-arkiv.html" class="sidebar-link">
-                <span class="sidebar-badge">BA</span>
+                <span class="sidebar-badge" aria-hidden="true">🖼️</span>
                 <span>Billedarkiv</span>
               </a>
 
               <a href="kontrol.html" class="sidebar-link">
-                <span class="sidebar-badge">KM</span>
+                <span class="sidebar-badge" aria-hidden="true">🔎</span>
                 <span>Kontrol-mode</span>
               </a>
             </div>
@@ -353,7 +359,6 @@
                 <p class="team-lead">Fejl og hændelser håndteres i afvigelsesmodulet, hvor de skal markeres som løst med forklaring før arkivering.</p>
                 <div class="team-form-actions">
                   <a href="modules/egenkontrol/afvigelser.html" class="btn btn-secondary">Gå til afvigelser</a>
-                  <a href="/modules/egenkontrol/rapporter.html?mode=authority" class="btn btn-secondary">Åbn myndighedsrapport</a>
                 </div>
               </article>
 
@@ -362,7 +367,6 @@
                 <p class="team-lead">Brug myndighedsrapporten til udskrift og dokumentation med fotos, logfiler, HACCP og lukkede afvigelser.</p>
                 <div class="team-form-actions">
                   <a href="/modules/egenkontrol/rapporter.html?mode=authority" class="btn btn-secondary">Åbn myndighedsrapport</a>
-                  <a href="modules/egenkontrol/risikoanalyse.html" class="btn btn-secondary">Åbn risikoanalyse</a>
                 </div>
               </article>
             </div>
@@ -450,6 +454,11 @@
               <span>Vedligehold HACCP-plan og generér samlet dokumentation til print.</span>
             </a>
 
+            <a href="modules/egenkontrol/risikoanalyse-inspiration.html" class="quick-link">
+              <strong>💡 Inspiration til risikoanalyse</strong>
+              <span>Se vejledende eksempler på farer, kontrolpunkter og dokumentationskrav.</span>
+            </a>
+
             <a href="/modules/egenkontrol/rapporter.html?mode=authority" class="quick-link quick-link-authority">
               <strong>Myndighedsrapport</strong>
               <span>Samler al dokumentation til Fødevarestyrelsen for de sidste 3 måneder.</span>
@@ -472,14 +481,14 @@
             <div class="section-header">
               <div>
                 <h2>Brugere på denne lokation</h2>
-                <p>Ejeren eller admin på lokationen kan oprette ansatte med almindelig medarbejderadgang.</p>
+                <p>Ejeren eller admin på lokationen kan oprette medarbejdere med almindelig medarbejderadgang.</p>
               </div>
             </div>
 
             <div class="team-management-grid">
               <div class="team-form-card">
                 <h3>Opret medarbejder</h3>
-                <p class="team-lead">Den nye bruger bliver knyttet til den valgte lokation og får adgang som medarbejder/ansat.</p>
+                <p class="team-lead">Den nye bruger bliver knyttet til den valgte lokation og får adgang som medarbejder.</p>
 
                 <form id="teamCreateForm" class="team-form">
                   <div class="team-field">
@@ -502,7 +511,6 @@
                     <label for="teamUserRole">Rollebetegnelse</label>
                     <select id="teamUserRole">
                       <option value="medarbejder">Medarbejder</option>
-                      <option value="ansat">Ansat</option>
                     </select>
                   </div>
 
@@ -1076,8 +1084,7 @@
   }
 
   function formatEmploymentRoleLabel(userData = {}) {
-    const raw = String(userData?.employmentRole || userData?.role || "medarbejder").trim().toLowerCase();
-    if (raw === "ansat") return "Ansat";
+    // Legacy records may use "ansat", but the UI uses one consistent label.
     return "Medarbejder";
   }
 
@@ -1198,8 +1205,7 @@
 
     setTeamStatus("Opretter bruger...");
 
-    // Map dansk employmentRole til engelsk role for Firestore security rules
-    // Både "medarbejder" og "ansat" mapper til "employee"
+    // Map den danske rollebetegnelse til den interne Firestore-rolle.
     const role = "employee";
 
     try {
@@ -3343,4 +3349,3 @@
   <script src="modules/egenkontrol/process-dashboard.js"></script>
 </body>
 </html>
-

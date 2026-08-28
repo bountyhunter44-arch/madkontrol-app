@@ -6,7 +6,7 @@
 ## Core facts
 - **Project:** Madkontrollen Pro
 - **Active Firebase project:** `madkontrollen`
-- **Active repo:** `D:\madkontrol-app`
+- **Active repo:** `G:\EWCP-Projects\madkontrollen-web`
 - **Clean hosting deploy folder:** `D:\mk-deploy-focused`
 - **Hosting deploy MUST come from the clean-room (`D:\mk-deploy-focused`), not the dirty repo.**
   The working tree contains many uncommitted/unrelated changes; deploying it ships all of them.
@@ -46,3 +46,13 @@
 1. Read the relevant registry file(s) before changing code.
 2. Run the `audit-checklist.md` checks.
 3. Update the registry file(s) after the change (active vs deprecated, new no-go, new collection).
+
+## Public module presentation
+- `public/modul.html?modul={egenkontrol|pos|accounting}` is the public, login-free presentation page.
+- Dashboard "Læs mere" links must open this page. Only owned-module "Åbn" links go directly to an app.
+- Every public module presentation includes a direct Stripe purchase CTA for an existing signed-in company.
+  Direct module purchases never route through onboarding; `createDirectModuleCheckoutSession` resolves
+  company/location from the authenticated user and `stripeWebhook` activates the purchased module.
+- Demo-bannerens aktivering går til Egenkontrol-præsentationen og direkte checkout til baseprisen 149 kr.
+  En gennemført demo-betaling konverterer demoens bruger, virksomhed og lokation til aktiv kundestatus,
+  så én-times udløbet ikke efterfølgende lukker den betalte konto. Forsidens Madkontrollen-køb bruger fortsat onboarding.

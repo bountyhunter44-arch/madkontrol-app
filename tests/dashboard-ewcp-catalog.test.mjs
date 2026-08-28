@@ -65,14 +65,14 @@ test("C. Ejerskab er entitlement-drevet (ikke hardkodet)", () => {
   assert.ok(!/\bowned:\s*true|isOwned:\s*true|status:\s*["']owned["']/.test(appReg + showcase), "ingen hardkodet ejet-status");
 });
 
-test("D. Ikke-ejede POS/Regnskab starter IKKE Madkontrollen checkout", () => {
-  // getModulePurchaseUrl returnerer landingPage FØR quick-onboarding-grenen.
+test("D. Ikke-ejede POS/Regnskab åbner intern modulside før køb", () => {
+  // getModulePurchaseUrl returnerer den interne landingPage før checkout.
   assert.ok(showcase.includes("if (showcase?.landingPage) return showcase.landingPage"), "landingPage har forrang");
-  for (const [k, url] of [["pos", "https://pos.madkontrollen.dk"], ["accounting", "https://regnskab.ewcp.dk"]]) {
+  for (const [k, url, checkoutKey] of [["pos", "https://pos.madkontrollen.dk", "pos"], ["accounting", "https://regnskab.ewcp.dk", "bogforing"]]) {
     const b = showcaseBlock(k);
-    assert.ok(b.includes(`landingPage: "${url}"`), `${k}: landingPage = verificeret domæne`);
+    assert.ok(b.includes(`landingPage: "/modul.html?modul=${k}"`), `${k}: intern modul-landingsside`);
     assert.ok(b.includes(`entryUrl: "${url}"`), `${k}: entryUrl = verificeret domæne`);
-    assert.ok(!b.includes("checkoutModuleKey"), `${k}: BEVIDST ingen checkoutModuleKey`);
+    assert.ok(b.includes(`checkoutModuleKey: "${checkoutKey}"`), `${k}: fælles checkout-nøgle`);
     assert.ok(!b.includes("quick-onboarding"), `${k}: ingen quick-onboarding-destination`);
   }
 });

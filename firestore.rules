@@ -10,8 +10,13 @@ service cloud.firestore {
       return /databases/$(database)/documents/users/$(request.auth.uid);
     }
 
+    function demoAccessIsActive() {
+      return userDoc().data.get('isDemo', false) != true ||
+        userDoc().data.get('demoExpiresAt', request.time) > request.time;
+    }
+
     function userExists() {
-      return signedIn() && exists(userPath());
+      return signedIn() && exists(userPath()) && demoAccessIsActive();
     }
 
     function userDoc() {
@@ -203,7 +208,7 @@ service cloud.firestore {
 
       allow create: if validUserCreate(userId);
       allow update: if signedIn() && (
-        request.auth.uid == userId ||
+        (request.auth.uid == userId && userExists()) ||
         (userExists() && sameOrganization(orgIdFromData(resource.data)) && isAdmin())
       );
       allow delete: if false;

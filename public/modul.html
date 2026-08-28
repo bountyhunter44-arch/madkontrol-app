@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Se funktioner, pris og muligheder i Madkontrollens moduler.">
+  <title>Modul | Madkontrollen</title>
+  <style>
+    :root { --green:#238b2e; --green-dark:#176620; --ink:#142016; --muted:#5f6f61; --line:#d6e5d5; --soft:#eef7ed; --white:#fff; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:linear-gradient(180deg,#f5faf4 0%,#fff 55%); font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    a { color:inherit; }
+    .topbar { border-bottom:1px solid var(--line); background:rgba(255,255,255,.94); }
+    .topbar-inner { width:min(1120px,calc(100% - 32px)); min-height:72px; margin:auto; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .brand { font-size:1.15rem; font-weight:850; text-decoration:none; color:var(--green-dark); }
+    .back { color:var(--green-dark); font-weight:750; text-decoration:none; }
+    main { width:min(1120px,calc(100% - 32px)); margin:auto; }
+    .hero { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr); gap:46px; align-items:center; padding:82px 0 58px; }
+    .eyebrow { display:inline-flex; padding:7px 11px; border-radius:999px; background:var(--soft); color:var(--green-dark); font-size:.8rem; font-weight:850; text-transform:uppercase; letter-spacing:.06em; }
+    h1 { margin:18px 0 14px; font-size:clamp(2.5rem,6vw,5.2rem); line-height:.98; letter-spacing:-.045em; }
+    .subheading { margin:0 0 18px; max-width:720px; color:#344637; font-size:clamp(1.2rem,2.4vw,1.6rem); line-height:1.45; font-weight:650; }
+    .intro { margin:0; max-width:750px; color:var(--muted); font-size:1.05rem; line-height:1.75; }
+    .purchase { padding:28px; border:1px solid var(--line); border-radius:20px; background:var(--white); box-shadow:0 22px 55px rgba(27,70,32,.1); }
+    .purchase-label { color:var(--muted); font-size:.85rem; font-weight:750; }
+    .price { margin:7px 0 5px; font-size:1.8rem; font-weight:900; color:var(--green-dark); }
+    .price-note { margin:0 0 20px; color:var(--muted); font-size:.9rem; line-height:1.5; }
+    .actions { display:grid; gap:10px; }
+    .btn { display:flex; min-height:50px; align-items:center; justify-content:center; padding:12px 18px; border-radius:9px; border:1px solid var(--green); font-weight:850; text-decoration:none; }
+    .btn.primary { background:var(--green); color:#fff; }
+    .btn.primary:hover { background:var(--green-dark); }
+    .btn.secondary { background:#fff; color:var(--green-dark); }
+    .value { margin:0 0 28px; padding:23px 26px; border-left:5px solid var(--green); border-radius:8px; background:var(--soft); font-size:1.12rem; line-height:1.65; font-weight:650; }
+    .section { padding:30px 0 70px; }
+    .section h2 { margin:0 0 20px; font-size:clamp(1.7rem,3vw,2.35rem); }
+    .feature-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
+    .feature { min-height:110px; padding:22px; border:1px solid var(--line); border-radius:14px; background:#fff; }
+    .feature strong { display:block; margin-bottom:7px; font-size:1.05rem; }
+    .feature span { color:var(--muted); line-height:1.55; }
+    .audience { display:flex; flex-wrap:wrap; gap:9px; margin-top:30px; }
+    .audience span { padding:9px 13px; border:1px solid var(--line); border-radius:999px; background:#fff; color:#36513a; font-weight:700; }
+    .final-cta { margin-bottom:70px; padding:38px; border-radius:20px; background:#173b1d; color:#fff; text-align:center; }
+    .final-cta h2 { margin:0 0 10px; }
+    .final-cta p { margin:0 auto 22px; max-width:620px; color:#d9ead9; line-height:1.6; }
+    .final-cta .btn { width:min(280px,100%); margin:auto; background:#fff; color:var(--green-dark); border-color:#fff; }
+    [hidden] { display:none !important; }
+    @media (max-width:760px) { .hero { grid-template-columns:1fr; padding-top:48px; } .feature-grid { grid-template-columns:1fr; } .topbar-inner { min-height:62px; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">Madkontrollen</a>
+      <a class="back" href="/dashboard.html">← Tilbage til moduler</a>
+    </div>
+  </header>
+
+  <main id="modulePage" hidden>
+    <section class="hero">
+      <div>
+        <span class="eyebrow" id="moduleBadge"></span>
+        <h1 id="moduleName"></h1>
+        <p class="subheading" id="moduleSubheading"></p>
+        <p class="intro" id="moduleIntro"></p>
+      </div>
+      <aside class="purchase">
+        <div class="purchase-label">Pris</div>
+        <div class="price" id="modulePrice"></div>
+        <p class="price-note">Ekskl. moms. Første modul koster 149 kr./md.; næste modul koster 49 kr./md. Den endelige pris vises i Stripe.</p>
+        <div class="actions">
+          <a class="btn primary" id="buyButton" href="#">Køb nu</a>
+          <a class="btn secondary" id="openButton" href="/">Har du allerede adgang? Åbn appen</a>
+        </div>
+        <p class="price-note" id="purchaseStatus" role="status" aria-live="polite"></p>
+      </aside>
+    </section>
+
+    <p class="value" id="moduleValue"></p>
+
+    <section class="section">
+      <h2>Det får du med <span id="moduleFeatureName"></span></h2>
+      <div class="feature-grid" id="moduleFeatures"></div>
+      <div class="audience" id="moduleAudience"></div>
+    </section>
+
+    <section class="final-cta">
+      <h2>Klar til at komme i gang?</h2>
+      <p>Vælg modulet, opsæt din virksomhed og se den samlede pris, før betalingen gennemføres.</p>
+      <a class="btn" id="finalBuyButton" href="#">Køb nu</a>
+    </section>
+  </main>
+
+  <main id="notFound" hidden>
+    <section class="hero"><div><h1>Modulet blev ikke fundet</h1><p class="intro">Gå tilbage til moduloversigten og vælg et modul.</p></div></section>
+  </main>
+
+  <script type="module">
+    import { getModuleShowcase } from "/platform/module-showcase.js";
+    import app, { auth } from "/core/firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const module = getModuleShowcase(params.get("modul") || params.get("module") || "");
+    const page = document.getElementById("modulePage");
+    const notFound = document.getElementById("notFound");
+    const purchaseStatus = document.getElementById("purchaseStatus");
+    const functionsClient = getFunctions(app, "us-central1");
+    const createDirectModuleCheckoutSession = httpsCallable(functionsClient, "createDirectModuleCheckoutSession");
+    let signedInUser = null;
+    onAuthStateChanged(auth, (user) => { signedInUser = user; });
+
+    if (!module) {
+      notFound.hidden = false;
+    } else {
+      const checkoutKey = module.checkoutModuleKey || module.appKey || module.key;
+      document.title = `${module.name} | Madkontrollen`;
+      document.querySelector('meta[name="description"]').content = module.teaser || module.intro || "Madkontrollen modul";
+      document.getElementById("moduleBadge").textContent = module.badge || module.category || "Modul";
+      document.getElementById("moduleName").textContent = module.name;
+      document.getElementById("moduleSubheading").textContent = module.subheading || module.headline || "";
+      document.getElementById("moduleIntro").textContent = module.intro || module.teaser || "";
+      document.getElementById("moduleValue").textContent = module.value || "";
+      document.getElementById("modulePrice").textContent = module.priceLabel || "Fra 149 kr./md.";
+      document.getElementById("moduleFeatureName").textContent = module.name;
+      document.getElementById("moduleFeatures").innerHTML = (module.features || []).map((feature) => `
+        <article class="feature"><strong>${escapeHtml(feature)}</strong><span>En del af ${escapeHtml(module.name)}-modulet.</span></article>
+      `).join("");
+      document.getElementById("moduleAudience").innerHTML = (module.audience || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("");
+      const buyButtons = [document.getElementById("buyButton"), document.getElementById("finalBuyButton")];
+      buyButtons.forEach((button) => button.addEventListener("click", async (event) => {
+        event.preventDefault();
+        if (!signedInUser) {
+          purchaseStatus.innerHTML = 'Du skal være logget ind for at købe direkte. <a href="/">Log ind her</a>.';
+          return;
+        }
+
+        buyButtons.forEach((item) => { item.style.pointerEvents = "none"; item.textContent = "Åbner betaling..."; });
+        purchaseStatus.textContent = "Vi opretter en sikker Stripe-betaling. Du sendes ikke gennem onboarding.";
+        try {
+          const response = await createDirectModuleCheckoutSession({
+            moduleKey: checkoutKey,
+            origin: window.location.origin
+          });
+          const checkoutUrl = String(response?.data?.url || "");
+          if (!checkoutUrl) throw new Error("Stripe-link mangler.");
+          window.location.assign(checkoutUrl);
+        } catch (error) {
+          purchaseStatus.textContent = error?.message || "Betalingen kunne ikke startes. Prøv igen.";
+          buyButtons.forEach((item) => { item.style.pointerEvents = ""; item.textContent = "Køb nu"; });
+        }
+      }));
+      document.getElementById("openButton").href = module.entryUrl || "/";
+      page.hidden = false;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      })[character]);
+    }
+  </script>
+</body>
+</html>

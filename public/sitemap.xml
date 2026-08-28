@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://madkontrollen.dk/</loc>
+    <lastmod>2026-08-28</lastmod>
   </url>
   <url>
     <loc>https://aroi-d.madkontrollen.dk/</loc>
@@ -25,12 +26,20 @@
     <loc>https://madkontrollen.dk/user-data-deletion.html</loc>
   </url>
   <url>
-    <loc>https://madkontrollen.dk/funktioner/digital-egenkontrol.html</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://madkontrollen.dk/digital-egenkontrol/</loc>
+    <lastmod>2026-08-28</lastmod>
   </url>
   <url>
-    <loc>https://madkontrollen.dk/funktioner/risikoanalyse-haccp.html</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://madkontrollen.dk/egenkontrol-restaurant/</loc>
+    <lastmod>2026-08-28</lastmod>
+  </url>
+  <url>
+    <loc>https://madkontrollen.dk/egenkontrol-takeaway/</loc>
+    <lastmod>2026-08-28</lastmod>
+  </url>
+  <url>
+    <loc>https://madkontrollen.dk/risikoanalyse-haccp/</loc>
+    <lastmod>2026-08-28</lastmod>
   </url>
   <url>
     <loc>https://madkontrollen.dk/funktioner/afvigelsesrapporter.html</loc>

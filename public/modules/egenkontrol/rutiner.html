@@ -464,6 +464,118 @@ requiredBeforeEdit:
         .routine-due-soon{background:#fff7e8;color:#7a5200}
         .routine-due-overdue{background:#fdeceb;color:#9b1c1c}
 
+        .routine-compact-tools{
+            width:100%;
+            min-width:0;
+            display:grid;
+            grid-template-columns:minmax(210px,.8fr) minmax(340px,1.35fr) minmax(180px,.55fr);
+            gap:12px;
+            align-items:stretch;
+        }
+
+        .routine-compact-tools > .routine-card-activity,
+        .routine-compact-tools > .task-docs-panel,
+        .routine-compact-tools > .routine-guide-open{
+            width:100%;
+            min-width:0;
+            height:100%;
+            margin:0;
+            box-sizing:border-box;
+        }
+
+        .routine-compact-tools > .recall-feed-panel{
+            grid-column:1 / -1;
+        }
+
+        .routine-compact-tools .routine-card-activity,
+        .routine-compact-tools .task-docs-panel{
+            padding:12px;
+            gap:8px;
+        }
+
+        .routine-compact-tools .routine-guide-open{
+            min-height:0;
+            padding:12px;
+            white-space:normal;
+            line-height:1.35;
+        }
+
+        .routine-compact-tools .task-docs-head{
+            gap:8px;
+        }
+
+        .routine-compact-tools .task-camera-btn{
+            min-width:104px;
+            height:38px;
+        }
+
+        .routine-compact-tools .task-docs-placeholder,
+        .routine-compact-tools .task-docs-preview{
+            padding:8px;
+        }
+
+        @media (max-width:1099px){
+            .routine-compact-tools{
+                grid-template-columns:minmax(0,.85fr) minmax(0,1.35fr);
+            }
+
+            .routine-compact-tools > .routine-guide-open{
+                grid-column:1 / -1;
+                min-height:40px;
+            }
+        }
+
+        @media (max-width:720px){
+            .routine-compact-tools{
+                grid-template-columns:minmax(0,1fr);
+                gap:8px;
+            }
+
+            .routine-compact-tools > .routine-guide-open,
+            .routine-compact-tools > .recall-feed-panel{
+                grid-column:auto;
+            }
+
+            .routine-compact-tools .task-docs-head{
+                display:grid;
+                grid-template-columns:minmax(0,1fr) auto;
+                align-items:center;
+            }
+
+            .routine-compact-tools .task-camera-btn{
+                width:auto;
+            }
+
+            .routine-assessment-options{
+                grid-template-columns:minmax(0,1fr);
+            }
+        }
+
+        .routine-pager{margin-bottom:16px;padding:16px 18px;border:1px solid #cddcf8;border-radius:16px;background:linear-gradient(135deg,#f7faff,#eef5ff);box-shadow:0 10px 28px rgba(36,87,214,.08)}
+        .routine-pager-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}
+        .routine-pager-label{color:#2457d6;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+        .routine-pager-next{margin-top:4px;color:#142044;font-size:14px;font-weight:800}
+        .routine-pager-count{flex:0 0 auto;color:#42506b;font-size:13px;font-weight:800}
+        .routine-pager-track{height:9px;overflow:hidden;border-radius:999px;background:#dce7fb}
+        .routine-pager-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,#2457d6,#16b7d4);transition:width .2s ease}
+        .routine-pager-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+        .routine-pager-actions .btn{width:100%;min-height:44px}
+        @media(max-width:600px){.routine-pager-top{display:block}.routine-pager-count{margin-top:8px}}
+
+        .routine-guide-open{width:100%;min-height:44px;margin-bottom:12px}
+        .routine-guide-modal-backdrop{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(10,20,45,.62)}
+        .routine-guide-modal{width:min(680px,100%);max-height:min(82vh,760px);overflow:auto;border-radius:20px;background:#fff;box-shadow:0 28px 80px rgba(0,0,0,.28)}
+        .routine-guide-modal-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;border-bottom:1px solid #dce5f5;background:#fff}
+        .routine-guide-modal-head h3{margin:0;color:#142044;font-size:18px}
+        .routine-guide-modal-close{width:40px;height:40px;border:0;border-radius:50%;background:#edf3ff;color:#142044;font-size:22px;font-weight:800;cursor:pointer}
+        .routine-guide-modal-body{padding:18px}
+        .routine-guide-modal-body .task-guide-panel{border:0;background:transparent;padding:0}
+        @media(max-width:600px){
+            .routine-guide-modal-backdrop{padding:0;align-items:flex-end}
+            .routine-guide-modal{max-height:88vh;border-radius:22px 22px 0 0}
+            .routine-layout-grid .routine-form{padding:12px}
+        }
+
         .task-guide-panel{
             margin:0;
             display:grid;
@@ -516,7 +628,17 @@ requiredBeforeEdit:
         .routine-layout-grid .routine-form{
             display:flex;
             flex-direction:column;
-            gap:12px;
+            gap:8px;
+            padding:12px;
+        }
+
+        .routine-layout-grid .routine-form .routine-form{
+            height:auto;
+            margin:0;
+            padding:0;
+            border:0;
+            border-radius:0;
+            background:transparent;
         }
 
         .routine-layout-grid .routine-form-grid{
@@ -530,6 +652,26 @@ requiredBeforeEdit:
         .routine-layout-grid textarea{
             width:100%;
             min-width:0;
+        }
+
+        .routine-assessment-options{
+            display:grid !important;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:8px !important;
+        }
+
+        .routine-assessment-option{
+            min-height:44px;
+            padding:9px 11px;
+            border:1px solid #dbe4f3;
+            border-radius:10px;
+            background:#f8faff;
+            line-height:1.3;
+        }
+
+        .routine-assessment-option .task-input{
+            width:auto;
+            flex:0 0 auto;
         }
 
         .task-camera-btn{
@@ -942,8 +1084,8 @@ requiredBeforeEdit:
             overflow:hidden;
             padding:26px 28px;
             border-radius:30px;
-            background:linear-gradient(135deg,#17361a 0%, #245d2c 52%, #2f7d32 100%);
-            box-shadow:0 24px 60px rgba(30,92,36,.18);
+            background:linear-gradient(135deg,#142044 0%, #2457d6 58%, #16b7d4 100%);
+            box-shadow:0 24px 60px rgba(36,87,214,.2);
             color:#fff;
             border:1px solid rgba(255,255,255,.10);
         }
@@ -1748,7 +1890,7 @@ requiredBeforeEdit:
                                 <a href="/modules/egenkontrol/luk-dag.html" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 12px 20px; background: #dc2626; border-radius: 8px; color: #fff; font-weight: 700; font-size: 14px;">
                                     🔒 Luk dag og generér rapport
                                 </a>
-                                <a href="/modules/egenkontrol/rapporter.html" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 12px 20px; background: #f3f4f6; border-radius: 8px; color: #374151; font-weight: 600; font-size: 14px;">
+                                <a href="/modules/egenkontrol/rapporter.html?mode=authority" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 12px 20px; background: #f3f4f6; border-radius: 8px; color: #374151; font-weight: 600; font-size: 14px;">
                                     📄 Se tidligere rapporter
                                 </a>
                             </div>
@@ -1995,6 +2137,7 @@ requiredBeforeEdit:
             setDoc,
             updateDoc,
             arrayUnion,
+            arrayRemove,
             increment,
             serverTimestamp,
             query,
@@ -2092,8 +2235,27 @@ requiredBeforeEdit:
 
         const taskListEl = document.getElementById("taskList");
         taskListEl.addEventListener("click", (e) => {
+            const pagerButton = e.target.closest("button[data-routine-page]");
+            if (pagerButton) {
+                e.preventDefault();
+                currentRoutinePage += Number(pagerButton.dataset.routinePage || 0);
+                renderTasks();
+                taskListEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                return;
+            }
             const head = e.target.closest(".task-collapse-head");
-            if (head) head.closest(".task-item")?.classList.toggle("is-open");
+            if (head) {
+                const card = head.closest(".task-item");
+                const isNowOpen = card?.classList.toggle("is-open");
+                if (isNowOpen && hasActiveRoutineFilters()) {
+                    const task = allTasks.find((item) => item.id === card.dataset.instanceId);
+                    if (task) {
+                        hydrateRecentActivityForCards([task]);
+                        hydrateRecallFeedForCards([task]);
+                        restoreAnswerSelections(task);
+                    }
+                }
+            }
         });
         const kpiTasksEl = document.getElementById("kpiTasks");
         const kpiCompletedEl = document.getElementById("kpiCompleted");
@@ -2154,6 +2316,7 @@ requiredBeforeEdit:
         let coolingForecastIntervalId = null;
         let operatingButtonsBound = false;
         let selectedDateKey = null;
+        let currentRoutinePage = 0;
         let rutinerLoaderProgress = 0;
 
         // Legacy answer buttons were intentionally removed from routine cards.
@@ -2481,6 +2644,31 @@ requiredBeforeEdit:
                     `).join("")}
                 </div>
             `;
+        }
+
+        function closeRoutineGuideModal() {
+            document.querySelector(".routine-guide-modal-backdrop")?.remove();
+        }
+
+        function openRoutineGuideModal(instanceId = "") {
+            const task = allTasks.find((item) => item.id === instanceId);
+            if (!task) return;
+            const guideHtml = renderRoutineProfessionalTextHtml(task) || renderControlPointGuideHtml(task);
+            if (!guideHtml) return;
+
+            closeRoutineGuideModal();
+            const backdrop = document.createElement("div");
+            backdrop.className = "routine-guide-modal-backdrop";
+            backdrop.innerHTML = `
+                <section class="routine-guide-modal" role="dialog" aria-modal="true" aria-label="Guide til ${escapeHtml(getVisibleTitle(task))}">
+                    <div class="routine-guide-modal-head">
+                        <h3>${escapeHtml(getVisibleTitle(task))}</h3>
+                        <button type="button" class="routine-guide-modal-close" data-close-routine-guide="true" aria-label="Luk guide">×</button>
+                    </div>
+                    <div class="routine-guide-modal-body">${guideHtml}</div>
+                </section>
+            `;
+            document.body.appendChild(backdrop);
         }
 
         const RECEIVING_DEFAULT_WHAT_WAS_CHECKED = "Temperatur, emballage, holdbarhed og sporbarhed er kontrolleret ved varemodtagelsen.";
@@ -4358,7 +4546,7 @@ function setLocationLabel() {
             const documentKind = resolveDocumentKind(media);
             const deliveryCategory = resolveDeliveryCategory(media);
             const foodSafetyRelevant = resolveFoodSafetyRelevant(documentKind, deliveryCategory);
-            const acceptedAsDocumentation = ["delivery_note", "invoice", "freight_document", "maintenance_document", "receipt"].includes(documentKind);
+            const acceptedAsDocumentation = foodSafetyRelevant && ["delivery_note", "freight_document"].includes(documentKind);
             return {
                 documentKind,
                 documentDisplayType: resolveDocumentDisplayType(media, documentKind),
@@ -4429,7 +4617,10 @@ function setLocationLabel() {
             ));
             const documentType = resolveDocumentType(media);
             const classification = classifyDocumentMedia(media);
-            const acceptedAsDocumentation = media.acceptedAsDocumentation === true || classification.acceptedAsDocumentation;
+            const explicitlyRejected = media.rejected === true || media.acceptedAsDocumentation === false;
+            const acceptedAsDocumentation = !explicitlyRejected &&
+                classification.foodSafetyRelevant === true &&
+                (media.acceptedAsDocumentation === true || classification.acceptedAsDocumentation === true);
             const hasAnalysis = Boolean(
                 media.analyzedAt ||
                 media.aiModel ||
@@ -4445,11 +4636,29 @@ function setLocationLabel() {
                 media.rejectionReason
             );
 
+            if (explicitlyRejected || (hasAnalysis && classification.foodSafetyRelevant !== true)) {
+                const isInvoice = classification.documentKind === "invoice";
+                const isNonFood = classification.deliveryCategory === "non_food_inventory";
+                return {
+                    status: "rejected",
+                    title: "✖ Ikke gyldig egenkontroldokumentation",
+                    message: String(
+                        media.rejectionReason ||
+                        (isInvoice || isNonFood
+                            ? "Fakturaer og billeder af ikke-fødevarer kan ikke dokumentere en udført egenkontrol. Tag et foto af den udførte kontrol, varen eller det relevante udstyr."
+                            : "Billedet er ikke relevant for denne egenkontrol. Tag et foto af den udførte kontrol eller det relevante udstyr.")
+                    ),
+                    documentType,
+                    confidence,
+                    ...classification
+                };
+            }
+
             if (media.analysisError || media.aiAnalysisError || media.analysisFailed === true) {
                 return {
                     status: "error",
                     title: "⚠ Automatisk dokumentanalyse kunne ikke gennemføres",
-                    message: "Billedet er gemt som dokumentation.",
+                    message: "Billedet er uploadet, men er ikke godkendt som dokumentation. Kontrollér det manuelt eller tag et nyt foto.",
                     documentType,
                     confidence
                 };
@@ -4484,17 +4693,6 @@ function setLocationLabel() {
                     status: "approved",
                     title: `✓ ${documentType === "Ukendt dokument" ? "Leveringsdokument" : documentType} genkendt`,
                     message: "Dokumentation gemt.",
-                    documentType,
-                    confidence,
-                    ...classification
-                };
-            }
-
-            if (media.rejected === true || media.acceptedAsDocumentation === false) {
-                return {
-                    status: "rejected",
-                    title: "✖ Dokument ikke genkendt",
-                    message: String(media.rejectionReason || "Upload et tydeligt billede af et leveringsdokument."),
                     documentType,
                     confidence,
                     ...classification
@@ -4718,6 +4916,7 @@ function setLocationLabel() {
             const taskType = (task.taskType || "").toLowerCase();
             const guideKey = (task.guideKey || "").toLowerCase();
             const title = (task.title || "").toLowerCase();
+            const templateKey = String(task.templateKey || task.templateId || task.id || "").toLowerCase();
             const blocked = (
                 task.archived === true ||
                 task.disabled === true ||
@@ -4727,7 +4926,11 @@ function setLocationLabel() {
                 controlType === "maintenance_check" ||
                 taskType === "vedligeholdelse" ||
                 title.startsWith("vedligeholdelse -") ||
-                title.includes("drikkevand")
+                title.includes("drikkevand") ||
+                title === "kontrol af vandfilter" ||
+                templateKey.includes("water_control_filter") ||
+                title === "rengøring af køkken" ||
+                templateKey.includes("area_cleaning_kitchen")
             );
 
             if (blocked) return false;
@@ -4765,6 +4968,34 @@ function setLocationLabel() {
             frequency: 'all'
         };
 
+        function hasActiveRoutineFilters() {
+            return Object.values(activeFilters).some((value) => value !== "all");
+        }
+
+        function matchesStatusFilter(task, filterStatus = activeFilters.status) {
+            if (!filterStatus || filterStatus === "all") return true;
+
+            const taskStatus = getTaskStatus(task);
+            const entryStatus = getTaskEntryStatus(task);
+
+            if (filterStatus === "pending") {
+                // A permanent routine can have a completed historical entry and still be
+                // open again in its current frequency period. Follow the card's live status.
+                return isPendingTask(task);
+            }
+
+            if (filterStatus === "completed") {
+                return isCompletedTask(task);
+            }
+
+            if (filterStatus === "failed") {
+                const deviationStatuses = ["failed", "deviation", "non_compliant", "rejected", "cleaning_required"];
+                return deviationStatuses.includes(taskStatus) || deviationStatuses.includes(entryStatus);
+            }
+
+            return taskStatus === filterStatus || entryStatus === filterStatus;
+        }
+
         function matchesFilter(task) {
             // Category filter
             if (activeFilters.category !== 'all') {
@@ -4781,10 +5012,7 @@ function setLocationLabel() {
             }
 
             // Status filter
-            if (activeFilters.status !== 'all') {
-                const taskStatus = getTaskStatus(task);
-                if (taskStatus !== activeFilters.status) return false;
-            }
+            if (!matchesStatusFilter(task)) return false;
 
             // Frequency filter
             if (activeFilters.frequency !== 'all') {
@@ -4915,6 +5143,7 @@ function setLocationLabel() {
             const handleNavigation = (action) => {
                 if (action === "hidden-periodic") {
                     activeFilters = { category: 'all', status: 'all', frequency: 'all' };
+                    currentRoutinePage = 0;
                     renderTasks();
                     taskListEl?.scrollIntoView({ behavior: "smooth", block: "start" });
                     return;
@@ -4926,7 +5155,7 @@ function setLocationLabel() {
                 }
 
                 if (action === "completed") {
-                    window.location.href = "/modules/egenkontrol/rapporter.html?view=today";
+                    window.location.href = "/modules/egenkontrol/rapporter.html?mode=authority&view=today";
                     return;
                 }
 
@@ -6516,15 +6745,49 @@ function formatDeadlineLabel(task) {
             );
         }
 
-        function entryMatchesTaskPeriod(entry = {}, task = {}) {
-            const activeUntil = normalizeDateKey(task.activeUntilDateKey);
-            if (!activeUntil) return true;
+        function getTaskFrequencyPeriod(task = {}, referenceDateKey = "") {
+            const endReference = normalizeDateKey(referenceDateKey) || normalizeDateKey(selectedDateKey) || getTodayKey();
+            const [year, month, day] = endReference.split("-").map(Number);
+            const reference = new Date(year, (month || 1) - 1, day || 1, 12, 0, 0, 0);
+            const frequency = getTaskEffectiveFrequency(task);
+            let start = new Date(reference);
+            let end = new Date(reference);
 
-            const start = normalizeDateKey(task.dateKey);
+            if (frequency === "weekly") {
+                const mondayOffset = (reference.getDay() + 6) % 7;
+                start.setDate(reference.getDate() - mondayOffset);
+                end = new Date(start);
+                end.setDate(start.getDate() + 6);
+            } else if (frequency === "every_14_days" || frequency === "biweekly") {
+                const anchorKey = normalizeDateKey(task.scheduleConfig?.anchorDate) || normalizeDateKey(task.dateKey) || endReference;
+                const [anchorYear, anchorMonth, anchorDay] = anchorKey.split("-").map(Number);
+                const anchor = new Date(anchorYear, (anchorMonth || 1) - 1, anchorDay || 1, 12, 0, 0, 0);
+                const elapsedDays = Math.floor((reference.getTime() - anchor.getTime()) / 86400000);
+                const periodIndex = Math.floor(Math.max(0, elapsedDays) / 14);
+                start = new Date(anchor);
+                start.setDate(anchor.getDate() + (periodIndex * 14));
+                end = new Date(start);
+                end.setDate(start.getDate() + 13);
+            } else if (frequency === "monthly") {
+                start = new Date(reference.getFullYear(), reference.getMonth(), 1, 12, 0, 0, 0);
+                end = new Date(reference.getFullYear(), reference.getMonth() + 1, 0, 12, 0, 0, 0);
+            } else if (frequency === "quarterly") {
+                const quarterStartMonth = Math.floor(reference.getMonth() / 3) * 3;
+                start = new Date(reference.getFullYear(), quarterStartMonth, 1, 12, 0, 0, 0);
+                end = new Date(reference.getFullYear(), quarterStartMonth + 3, 0, 12, 0, 0, 0);
+            } else if (frequency === "yearly") {
+                start = new Date(reference.getFullYear(), 0, 1, 12, 0, 0, 0);
+                end = new Date(reference.getFullYear(), 11, 31, 12, 0, 0, 0);
+            }
+
+            return { startDateKey: getDateKey(start), endDateKey: getDateKey(end) };
+        }
+
+        function entryMatchesTaskPeriod(entry = {}, task = {}) {
             const entryDate = normalizeDateKey(entry.dateKey) || normalizeDateKey(getEntryCreatedDate(entry));
             if (!entryDate) return true;
-            if (start && entryDate < start) return false;
-            return entryDate <= activeUntil;
+            const period = getTaskFrequencyPeriod(task);
+            return entryDate >= period.startDateKey && entryDate <= period.endDateKey;
         }
 
         function getRecentHistoryStartDateKey(referenceDateKey = "", days = 7) {
@@ -6867,10 +7130,27 @@ function formatDeadlineLabel(task) {
                 return false;
             });
 
-            const latestMediaAsset = candidates.sort((a, b) => getMediaAssetTime(b) - getMediaAssetTime(a))[0] || null;
-            if (!latestMediaAsset) return task;
+            const rejectedAssets = candidates.filter((media) => {
+                const classification = classifyDocumentMedia(media);
+                const hasAnalysis = Boolean(media.analyzedAt || media.aiAnalysis || media.aiSuggestion || media.documentType);
+                return media.rejected === true || media.acceptedAsDocumentation === false ||
+                    (hasAnalysis && classification.foodSafetyRelevant !== true);
+            });
+            const rejectedPublicIds = new Set(rejectedAssets.map((media) => String(media.publicId || "")).filter(Boolean));
+            const rejectedUrls = new Set(rejectedAssets.flatMap((media) => [media.secureUrl, media.optimizedUrl]).map((value) => String(value || "")).filter(Boolean));
+            const visibleTaskAssets = taskAssets.filter((asset) =>
+                !rejectedPublicIds.has(String(asset?.publicId || "")) &&
+                !rejectedUrls.has(String(asset?.secureUrl || "")) &&
+                !rejectedUrls.has(String(asset?.optimizedUrl || ""))
+            );
+            const visibleTaskPhotos = taskPhotos.filter((url) => !rejectedUrls.has(String(url || "")));
+            const acceptedCandidates = candidates.filter((media) => !rejectedAssets.includes(media));
+            const latestMediaAsset = acceptedCandidates.sort((a, b) => getMediaAssetTime(b) - getMediaAssetTime(a))[0] || null;
+            if (!latestMediaAsset) {
+                return { ...task, latestMediaAsset: null, cloudinaryAssets: visibleTaskAssets, photoUrls: visibleTaskPhotos };
+            }
 
-            const cloudinaryAssets = taskAssets.map((asset) => {
+            const cloudinaryAssets = visibleTaskAssets.map((asset) => {
                 const matches = (
                     (latestMediaAsset.publicId && asset?.publicId === latestMediaAsset.publicId) ||
                     (latestMediaAsset.secureUrl && asset?.secureUrl === latestMediaAsset.secureUrl)
@@ -6881,7 +7161,8 @@ function formatDeadlineLabel(task) {
             return {
                 ...task,
                 latestMediaAsset,
-                cloudinaryAssets: cloudinaryAssets.length ? cloudinaryAssets : taskAssets
+                cloudinaryAssets,
+                photoUrls: visibleTaskPhotos
             };
         }
 
@@ -7044,28 +7325,30 @@ function generateFryerControlText({
             if (!openTasks.length) {
                 console.log("[renderTasks] NO OPEN TASKS - showing empty state");
                 
-                // Show debug box if we have task_instances but they were filtered away
+                // Filters may legitimately produce no matches. Never expose internal diagnostics in the UI.
                 if (allTasks.length > 0) {
-                    const debugHtml = `
-                        <div style="background:#fff3cd;border:2px solid #ffc107;border-radius:12px;padding:24px;margin:20px 0;">
-                            <h3 style="color:#856404;margin:0 0 16px 0;">🔍 DEBUG: task_instances found but filtered away</h3>
-                            <div style="font-family:monospace;font-size:13px;line-height:1.8;color:#856404;">
-                                <strong>Raw task_instances count:</strong> ${allTasks.length}<br>
-                                <strong>After status filter (openTasks):</strong> ${openTasks.length}<br>
-                                <strong>Due today:</strong> ${dueTodayTasks.length}<br>
-                                <strong>Due today + open:</strong> ${dueTodayOpenTasks.length}<br>
-                                <strong>Active task templates:</strong> ${activeTaskTemplateCount}<br>
-                                <br>
-                                <strong>Reason:</strong> ${
-                                    activeTaskTemplateCount === 0 ? "No task templates" :
-                                    dueTodayTasks.length === 0 ? "No tasks due today" :
-                                    dueTodayOpenTasks.length === 0 ? "All tasks completed" :
-                                    "Unknown filter reason"
-                                }
-                            </div>
-                        </div>
-                    `;
-                    taskListEl.innerHTML = debugHtml;
+                    const filtersAreActive = Object.values(activeFilters).some((value) => value !== "all");
+                    if (filtersAreActive) {
+                        renderEmptyState(
+                            "Der er ingen rutiner, som matcher den valgte kategori, status og frekvens. Prøv at ændre et filter eller vælg Ryd filtre.",
+                            "Ingen rutiner matcher filtrene"
+                        );
+                    } else if (activeTaskTemplateCount === 0) {
+                        renderEmptyState(
+                            "Der er ingen task-skabeloner endnu. Gå til risikoanalyse og generér task-skabeloner først.",
+                            "Ingen rutiner oprettet"
+                        );
+                    } else if (dueTodayTasks.length === 0) {
+                        renderEmptyState(
+                            "Der er ingen rutiner planlagt til den valgte dag.",
+                            "Ingen rutiner denne dag"
+                        );
+                    } else {
+                        renderEmptyState(
+                            "Alle rutiner, der forfaldt i dag, er allerede håndteret.",
+                            "Alle håndteret"
+                        );
+                    }
                 } else if (activeTaskTemplateCount === 0) {
                     renderEmptyState(
                         "Der er ingen task-skabeloner endnu. Gå til risikoanalyse og generér task-skabeloner først.",
@@ -7086,9 +7369,17 @@ function generateFryerControlText({
                 return;
             }
 
-            console.log("[renderTasks] Rendering", openTasks.length, "cards");
+            const filtersAreActive = hasActiveRoutineFilters();
+            currentRoutinePage = Math.max(0, Math.min(currentRoutinePage, openTasks.length - 1));
+            const visibleTasks = filtersAreActive ? openTasks : [openTasks[currentRoutinePage]];
+            const nextTask = openTasks[currentRoutinePage + 1] || null;
+            const progressPercent = Math.round(((currentRoutinePage + 1) / openTasks.length) * 100);
+            console.log(filtersAreActive
+                ? `[renderTasks] Rendering ${visibleTasks.length} collapsed filter results`
+                : `[renderTasks] Rendering routine page ${currentRoutinePage + 1} of ${openTasks.length}`
+            );
             
-            taskListEl.innerHTML = openTasks.map((task, idx) => {
+            const routineCardsHtml = visibleTasks.map((task, idx) => {
                 console.log(`[renderTasks] rendering card[${idx}]:`, {
                     id: task.id,
                     title: task.title || task.name,
@@ -7149,7 +7440,7 @@ const hasMin = task.minValue !== null && task.minValue !== undefined && task.min
                             </div>`;
 
                 return `
-                    <article class="task-item${(task.controlType === 'hot_holding_control' || isCoolingTask(task)) ? ' is-open' : ''} ${effectiveStatus === 'overdue' ? 'is-overdue' : ''}" data-instance-id="${escapeHtml(task.id)}">
+                    <article class="task-item${filtersAreActive ? '' : ' is-open'} ${effectiveStatus === 'overdue' ? 'is-overdue' : ''}" data-instance-id="${escapeHtml(task.id)}">
                         ${getRoutineCardIconHtml(task)}
 
                         <div class="task-content">
@@ -7214,6 +7505,7 @@ ${
                                 ${task.permanentRoutineModel ? `<span class="task-pill ${dueClass}" data-due-pill="${escapeHtml(task.id)}">Due: ${escapeHtml(task.dueLabel || dueStatus)}</span>` : ""}
                             </div>
 
+<div class="routine-compact-tools">
 ${activityHtml}
 
 ${renderRecallFeedPanel(task)}
@@ -7294,8 +7586,13 @@ ${(() => {
                 }
             })()}
 
-            <div class="routine-layout-grid${controlPointGuideHtml ? "" : " has-form-only"}">
-                ${controlPointGuideHtml ? `<div class="routine-guide-column">${controlPointGuideHtml}</div>` : ""}
+            ${controlPointGuideHtml ? `
+                <button type="button" class="btn btn-secondary routine-guide-open" data-open-routine-guide="true" data-instance-id="${escapeHtml(task.id)}">
+                    📘 Åbn guide og beskrivelse
+                </button>
+            ` : ""}
+</div>
+            <div class="routine-layout-grid has-form-only">
                 <div class="routine-form-column">
 
             ${
@@ -7424,8 +7721,8 @@ ${(() => {
                                             <div class="routine-form-grid">
                                                 <div style="grid-column:1 / -1;">
                                                     <label class="form-label" style="font-weight:600;margin-bottom:12px;">Vurdering</label>
-                                                    <div style="display:flex;flex-direction:column;gap:10px;">
-                                                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                                    <div class="routine-assessment-options" style="display:flex;flex-direction:column;gap:10px;">
+                                                        <label class="routine-assessment-option" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                                                             <input
                                                                 type="radio"
                                                                 name="separationDecision_${escapeHtml(task.id)}"
@@ -7437,7 +7734,7 @@ ${(() => {
                                                             >
                                                             <span>Adskillelse er overholdt</span>
                                                         </label>
-                                                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                                        <label class="routine-assessment-option" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                                                             <input
                                                                 type="radio"
                                                                 name="separationDecision_${escapeHtml(task.id)}"
@@ -7784,13 +8081,39 @@ ${(() => {
                 `;
             }).join("");
 
+            const pagerTopHtml = filtersAreActive ? "" : `
+                <section class="routine-pager" aria-label="Fremdrift gennem rutiner">
+                    <div class="routine-pager-top">
+                        <div>
+                            <div class="routine-pager-label">Fremdrift</div>
+                            <div class="routine-pager-next">${nextTask ? `Næste rutine: ${escapeHtml(getVisibleTitle(nextTask))}` : "Dette er den sidste rutine"}</div>
+                        </div>
+                        <div class="routine-pager-count">Rutine ${currentRoutinePage + 1} af ${openTasks.length}</div>
+                    </div>
+                    <div class="routine-pager-track" role="progressbar" aria-valuemin="1" aria-valuemax="${openTasks.length}" aria-valuenow="${currentRoutinePage + 1}">
+                        <div class="routine-pager-fill" style="width:${progressPercent}%"></div>
+                    </div>
+                </section>`;
+            const pagerActionsHtml = filtersAreActive ? "" : `
+                <div class="routine-pager-actions">
+                    <button type="button" class="btn btn-secondary" data-routine-page="-1" ${currentRoutinePage === 0 ? "disabled" : ""}>← Forrige rutine</button>
+                    <button type="button" class="btn btn-primary" data-routine-page="1" ${currentRoutinePage >= openTasks.length - 1 ? "disabled" : ""}>Næste rutine →</button>
+                </div>`;
+
+            taskListEl.innerHTML = `
+                ${pagerTopHtml}
+                ${routineCardsHtml}
+                ${pagerActionsHtml}
+            `;
+
             bindCoolingNoActivityToggles();
             bindAnswerTextFields();
-            hydrateRecentActivityForCards(openTasks);
-            hydrateRecallFeedForCards(openTasks);
+            const tasksToHydrate = filtersAreActive ? [] : visibleTasks;
+            hydrateRecentActivityForCards(tasksToHydrate);
+            hydrateRecallFeedForCards(tasksToHydrate);
             
             setTimeout(() => {
-                allTasks.forEach(task => {
+                visibleTasks.forEach(task => {
                     restoreAnswerSelections(task);
                 });
             }, 100);
@@ -10650,13 +10973,19 @@ const buildFryerRoutineCompletionEntry = () => {
                 if (!target) return;
 
                 try {
-                    const entries = mergeEntriesWithCachedLatest(task, await loadTaskEntriesForCard(task, 30, { respectTaskPeriod: false, recentDays: 7 }));
+                    const entries = mergeEntriesWithCachedLatest(
+                        task,
+                        await loadTaskEntriesForCard(task, 100, { respectTaskPeriod: true })
+                    ).filter((entry) => entryMatchesTaskPeriod(entry, task));
                     target.innerHTML = renderActivityRows(entries.slice(0, 1));
+                    const countTarget = document.querySelector(`[data-entry-count="${CSS.escape(task.id)}"]`);
+                    if (countTarget) countTarget.textContent = `Registreringer i perioden: ${entries.length}`;
                 } catch (error) {
                     console.warn("[card history] recent activity failed", { instanceId: task.id, error });
                     const cachedEntry = getCachedLatestEntryForTask(task);
+                    const currentPeriodCachedEntry = cachedEntry && entryMatchesTaskPeriod(cachedEntry, task) ? cachedEntry : null;
                     target.innerHTML = cachedEntry
-                        ? renderActivityRows([cachedEntry])
+                        ? renderActivityRows(currentPeriodCachedEntry ? [currentPeriodCachedEntry] : [])
                         : renderActivityRows([], "Seneste aktivitet kunne ikke hentes lige nu.");
                 }
             }));
@@ -10916,7 +11245,10 @@ const buildFryerRoutineCompletionEntry = () => {
             console.log("[card history] loading", { taskInstanceId: instanceId });
 
             try {
-                const rows = mergeEntriesWithCachedLatest(task, await loadTaskEntriesForCard(task, 100, { respectTaskPeriod: false, recentDays: 7 }));
+                const rows = mergeEntriesWithCachedLatest(
+                    task,
+                    await loadTaskEntriesForCard(task, 500, { respectTaskPeriod: true })
+                ).filter((entry) => entryMatchesTaskPeriod(entry, task));
                 console.log("[card history] loaded count", rows.length);
 
                 if (!rows.length) {
@@ -11085,6 +11417,16 @@ const buildFryerRoutineCompletionEntry = () => {
                     markTaskRegistrationSaved(instanceId, typeof saveResult === "object" ? saveResult : { status: newStatus });
                     setCardLoading(instanceId, false);
                     clearActiveAction(instanceId, originalLabels);
+                    if (actionType === "save" && !hasActiveRoutineFilters()) {
+                        const availableTasks = getOpenTasks();
+                        if (currentRoutinePage < availableTasks.length - 1) {
+                            setTimeout(() => {
+                                currentRoutinePage += 1;
+                                renderTasks();
+                                taskListEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }, 650);
+                        }
+                    }
                 } else {
                     task.status = newStatus;
                     updateKpis();
@@ -11102,6 +11444,20 @@ const buildFryerRoutineCompletionEntry = () => {
         }
 
         document.addEventListener("click", (event) => {
+            const guideButton = event.target.closest("button[data-open-routine-guide][data-instance-id]");
+            if (guideButton) {
+                event.preventDefault();
+                openRoutineGuideModal(guideButton.dataset.instanceId);
+                return;
+            }
+
+            const guideCloseButton = event.target.closest("[data-close-routine-guide]");
+            if (guideCloseButton || event.target.classList?.contains("routine-guide-modal-backdrop")) {
+                event.preventDefault();
+                closeRoutineGuideModal();
+                return;
+            }
+
             const closeButton = event.target.closest("[data-cooling-modal-close]");
             if (closeButton || event.target.classList?.contains("cooling-run-modal-backdrop")) {
                 event.preventDefault();
@@ -11445,20 +11801,22 @@ const buildFryerRoutineCompletionEntry = () => {
                             : photoUrl;
                         if (!photoUrl) throw new Error("Intet URL returneret fra Cloudinary.");
 
+                        const cloudinaryAssetEntry = {
+                            secureUrl: photoUrl,
+                            optimizedUrl: transformedUrl,
+                            publicId: publicIdFromUpload,
+                            moduleType: moduleType || "Egenkontrol",
+                            itemId: itemId || task?.title || task?.taskId || instanceId,
+                            userId: userId || SETTINGS.createdBy,
+                            taskId: task?.taskId || "",
+                            taskInstanceId: instanceId,
+                            createdAtClient: new Date().toISOString()
+                        };
+
                         try {
                             await setDoc(doc(db, "task_instances", instanceId), {
                                 photoUrls: arrayUnion(photoUrl),
-                                cloudinaryAssets: arrayUnion({
-                                    secureUrl: photoUrl,
-                                    optimizedUrl: transformedUrl,
-                                    publicId: publicIdFromUpload,
-                                    moduleType: moduleType || "Egenkontrol",
-                                    itemId: itemId || task?.title || task?.taskId || instanceId,
-                                    userId: userId || SETTINGS.createdBy,
-                                    taskId: task?.taskId || "",
-                                    taskInstanceId: instanceId,
-                                    createdAtClient: new Date().toISOString()
-                                }),
+                                cloudinaryAssets: arrayUnion(cloudinaryAssetEntry),
                                 lastPhotoAt: serverTimestamp()
                             }, { merge: true });
                         } catch (taskSaveErr) {
@@ -11675,6 +12033,11 @@ const buildFryerRoutineCompletionEntry = () => {
                                 if (mediaAssetRef) {
                                     await updateDoc(mediaAssetRef, {
                                         rejected: true,
+                                        acceptedAsDocumentation: false,
+                                        foodSafetyRelevant: false,
+                                        documentKind: documentClassification.documentKind,
+                                        documentType: documentClassification.documentKind,
+                                        deliveryCategory: documentClassification.deliveryCategory,
                                         rejectionReason: routing?.user_message || "Ikke relevant for egenkontrol",
                                         aiAnalysis: {
                                             confidence: aiAnalysis?.confidence || 0,
@@ -11688,6 +12051,12 @@ const buildFryerRoutineCompletionEntry = () => {
                                         analyzedAt: serverTimestamp()
                                     });
                                 }
+
+                                await setDoc(doc(db, "task_instances", instanceId), {
+                                    photoUrls: arrayRemove(photoUrl),
+                                    cloudinaryAssets: arrayRemove(cloudinaryAssetEntry),
+                                    lastRejectedPhotoAt: serverTimestamp()
+                                }, { merge: true });
 
                                 cameraButton.textContent = "⚠️ Afvist";
                                 cameraButton.style.backgroundColor = "#f8d7da";
@@ -13358,6 +13727,7 @@ function bindOperatingButtons() {
             if (categoryFilter) {
                 categoryFilter.addEventListener("change", (e) => {
                     activeFilters.category = e.target.value;
+                    currentRoutinePage = 0;
                     renderTasks();
                     updateKpis();
                 });
@@ -13366,6 +13736,7 @@ function bindOperatingButtons() {
             if (statusFilter) {
                 statusFilter.addEventListener("change", (e) => {
                     activeFilters.status = e.target.value;
+                    currentRoutinePage = 0;
                     renderTasks();
                     updateKpis();
                 });
@@ -13374,6 +13745,7 @@ function bindOperatingButtons() {
             if (frequencyFilter) {
                 frequencyFilter.addEventListener("change", (e) => {
                     activeFilters.frequency = e.target.value;
+                    currentRoutinePage = 0;
                     renderTasks();
                     updateKpis();
                 });
@@ -13382,6 +13754,7 @@ function bindOperatingButtons() {
             if (clearFiltersBtn) {
                 clearFiltersBtn.addEventListener("click", () => {
                     activeFilters = { category: 'all', status: 'all', frequency: 'all' };
+                    currentRoutinePage = 0;
                     if (categoryFilter) categoryFilter.value = 'all';
                     if (statusFilter) statusFilter.value = 'all';
                     if (frequencyFilter) frequencyFilter.value = 'all';
@@ -13874,7 +14247,7 @@ function bindOperatingButtons() {
             if (startDagBtn) startDagBtn.textContent = t('rutiner.btn.start_day', userLang) || startDagBtn.textContent;
             const closeDagLink = document.querySelector('a[href="/modules/egenkontrol/luk-dag.html"]');
             if (closeDagLink) closeDagLink.textContent = t('rutiner.btn.close_day', userLang) || closeDagLink.textContent;
-            const reportsLink = document.querySelector('a[href="/modules/egenkontrol/rapporter.html"]');
+            const reportsLink = document.querySelector('a[href="/modules/egenkontrol/rapporter.html?mode=authority"]');
             if (reportsLink) reportsLink.textContent = t('rutiner.btn.past_reports', userLang) || reportsLink.textContent;
 
             // Stats card

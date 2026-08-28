@@ -1,111 +1,20 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex,follow">
     <link rel="canonical" href="https://madkontrollen.dk/quick-onboarding.html">
-    <title>Onboarding | Madkontrollen Pro</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./egenkontrol-onboarding.css">
-    <!-- Kompatibilitets-/wrapper-side: samme delte egenkontrol-onboarding-komponent som
-         /quick-onboarding.html. Bevaret så eksisterende Stripe cancel-links + bogmærker virker. -->
+    <title>Onboarding | EWCP Egenkontrol</title>
+    <script>
+        const canonicalOnboarding = "/quick-onboarding.html" + window.location.search + window.location.hash;
+        window.location.replace(canonicalOnboarding);
+    </script>
 </head>
 <body>
-    <main class="page-shell">
-        <section class="hero">
-            <div class="hero-grid">
-                <div>
-                    <div class="eyebrow">Produktions-onboarding</div>
-                    <h1>Opsæt egenkontrol, checkout og live profil i ét flow</h1>
-                    <p>
-                        Onboarding samler virksomhed, produktion, udstyr, egne svar og godkendelser.
-                        Når du trykker <strong>Gem og betal</strong>, gemmes onboarding i Firestore,
-                        Stripe checkout starter, og succes går videre til <strong>tak.html</strong>.
-                    </p>
-                </div>
-
-                <aside class="hero-card">
-                    <div class="hero-card-label">Systemflow</div>
-                    <strong>Gem → Stripe → tak.html</strong>
-                    <span>
-                        Summary og credentials gemmes præcis i de nøgler, din eksisterende tak-side forventer.
-                    </span>
-
-                    <div class="pill-row">
-                        <span class="status-pill">Firestore save</span>
-                        <span class="status-pill">Stripe checkout</span>
-                    </div>
-                </aside>
-            </div>
-        </section>
-
-        <div class="layout">
-            <aside class="sidebar">
-                <section class="card sidebar-card">
-                    <div class="progress-shell">
-                        <div class="progress-top">
-                            <div class="progress-label">Fremdrift</div>
-                            <div class="progress-value" id="progressValue">Trin 1 af 4</div>
-                        </div>
-                        <div class="progress-bar" aria-hidden="true">
-                            <div class="progress-fill" id="progressFill"></div>
-                        </div>
-                    </div>
-
-                    <div class="step-list" id="stepNav"></div>
-                </section>
-
-                <section class="card sidebar-card">
-                    <h3 style="margin:0 0 10px;">Status</h3>
-                    <p class="helper" style="margin:0;">
-                        Dine svar gemmes løbende som kladde.
-                    </p>
-
-                    <div class="meta-grid">
-                        <div class="meta-box">
-                            <strong id="approvedCount">0</strong>
-                            <span>Godkendt</span>
-                        </div>
-                        <div class="meta-box">
-                            <strong id="unitCount">0</strong>
-                            <span>Enheder</span>
-                        </div>
-                        <div class="meta-box">
-                            <strong id="productCount">0</strong>
-                            <span>Produkter</span>
-                        </div>
-                    </div>
-
-                    <div class="status-note" id="saveIndicator">Klar</div>
-                </section>
-            </aside>
-
-            <section class="card content-card">
-                <div id="stepContent"></div>
-            </section>
-        </div>
-    </main>
-
-    <div class="sticky-bar">
-        <div class="sticky-inner">
-            <div class="sticky-price">
-                <strong>Månedsabonnement: 186,25 kr/md</strong>
-                <span>Årsabonnement: 2.011,50 kr/år (Spar 10%)</span>
-            </div>
-
-            <div class="sticky-actions">
-                <button class="btn btn-secondary" id="prevStepBtn" type="button">Tilbage</button>
-                <button class="btn btn-secondary" id="saveDraftBtn" type="button">Gem kladde</button>
-                <button class="btn btn-primary" id="nextStepBtn" type="button">Næste</button>
-                <button class="btn btn-primary" id="submitBtn" type="button" style="display:none;">Gem og betal</button>
-            </div>
-        </div>
-    </div>
-
-        <script type="module" src="./egenkontrol-onboarding.js"></script>
+    <p>Du sendes videre til <a id="canonicalOnboardingLink" href="/quick-onboarding.html">onboarding</a>.</p>
+    <script>
+        document.getElementById("canonicalOnboardingLink").href = canonicalOnboarding;
+    </script>
 </body>
 </html>

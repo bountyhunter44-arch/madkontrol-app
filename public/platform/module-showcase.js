@@ -10,10 +10,10 @@ export const MODULE_SHOWCASES = {
     category: "Compliance",
     image: "",
     imageAlt: "Køkkenkontrol med temperatur, checkliste og dokumentation",
-    landingPage: "/",
+    landingPage: "/modul.html?modul=egenkontrol",
     entryUrl: "/modules/egenkontrol/rutiner.html",
     checkoutModuleKey: "egenkontrol",
-    priceLabel: "Inkluderet / efter abonnement",
+    priceLabel: "149 kr./md. som første modul",
     teaser: "Rutiner, temperaturer, kontrolpunkter og rapporter til fødevarekontrol.",
     headline: "Digital egenkontrol, der er nem at bruge i hverdagen.",
     subheading: "Hold styr på rutiner, temperaturer, afvigelser og dokumentation uden papirmapper.",
@@ -24,10 +24,8 @@ export const MODULE_SHOWCASES = {
     integrations: [],
     integrationText: "Egenkontrol samler dokumentation og daglige processer i et samlet workflow."
   },
-  // Verificeret-genoprettede selvstændige EWCP-moduler. landingPage/entryUrl er de
-  // verificerede eksterne domæner, så "Se mere" (ikke-ejet) og "Åbn" (ejet) begge går til
-  // modulets egen app — ALDRIG til Madkontrollen quick-onboarding/checkout. Bevidst INGEN
-  // checkoutModuleKey. Ejerskab udledes generisk af activeModules (entitlement/module-state).
+  // Selvstændige EWCP-moduler bruger en offentlig lokal præsentationsside til "Læs mere".
+  // Kun "Åbn" for et allerede ejet modul går direkte til den selvstændige app.
   pos: {
     key: "pos",
     appKey: "pos",
@@ -37,9 +35,10 @@ export const MODULE_SHOWCASES = {
     category: "Salg og kasse",
     image: "",
     imageAlt: "Kassesystem med salg, betaling og kvitteringer",
-    landingPage: "https://pos.madkontrollen.dk",
+    landingPage: "/modul.html?modul=pos",
     entryUrl: "https://pos.madkontrollen.dk",
-    priceLabel: "Selvstændigt modul",
+    checkoutModuleKey: "pos",
+    priceLabel: "149 kr./md. som første modul",
     teaser: "Kassesystem til salg, betaling, kvitteringer og dagsopgørelse.",
     headline: "POS – kassesystem til din virksomhed.",
     subheading: "Sælg, tag betaling og hold styr på kvitteringer og dagsafslutning.",
@@ -59,9 +58,10 @@ export const MODULE_SHOWCASES = {
     category: "Økonomi",
     image: "",
     imageAlt: "Bogføring med bilag, moms og bank",
-    landingPage: "https://regnskab.ewcp.dk",
+    landingPage: "/modul.html?modul=accounting",
     entryUrl: "https://regnskab.ewcp.dk",
-    priceLabel: "Selvstændigt modul",
+    checkoutModuleKey: "bogforing",
+    priceLabel: "149 kr./md. som første modul",
     teaser: "Bogføring, bilag, moms og bank i én app.",
     headline: "Regnskab – bogføring uden bøvl.",
     subheading: "Bilagsscanning, moms, bank og SAF-T samlet ét sted.",
@@ -110,7 +110,7 @@ export function moduleIsActive(showcase, activeModules = []) {
 }
 
 export function getModulePurchaseUrl(showcase) {
-  const key = showcase?.checkoutModuleKey || "";
   if (showcase?.landingPage) return showcase.landingPage;
-  return key ? `/quick-onboarding.html?module=${encodeURIComponent(key)}&selectedModules=${encodeURIComponent(key)}` : "/quick-onboarding.html";
+  const key = showcase?.key || showcase?.appKey || showcase?.checkoutModuleKey || "";
+  return key ? `/modul.html?modul=${encodeURIComponent(key)}` : "/dashboard.html";
 }

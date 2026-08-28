@@ -573,8 +573,8 @@
             color:#fff;
             background:
                 radial-gradient(circle at top right, rgba(255,255,255,.12) 0%, transparent 26%),
-                linear-gradient(135deg,#17361a 0%, #245c2b 52%, #2e7d32 100%);
-            box-shadow:0 20px 50px rgba(31,90,35,.22);
+                linear-gradient(135deg,#142044 0%, #2457d6 58%, #16b7d4 100%);
+            box-shadow:0 20px 50px rgba(36,87,214,.22);
         }
 
         .startday-hero::after{
@@ -681,6 +681,49 @@
             font-size:13px;
             line-height:1.5;
             color:rgba(255,255,255,.78);
+        }
+
+        .risk-print-heading{ display:none; }
+
+        .haccp-analysis-intro{ margin:20px 0 14px; padding:18px 20px; border:1px solid #cddbf7; border-radius:16px; background:#f4f7ff; color:#263b6d; line-height:1.6; }
+        .haccp-analysis-intro strong{ display:block; margin-bottom:5px; color:#142044; }
+        .haccp-control-list{ display:grid; gap:14px; margin-top:14px; }
+        .haccp-control-card{ padding:20px; border:1px solid #dce5dc; border-left:5px solid #2f5fe0; border-radius:16px; background:#fff; box-shadow:0 6px 20px rgba(20,32,68,.06); }
+        .haccp-control-card h2{ margin:0 0 12px; color:#142044; font-size:21px; }
+        .haccp-control-rows{ display:grid; gap:9px; }
+        .haccp-control-row{ display:grid; grid-template-columns:minmax(150px,190px) minmax(0,1fr); gap:14px; padding-top:9px; border-top:1px solid #edf0f5; line-height:1.5; }
+        .haccp-control-row strong{ color:#33415f; }
+        .haccp-control-row span{ color:#202a3d; }
+        @media(max-width:680px){ .haccp-control-row{ grid-template-columns:1fr; gap:3px; } }
+
+        @media print{
+            @page{ size:A4; margin:14mm; }
+            body{ background:#fff !important; color:#111 !important; }
+            #headerMount,
+            #sidebarMount,
+            .startday-hero,
+            #riskAnalysisStatusMount,
+            #add-risk-card-btn,
+            .risk-save-btn,
+            .risk-save-new-btn,
+            .risk-cancel-btn,
+            .mkp-logout-btn{ display:none !important; }
+            .page-shell,
+            .container,
+            .app-layout,
+            .page-content{ display:block !important; width:100% !important; max-width:none !important; margin:0 !important; padding:0 !important; }
+            .risk-print-heading{ display:block; margin:0 0 18px; padding-bottom:12px; border-bottom:2px solid #142044; }
+            .risk-print-heading h1{ margin:0 0 5px; color:#142044; font-size:26px; }
+            .risk-print-heading p{ margin:0; color:#536078; font-size:12px; }
+            #risk-container{ margin-top:0 !important; }
+            .risk-card,
+            .section-card,
+            .risk-hero-card,
+            .risk-stats-card{ break-inside:avoid; box-shadow:none !important; }
+            .risk-card-body,
+            .accordion-content{ display:block !important; }
+            .risk-card-chevron{ display:none !important; }
+            textarea{ min-height:0 !important; border:0 !important; resize:none !important; overflow:visible !important; background:#fff !important; }
         }
 
         @media (max-width: 1120px){
@@ -799,51 +842,55 @@
             <div id="sidebarMount"></div>
 
             <section class="page-content">
+                <header class="risk-print-heading">
+                    <h1>Virksomhedens risikoanalyse og HACCP</h1>
+                    <p>Aktiv risikoanalyse udskrevet fra EWCP Egenkontrol.</p>
+                </header>
                 <section class="startday-hero">
                     <div class="startday-hero-grid">
                         <div>
-                            <div class="startday-eyebrow">Risikoanalyse • Inspirationsmodel</div>
+                            <div class="startday-eyebrow">Risikoanalyse • Aktiv dokumentation</div>
 
-                            <h1>Få inspiration til virksomhedens risikoanalyse</h1>
+                            <h1>Virksomhedens risikoanalyse</h1>
 
                             <p>
-                                Denne side viser en inspirationsmodel med typiske farer, kontrolpunkter og dokumentationskrav for fødevarevirksomheder.
-                                Materialet kan bruges som udgangspunkt, men skal tilpasses virksomhedens faktiske drift, processer, udstyr og råvarer.
+                                Her vises virksomhedens aktive risikoanalyse, automatisk genereret ud fra onboarding, virksomhedstype,
+                                arbejdsgange og de kontrolpunkter, der gælder for den valgte lokation.
                             </p>
 
                             <p>
-                                Bemærk: Dette er en inspirationsmodel. Virksomheden skal selv vurdere og tilpasse risikoanalysen,
-                                så den passer til den konkrete drift.
+                                Analysen er virksomhedens gældende HACCP-grundlag og skal løbende gennemgås og tilpasses,
+                                når driften, udstyret, råvarerne eller arbejdsgangene ændres.
                             </p>
 
                             <div class="startday-actions">
-                                <a class="btn btn-primary" href="/modules/egenkontrol/rutiner.html">Gå til rutiner</a>
-                                <a class="btn btn-secondary" href="/modules/egenkontrol/rapporter.html">Se rapporter</a>
+                                <button class="btn btn-primary" id="printRiskAnalysisBtn" type="button">🖨️ Print / Gem som PDF</button>
+                                <a class="btn btn-secondary" href="/modules/egenkontrol/risikoanalyse-inspiration.html">💡 Se inspiration</a>
                             </div>
                         </div>
 
                         <aside class="startday-side">
-                            <p class="startday-side-title">Inspiration til risikoanalyse</p>
+                            <p class="startday-side-title">Aktiv risikoanalyse</p>
 
                             <div class="startday-side-list">
                                 <div class="startday-side-item">
-                                    <strong>Generelt HACCP-grundlag</strong>
-                                    <span>Samlet struktur for virksomhedens farer, processer og kritiske kontrolpunkter.</span>
+                                    <strong>Virksomhedens eget HACCP-grundlag</strong>
+                                    <span>Bygget ud fra virksomhedens registrerede drift og processer.</span>
                                 </div>
 
                                 <div class="startday-side-item">
-                                    <strong>Typiske kontrolpunkter</strong>
-                                    <span>Overblik over de vigtigste steder, hvor driften skal styres og dokumenteres.</span>
+                                    <strong>Aktive kontrolpunkter</strong>
+                                    <span>De konkrete steder, hvor virksomhedens drift skal styres og dokumenteres.</span>
                                 </div>
 
                                 <div class="startday-side-item">
-                                    <strong>Dokumentationsforslag</strong>
-                                    <span>Noter, vurderinger og tilføjelser holdes samlet med analysen for den aktive lokation.</span>
+                                    <strong>Dokumentation</strong>
+                                    <span>Noter, vurderinger og tilføjelser gemmes med analysen for den aktive lokation.</span>
                                 </div>
 
                                 <div class="startday-side-item">
-                                    <strong>Klar til gennemgang</strong>
-                                    <span>Materialet er bygget til at kunne vises, printes og bruges ved kontrolbesøg.</span>
+                                    <strong>Klar til kontrol</strong>
+                                    <span>Analysen kan vises, printes og bruges ved kontrolbesøg.</span>
                                 </div>
                             </div>
                         </aside>
@@ -851,9 +898,6 @@
                 </section>
 
                 <div id="riskAnalysisStatusMount"></div>
-                <div style="margin-top:20px;margin-bottom:4px;">
-                    <button type="button" class="btn btn-primary" id="add-risk-card-btn">+ Tilføj kort</button>
-                </div>
                 <div id="risk-container" style="margin-top:12px;"></div>
             </section>
         </div>
@@ -873,7 +917,7 @@ document.addEventListener("DOMContentLoaded", () => {
         import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import {
             loadOnboardingFromFirestore,
-            getExistingRiskAnalysis,
+            loadRiskAnalysisFromFirestore,
             saveRiskAnalysisDocument,
             ensureRiskAnalysisForLocation
         } from "/modules/egenkontrol/riskAnalysisService.js";
@@ -1187,6 +1231,18 @@ function updateHeroHeader() {
             const meta         = riskAnalysis.meta || {};
             const companyName  = onboarding?.companyName || onboarding?.companyType || "Virksomheden";
             const restaurantType = riskAnalysis.restaurantType || onboarding?.companyType || "";
+            const controlPoints = Array.isArray(riskAnalysis.controlPoints) ? riskAnalysis.controlPoints : [];
+            const hazardText = (cp) => String(cp.hazardType || cp.hazard || cp.category || "").toLowerCase();
+            const totalCount = controlPoints.length || Number(meta.totalSections || 0);
+            const microbiologicalCount = controlPoints.length
+                ? controlPoints.filter((cp) => /mikrobiolog|biolog/.test(hazardText(cp))).length
+                : Number(meta.microbiologicalCount || 0);
+            const chemicalCount = controlPoints.length
+                ? controlPoints.filter((cp) => /kemisk|chemical/.test(hazardText(cp))).length
+                : Number(meta.chemicalCount || 0);
+            const physicalCount = controlPoints.length
+                ? controlPoints.filter((cp) => /fysisk|physical/.test(hazardText(cp))).length
+                : Number(meta.physicalCount || 0);
 
             return `
                 <section class="risk-hero">
@@ -1207,19 +1263,19 @@ function updateHeroHeader() {
                         <div class="risk-stats-grid">
                             <div class="risk-stat">
                                 <div class="risk-stat-label">Sektioner i alt</div>
-                                <div class="risk-stat-value">${escapeHtml(String(meta.totalSections ?? 0))}</div>
+                                <div class="risk-stat-value">${escapeHtml(String(totalCount))}</div>
                             </div>
                             <div class="risk-stat">
                                 <div class="risk-stat-label">Mikrobiologiske</div>
-                                <div class="risk-stat-value">${escapeHtml(String(meta.microbiologicalCount ?? 0))}</div>
+                                <div class="risk-stat-value">${escapeHtml(String(microbiologicalCount))}</div>
                             </div>
                             <div class="risk-stat">
                                 <div class="risk-stat-label">Kemiske</div>
-                                <div class="risk-stat-value">${escapeHtml(String(meta.chemicalCount ?? 0))}</div>
+                                <div class="risk-stat-value">${escapeHtml(String(chemicalCount))}</div>
                             </div>
                             <div class="risk-stat">
                                 <div class="risk-stat-label">Fysiske</div>
-                                <div class="risk-stat-value">${escapeHtml(String(meta.physicalCount ?? 0))}</div>
+                                <div class="risk-stat-value">${escapeHtml(String(physicalCount))}</div>
                             </div>
                         </div>
                         <div class="risk-note">
@@ -1566,6 +1622,58 @@ function updateHeroHeader() {
             }).join("");
         }
 
+        function renderActiveHaccpAnalysis(riskAnalysis) {
+            const container = document.getElementById("risk-container");
+            if (!container) return;
+
+            const controlPoints = Array.isArray(riskAnalysis?.controlPoints) ? riskAnalysis.controlPoints : [];
+            if (!controlPoints.length) {
+                container.innerHTML = `
+                    <section class="panel empty-state">
+                        <h2>Ingen aktiv risikoanalyse fundet</h2>
+                        <p>Gennemfør eller ret onboarding for at generere virksomhedens lovpligtige HACCP-analyse.</p>
+                        <a class="btn btn-primary" href="/modules/egenkontrol/onboarding.html">Gå til onboarding</a>
+                    </section>`;
+                return;
+            }
+
+            const intro = String(
+                riskAnalysis.reportIntro ||
+                riskAnalysis.riskAnalysisReport?.body ||
+                `Aktiv risikoanalyse baseret på ${controlPoints.length} konkrete kontrolpunkter.`
+            ).trim();
+
+            const getType = (cp) => String(cp.type || cp.classification || cp.group || "GAG").toUpperCase();
+            const getDocumentation = (cp) => String(cp.documentation || "").trim() ||
+                "Registrér resultat, tidspunkt, medarbejder og eventuelle bemærkninger.";
+
+            const renderRow = (label, value) => String(value || "").trim()
+                ? `<div class="haccp-control-row"><strong>${escapeHtml(label)}</strong><span>${escapeHtml(value)}</span></div>`
+                : "";
+
+            container.innerHTML = `
+                <section class="haccp-analysis-intro">
+                    <strong>Grundlag for risikoanalyse og egenkontrol</strong>
+                    <span>${escapeHtml(intro)}</span>
+                </section>
+                <section class="haccp-control-list" aria-label="Aktive HACCP-kontrolpunkter">
+                    ${controlPoints.map((cp) => `
+                        <article class="haccp-control-card">
+                            <h2>${escapeHtml(cp.title || cp.name || "Kontrolpunkt")}</h2>
+                            <div class="haccp-control-rows">
+                                ${renderRow("Type", getType(cp))}
+                                ${renderRow("Beskrivelse", cp.description || cp.hazard)}
+                                ${renderRow("Hvad skal kontrolleres", cp.controlRequirement || cp.control)}
+                                ${renderRow("Sådan udføres kontrollen", cp.howToCheck)}
+                                ${renderRow("Acceptkriterier", cp.criticalLimit || cp.acceptCriteria)}
+                                ${renderRow("Frekvens", cp.frequency)}
+                                ${renderRow("Dokumentation", getDocumentation(cp))}
+                                ${renderRow("Korrigerende handling", cp.correctiveAction)}
+                            </div>
+                        </article>`).join("")}
+                </section>`;
+        }
+
         // ── render ────────────────────────────────────────────────────────────
         function render() {
             if (state.refs.statusMount) {
@@ -1575,8 +1683,7 @@ function updateHeroHeader() {
                     state.refs.statusMount.innerHTML = "";
                 }
             }
-            renderRiskAnalysis(RISK_ANALYSIS_LIBRARY, state.onboarding);
-            renderCustomCards();
+            renderActiveHaccpAnalysis(state.riskAnalysis);
         }
 
         // ── Data loading ──────────────────────────────────────────────────────
@@ -1589,7 +1696,7 @@ function updateHeroHeader() {
             }
 
             // FÆLLES LOADER: Læs KUN fra Firestore - ingen lokal generering
-            const riskAnalysis = await getExistingRiskAnalysis(companyId, locationId).catch((err) => {
+            const riskAnalysis = await loadRiskAnalysisFromFirestore(companyId, locationId).catch((err) => {
                 console.error('[loadLiveRiskData] Error loading risk analysis:', err);
                 return null;
             });
@@ -1636,6 +1743,7 @@ function updateHeroHeader() {
             mountRiskAnalysisStyles();
             await loadLayout();
             cacheDom();
+            document.getElementById("printRiskAnalysisBtn")?.addEventListener("click", () => window.print());
 
             await setupAuthGate({
                 appName: "Madkontrollen Pro",

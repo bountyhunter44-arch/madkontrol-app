@@ -289,11 +289,11 @@
         }
 
         .authority-report{
-            margin-top:22px;
-            padding:22px;
+            margin-top:14px;
+            padding:14px;
             border:1px solid var(--border, #d9e4d9);
-            border-radius:22px;
-            background:linear-gradient(180deg,#fbfdfb 0%, #f5faf5 100%);
+            border-radius:16px;
+            background:#f8faff;
         }
 
         .authority-report[hidden]{
@@ -304,20 +304,21 @@
             display:flex;
             justify-content:space-between;
             align-items:flex-start;
-            gap:18px;
-            margin-bottom:18px;
+            gap:12px;
+            margin-bottom:10px;
         }
 
         .authority-head h3{
             margin:0 0 8px;
-            font-size:24px;
+            font-size:20px;
             line-height:1.15;
         }
 
         .authority-head p{
             margin:0;
             color:var(--muted, #667267);
-            line-height:1.6;
+            line-height:1.4;
+            font-size:13px;
         }
 
         .authority-badge{
@@ -338,34 +339,34 @@
         .authority-grid{
             display:grid;
             grid-template-columns:repeat(2, minmax(0, 1fr));
-            gap:16px;
+            gap:10px;
         }
 
         .authority-card{
             background:#fff;
             border:1px solid var(--border, #d9e4d9);
-            border-radius:18px;
-            padding:18px;
-            box-shadow:0 8px 20px rgba(15, 23, 15, 0.04);
+            border-radius:12px;
+            padding:12px;
+            box-shadow:none;
         }
 
         .authority-card h4{
             margin:0 0 8px;
-            font-size:18px;
+            font-size:15px;
         }
 
         .authority-card p{
             margin:0;
             color:var(--muted, #667267);
-            line-height:1.55;
-            font-size:14px;
+            line-height:1.4;
+            font-size:12px;
         }
 
         .authority-meta{
             display:flex;
             flex-wrap:wrap;
-            gap:8px;
-            margin:12px 0 14px;
+            gap:5px;
+            margin:8px 0 9px;
         }
 
         .authority-list{
@@ -375,8 +376,9 @@
         }
 
         .authority-list li{
-            margin:0 0 8px;
-            line-height:1.55;
+            margin:0 0 5px;
+            line-height:1.4;
+            font-size:12px;
         }
 
         .authority-empty{
@@ -391,13 +393,13 @@
             display:flex;
             flex-wrap:wrap;
             gap:10px;
-            margin-top:18px;
+            margin-top:12px;
         }
 
         .authority-welcome{
-            margin-bottom:18px;
-            padding:18px;
-            border-radius:18px;
+            margin-bottom:10px;
+            padding:12px;
+            border-radius:12px;
             border:1px solid #d8e2ee;
             background:linear-gradient(180deg,#f7fbff 0%, #eef5fb 100%);
         }
@@ -405,16 +407,22 @@
         .authority-welcome strong{
             display:block;
             margin-bottom:8px;
-            font-size:16px;
+            font-size:14px;
             color:#17324d;
         }
 
         .authority-welcome p{
             margin:0;
             color:#44607d;
-            line-height:1.65;
-            font-size:14px;
+            line-height:1.45;
+            font-size:12px;
         }
+
+        body[data-report-mode="authority"] #allActionsSection,
+        body[data-report-mode="authority"] #alertsSection{ display:none; }
+        body[data-report-mode="actions"] #authorityReport,
+        body[data-report-mode="actions"] #alertsSection,
+        body[data-report-mode="actions"] .print-note{ display:none !important; }
 
         .print-only{
             display:none;
@@ -497,12 +505,7 @@
                 display:block !important;
                 break-after:avoid;
             }
-            .report-category-block{
-                break-before:page;
-            }
-            .report-category-block:first-of-type{
-                break-before:auto;
-            }
+            .report-category-block{ break-inside:avoid; }
             .page-shell,
             .container,
             .app-layout,
@@ -530,6 +533,13 @@
                 break-inside:avoid;
                 box-shadow:none !important;
             }
+            .authority-report{ padding:5mm !important; margin:0 !important; border-radius:0 !important; }
+            .authority-grid{ grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:3mm !important; }
+            .authority-card{ padding:3mm !important; border-radius:2mm !important; }
+            .authority-card h4{ font-size:9pt !important; margin-bottom:1.5mm !important; }
+            .authority-card p,.authority-list li,.authority-welcome p{ font-size:7.5pt !important; line-height:1.25 !important; }
+            .authority-meta{ margin:1.5mm 0 2mm !important; gap:1mm !important; }
+            .authority-welcome{ padding:3mm !important; margin-bottom:3mm !important; }
             .print-only{
                 display:block;
                 margin-bottom:12px;
@@ -548,8 +558,8 @@
                     <div class="hero-saas">
                         <div class="hero-saas-content">
                             <span class="eyebrow">Egenkontrol • Rapporter</span>
-                            <h1>Rapporter og dokumentation</h1>
-                            <p>Se alle registreringer, afvigelser og dokumentation for egenkontrol. Siden kan printes direkte eller gemmes som PDF fra browseren.</p>
+                            <h1 id="reportPageTitle">Rapporter og dokumentation</h1>
+                            <p id="reportPageIntro">Se alle registreringer, afvigelser og dokumentation for egenkontrol. Siden kan printes direkte eller gemmes som PDF fra browseren.</p>
                         </div>
                     </div>
                 </section>
@@ -596,7 +606,6 @@
                         </select>
                         <select id="reportCategoryFilter" title="Rapportkategori (styrer hvad der vises og udskrives)">
                             <option value="all">Alle kategorier (samlet)</option>
-                            <option value="haccp">HACCP / risikoanalyse</option>
                             <option value="temperature">Temperatur (alle)</option>
                             <option value="cold_storage">Køl/frost (walk-in)</option>
                             <option value="freezer">Fryser</option>
@@ -650,20 +659,19 @@
                         <div class="print-note" style="margin-bottom:18px;">Denne rapport bør ledsage den aktive risikoanalyse med daterede logregistreringer, dokumenterede korrigerende handlinger ved afvigelser og tilgængelig rengøringsplan.</div>
 
                         <section id="authorityReport" class="authority-report" hidden>
-                            <div class="authority-head"><div><h3>Myndighedsrapport (HACCP &amp; Logs)</h3><p>Samlet dokumentation til kontrolbesøg: HACCP, temperaturhistorik, varmholdelse, afvigelser, rengøringsplan og modtagekontrol i én printklar rapport.</p></div><div id="authorityBadge" class="authority-badge">Myndighedsrapport</div></div>
-                            <div class="authority-welcome"><strong>Velkommen til virksomhedens samlede egenkontrol-dokumentation</strong><p>Denne rapport er udarbejdet for at give et klart og gennemsigtigt overblik over vores aktive risikoanalyse, daglige registreringer, temperaturlogs, rengøringskontroller, modtagekontrol og korrigerende handlinger. Formålet er at gøre dokumentationen let at gennemgå og vise, at egenkontrollen anvendes aktivt i den daglige drift.</p></div>
+                            <div class="authority-head"><div><h3>Myndighedsrapport – rutiner og logs</h3><p>Samlet dokumentation til kontrolbesøg: temperaturhistorik, varmholdelse, afvigelser, rengøringsplan og modtagekontrol i én printklar rapport.</p></div><div id="authorityBadge" class="authority-badge">Myndighedsrapport</div></div>
+                            <div class="authority-welcome"><strong>Virksomhedens dokumentation for udført egenkontrol</strong><p>Rapporten samler daglige registreringer, temperaturlogs, rengøringskontroller, modtagekontrol og korrigerende handlinger. Den aktive risikoanalyse findes på sin egen side og kan åbnes via knappen nederst.</p></div>
                             <div class="authority-grid">
-                                <article class="authority-card report-category-block" data-report-category="haccp"><h4>1. Lovpligtig Risikoanalyse (HACCP)</h4><p>Seneste gældende HACCP-snapshot med kritiske punkter og kontrolkrav.</p><div class="authority-meta" id="authorityHaccpMeta"></div><div class="authority-welcome" id="authorityHaccpIntro" style="margin-top:8px;"></div><ul class="authority-list" id="authorityHaccpList"></ul></article>
-                                <article class="authority-card report-category-block" data-report-category="temperature"><h4>2. Aktive temperaturlogs, sidste 3 måneder</h4><p>Daglige målinger for køl, frost og walk-ins samt dokumenteret frekvens.</p><div class="authority-meta" id="authorityTempMeta"></div><ul class="authority-list" id="authorityTempList"></ul></article>
-                                <article class="authority-card report-category-block" data-report-category="hot_holding"><h4>3. Dokumentation for varmholdelse</h4><p>Målinger for servering og varmholdte fødevarer, hvor grænsen er minimum 65°C.</p><div class="authority-meta" id="authorityHotMeta"></div><ul class="authority-list" id="authorityHotList"></ul></article>
-                                <article class="authority-card report-category-block" data-report-category="deviations"><h4>4. Afvigelsesrapporter og korrigerende handlinger</h4><p>Viser at systemet reagerer, når noget går galt, og hvad der konkret blev gjort.</p><div class="authority-meta" id="authorityDeviationMeta"></div><ul class="authority-list" id="authorityDeviationList"></ul></article>
-                                <article class="authority-card report-category-block" data-report-category="cleaning"><h4>5. Rengøringsplan og daglig kontrol</h4><p>Overordnet rengøringsplan for områderne og dagens dokumenterede udførelse.</p><div class="authority-meta" id="authorityCleaningMeta"></div><ul class="authority-list" id="authorityCleaningList"></ul></article>
-                                <article class="authority-card report-category-block" data-report-category="goods_receiving"><h4>6. Modtagekontrol</h4><p>Log over varemodtagelse med temperatur, emballage og leveringskontrol.</p><div class="authority-meta" id="authorityReceivingMeta"></div><ul class="authority-list" id="authorityReceivingList"></ul></article>
+                                <article class="authority-card report-category-block" data-report-category="temperature"><h4>1. Aktive temperaturlogs, sidste 3 måneder</h4><p>Daglige målinger for køl, frost og walk-ins samt dokumenteret frekvens.</p><div class="authority-meta" id="authorityTempMeta"></div><ul class="authority-list" id="authorityTempList"></ul></article>
+                                <article class="authority-card report-category-block" data-report-category="hot_holding"><h4>2. Dokumentation for varmholdelse</h4><p>Målinger for servering og varmholdte fødevarer, hvor grænsen er minimum 65°C.</p><div class="authority-meta" id="authorityHotMeta"></div><ul class="authority-list" id="authorityHotList"></ul></article>
+                                <article class="authority-card report-category-block" data-report-category="deviations"><h4>3. Afvigelsesrapporter og korrigerende handlinger</h4><p>Viser at systemet reagerer, når noget går galt, og hvad der konkret blev gjort.</p><div class="authority-meta" id="authorityDeviationMeta"></div><ul class="authority-list" id="authorityDeviationList"></ul></article>
+                                <article class="authority-card report-category-block" data-report-category="cleaning"><h4>4. Rengøringsplan og daglig kontrol</h4><p>Overordnet rengøringsplan for områderne og dagens dokumenterede udførelse.</p><div class="authority-meta" id="authorityCleaningMeta"></div><ul class="authority-list" id="authorityCleaningList"></ul></article>
+                                <article class="authority-card report-category-block" data-report-category="goods_receiving"><h4>5. Modtagekontrol</h4><p>Log over varemodtagelse med temperatur, emballage og leveringskontrol.</p><div class="authority-meta" id="authorityReceivingMeta"></div><ul class="authority-list" id="authorityReceivingList"></ul></article>
                             </div>
-                            <div class="authority-actions"><a class="btn btn-secondary" href="/modules/egenkontrol/risikoanalyse.html">Åbn risikoanalyse</a><a class="btn btn-secondary" href="/modules/egenkontrol/logbooks.html">Åbn logbøger</a><a class="btn btn-secondary" href="/modules/egenkontrol/afvigelser.html?filter=all">Åbn afvigelser</a></div>
+                            <div class="authority-actions"><a class="btn btn-primary" href="/modules/egenkontrol/rapporter.html?mode=actions">Se samtlige handlinger</a><a class="btn btn-secondary" href="/modules/egenkontrol/risikoanalyse.html">Åbn risikoanalyse</a><a class="btn btn-secondary" href="/modules/egenkontrol/logbooks.html">Åbn logbøger</a><a class="btn btn-secondary" href="/modules/egenkontrol/afvigelser.html?filter=all">Åbn afvigelser</a></div>
                         </section>
 
-                        <div class="report-section report-category-block" data-report-category="documentation">
+                        <div class="report-section report-category-block" id="allActionsSection" data-report-category="documentation">
                             <h3>Samtlige handlinger</h3>
                             <div class="entries-list" id="entriesTableBody"></div>
                             <div class="report-pagination" id="entriesPagination" style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap;">
@@ -672,7 +680,7 @@
                                 <button class="btn btn-secondary" id="entriesNextBtn" type="button">Næste →</button>
                             </div>
                         </div>
-                        <div class="report-section"><h3>Afvigelser og alerts</h3><div class="alert-list" id="alertsList"></div></div>
+                        <div class="report-section" id="alertsSection"><h3>Afvigelser og alerts</h3><div class="alert-list" id="alertsList"></div></div>
                         <div class="print-note">Brug “Print / gem som PDF” og vælg derefter “Gem som PDF” i browserens print-dialog.</div>
                     </div>
                 </section>
@@ -712,10 +720,19 @@
     const requestedView = String(params.get("view") || "").trim().toLowerCase();
     const reportMode = String(params.get("mode") || "").trim().toLowerCase();
     const AUTHORITY_MODE = reportMode === "authority";
+    const ACTIONS_MODE = reportMode === "actions";
     const DEBUG_REPORTS = params.get("debug") === "1"; // gate verbose per-entry/per-title logs
     const reportId = String(params.get("reportId") || "").trim();
 
     await loadLayout();
+    document.body.dataset.reportMode = AUTHORITY_MODE ? "authority" : (ACTIONS_MODE ? "actions" : "all");
+    if (ACTIONS_MODE) {
+        const title = document.getElementById("reportPageTitle");
+        const intro = document.getElementById("reportPageIntro");
+        if (title) title.textContent = "Samtlige handlinger";
+        if (intro) intro.textContent = "Søg, filtrér og gennemgå alle registrerede handlinger på en separat side.";
+        document.title = "Samtlige handlinger | EWCP Egenkontrol";
+    }
 
     const searchInput = document.getElementById("searchInput");
     const periodFilter = document.getElementById("periodFilter");
@@ -737,9 +754,6 @@
     const previewTextEl = document.getElementById("previewText");
     const authorityReportEl = document.getElementById("authorityReport");
     const authorityBadgeEl = document.getElementById("authorityBadge");
-    const authorityHaccpMetaEl = document.getElementById("authorityHaccpMeta");
-    const authorityHaccpIntroEl = document.getElementById("authorityHaccpIntro");
-    const authorityHaccpListEl = document.getElementById("authorityHaccpList");
     const authorityTempMetaEl = document.getElementById("authorityTempMeta");
     const authorityTempListEl = document.getElementById("authorityTempList");
     const authorityHotMetaEl = document.getElementById("authorityHotMeta");
@@ -2146,7 +2160,6 @@
         const resolvedAlerts = deviationItems.filter(({ item }) =>
             String(item.correctiveActionNote || item.correctiveAction || item.correctiveActionLabel || "").trim()
         );
-        const haccpControlPoints = Array.isArray(activeHaccpSnapshot?.controlPoints) ? activeHaccpSnapshot.controlPoints : [];
         const locName = SETTINGS.locationDisplayName || SETTINGS.locationName || SETTINGS.profileAddress || SETTINGS.profileCompanyName || SETTINGS.companyName || SETTINGS.locationId || SETTINGS.companyId || "";
 
         console.log("[authority report generation]", {
@@ -2155,48 +2168,16 @@
             entries: authorityEntries.length,
             alerts: authorityAlerts.length,
             logs: authorityLogs.length,
-            haccpControlPoints: haccpControlPoints.length
+            reportType: "routine_documentation"
         });
         console.log("[report temperature counts]", {
             measurements: tempMeasurementEntries.length,
             completed: tempMeasurementEntries.filter(isCompletedReportEntry).length,
             notRelevant: tempNotRelevantEntries.length
         });
-        console.log("[report HACCP render]", haccpControlPoints.length);
-        console.log("[report first CP]", haccpControlPoints[0]);
 
         if (authorityBadgeEl) {
             authorityBadgeEl.textContent = `Klar til PDF · ${locName}`;
-        }
-
-        if (authorityHaccpMetaEl) {
-            const sourceLabel = activeHaccpSnapshot?.isFallback 
-                ? "Aktive kontrolpunkter (ingen snapshot)" 
-                : "Seneste analyse";
-            const dateLabel = activeHaccpSnapshot?.isFallback
-                ? "I dag"
-                : formatDateTime(activeHaccpSnapshot?.updatedAt || new Date());
-            
-            authorityHaccpMetaEl.innerHTML = [
-                buildPill(sourceLabel, dateLabel),
-                buildPill("Kontrolpunkter", haccpControlPoints.length),
-                buildPill("Lokation", locName)
-            ].join("");
-        }
-
-        if (authorityHaccpIntroEl) {
-            const intro = haccpControlPoints.length
-                ? `Aktiv risikoanalyse baseret på ${haccpControlPoints.length} konkrete kontrolpunkter. Detaljerne for hvert kontrolpunkt fremgår nedenfor.`
-                : "Ingen aktiv risikoanalyse genereret";
-            authorityHaccpIntroEl.innerHTML = `<strong>Grundlag for risikoanalyse og egenkontrol</strong><p>${escapeHtml(intro)}</p>`;
-        }
-        
-        if (haccpControlPoints.length === 0) {
-            if (authorityHaccpListEl) {
-                authorityHaccpListEl.innerHTML = `<li class="authority-empty">Ingen aktiv risikoanalyse genereret</li>`;
-            }
-        } else {
-            renderAuthorityList(authorityHaccpListEl, haccpControlPoints, renderHaccpControlPoint);
         }
 
         if (authorityTempMetaEl) {
@@ -3257,7 +3238,7 @@
         return "documentation";
     }
     function matchesReportCategory(e, cat) {
-        if (cat === "all" || cat === "documentation" || cat === "haccp" || cat === "daily_reports") return true;
+        if (cat === "all" || cat === "documentation" || cat === "daily_reports") return true;
         const c = classifyReportEntryCategory(e);
         if (cat === "temperature") return ["temperature", "fridge", "freezer", "cold_storage", "hot_holding", "cooling_down", "heating"].includes(c);
         return c === cat;
@@ -3271,7 +3252,6 @@
         if (cat === "cleaning") return ["cleaning", "documentation"];
         if (cat === "goods_receiving") return ["goods_receiving", "documentation"];
         if (cat === "deviations") return ["deviations"];
-        if (cat === "haccp") return ["haccp"];
         return ["documentation"];
     }
     function applyReportCategoryView() {
@@ -3311,7 +3291,7 @@
     }
 
     const REPORT_CATEGORY_LABELS = {
-        all: "Alle kategorier", haccp: "HACCP / risikoanalyse", temperature: "Temperaturregistreringer",
+        all: "Alle kategorier", temperature: "Temperaturregistreringer",
         cold_storage: "Køl/frost (walk-in)", freezer: "Frostregistreringer", fridge: "Køleregistreringer",
         heating: "Opvarmning", cooling_down: "Nedkøling", hot_holding: "Varmholdelse", cleaning: "Rengøring",
         goods_receiving: "Modtagekontrol", deviations: "Afvigelser", daily_reports: "Dagsrapporter",
@@ -3389,7 +3369,7 @@
                 return;
             }
 
-            pw.document.write(`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>Rapport${company ? " – " + company : ""}</title><style>@page{size:A4 landscape;margin:12mm;}*,*::before,*::after{box-sizing:border-box;}body{font-family:Arial,sans-serif;font-size:10pt;line-height:1.4;color:#111;background:#fff;margin:0;padding:0;}.print-header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #2e7d32;padding-bottom:5pt;margin-bottom:10pt;}.print-header h1{font-size:14pt;margin:0;color:#2e7d32;}.print-header span{font-size:9pt;color:#555;}h2{font-size:12pt;margin:12pt 0 5pt;border-bottom:1px solid #ccc;padding-bottom:2pt;}h3{font-size:11pt;margin:8pt 0 4pt;}h4{font-size:10pt;margin:6pt 0 2pt;}p{margin:2pt 0;}.report-meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6pt;margin-bottom:8pt;}.meta-box{border:1px solid #ddd;border-radius:4pt;padding:5pt 6pt;break-inside:avoid;}.meta-box-label{font-size:7pt;text-transform:uppercase;font-weight:700;color:#666;margin-bottom:2pt;}.meta-box-value{font-size:10pt;font-weight:700;color:#111;}.report-section{margin-top:10pt;break-inside:avoid;}.entries-list,.alert-list{display:grid;gap:4pt;}.report-entry-item,.alert-item{border:1px solid #ddd;border-radius:4pt;overflow:hidden;break-inside:avoid;padding:5pt 7pt;}.task-collapse-head{padding:0;cursor:default;}.task-chevron{display:none;}.task-body{display:block!important;border-top:1px solid #eee;padding:4pt 0 0;margin-top:3pt;}.entry-head-title,.alert-item-title{font-weight:700;font-size:10pt;}.entry-head-sub,.alert-item-text{font-size:9pt;color:#444;}.entry-detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3pt;font-size:9pt;margin-bottom:3pt;}.entry-comment{font-size:9pt;white-space:pre-wrap;word-break:break-word;margin-top:2pt;}.status-chip{display:inline-block;padding:1pt 5pt;border-radius:999pt;font-size:8pt;font-weight:700;border:1px solid #ccc;white-space:nowrap;margin:0 2pt 2pt 0;}.authority-report{border:1px solid #ccc;border-radius:6pt;padding:8pt;margin-top:10pt;break-inside:avoid;}.authority-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6pt;}.authority-card{border:1px solid #ddd;border-radius:4pt;padding:6pt;break-inside:avoid;}.authority-card h4{font-size:10pt;margin:0 0 3pt;}.authority-list{margin:0;padding-left:12pt;}.authority-list li{margin:0 0 2pt;word-break:break-word;font-size:9pt;}.authority-actions,.report-actions,.preview-head .report-actions,.print-note{display:none!important;}.authority-meta{display:flex;flex-wrap:wrap;gap:3pt;margin:3pt 0 5pt;}.authority-welcome{border:1px solid #c8daf0;border-radius:4pt;padding:5pt 7pt;margin-bottom:7pt;font-size:9pt;}.authority-welcome strong{display:block;margin-bottom:2pt;}.authority-badge{display:none;}.report-empty{font-style:italic;color:#888;font-size:9pt;padding:3pt;}img{max-width:100%;height:auto;}</style></head><body><div class="print-header"><h1>Madkontrollen Pro — Rapport${company ? " / " + company : ""}</h1><span>${period ? "Periode: " + period + " &nbsp;·&nbsp; " : ""}Genereret: ${now}</span></div>${root.innerHTML}<script>window.onload=function(){window.print();};<\/script></body></html>`);
+            pw.document.write(`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>Rapport${company ? " – " + company : ""}</title><style>@page{size:A4 portrait;margin:8mm;}*,*::before,*::after{box-sizing:border-box;}body{font-family:Arial,sans-serif;font-size:8.5pt;line-height:1.25;color:#111;background:#fff;margin:0;padding:0;}.print-header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #2457d6;padding-bottom:3pt;margin-bottom:6pt;}.print-header h1{font-size:12pt;margin:0;color:#2457d6;}.print-header span{font-size:7.5pt;color:#555;}h2{font-size:10pt;margin:7pt 0 3pt;border-bottom:1px solid #ccc;padding-bottom:2pt;}h3{font-size:9.5pt;margin:5pt 0 3pt;}h4{font-size:8.5pt;margin:3pt 0 1pt;}p{margin:1pt 0;}.report-meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3pt;margin-bottom:4pt;}.meta-box{border:1px solid #ddd;border-radius:3pt;padding:3pt 4pt;break-inside:avoid;}.meta-box-label{font-size:6pt;text-transform:uppercase;font-weight:700;color:#666;margin-bottom:1pt;}.meta-box-value{font-size:8pt;font-weight:700;color:#111;}.report-section{margin-top:5pt;}.entries-list,.alert-list{display:grid;gap:2pt;}.report-entry-item,.alert-item{border:1px solid #ddd;border-radius:3pt;overflow:hidden;break-inside:avoid;padding:3pt 4pt;}.task-collapse-head{padding:0;cursor:default;}.task-chevron{display:none;}.task-body{display:block!important;border-top:1px solid #eee;padding:2pt 0 0;margin-top:2pt;}.entry-head-title,.alert-item-title{font-weight:700;font-size:8pt;}.entry-head-sub,.alert-item-text{font-size:7pt;color:#444;}.entry-detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2pt;font-size:7pt;margin-bottom:2pt;}.entry-comment{font-size:7pt;white-space:pre-wrap;word-break:break-word;margin-top:1pt;}.status-chip{display:inline-block;padding:1pt 3pt;border-radius:999pt;font-size:6.5pt;font-weight:700;border:1px solid #ccc;white-space:nowrap;margin:0 1pt 1pt 0;}.authority-report{border:1px solid #ccc;border-radius:4pt;padding:5pt;margin-top:5pt;}.authority-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:3pt;}.authority-card{border:1px solid #ddd;border-radius:3pt;padding:3pt;break-inside:avoid;}.authority-card h4{font-size:8pt;margin:0 0 1pt;}.authority-card p,.authority-list li{font-size:6.5pt;line-height:1.2;}.authority-list{margin:0;padding-left:9pt;}.authority-list li{margin:0 0 1pt;word-break:break-word;}.authority-actions,.report-actions,.preview-head .report-actions,.print-note,.report-pagination{display:none!important;}.authority-meta{display:flex;flex-wrap:wrap;gap:1pt;margin:1pt 0 2pt;}.authority-welcome{border:1px solid #c8daf0;border-radius:3pt;padding:3pt 4pt;margin-bottom:3pt;font-size:7pt;}.authority-welcome strong{display:block;margin-bottom:1pt;}.authority-badge{display:none;}.report-empty{font-style:italic;color:#888;font-size:7pt;padding:2pt;}img{max-width:100%;height:auto;}${AUTHORITY_MODE ? "#allActionsSection,#alertsSection{display:none!important;}" : ""}${ACTIONS_MODE ? "#authorityReport,#alertsSection{display:none!important;}" : ""}</style></head><body><div class="print-header"><h1>EWCP Egenkontrol — Rapport${company ? " / " + company : ""}</h1><span>${period ? "Periode: " + period + " &nbsp;·&nbsp; " : ""}Genereret: ${now}</span></div>${root.innerHTML}<script>window.onload=function(){window.print();};<\/script></body></html>`);
             pw.document.close();
         }
 
@@ -3448,7 +3428,6 @@
                 return s.includes("rengør") || s.includes("rengor") || s.includes("clean");
             });
 
-            await loadActiveHaccpSnapshot();
         } else {
             if (!SETTINGS.companyId || !SETTINGS.locationId) {
                 throw new Error("Brugerprofil mangler companyId eller locationId.");
@@ -3460,7 +3439,6 @@
                 loadDeviations(),
                 loadLogbookEntries(),
                 loadMediaAssets(),
-                loadActiveHaccpSnapshot(),
                 loadCleaningPlanItems()
             ]);
         }

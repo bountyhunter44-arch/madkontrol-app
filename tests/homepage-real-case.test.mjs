@@ -1,7 +1,7 @@
 // Madkontrollen forside — ægte Aroi-D-case, ingen demo-/mock-indhold (hotfix 2026-08-05).
 //
 // Beskytter forside-hotfixen: opdigtede testimonials, mock-statistik og den forældede
-// landing.html er fjernet. Aroi-D Ørnhøj Hotel er den eneste case, og indehaverens navn
+// landing.html er fjernet. Aroi-D er den eneste case, og indehaverens navn
 // vises som "Supawan Ponguttha" (uden bindestreg).
 //
 // STATISK kildekode-kontrol (læser filer, ingen runtime).
@@ -48,8 +48,10 @@ test('3. Forsiden har præcis én data-home-case="aroi-d"', () => {
   assert.ok(idx.includes('id="case-aroi-d"'), "Aroi-D-sektionen skal have id=case-aroi-d");
 });
 
-test("4. Kun Aroi-D Ørnhøj Hotel bruges som case", () => {
-  assert.ok(idx.includes("Aroi-D Ørnhøj Hotel"), "Aroi-D Ørnhøj Hotel skal være til stede som case");
+test("4. Kun det juridiske navn Aroi-D bruges som case", () => {
+  assert.ok(idx.includes("Aroi-D"), "Aroi-D skal være til stede som case");
+  assert.ok(idx.includes("CVR 42405000"), "Aroi-Ds CVR skal være til stede");
+  assert.ok(!idx.includes("Aroi-D Ørnhøj Hotel"), "det tidligere virksomhedsnavn skal være væk");
   assert.ok(idx.includes("Supawan Ponguttha"), "indehaverens udtalelse/navn skal være bevaret");
 });
 

@@ -2,11 +2,38 @@
   "_meta": {
     "project": "Madkontrollen Pro",
     "firebaseProject": "madkontrollen",
-    "repo": "D:\\madkontrol-app",
+    "repo": "G:\\EWCP-Projects\\madkontrollen-web",
     "cleanHostingDeployFolder": "D:\\mk-deploy-focused",
     "note": "Read before changes; update after. See tools/*.registry.md for detail."
   },
   "modules": {
+    "demo": {
+      "activeFiles": [
+        "public/index.html",
+        "public/core/auth.js",
+        "functions/modules/demo/index.js",
+        "functions/modules/demo/demo-expiry.js"
+      ],
+      "backendFunctions": [
+        "functions/index.js:createDemoEnvironment",
+        "functions/index.js:expireDemoEnvironments"
+      ],
+      "dataCollections": [
+        "companies",
+        "locations",
+        "users",
+        "companies/{companyId}/locations"
+      ],
+      "deprecatedFiles": [
+        "functions/admin/demoMode.js:createDemoCompany (legacy 7-day demo flow)"
+      ],
+      "noGoRules": [
+        "Demo access expires exactly 60 minutes after creation",
+        "Expired demo data is soft-archived, never hard-deleted",
+        "Expired demo users are signed out, disabled, and refresh tokens revoked"
+      ],
+      "lastKnownStatus": "60-minute expiry enforced by frontend auth gate, Firestore Rules, and a one-minute scheduled backend expiry job; pending deploy"
+    },
     "egenkontrol": {
       "activeFiles": [
         "public/modules/egenkontrol/rutiner.html",
@@ -51,11 +78,11 @@
     "quick_onboarding": {
       "activeFiles": [
         "public/quick-onboarding.html",
-        "public/core/onboarding-module-registry.js"
+        "public/modules/egenkontrol/egenkontrol-onboarding.js",
+        "public/modules/egenkontrol/egenkontrol-onboarding.css"
       ],
       "backendFunctions": [
-        "functions/index.js:createQuickOnboardingAccount",
-        "functions/index.js:completeQuickOnboarding",
+        "functions/modules/provisioning/index.js:createOnboardingCheckoutSession",
         "functions/index.js:finalizeOnboardingCheckoutProvisioning",
         "functions/modules/onboarding/moduleProvisioners.js:runModuleProvisioners",
         "functions/modules/onboarding/moduleProvisioners.js:provisionEgenkontrolModule"
@@ -81,7 +108,7 @@
         "No duplicate seed/import; deterministic seedKey/docId",
         "Do not couple all modules to egenkontrol; use MODULE_PROVISIONERS map"
       ],
-      "lastKnownStatus": "active; createQuickOnboardingAccount wired to MODULE_PROVISIONERS; completeQuickOnboarding + finalize still have inline egenkontrol blocks (migration follow-up)"
+      "lastKnownStatus": "active; Quick Onboarding is the canonical Madkontrollen Egenkontrol checkout flow, uses the shared egenkontrol-onboarding component, keeps the 149 kr./md. price ekskl. moms, and finalizes through tak.html"
     },
     "platform_admin": {
       "activeFiles": [

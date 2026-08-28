@@ -1765,13 +1765,13 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
                     <button class="btn btn-primary" id="payMonthlyBtn" type="button" style="flex: 1; min-height: 64px; font-size: 16px;">
                         <div style="display: flex; flex-direction: column; gap: 4px;">
                             <strong>Betal månedligt</strong>
-                            <span style="font-size: 14px; opacity: 0.9;">186,25 kr/md inkl. moms</span>
+                            <span style="font-size: 14px; opacity: 0.9;">149 kr./md. ekskl. moms</span>
                         </div>
                     </button>
                     <button class="btn btn-soft" id="payYearlyBtn" type="button" style="flex: 1; min-height: 64px; font-size: 16px; background: linear-gradient(180deg, #eaf6eb 0%, #d2ebd4 100%); border-color: #9bc8a0;">
                         <div style="display: flex; flex-direction: column; gap: 4px;">
                             <strong>Betal årligt (Spar 10%)</strong>
-                            <span style="font-size: 14px; opacity: 0.9;">2.011,50 kr/år inkl. moms</span>
+                            <span style="font-size: 14px; opacity: 0.9;">1.609,20 kr./år ekskl. moms</span>
                         </div>
                     </button>
                 </div>

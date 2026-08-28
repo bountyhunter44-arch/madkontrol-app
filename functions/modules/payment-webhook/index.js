@@ -3,6 +3,7 @@
 // Kode flyttet ORDRET; eneste ændring er `exports.` -> `api.`.
 
 const Stripe = require("stripe");
+const admin = require("firebase-admin");
 const { onRequest } = require("firebase-functions/v2/https");
 
 module.exports = ({
@@ -10,6 +11,15 @@ module.exports = ({
   db
 }) => {
   const api = {};
+
+function normalizePurchasedModules(value) {
+  const aliases = { accounting: "bogforing", bogfoering: "bogforing", "bogføring": "bogforing" };
+  const allowed = new Set(["egenkontrol", "pos", "lagerkontrol", "bogforing", "menu", "seo", "kalkulation", "koerselskontrol"]);
+  return [...new Set(String(value || "").split(",")
+    .map((item) => String(item || "").trim().toLowerCase())
+    .map((item) => aliases[item] || item)
+    .filter((item) => allowed.has(item)))];
+}
 
 api.stripeWebhook = onRequest(
   {
@@ -48,21 +58,92 @@ api.stripeWebhook = onRequest(
         case "checkout.session.completed": {
           const session = event.data.object;
           const companyId = session.metadata?.companyId;
+          const locationId = session.metadata?.locationId;
+          const purchasedModules = normalizePurchasedModules(session.metadata?.selectedModules);
 
           if (!companyId) break;
 
-          await db.collection("companies").doc(companyId).set(
-            {
-              subscription: {
-                plan: session.metadata?.plan || "unknown",
-                status: "active",
-                stripeCustomerId: session.customer,
-                stripeSubscriptionId: session.subscription,
-                updatedAt: FieldValue.serverTimestamp(),
-              },
-            },
-            { merge: true }
-          );
+          const subscriptionUpdate = {
+            "subscription.plan": session.metadata?.plan || "unknown",
+            "subscription.status": "active",
+            "subscription.stripeCustomerId": session.customer,
+            "subscription.stripeSubscriptionId": session.subscription,
+            "subscription.updatedAt": FieldValue.serverTimestamp()
+          };
+          if (purchasedModules.length) {
+            subscriptionUpdate["subscription.selectedModules"] = FieldValue.arrayUnion(...purchasedModules);
+            subscriptionUpdate.activeModules = FieldValue.arrayUnion(...purchasedModules);
+            subscriptionUpdate.selectedModules = FieldValue.arrayUnion(...purchasedModules);
+            purchasedModules.forEach((moduleKey) => {
+              subscriptionUpdate[`moduleAccess.${moduleKey}.enabled`] = true;
+              subscriptionUpdate[`moduleAccess.${moduleKey}.status`] = "active";
+              subscriptionUpdate[`moduleAccess.${moduleKey}.source`] = "stripe_checkout";
+              subscriptionUpdate[`moduleAccess.${moduleKey}.activatedAt`] = FieldValue.serverTimestamp();
+            });
+          }
+
+          await db.collection("companies").doc(companyId).set(subscriptionUpdate, { merge: true });
+          if (locationId && purchasedModules.length) {
+            await db.collection("companies").doc(companyId).collection("locations").doc(locationId).set({
+              activeModules: FieldValue.arrayUnion(...purchasedModules),
+              selectedModules: FieldValue.arrayUnion(...purchasedModules),
+              updatedAt: FieldValue.serverTimestamp()
+            }, { merge: true });
+          }
+
+          if (session.metadata?.source === "direct_module_purchase" && session.metadata?.uid) {
+            const uid = String(session.metadata.uid).trim();
+            const convertedAt = FieldValue.serverTimestamp();
+            const conversionPatch = {
+              isDemo: false,
+              demoMode: false,
+              demoExpiresAt: FieldValue.delete(),
+              demoExpiryProcessed: FieldValue.delete(),
+              demoAuthDisabled: FieldValue.delete(),
+              active: true,
+              isActive: true,
+              archived: false,
+              status: "active",
+              accessStatus: "active",
+              registrationWriteLocked: false,
+              ownerKind: "real_owner",
+              ownerLabel: "Rigtig owner",
+              isDemoScope: false,
+              scopeType: "customer",
+              convertedFromDemoAt: convertedAt,
+              updatedAt: convertedAt
+            };
+            const conversionWrites = [
+              db.collection("companies").doc(companyId).set(conversionPatch, { merge: true }),
+              db.collection("users").doc(uid).set({
+                ...conversionPatch,
+                subscriptionStatus: "active"
+              }, { merge: true }),
+              db.collection("companies").doc(companyId).collection("members").doc(uid).set(conversionPatch, { merge: true })
+            ];
+            if (locationId) {
+              conversionWrites.push(
+                db.collection("locations").doc(locationId).set(conversionPatch, { merge: true }),
+                db.collection("companies").doc(companyId).collection("locations").doc(locationId).set(conversionPatch, { merge: true })
+              );
+            }
+            await Promise.all(conversionWrites);
+            try {
+              await admin.auth().updateUser(uid, { disabled: false });
+            } catch (error) {
+              console.error("Kunne ikke genaktivere demo-bruger efter betaling:", error);
+            }
+          }
+
+          const checkoutSnap = await db.collection("checkout_sessions")
+            .where("stripeSessionId", "==", session.id)
+            .limit(10)
+            .get();
+          await Promise.all(checkoutSnap.docs.map((checkoutDoc) => checkoutDoc.ref.set({
+            status: "completed",
+            completedAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+          }, { merge: true })));
           break;
         }
 

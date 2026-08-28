@@ -4,13 +4,61 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta property="og:url" content="https://madkontrollen.dk/">
-  <meta property="og:description" content="Digital egenkontrol, risikoanalyse og HACCP til restauranter, caf&eacute;er, takeaway og professionelle k&oslash;kkener  temperaturkontrol, rutiner, afvigelser og dokumentation til f&oslash;devarekontrol.">
-  <meta property="og:title" content="Digital egenkontrol til restauranter, caf&eacute;er, takeaway og professionelle k&oslash;kkener | Madkontrollen">
+  <meta property="og:description" content="Digital egenkontrol til restaurant og takeaway med temperaturregistrering, rutiner, afvigelser, risikoanalyse og samlet dokumentation.">
+  <meta property="og:title" content="Digital egenkontrol til restaurant og takeaway | Madkontrollen">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://madkontrollen.dk/images/um-hero-1-overblik.png">
+  <meta property="og:image:alt" content="Digital egenkontrol i et professionelt køkken">
   <link rel="canonical" href="https://madkontrollen.dk/">
   <meta name="robots" content="index,follow">
-    <meta name="description" content="Digital egenkontrol, risikoanalyse og HACCP til restauranter, caf&eacute;er, takeaway og professionelle k&oslash;kkener  temperaturkontrol, rutiner, afvigelser og dokumentation til f&oslash;devarekontrol.">
-    <title>Digital egenkontrol til restauranter, caf&eacute;er, takeaway og professionelle k&oslash;kkener | Madkontrollen</title>
+    <meta name="description" content="Digital egenkontrol til restaurant og takeaway med temperaturkontrol, faste rutiner, afvigelser, risikoanalyse og dokumentation samlet ét sted digitalt.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Digital egenkontrol til restaurant og takeaway | Madkontrollen">
+    <meta name="twitter:description" content="Temperaturkontrol, rutiner, afvigelser, risikoanalyse og dokumentation samlet digitalt.">
+    <meta name="twitter:image" content="https://madkontrollen.dk/images/um-hero-1-overblik.png">
+    <title>Digital egenkontrol til restaurant og takeaway | Madkontrollen</title>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://madkontrollen.dk/#organization",
+          "name": "Aroi-D",
+          "legalName": "Aroi-D",
+          "url": "https://madkontrollen.dk/",
+          "email": "info@madkontrollen.dk",
+          "telephone": "+45 20 71 78 61",
+          "taxID": "42405000",
+          "founder": { "@type": "Person", "name": "Supawan Ponguttha" },
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Hovedgaden 49",
+            "postalCode": "6973",
+            "addressLocality": "Ørnhøj",
+            "addressCountry": "DK"
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://madkontrollen.dk/#software",
+          "name": "Madkontrollen",
+          "url": "https://madkontrollen.dk/",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "inLanguage": "da-DK",
+          "description": "Digital egenkontrol til restaurant, takeaway og professionelle køkkener med temperaturregistrering, rutiner, afvigelser, risikoanalyse og dokumentation.",
+          "publisher": { "@id": "https://madkontrollen.dk/#organization" },
+          "offers": {
+            "@type": "Offer",
+            "price": "149",
+            "priceCurrency": "DKK",
+            "description": "Månedsabonnement ekskl. moms"
+          }
+        }
+      ]
+    }
+    </script>
     
     <script>
     // Subdomain-baseret landing page routing
@@ -63,17 +111,17 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --primary: #2e7d32;
-            --primary-dark: #1f5a23;
-            --primary-light: #e8f5e9;
-            --secondary: #1565c0;
-            --secondary-light: #eaf3ff;
-            --accent: #f57c00;
-            --text: #182118;
+            --primary: #2f5fe0;
+            --primary-dark: #101a35;
+            --primary-light: #e9efff;
+            --secondary: #16c0e8;
+            --secondary-light: #e8faff;
+            --accent: #e0349a;
+            --text: #16203a;
             --text-light: #667267;
-            --bg: #f7faf7;
-            --bg-soft: #f4f7f3;
-            --border: #d9e4d9;
+            --bg: #f7f9fd;
+            --bg-soft: #f1f4fa;
+            --border: #dce3f0;
             --success: #4caf50;
             --warning: #fb8c00;
             --danger: #c62828;
@@ -191,6 +239,37 @@
             h1 { font-size: 2.2rem; }
             h2 { font-size: 1.8rem; }
             .brand-logo { height: 46px; }
+
+            .navbar {
+                position: static;
+            }
+
+            .navbar-inner {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 0 16px;
+            }
+
+            .brand {
+                flex: 1 0 100%;
+                justify-content: center;
+                min-width: 0;
+            }
+
+            .navbar-actions {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                width: 100%;
+                gap: 10px;
+            }
+
+            .navbar-actions .btn {
+                width: 100%;
+                min-width: 0;
+                padding: 10px 12px !important;
+                white-space: normal;
+                text-align: center;
+            }
         }
 
         /* Hero */
@@ -294,11 +373,137 @@
 
         .hero-visual-image {
             width: 100%;
-            height: 400px;
+            height: 100%;
             border-radius: 12px;
             object-fit: cover;
             object-position: center;
             display: block;
+        }
+
+        .hero-visual-media {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            height: auto;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #eef3ee;
+        }
+
+        .hero-thai-frame {
+            position: absolute;
+            inset: 13px;
+            z-index: 5;
+            border: 1px solid rgba(239, 196, 103, 0.92);
+            border-radius: 8px;
+            box-shadow: inset 0 0 22px rgba(228, 185, 95, 0.12);
+            pointer-events: none;
+        }
+
+        .hero-thai-frame::before,
+        .hero-thai-frame::after {
+            content: "❦";
+            position: absolute;
+            color: #efc467;
+            font-family: Georgia, serif;
+            font-size: 2.25rem;
+            line-height: 1;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+        }
+
+        .hero-thai-frame::before {
+            top: -10px;
+            left: 8px;
+        }
+
+        .hero-thai-frame::after {
+            right: 8px;
+            bottom: -10px;
+            transform: rotate(180deg);
+        }
+
+        .hero-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            animation: hero-image-fade 24s infinite;
+        }
+
+        .hero-slide::after {
+            content: "";
+            position: absolute;
+            inset: 42% 0 0;
+            z-index: 1;
+            background: linear-gradient(180deg, transparent, rgba(5, 22, 46, 0.88));
+            pointer-events: none;
+        }
+
+        .hero-slide .hero-visual-image {
+            position: absolute;
+            inset: 0;
+            opacity: 1;
+            animation: none;
+        }
+
+        .hero-slide:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .hero-slide:nth-child(2) {
+            animation-delay: 8s;
+        }
+
+        .hero-slide:nth-child(3) {
+            animation-delay: 16s;
+        }
+
+        .hero-slide-copy {
+            position: absolute;
+            z-index: 3;
+            left: 34px;
+            right: 34px;
+            bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .hero-slide-number {
+            flex: 0 0 auto;
+            color: #efc467;
+            font: 800 clamp(2rem, 4vw, 3.6rem)/1 Georgia, serif;
+        }
+
+        .hero-slide-copy strong {
+            display: block;
+            font-size: clamp(1rem, 2.2vw, 1.55rem);
+            line-height: 1.15;
+        }
+
+        .hero-slide-copy small {
+            display: block;
+            margin-top: 5px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: clamp(0.72rem, 1.35vw, 0.95rem);
+            line-height: 1.25;
+        }
+
+        @keyframes hero-image-fade {
+            0%, 29% { opacity: 1; }
+            34%, 95% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .hero-slide {
+                animation: none;
+            }
+
+            .hero-slide:first-child {
+                opacity: 1;
+            }
         }
 
         .hero-points {
@@ -401,6 +606,7 @@
             padding: 32px;
             text-align: center;
             transition: .2s;
+            min-width: 0;
         }
 
         .feature-card:hover {
@@ -423,6 +629,7 @@
 
         .feature-card h3 {
             margin-bottom: 12px;
+            overflow-wrap: anywhere;
         }
 
         .feature-card p {
@@ -822,7 +1029,7 @@
             display: grid;
             grid-template-columns: minmax(0, 1.45fr) minmax(380px, 430px);
             gap: 28px;
-            align-items: stretch;
+            align-items: start;
             text-align: left;
         }
 
@@ -830,12 +1037,11 @@
             margin-top: 0;
             display: flex;
             flex-direction: column;
+            align-self: start;
         }
 
         .hero-showcase .hero-visual-image {
-            flex: 1;
             height: 100%;
-            min-height: 520px;
         }
 
         /* Sales card */
@@ -1015,8 +1221,13 @@
             .hero-sales-slider {
                 min-height: 420px;
             }
+            .hero-showcase .hero-visual {
+                width: 100%;
+                max-width: 780px;
+                justify-self: center;
+            }
             .hero-showcase .hero-visual-image {
-                min-height: 360px;
+                min-height: 0;
             }
         }
 
@@ -1050,8 +1261,8 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="/" class="brand" aria-label="Madkontrollen Pro">
-                <img src="/images/logo.svg" class="brand-logo" alt="Madkontrollen Pro logo">
+            <a href="/" class="brand" aria-label="Madkontrollen forside">
+                <img src="/images/logo.svg" class="brand-logo" alt="Madkontrollen logo">
             </a>
             <ul class="nav-links">
                 <li><a href="#features">Funktioner</a></li>
@@ -1070,6 +1281,8 @@
     <section class="hero">
         <div class="hero-inner">
             <div class="hero-badge">Digital egenkontrol til professionelle køkkener</div>
+            <h1>Digital egenkontrol til restaurant og takeaway</h1>
+            <p class="hero-subtitle">Saml temperaturkontrol, rutiner, afvigelser og dokumentation i Madkontrollen.</p>
             
             <div class="hero-actions">
                 <button id="startDemoBtn" class="btn btn-secondary btn-large" type="button">Start i demo</button>
@@ -1082,8 +1295,30 @@
             <div class="hero-showcase">
 
                 <div class="hero-visual">
-                    <img class="hero-visual-image" src="/images/presentation.jpg?v=20260321b" alt="Kok i professionelt køkken med udstyr i baggrunden">
-                    <h2 class="hero-visual-title">Slut med krøllede egenkontrolskemaer og glemte registreringer</h2>
+                    <div class="hero-visual-media">
+                        <article class="hero-slide">
+                            <img class="hero-visual-image" src="/images/um-hero-1-overblik.png?v=20260827" alt="Um starter dagens egenkontrol i Aroi-Ds køkken">
+                            <div class="hero-slide-copy">
+                                <span class="hero-slide-number">1.</span>
+                                <div><strong>Jeg starter med dagens overblik</strong><small>Så ved jeg præcis, hvad der skal kontrolleres.</small></div>
+                            </div>
+                        </article>
+                        <article class="hero-slide">
+                            <img class="hero-visual-image" src="/images/um-hero-2-registrering.png?v=20260827" alt="Um registrerer temperatur i Madkontrollen">
+                            <div class="hero-slide-copy">
+                                <span class="hero-slide-number">2.</span>
+                                <div><strong>Jeg registrerer med få tryk</strong><small>Temperatur, rengøring og rutiner gemmes med det samme.</small></div>
+                            </div>
+                        </article>
+                        <article class="hero-slide">
+                            <img class="hero-visual-image" src="/images/um-hero-3-kontrol.png?v=20260827" alt="Um viser den færdige dokumentation i Aroi-Ds restaurant">
+                            <div class="hero-slide-copy">
+                                <span class="hero-slide-number">3.</span>
+                                <div><strong>Så er vi klar til kontrol</strong><small>Alt er samlet og dokumenteret i Madkontrollen.</small></div>
+                            </div>
+                        </article>
+                        <span class="hero-thai-frame" aria-hidden="true"></span>
+                    </div>
                 </div>
 
                 <div class="hero-sales-card">
@@ -1162,8 +1397,8 @@
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">🌡️</div>
-                    <h3>Automatisk Temperaturmåling</h3>
-                    <p>Realtidsmålinger af køleskabe, frysere, ovne og kølerum – med automatisk advarsel ved afvigelse.</p>
+                    <h3>Digital temperaturregistrering</h3>
+                    <p>Registrér temperaturer for køleskabe, frysere, opvarmning og nedkøling, og gem dokumentationen digitalt.</p>
                 </div>
 
                 <div class="feature-card">
@@ -1175,7 +1410,7 @@
                 <div class="feature-card">
                     <div class="feature-icon">📊</div>
                     <h3>Rapporter & Analyse</h3>
-                    <p>Automatiske kontroller, afvigelsesrapporter og dokumentation klar til miljøstyrelse-besøg.</p>
+                    <p>Samlede registreringer, afvigelsesrapporter og dokumentation klar til kontrolbesøg fra Fødevarestyrelsen.</p>
                 </div>
 
                 <div class="feature-card">
@@ -1186,8 +1421,8 @@
 
                 <div class="feature-card">
                     <div class="feature-icon">🔔</div>
-                    <h3>Realtidsadvarsler</h3>
-                    <p>Øjeblikkelig besked ved temperaturafvigelse, manglende rutine eller kritisk risiko.</p>
+                    <h3>Status og opfølgning</h3>
+                    <p>Se manglende rutiner og registrerede afvigelser, så virksomheden kan følge op i den daglige drift.</p>
                 </div>
 
                 <div class="feature-card">
@@ -1203,18 +1438,18 @@
     <section class="products" id="funktioner">
         <div class="products-inner">
             <div class="section-header">
-                <h2>Hvad du kan gøre med Madkontrollen Pro</h2>
+                <h2>Hvad du kan gøre med Madkontrollen</h2>
                 <p>Funktioner til den daglige egenkontrol</p>
             </div>
 
             <div class="products-grid">
-                <a class="product-box" href="/funktioner/digital-egenkontrol.html">
+                <a class="product-box" href="/digital-egenkontrol/">
                     <h4>Digital egenkontrol</h4>
                     <p>Opret og gennemfør daglige rutiner, temperaturkontrol og rengøringsopgaver med dokumentation.</p>
                     <span class="product-more">Læs mere →</span>
                 </a>
 
-                <a class="product-box" href="/funktioner/risikoanalyse-haccp.html">
+                <a class="product-box" href="/risikoanalyse-haccp/">
                     <h4>Risikoanalyse (HACCP)</h4>
                     <p>Få forslag til relevante risici og kontrolpunkter ud fra dit køkkens aktiviteter og udstyr.</p>
                     <span class="product-more">Læs mere →</span>
@@ -1243,6 +1478,18 @@
                     <p>Saml egenkontroldokumentation, risikoanalyse og afvigelser til visning eller eksport.</p>
                     <span class="product-more">Læs mere →</span>
                 </a>
+
+                <a class="product-box" href="/egenkontrol-restaurant/">
+                    <h4>Egenkontrol til restaurant</h4>
+                    <p>Se hvordan restauranter kan samle daglige kontroller og dokumentation digitalt.</p>
+                    <span class="product-more">Læs mere →</span>
+                </a>
+
+                <a class="product-box" href="/egenkontrol-takeaway/">
+                    <h4>Egenkontrol til takeaway</h4>
+                    <p>Se hvordan takeaway-køkkener kan strukturere rutiner, temperaturer og opfølgning.</p>
+                    <span class="product-more">Læs mere →</span>
+                </a>
             </div>
         </div>
     </section>
@@ -1256,7 +1503,7 @@
             <div class="about-content">
                 <p>Madkontrollen er udviklet med fokus på hverdagen i køkkenet.</p>
                 <p>Løsningen samler rutiner, temperaturkontrol, afvigelser og dokumentation digitalt.</p>
-                <p>Madkontrollen drives som en del af <strong>Aroi-D Ørnhøj Hotel</strong>, CVR <strong>42405000</strong>.</p>
+                <p>Madkontrollen drives af <strong>Aroi-D</strong>, CVR <strong>42405000</strong>.</p>
             </div>
         </div>
     </section>
@@ -1265,9 +1512,9 @@
     <section class="about-section" id="case-aroi-d" data-home-case="aroi-d">
         <div class="about-section-inner">
             <div class="section-header">
-                <img src="/images/aroi-d-logo.png" alt="Aroi-D Ørnhøj Hotel logo" style="height:96px; width:auto; display:block; margin:0 auto 22px;">
+                <img src="/images/aroi-d-logo.png" alt="Aroi-D logo" style="height:96px; width:auto; display:block; margin:0 auto 22px;">
                 <h2>Vi bruger selv Madkontrollen</h2>
-                <p>Madkontrollen er udviklet med udgangspunkt i vores egen fødevarevirksomhed, Aroi-D Ørnhøj Hotel. Vi bruger løsningen til at samle den daglige egenkontrol ét sted og gøre dokumentationen lettere for dem, der arbejder i køkkenet.</p>
+                <p>Madkontrollen er udviklet med udgangspunkt i vores egen fødevarevirksomhed, Aroi-D. Vi bruger løsningen til at samle den daglige egenkontrol ét sted og gøre dokumentationen lettere for dem, der arbejder i køkkenet.</p>
             </div>
 
             <div class="about-content" style="text-align:left; gap:24px;">
@@ -1298,7 +1545,7 @@
                 <p>"Madkontrollen skal være enkel nok til at blive brugt i hverdagen og samtidig give os den dokumentation, vi har brug for."</p>
                 <div class="testimonial-author">
                     Supawan Ponguttha
-                    <span>Indehaver, Aroi-D Ørnhøj Hotel · CVR 42405000</span>
+                    <span>Indehaver og juridisk ansvarlig, Aroi-D · CVR 42405000</span>
                 </div>
             </div>
         </div>
@@ -1313,7 +1560,7 @@
                 <a href="/quick-onboarding.html" class="btn btn-secondary btn-large">Start onboarding</a>
                 <a href="tel:+4520717861" class="btn" style="background: rgba(255,255,255,0.2); color: #fff; border: 2px solid #fff;">Ring: 20 71 78 61</a>
             </div>
-            <p class="cta-legal">Når du opretter abonnement på Madkontrollen, indgår du aftale med Aroi-D Ørnhøj Hotel, CVR 42405000. Kontakt: <a href="mailto:info@madkontrollen.dk">info@madkontrollen.dk</a> · Tlf. 20 71 78 61.</p>
+            <p class="cta-legal">Når du opretter abonnement på Madkontrollen, indgår du aftale med Aroi-D, CVR 42405000. Indehaver og juridisk ansvarlig: Supawan Ponguttha. Kontakt: <a href="mailto:info@madkontrollen.dk">info@madkontrollen.dk</a> · Tlf. 20 71 78 61.</p>
         </div>
     </section>
 
@@ -1324,10 +1571,10 @@
                 <div class="footer-col">
                     <h4>Løsninger</h4>
                     <ul>
-                        <li><a href="#features">Daglige rutiner</a></li>
-                        <li><a href="#features">Risikoanalyse</a></li>
-                        <li><a href="#features">Afvigelseshåndtering</a></li>
-                        <li><a href="#features">Dokumentation</a></li>
+                        <li><a href="/digital-egenkontrol/">Digital egenkontrol</a></li>
+                        <li><a href="/risikoanalyse-haccp/">Risikoanalyse og HACCP</a></li>
+                        <li><a href="/funktioner/afvigelsesrapporter.html">Afvigelseshåndtering</a></li>
+                        <li><a href="/funktioner/myndighedsrapporter.html">Dokumentation og rapporter</a></li>
                     </ul>
                 </div>
 
@@ -1354,7 +1601,7 @@
                 <div class="footer-col">
                     <h4>Virksomhed</h4>
                     <ul>
-                        <li>Aroi-D Ørnhøj Hotel</li>
+                        <li>Aroi-D</li>
                         <li>CVR 42405000</li>
                         <li>v/Supawan Ponguttha</li>
                         <li>Hovedgaden 49, 6973 Ørnhøj</li>
@@ -1363,7 +1610,7 @@
             </div>
 
             <div class="footer-bottom">
-                <div>&copy; 2026 Madkontrollen. En del af Aroi-D Ørnhøj Hotel, CVR 42405000.</div>
+                <div>&copy; 2026 Madkontrollen. Drives af Aroi-D, CVR 42405000.</div>
                 <div>Kontakt: <a href="mailto:info@madkontrollen.dk">info@madkontrollen.dk</a> · <a href="tel:+4520717861">20 71 78 61</a></div>
             </div>
         </div>
@@ -1371,7 +1618,7 @@
 
     <section class="info-strip" aria-label="Virksomhedsoplysninger">
         <div class="info-strip-inner">
-            Madkontrollen · En del af Aroi-D Ørnhøj Hotel · CVR 42405000 · Hovedgaden 49 · 6973 Ørnhøj · Tlf. 20 71 78 61 · <a href="mailto:info@madkontrollen.dk">info@madkontrollen.dk</a>
+            Madkontrollen · Aroi-D · CVR 42405000 · Indehaver: Supawan Ponguttha · Hovedgaden 49 · 6973 Ørnhøj · Tlf. 20 71 78 61 · <a href="mailto:info@madkontrollen.dk">info@madkontrollen.dk</a>
         </div>
     </section>
 
@@ -1445,15 +1692,20 @@
     </script>
     <script type="module">
         import app, { auth, db } from "/core/firebase-config.js";
-        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+        import { isExpiredDemoProfile } from "/core/auth.js";
 
         let modalElements = null;
         const functionsClient = getFunctions(app, "us-central1");
         const createDemoEnvironment = httpsCallable(functionsClient, "createDemoEnvironment");
         const demoLaunchBtn = document.getElementById("startDemoBtn");
         const demoLaunchStatusEl = document.getElementById("demoLaunchStatus");
+
+        if (new URLSearchParams(window.location.search).get("demo") === "expired" && demoLaunchStatusEl) {
+            demoLaunchStatusEl.textContent = "Din demo er udløbet efter 60 minutter. Du kan starte en ny demo her.";
+        }
 
         function ensureLandingLoginModal() {
             if (modalElements) return modalElements;
@@ -1534,6 +1786,13 @@
 
                     const profile = userSnap.data();
                     console.log("[login] profile", profile);
+
+                    if (isExpiredDemoProfile(profile)) {
+                        await signOut(auth);
+                        statusEl.textContent = "Demoen er udløbet. Start en ny demo fra forsiden.";
+                        statusEl.classList.add("is-error");
+                        return;
+                    }
 
                     const orgId = profile.organizationId || profile.companyId;
                     const locationId = profile.primaryLocationId || profile.locationId || 

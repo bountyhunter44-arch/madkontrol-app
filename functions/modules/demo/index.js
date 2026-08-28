@@ -4,6 +4,7 @@
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { guardDangerousOperation } = require("../../security/environmentGuard");
 const demoMode = require("../../admin/demoMode");
 const { OWNER_KIND, buildOwnerScopeMetadata } = require("../../lib/ownerScope");
@@ -13,6 +14,11 @@ const {
   ensureSingleTaskInstance,
   startDayForLocationCanonical
 } = require("../../canonicalTaskEngine");
+const {
+  buildExpiryPatch,
+  getDemoExpiresAt,
+  isExpiredDemo
+} = require("./demo-expiry");
 
 module.exports = ({
   FieldValue,
@@ -230,7 +236,7 @@ api.createDemoEnvironment = functions.https.onCall(async (request) => {
   try {
     const demoEmail = `demo_${Date.now()}@madkontrollen.dk`;
     const demoPassword = Math.random().toString(36).slice(2, 12);
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    const expiresAt = getDemoExpiresAt();
     
     // Create user
     const userRecord = await admin.auth().createUser({
@@ -433,6 +439,63 @@ api.createDemoEnvironment = functions.https.onCall(async (request) => {
     throw new functions.https.HttpsError("internal", error.message);
   }
 });
+
+api.expireDemoEnvironments = onSchedule(
+  { schedule: "every 1 minutes", region: "us-central1", timeZone: "Europe/Copenhagen" },
+  async () => {
+    const now = new Date();
+    const expiredUsers = await db.collection("users")
+      .where("demoExpiresAt", "<=", now)
+      .limit(200)
+      .get();
+
+    let expiredCount = 0;
+    for (const userSnap of expiredUsers.docs) {
+      const userData = userSnap.data() || {};
+      if (userData.demoExpiryProcessed === true || !isExpiredDemo(userData, now)) continue;
+
+      const companyId = sanitizeString(userData.companyId || userData.organizationId || "", 120);
+      const locationId = sanitizeString(userData.primaryLocationId || userData.locationId || "", 120);
+      const patch = buildExpiryPatch(now);
+      const batch = db.batch();
+
+      batch.set(userSnap.ref, patch, { merge: true });
+      if (companyId) {
+        batch.set(db.collection("companies").doc(companyId), {
+          ...patch,
+          accessStatus: "archived",
+          registrationWriteLocked: true
+        }, { merge: true });
+      }
+      if (locationId) {
+        batch.set(db.collection("locations").doc(locationId), patch, { merge: true });
+        if (companyId) {
+          batch.set(
+            db.collection("companies").doc(companyId).collection("locations").doc(locationId),
+            patch,
+            { merge: true }
+          );
+        }
+      }
+
+      await batch.commit();
+      try {
+        await admin.auth().updateUser(userSnap.id, { disabled: true });
+        await admin.auth().revokeRefreshTokens(userSnap.id);
+      } catch (error) {
+        if (error?.code !== "auth/user-not-found") throw error;
+      }
+      await userSnap.ref.set({
+        demoAuthDisabled: true,
+        demoExpiryProcessed: true,
+        updatedAt: now
+      }, { merge: true });
+      expiredCount += 1;
+    }
+
+    console.log("[expireDemoEnvironments] Expired demos:", expiredCount);
+  }
+);
 
   return api;
 };

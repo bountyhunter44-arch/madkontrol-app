@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inspiration til risikoanalyse | EWCP Egenkontrol</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .inspiration-shell { display:grid; gap:22px; }
+    .inspiration-hero { padding:30px; border-radius:24px; color:#fff; background:linear-gradient(135deg,#142044 0%,#2457d6 62%,#16b7d4 100%); }
+    .inspiration-eyebrow { display:inline-flex; padding:7px 11px; border:1px solid rgba(255,255,255,.3); border-radius:999px; background:rgba(255,255,255,.12); font-size:12px; font-weight:800; }
+    .inspiration-hero h1 { margin:15px 0 10px; max-width:720px; color:#fff; font-size:clamp(30px,5vw,48px); line-height:1.05; }
+    .inspiration-hero p { max-width:780px; margin:0; color:rgba(255,255,255,.9); line-height:1.65; }
+    .inspiration-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+    .inspiration-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .inspiration-card { padding:22px; border:1px solid #dbe3f6; border-radius:18px; background:#fff; box-shadow:0 8px 24px rgba(20,32,68,.06); }
+    .inspiration-card-icon { font-size:30px; }
+    .inspiration-card h2 { margin:10px 0 8px; color:#142044; font-size:20px; }
+    .inspiration-card p { margin:0; color:#536078; line-height:1.6; }
+    .inspiration-note { padding:18px 20px; border-left:5px solid #f0ad25; border-radius:14px; background:#fff8e8; color:#5c4616; }
+    .example-list { display:grid; gap:12px; }
+    .example-card { padding:18px 20px; border:1px solid #dbe3f6; border-radius:16px; background:#fff; }
+    .example-card summary { cursor:pointer; color:#142044; font-weight:800; }
+    .example-card p { margin:12px 0 0; color:#536078; line-height:1.6; }
+    .example-fields { display:grid; gap:12px; margin-top:16px; }
+    .example-fields label { display:grid; gap:6px; color:#33415f; font-size:13px; font-weight:800; }
+    .example-fields textarea, .example-fields input { width:100%; border:1px solid #cbd7f4; border-radius:12px; padding:11px 12px; background:#fbfcff; color:#142044; font:inherit; font-weight:400; }
+    .example-fields textarea { min-height:90px; resize:vertical; }
+    .example-actions { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .save-status { color:#27734a; font-size:13px; font-weight:800; }
+    .new-card-form { padding:20px; border:2px dashed #aebfe8; border-radius:16px; background:#f7f9ff; }
+    @media (max-width:760px) { .inspiration-grid { grid-template-columns:1fr; } .inspiration-hero { padding:24px 20px; } }
+  </style>
+</head>
+<body>
+  <div id="headerMount"></div>
+  <main class="page-shell">
+    <div class="container app-layout">
+      <div id="sidebarMount"></div>
+      <section class="page-content inspiration-shell">
+        <section class="inspiration-hero">
+          <span class="inspiration-eyebrow">💡 Vejledning og eksempler</span>
+          <h1>Inspiration til risikoanalyse</h1>
+          <p>Her finder du generelle eksempler på farer, kritiske kontrolpunkter og dokumentation i fødevarevirksomheder. Materialet er inspiration og ændrer ikke virksomhedens aktive risikoanalyse.</p>
+          <div class="inspiration-actions">
+            <a class="btn btn-primary" href="/modules/egenkontrol/risikoanalyse.html">🛡️ Åbn virksomhedens risikoanalyse</a>
+            <a class="btn btn-secondary" href="/modules/egenkontrol/onboarding.html">Ret virksomhedens grundlag</a>
+          </div>
+        </section>
+
+        <div class="inspiration-note"><strong>Vigtigt:</strong> Eksemplerne skal altid vurderes i forhold til virksomhedens faktiske drift, råvarer, udstyr og arbejdsgange.</div>
+
+        <section class="inspiration-grid" aria-label="Inspirationsemner">
+          <article class="inspiration-card"><div class="inspiration-card-icon">🌡️</div><h2>Temperatur og kølekæde</h2><p>Overvej varemodtagelse, køl, frost, opvarmning, varmholdelse og nedkøling samt relevante grænseværdier.</p></article>
+          <article class="inspiration-card"><div class="inspiration-card-icon">🧼</div><h2>Rengøring og hygiejne</h2><p>Beskriv rengøringsplaner, håndhygiejne, adskillelse af rent og urent samt dokumentation af udførte rutiner.</p></article>
+          <article class="inspiration-card"><div class="inspiration-card-icon">🥜</div><h2>Allergener</h2><p>Vurder mærkning, krydskontaminering, opskrifter og hvordan personalet giver korrekte oplysninger til kunder.</p></article>
+          <article class="inspiration-card"><div class="inspiration-card-icon">🐭</div><h2>Skadedyr og lokaler</h2><p>Se på adgangsveje, spor efter skadedyr, vedligeholdelse, affald og faste kontrolintervaller.</p></article>
+          <article class="inspiration-card"><div class="inspiration-card-icon">📦</div><h2>Varemodtagelse og sporbarhed</h2><p>Kontrollér emballage, holdbarhed, mærkning, leverandør og mulighed for hurtig tilbagetrækning.</p></article>
+          <article class="inspiration-card"><div class="inspiration-card-icon">📋</div><h2>Dokumentation</h2><p>Beskriv hvem der kontrollerer, hvor ofte, hvad der registreres, og hvad virksomheden gør ved en afvigelse.</p></article>
+        </section>
+        <section>
+          <div class="example-actions" style="justify-content:space-between;margin-bottom:14px;">
+            <h2 style="color:#142044;margin:0;">Vejledende risikokort</h2>
+            <button id="addInspirationCardBtn" class="btn btn-primary" type="button">＋ Tilføj eget kort</button>
+          </div>
+          <div id="inspirationPageStatus" class="save-status" role="status"></div>
+          <div id="newInspirationCardMount"></div>
+          <div id="inspirationRiskCards" class="example-list"></div>
+        </section>
+      </section>
+    </div>
+  </main>
+  <script type="module">
+    import { loadLayout } from "/core/layout.js";
+    import { setupAuthGate } from "/core/auth.js";
+    import { RISK_ANALYSIS_LIBRARY } from "/modules/egenkontrol/risk-analysis-library.js";
+    import app, { db } from "/core/firebase-config.js";
+    import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    const escapeHtml = (value) => String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    const cards = document.getElementById("inspirationRiskCards");
+    const statusEl = document.getElementById("inspirationPageStatus");
+    const newCardMount = document.getElementById("newInspirationCardMount");
+    const state = { companyId:"", locationId:"", notes:{}, customCards:[] };
+
+    function resolveScope(profile = {}) {
+      return {
+        companyId: String(profile.companyId || profile.organizationId || "").trim(),
+        locationId: String(profile.locationId || profile.primaryLocationId || profile.locationIds?.[0] || "").trim()
+      };
+    }
+    function noteRef(itemId) { return doc(db,"companies",state.companyId,"locations",state.locationId,"risk_notes",itemId); }
+    function customRef(itemId) { return doc(db,"companies",state.companyId,"locations",state.locationId,"risk_custom_cards",itemId); }
+    function fields(item, saved = {}, isCustom = false) {
+      return `<div class="example-fields">
+        <label>Egne argumenter og vurdering
+          <textarea data-field="note" placeholder="Skriv hvorfor området er relevant eller ikke relevant for virksomheden…">${escapeHtml(saved.noteText || item.noteText || "")}</textarea>
+        </label>
+        <label>Supplerende kontroller
+          <textarea data-field="controls" placeholder="Skriv virksomhedens egne kontroller og handlinger…">${escapeHtml(saved.supplementaryControlsText || item.supplementaryControlsText || "")}</textarea>
+        </label>
+        <div class="example-actions"><button class="btn btn-secondary" type="button" data-save-card="${escapeHtml(item.itemId || item.id)}" data-custom="${isCustom}">Gem argumenter</button><span class="save-status" data-card-status></span></div>
+      </div>`;
+    }
+    function renderCards() {
+      if (!cards) return;
+      const libraryHtml = RISK_ANALYSIS_LIBRARY.map((item) => `<details class="example-card" data-item-id="${escapeHtml(item.id)}">
+        <summary>${escapeHtml(item.title || "Risikoområde")}</summary>
+        <p>${escapeHtml(item.beskrivelse || "Generelt inspirationseksempel, som skal tilpasses virksomhedens faktiske drift.")}</p>
+        ${fields(item, state.notes[item.id] || {}, false)}
+      </details>`).join("");
+      const customHtml = state.customCards.map((item) => `<details class="example-card" data-item-id="${escapeHtml(item.itemId)}" open>
+        <summary>✍️ ${escapeHtml(item.title || "Eget risikokort")}</summary>
+        <p>${escapeHtml(item.beskrivelse || "")}</p>
+        ${fields(item, item, true)}
+      </details>`).join("");
+      cards.innerHTML = customHtml + libraryHtml;
+    }
+    async function loadWorkspace() {
+      statusEl.textContent = "Indlæser gemte argumenter…";
+      const ids = RISK_ANALYSIS_LIBRARY.map((item) => item.id).filter(Boolean);
+      const noteSnaps = await Promise.all(ids.map((id) => getDoc(noteRef(id)).catch(() => null)));
+      state.notes = {};
+      noteSnaps.forEach((snap,index) => { if (snap?.exists()) state.notes[ids[index]] = snap.data(); });
+      const customSnap = await getDocs(collection(db,"companies",state.companyId,"locations",state.locationId,"risk_custom_cards"));
+      state.customCards = [];
+      customSnap.forEach((entry) => state.customCards.push(entry.data()));
+      statusEl.textContent = "";
+      renderCards();
+    }
+    document.getElementById("addInspirationCardBtn")?.addEventListener("click", () => {
+      newCardMount.innerHTML = `<section class="new-card-form example-fields">
+        <h3 style="margin:0;color:#142044;">Nyt inspirationskort</h3>
+        <label>Titel<input data-new="title" placeholder="Fx Levering uden for åbningstid"></label>
+        <label>Beskrivelse<textarea data-new="description" placeholder="Beskriv risikoen eller situationen…"></textarea></label>
+        <label>Egne argumenter<textarea data-new="note" placeholder="Skriv virksomhedens vurdering…"></textarea></label>
+        <label>Supplerende kontroller<textarea data-new="controls" placeholder="Skriv de kontroller virksomheden vil udføre…"></textarea></label>
+        <div class="example-actions"><button class="btn btn-primary" type="button" id="saveNewInspirationCard">Gem kort</button><button class="btn btn-secondary" type="button" id="cancelNewInspirationCard">Annuller</button></div>
+      </section>`;
+      document.getElementById("cancelNewInspirationCard")?.addEventListener("click", () => { newCardMount.innerHTML = ""; });
+      document.getElementById("saveNewInspirationCard")?.addEventListener("click", async (event) => {
+        const title = newCardMount.querySelector('[data-new="title"]')?.value.trim() || "";
+        if (!title) { statusEl.textContent = "Skriv en titel på kortet."; return; }
+        const itemId = `custom_${Date.now()}`;
+        const data = { itemId, title, beskrivelse:newCardMount.querySelector('[data-new="description"]')?.value || "", noteText:newCardMount.querySelector('[data-new="note"]')?.value || "", supplementaryControlsText:newCardMount.querySelector('[data-new="controls"]')?.value || "", active:true, createdAt:serverTimestamp(), updatedAt:serverTimestamp(), createdBy:getAuth(app).currentUser?.uid || null };
+        event.currentTarget.disabled = true;
+        await setDoc(customRef(itemId), data);
+        state.customCards.unshift({ ...data, createdAt:null, updatedAt:null });
+        newCardMount.innerHTML = "";
+        statusEl.textContent = "Det nye kort er gemt.";
+        renderCards();
+      });
+    });
+    cards?.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-save-card]");
+      if (!button) return;
+      const card = button.closest("[data-item-id]");
+      const itemId = button.dataset.saveCard;
+      const data = { itemId, noteText:card.querySelector('[data-field="note"]')?.value || "", supplementaryControlsText:card.querySelector('[data-field="controls"]')?.value || "", updatedAt:serverTimestamp(), updatedBy:getAuth(app).currentUser?.uid || null };
+      button.disabled = true;
+      button.textContent = "Gemmer…";
+      if (button.dataset.custom === "true") await setDoc(customRef(itemId), data, { merge:true });
+      else await setDoc(noteRef(itemId), data, { merge:true });
+      button.textContent = "Gemt ✓";
+      card.querySelector("[data-card-status]").textContent = "Dine argumenter er gemt.";
+      setTimeout(() => { button.disabled=false; button.textContent="Gem argumenter"; }, 1200);
+    });
+    await loadLayout();
+    await setupAuthGate({
+      appName: "EWCP Egenkontrol",
+      onAuthenticated: async ({ profile }) => {
+        Object.assign(state, resolveScope(profile));
+        if (!state.companyId || !state.locationId) { statusEl.textContent = "Virksomhed eller lokation mangler."; return; }
+        await loadWorkspace();
+      },
+      onSignedOut: () => { if (cards) cards.innerHTML = ""; }
+    });
+  </script>
+</body>
+</html>

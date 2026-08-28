@@ -162,9 +162,9 @@ function isPathMatch(currentPath, targetPath) {
 
 function getCompanyInfo() {
   return {
-    companyName: "Madkontrollen Pro",
-    logoSrc: "/images/logo.svg",
-    logoAlt: "Madkontrollen Pro logo",
+    companyName: "EWCP Egenkontrol",
+    logoSrc: "/images/ewcp-logo.svg",
+    logoAlt: "EWCP Egenkontrol logo",
 
     // Contact info will be populated from user's company data
     addressLabel: "",
@@ -187,7 +187,7 @@ function getNavItems() {
       key: "dashboard",
       labelKey: "nav.dashboard",
       label: "Dashboard",
-      short: "DB",
+      short: "📊",
       href: "/dashboard",
       module: CORE_MODULE_KEY
     },
@@ -195,7 +195,7 @@ function getNavItems() {
       key: "rutiner",
       labelKey: "nav.rutiner",
       label: "Rutiner",
-      short: "RU",
+      short: "📋",
       href: "/modules/egenkontrol/rutiner.html",
       module: CORE_MODULE_KEY
     },
@@ -203,7 +203,7 @@ function getNavItems() {
       key: "afvigelser",
       labelKey: "nav.afvigelser",
       label: "Afvigelser",
-      short: "AF",
+      short: "🚨",
       href: "/modules/egenkontrol/afvigelser.html",
       module: CORE_MODULE_KEY
     },
@@ -211,15 +211,22 @@ function getNavItems() {
       key: "risikoanalyse",
       labelKey: "nav.risikoanalyse",
       label: "Risikoanalyse",
-      short: "RI",
+      short: "🛡️",
       href: "/modules/egenkontrol/risikoanalyse.html",
+      module: CORE_MODULE_KEY
+    },
+    {
+      key: "risikoanalyse-inspiration",
+      label: "Inspiration til risikoanalyse",
+      short: "💡",
+      href: "/modules/egenkontrol/risikoanalyse-inspiration.html",
       module: CORE_MODULE_KEY
     },
     {
       key: "rapporter",
       labelKey: "nav.rapporter",
       label: "Myndighedsrapport",
-      short: "MR",
+      short: "📑",
       href: "/modules/egenkontrol/rapporter.html?mode=authority",
       module: CORE_MODULE_KEY
     },
@@ -227,7 +234,7 @@ function getNavItems() {
       key: "billedarkiv",
       labelKey: "nav.billedarkiv",
       label: "Billedarkiv",
-      short: "BA",
+      short: "🖼️",
       href: "/core/billed-arkiv.html",
       module: CORE_MODULE_KEY
     },
@@ -235,7 +242,7 @@ function getNavItems() {
       key: "kontrol",
       labelKey: "nav.kontrol",
       label: "Kontrol-mode",
-      short: "KM",
+      short: "🔎",
       href: "/kontrol.html",
       module: CORE_MODULE_KEY
     },
@@ -530,7 +537,7 @@ function ensureLayoutStyles() {
     .mkp-layout-sidebar .sidebar-label{
       font-size:11px;
       font-weight:800;
-      color:#667267;
+      color:#536078;
       text-transform:uppercase;
       letter-spacing:.08em;
       padding:0 4px 4px;
@@ -544,15 +551,15 @@ function ensureLayoutStyles() {
       padding:12px 14px;
       border-radius:14px;
       font-weight:700;
-      color:#667267;
+      color:#536078;
       text-decoration:none;
       transition:all .2s ease;
     }
 
     .mkp-layout-sidebar .sidebar-link:hover,
     .mkp-layout-sidebar .sidebar-link.active{
-      background:#f8fbf8;
-      color:#182118;
+      background:#f4f7ff;
+      color:#142044;
     }
 
     .mkp-layout-sidebar .sidebar-link::before{
@@ -568,8 +575,8 @@ function ensureLayoutStyles() {
     }
 
     .mkp-layout-sidebar .sidebar-link.active::before{
-      background:linear-gradient(180deg,#2e7d32,#43a047);
-      box-shadow:0 6px 16px rgba(46,125,50,0.22);
+      background:linear-gradient(180deg,#2f5fe0,#16b7d4);
+      box-shadow:0 6px 16px rgba(47,95,224,0.22);
     }
 
     .mkp-layout-sidebar .sidebar-badge{
@@ -580,21 +587,21 @@ function ensureLayoutStyles() {
       align-items:center;
       justify-content:center;
       border-radius:10px;
-      background:#eef5ee;
-      border:1px solid #d9e4d9;
-      color:#2e7d32;
-      font-size:12px;
+      background:#eef3ff;
+      border:1px solid #cbd7f4;
+      color:#2457d6;
+      font-size:18px;
       font-weight:900;
-      letter-spacing:.04em;
+      letter-spacing:0;
       flex:0 0 auto;
       box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);
     }
 
     .mkp-layout-sidebar .sidebar-link.active .sidebar-badge{
-      background:linear-gradient(135deg,#2e7d32,#43a047);
+      background:linear-gradient(135deg,#2f5fe0,#16b7d4);
       color:#fff;
       border-color:transparent;
-      box-shadow:0 8px 18px rgba(46,125,50,0.18);
+      box-shadow:0 8px 18px rgba(47,95,224,0.2);
     }
 
     .mkp-topbar-lang{

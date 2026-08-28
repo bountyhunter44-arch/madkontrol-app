@@ -1,12 +1,8 @@
-<svg width="1600" height="500" viewBox="0 0 1600 500" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Madkontrollen Pro logo">
+<svg width="1350" height="500" viewBox="0 0 1350 500" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Madkontrollen logo">
   <defs>
     <linearGradient id="panelGrad" x1="120" y1="120" x2="320" y2="320" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#25B7C4"/>
       <stop offset="1" stop-color="#0A4E8A"/>
-    </linearGradient>
-    <linearGradient id="proGrad" x1="1120" y1="180" x2="1320" y2="330" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#3EA86A"/>
-      <stop offset="1" stop-color="#1E7B59"/>
     </linearGradient>
     <filter id="softShadow" x="0" y="0" width="1600" height="500" filterUnits="userSpaceOnUse">
       <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#0F172A" flood-opacity="0.08"/>
@@ -48,9 +44,6 @@
   <g font-family="Inter, Arial, Helvetica, sans-serif" dominant-baseline="middle">
     <text x="460" y="250" font-size="88" font-weight="800" fill="#2E3748" letter-spacing="-2">
       Madkontrollen
-    </text>
-    <text x="1160" y="250" font-size="84" font-style="italic" font-weight="700" fill="url(#proGrad)" letter-spacing="-2">
-      Pro
     </text>
   </g>
 </svg>

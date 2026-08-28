@@ -40,6 +40,29 @@
             font-size: 16px;
         }
 
+        .owner-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .owner-admin-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 16px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .owner-admin-link:hover { background: rgba(255, 255, 255, 0.25); }
+
         .owner-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -408,8 +431,10 @@
             root.innerHTML = `
                 <div class="owner-header">
                     <div class="container">
-                        <h1>👑 Owner Dashboard</h1>
-                        <p>Fuldt overblik over alle Madkontrollen instanser</p>
+                        <div class="owner-header-row">
+                            <div><h1>👑 Owner Dashboard</h1><p>Fuldt overblik over alle Madkontrollen instanser</p></div>
+                            <a class="owner-admin-link" href="https://regnskab.ewcp.dk/admin/partner-dashboard.html">📒 Regnskab admin</a>
+                        </div>
                     </div>
                 </div>
 

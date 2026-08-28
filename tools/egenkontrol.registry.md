@@ -37,6 +37,9 @@
   `demoCanonicalTemplates.js`.
 
 ## Rules (hard)
+- **Routine photos must document the current food-control task.** Invoices, receipts, non-food inventory
+  and other food-safety-irrelevant media are rejected, removed from the task card, and retained only as
+  a rejected `media_assets` audit record. Rejected media must never render as "Dokumentation gemt".
 - **No fridge/freezer routines without a concrete `equipmentId`/`unitId`/`equipmentName`/`unitName`.**
   Enforced by `shouldSkipMissingEquipmentRoutine()` in `canonicalTaskEngine.js` (template loop +
   `ensureSingleTaskInstance`). Logs `[egenkontrol generator skipped missing equipment]`.

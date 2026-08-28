@@ -16,6 +16,7 @@ const {
   ensureSingleTaskInstance,
   startDayForLocationCanonical
 } = require("../../canonicalTaskEngine");
+const { getStripePriceId } = require("../../platform/module-pricing");
 
 module.exports = ({
   FUNCTIONS_CONFIG,
@@ -144,7 +145,8 @@ module.exports = ({
   ];
   
   const AREA_CLEANING_DEFINITIONS = [
-    { areaKey: "kitchen",              title: "RengÃ¸ring af kÃ¸kken",                  frequency: "daily",   riskLevel: "high",   guideBody: "RengÃ¸r og desinficÃ©r alle kÃ¸kkenoverflader: bordplader, gulv, vaskestationer og udstyr. Tjek at der er rene karklude. Tip affald ud. DokumentÃ©r udfÃ¸relse." },
+    // Kitchen cleaning is supplied by the canonical `koekken_rengoering` routine.
+    // Do not create a second legacy `area_cleaning_kitchen` card.
     { areaKey: "production_kitchen",   title: "RengÃ¸ring af produktionskÃ¸kken",       frequency: "daily",   riskLevel: "high",   guideBody: "RengÃ¸r produktionsoverflader og -udstyr. Tip affaldsposer og skift. RengÃ¸r gulv, vask og drÃ¦n. KontrollÃ©r at ingen fÃ¸devareaffald er tilbage." },
     { areaKey: "serving_area",         title: "RengÃ¸ring af serveringsomrÃ¥de",        frequency: "daily",   riskLevel: "medium", guideBody: "RengÃ¸r borde, stole, buffet og serveringsstationer. RengÃ¸r gulv og sÃ¸rg for at alle overflader gÃ¦ster har kontakt med er rene." },
     { areaKey: "dry_storage",          title: "RengÃ¸ring af tÃ¸rlager",                frequency: "weekly",  riskLevel: "low",    guideBody: "RengÃ¸r hylder og gulv. KontrollÃ©r at alle varer er hÃ¦vet fra gulvet og korrekt opbevaret. KontrollÃ©r holdbarhedsdatoer. Tjek for skadedyr." },
@@ -255,17 +257,7 @@ module.exports = ({
     // REMOVED: water_control_isterningemaskine
     // Ice machines are covered by softice_maskine_rengoering in EQUIPMENT_CLEANING_TEMPLATE_DEFINITIONS.
     // Water control for ice machines is redundant and creates duplicate routines.
-    {
-      key:            "water_control_filter",
-      title:          "Kontrol af vandfilter",
-      description:    "InspicÃ©r vandfilter for tilstopning eller misfarvning. KontrollÃ©r filtrets levetid og udskiftningsdato. NotÃ©r filterets aktuelle status.",
-      frequency:      "weekly",
-      category:       "vandkontrol",
-      controlType:    "water_control",
-      guideKey:       "water_control",
-      riskLevel:      "medium",
-      alwaysInclude:  true,
-    },
+    // Water-filter maintenance is not an egenkontrol routine card.
   ];
   
   const EQUIPMENT_COUNT_MAPPING = [
@@ -4919,6 +4911,124 @@ api.createStripeCheckoutSession = functions.https.onCall(
     url: session.url
   };
 });
+
+api.createDirectModuleCheckoutSession = functions.https.onCall(
+  { secrets: ["FUNCTIONS_CONFIG_EXPORT"] },
+  async (data, context) => {
+    if (!context.auth?.uid) {
+      throw new functions.https.HttpsError("unauthenticated", "Log ind for at købe modulet.");
+    }
+
+    const selectedModules = normalizeCheckoutSelectedModules(data?.moduleKey, data?.module);
+    const moduleKey = selectedModules[0] || "";
+    if (!moduleKey || selectedModules.length !== 1) {
+      throw new functions.https.HttpsError("invalid-argument", "Vælg ét gyldigt modul.");
+    }
+
+    const uid = sanitizeString(context.auth.uid, 160);
+    const email = sanitizeString(context.auth.token?.email || "", 160).toLowerCase();
+    const userData = await getUserAccessProfile({ uid, email });
+    const companyId = sanitizeString(userData?.companyId || userData?.organizationId || "", 120);
+    const locationIds = getUserLocationIds(userData || {});
+    const locationId = sanitizeString(userData?.primaryLocationId || userData?.locationId || locationIds[0] || "", 120);
+    if (!companyId || !locationId) {
+      throw new functions.https.HttpsError("failed-precondition", "Din bruger mangler virksomhed eller lokation.");
+    }
+
+    await assertAdminAccess({ uid, email, companyId, locationId });
+
+    const companyRef = db.collection("companies").doc(companyId);
+    const [companySnap, currentSubscriptionSnap] = await Promise.all([
+      companyRef.get(),
+      companyRef.collection("subscriptions").doc("current").get()
+    ]);
+    if (!companySnap.exists) {
+      throw new functions.https.HttpsError("not-found", "Virksomheden blev ikke fundet.");
+    }
+
+    const companyData = companySnap.data() || {};
+    const currentSubscription = currentSubscriptionSnap.exists ? (currentSubscriptionSnap.data() || {}) : {};
+    const paidModules = normalizeCheckoutSelectedModules(
+      companyData.subscription?.selectedModules,
+      currentSubscription.selectedModules
+    );
+    const paidStatuses = new Set(["active", "trialing", "paid"]);
+    const companySubscriptionActive = paidStatuses.has(sanitizeString(companyData.subscription?.status || "", 40).toLowerCase());
+    const currentSubscriptionActive = paidStatuses.has(sanitizeString(currentSubscription.status || "", 40).toLowerCase());
+    const hasActivePaidSubscription = companySubscriptionActive || currentSubscriptionActive;
+    if (hasActivePaidSubscription && paidModules.includes(moduleKey)) {
+      throw new functions.https.HttpsError("already-exists", "Modulet er allerede købt af virksomheden.");
+    }
+    const hasExistingPaidModule = paidModules.length > 0 && hasActivePaidSubscription;
+    const stripe = getStripeClient();
+    const stripeConfig = getStripeConfig();
+    let lineItem;
+
+    if (!hasExistingPaidModule) {
+      lineItem = { price: stripeConfig.priceMonthly, quantity: 1 };
+    } else {
+      const addonPriceId = getStripePriceId(moduleKey, "monthly");
+      lineItem = addonPriceId && moduleKey !== "egenkontrol"
+        ? { price: addonPriceId, quantity: 1 }
+        : {
+            price_data: {
+              currency: "dkk",
+              unit_amount: 4900,
+              recurring: { interval: "month" },
+              tax_behavior: "exclusive",
+              product_data: { name: `${moduleKey} - tillægsmodul` }
+            },
+            quantity: 1
+          };
+    }
+
+    const origin = normalizeCheckoutOrigin(data?.origin);
+    const presentationKey = moduleKey === "bogforing" ? "accounting" : moduleKey;
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [lineItem],
+      customer_email: companyData.isDemo === true || companyData.demoMode === true ? undefined : (email || undefined),
+      automatic_tax: { enabled: true },
+      success_url: `${origin}/dashboard.html?module_purchase=success&module=${encodeURIComponent(moduleKey)}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/modul.html?modul=${encodeURIComponent(presentationKey)}&purchase=cancel`,
+      metadata: {
+        source: "direct_module_purchase",
+        uid,
+        companyId,
+        locationId,
+        selectedModules: moduleKey,
+        plan: "monthly",
+        purchasePriceType: hasExistingPaidModule ? "addon" : "first_module"
+      }
+    });
+
+    await db.collection("checkout_sessions").add({
+      provider: "stripe",
+      mode: "subscription",
+      status: "created",
+      source: "direct_module_purchase",
+      uid,
+      companyId,
+      locationId,
+      selectedModules: [moduleKey],
+      activeModules: [moduleKey],
+      purchasePriceType: hasExistingPaidModule ? "addon" : "first_module",
+      stripeSessionId: session.id,
+      stripeUrl: session.url || "",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    });
+
+    return {
+      ok: true,
+      moduleKey,
+      priceType: hasExistingPaidModule ? "addon" : "first_module",
+      sessionId: session.id,
+      url: session.url
+    };
+  }
+);
 
 api.createOnboardingCheckoutSession = functions.https.onCall(
   { secrets: ["FUNCTIONS_CONFIG_EXPORT"] },

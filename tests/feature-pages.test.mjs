@@ -17,12 +17,12 @@ const read = (rel) => readFileSync(P(rel), "utf8");
 
 const ORIGIN = "https://madkontrollen.dk";
 const PAGES = [
-  { slug: "digital-egenkontrol", name: "Digital egenkontrol" },
-  { slug: "risikoanalyse-haccp", name: "Risikoanalyse (HACCP)" },
-  { slug: "afvigelsesrapporter", name: "Afvigelsesrapporter" },
-  { slug: "dashboard-statistik", name: "Dashboard og statistik" },
-  { slug: "onboarding-setup", name: "Onboarding og setup" },
-  { slug: "myndighedsrapporter", name: "Rapporter til myndigheder" },
+  { slug: "digital-egenkontrol", name: "Digital egenkontrol", route: "/digital-egenkontrol/" },
+  { slug: "risikoanalyse-haccp", name: "Risikoanalyse (HACCP)", route: "/risikoanalyse-haccp/" },
+  { slug: "afvigelsesrapporter", name: "Afvigelsesrapporter", route: "/funktioner/afvigelsesrapporter.html" },
+  { slug: "dashboard-statistik", name: "Dashboard og statistik", route: "/funktioner/dashboard-statistik.html" },
+  { slug: "onboarding-setup", name: "Onboarding og setup", route: "/funktioner/onboarding-setup.html" },
+  { slug: "myndighedsrapporter", name: "Rapporter til myndigheder", route: "/funktioner/myndighedsrapporter.html" },
 ];
 const rel = (slug) => `funktioner/${slug}.html`;
 
@@ -51,14 +51,13 @@ test("1. Alle seks HTML-filer findes", () => {
   for (const p of PAGES) assert.ok(existsSync(P(rel(p.slug))), `mangler: ${rel(p.slug)}`);
 });
 
-test("2. Forsiden har præcis seks feature-links", () => {
-  const hits = idx.match(/href="\/funktioner\/[a-z-]+\.html"/g) || [];
-  assert.equal(hits.length, 6, `forventede 6 feature-links, fandt ${hits.length}`);
+test("2. Forsiden linker til alle seks funktionssider", () => {
+  for (const p of PAGES) assert.ok(idx.includes(`href="${p.route}"`), `forsiden mangler link til ${p.route}`);
 });
 
 test("3. Hvert kort peger på den korrekte side", () => {
   for (const p of PAGES) {
-    assert.ok(idx.includes(`href="/funktioner/${p.slug}.html"`), `forsiden mangler link til ${p.slug}`);
+    assert.ok(idx.includes(`href="${p.route}"`), `forsiden mangler link til ${p.slug}`);
   }
 });
 
@@ -89,7 +88,7 @@ test("6. Hver side har unik title og meta description", () => {
 
 test("7. Hver side har korrekt canonical URL", () => {
   for (const p of PAGES) {
-    const c = `${ORIGIN}/funktioner/${p.slug}.html`;
+    const c = `${ORIGIN}${p.route}`;
     assert.ok(read(rel(p.slug)).includes(`<link rel="canonical" href="${c}">`), `${p.slug} canonical`);
   }
 });
@@ -139,7 +138,9 @@ test("15. Hver side har Aroi-D-case uden andre kundenavne", () => {
   for (const p of PAGES) {
     const html = read(rel(p.slug));
     assert.ok(html.includes("Sådan bruger vi det hos Aroi-D"), `${p.slug} case-overskrift`);
-    assert.ok(html.includes("Aroi-D Ørnhøj Hotel"), `${p.slug} Aroi-D`);
+    assert.ok(html.includes("Aroi-D"), `${p.slug} Aroi-D`);
+    assert.ok(html.includes("CVR 42405000"), `${p.slug} CVR`);
+    assert.ok(!html.includes("Aroi-D Ørnhøj Hotel"), `${p.slug} skal bruge juridisk navn`);
     for (const n of FAKE_NAMES) assert.ok(!html.includes(n), `${p.slug} indeholder fremmed kunde: ${n}`);
   }
 });
@@ -169,7 +170,7 @@ test("20. Ingen side linker til fjernede legacy-moduler", () => {
 });
 
 test("21. sitemap.xml indeholder alle seks sider", () => {
-  for (const p of PAGES) assert.ok(sitemap.includes(`${ORIGIN}/funktioner/${p.slug}.html`), `sitemap mangler ${p.slug}`);
+  for (const p of PAGES) assert.ok(sitemap.includes(`${ORIGIN}${p.route}`), `sitemap mangler ${p.slug}`);
 });
 
 test("22. public/landing.html findes fortsat ikke", () => {

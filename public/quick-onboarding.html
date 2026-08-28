@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex,follow">
-    <title>Kom i gang | Madkontrollen</title>
+    <title>Kom i gang | EWCP Egenkontrol</title>
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,8 +13,8 @@
     <!--
       CANONICAL Madkontrollen egenkontrol-onboarding (2026-08-03).
       Viser den FAKTISKE onboardingformular (virksomhed, enheder/udstyr, aktiviteter,
-      kontrolpunkter, risikovalg) via den DELTE komponent egenkontrol-onboarding.js —
-      samme formular, payload og Stripe Checkout som /modules/egenkontrol/onboarding.html.
+      kontrolpunkter, risikovalg) via egenkontrol-onboarding.js.
+      Dette er den eneste onboardingformular; den gamle moduladresse videresender hertil.
       INTET modulvalg. Ingen gratis kontooprettelse. Ingen meta-refresh/redirect.
       Submit -> createOnboardingCheckoutSession -> Stripe -> /tak.html?session_id=... ->
       finalizeOnboardingCheckoutProvisioning -> risikoanalyse -> dashboard.
@@ -99,8 +99,8 @@
     <div class="sticky-bar">
         <div class="sticky-inner">
             <div class="sticky-price">
-                <strong>Månedsabonnement: 186,25 kr/md</strong>
-                <span>Årsabonnement: 2.011,50 kr/år (Spar 10%)</span>
+                <strong>EWCP Egenkontrol: 149 kr./md.</strong>
+                <span>Ekskl. moms · årsbetaling 1.609,20 kr./år (spar 10 %)</span>
             </div>
 
             <div class="sticky-actions">

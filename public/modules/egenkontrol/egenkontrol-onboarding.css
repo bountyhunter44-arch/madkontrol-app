@@ -1,19 +1,19 @@
 
         :root{
-            --bg:#eef4ee;
+            --bg:#eef3ff;
             --surface:#ffffff;
-            --surface-soft:#f7faf7;
-            --text:#162016;
-            --muted:#617061;
-            --border:#d7e2d7;
-            --border-strong:#bfd0bf;
-            --green:#2f7d32;
-            --green-dark:#1e5c24;
-            --green-soft:#eaf6eb;
-            --gold:#c78b2a;
-            --gold-soft:#fff5df;
-            --blue:#175cd3;
-            --blue-soft:#ecf3ff;
+            --surface-soft:#f7f9fd;
+            --text:#16203a;
+            --muted:#65708a;
+            --border:#d8e0ef;
+            --border-strong:#becbea;
+            --green:#2f5fe0;
+            --green-dark:#101a35;
+            --green-soft:#e9efff;
+            --gold:#16a8cc;
+            --gold-soft:#e8faff;
+            --blue:#2f5fe0;
+            --blue-soft:#e9efff;
             --red:#c0392b;
             --red-soft:#fff0ee;
             --shadow:0 24px 60px rgba(18, 32, 18, 0.10);
@@ -31,9 +31,9 @@
             font-family:"Inter", system-ui, sans-serif;
             color:var(--text);
             background:
-                radial-gradient(circle at top left, rgba(47,125,50,.16), transparent 26%),
-                radial-gradient(circle at 85% 20%, rgba(199,139,42,.14), transparent 18%),
-                linear-gradient(180deg,#f8fbf8 0%, var(--bg) 100%);
+                radial-gradient(circle at top left, rgba(47,95,224,.16), transparent 26%),
+                radial-gradient(circle at 85% 20%, rgba(22,192,232,.14), transparent 18%),
+                linear-gradient(180deg,#f8faff 0%, var(--bg) 100%);
         }
 
         body{
@@ -64,8 +64,8 @@
             overflow:hidden;
             padding:28px;
             border-radius:var(--radius-xl);
-            background:linear-gradient(135deg,#17361a 0%, #245d2c 52%, #2f7d32 100%);
-            box-shadow:0 28px 70px rgba(30,92,36,.22);
+            background:linear-gradient(135deg,#101a35 0%, #203d93 52%, #2f5fe0 100%);
+            box-shadow:0 28px 70px rgba(16,26,53,.22);
             color:#fff;
             margin-bottom:18px;
         }
@@ -891,5 +891,99 @@
 
             body{
                 padding-bottom:0;
+            }
+        }
+
+        /* Mobile onboarding: keep the step overview and form in normal document flow. */
+        @media (max-width:768px){
+            html,
+            body{
+                width:100%;
+                max-width:100%;
+                overflow-x:hidden;
+            }
+
+            .page-shell,
+            .hero,
+            .hero-grid,
+            .layout,
+            .sidebar,
+            .sidebar-card,
+            .content-card,
+            #stepContent,
+            .sticky-bar,
+            .sticky-inner{
+                box-sizing:border-box;
+                width:100%;
+                max-width:100%;
+                min-width:0;
+            }
+
+            .page-shell{
+                margin:0;
+                padding:12px;
+            }
+
+            .hero-grid,
+            .layout{
+                display:grid;
+                grid-template-columns:minmax(0, 1fr);
+            }
+
+            .layout{
+                gap:14px;
+            }
+
+            .sidebar{
+                position:static !important;
+                inset:auto !important;
+                order:1;
+                margin:0;
+                padding:0;
+                transform:none !important;
+            }
+
+            .content-card{
+                position:static !important;
+                inset:auto !important;
+                order:2;
+                margin:0;
+                transform:none !important;
+            }
+
+            .sidebar-card,
+            .content-card{
+                padding:16px;
+            }
+
+            .step-list,
+            .step-btn,
+            .field,
+            .option-card,
+            input,
+            select,
+            textarea,
+            button{
+                box-sizing:border-box;
+                max-width:100%;
+                min-width:0;
+            }
+
+            .step-btn{
+                width:100%;
+                white-space:normal;
+                overflow-wrap:anywhere;
+            }
+
+            .sticky-bar{
+                position:static !important;
+                inset:auto !important;
+                margin:16px 0 0;
+                transform:none !important;
+            }
+
+            .sticky-inner{
+                margin:0;
+                padding:14px 12px;
             }
         }
