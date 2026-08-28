@@ -5,7 +5,7 @@
  * Legacy single-run key ("mk_active_cooling_run") is migrated automatically.
  *
  * Color phases over 4 hours:
- *   0–1h  → Green    1–2h → Yellow    2–3h → Blue    3–4h → Red    4h+ → Dark red (pulse)
+ *   0–1h  → Green    1–2h → Yellow    2–4h → Blue    4h+ → Red (pulse)
  */
 
 import app from "/core/firebase-config.js";
@@ -21,8 +21,7 @@ const LIMIT_MS      = 4 * 60 * 60 * 1000;
 const PHASES = [
     { upTo: 1 * 3600000, label: "I gang",           bg: "#0d3d1a", accent: "#2e9e4a", timerColor: "#a8f0b8", barColor: "#2e9e4a", icon: "/images/lexi_icons/cooling-happy-green.svg"   },
     { upTo: 2 * 3600000, label: "Tag temp nu",       bg: "#3d2d00", accent: "#d4a017", timerColor: "#ffe08a", barColor: "#d4a017", icon: "/images/lexi_icons/cooling-neutral-yellow.svg" },
-    { upTo: 3 * 3600000, label: "Naermer sig gr.",   bg: "#0a1f3d", accent: "#1565c0", timerColor: "#90caf9", barColor: "#1565c0", icon: "/images/lexi_icons/cooling-stressed-blue.svg"  },
-    { upTo: LIMIT_MS,    label: "Kritisk!",           bg: "#3d0000", accent: "#c62828", timerColor: "#ff8a80", barColor: "#c62828", icon: "/images/lexi_icons/cooling-critical-red.svg"   },
+    { upTo: LIMIT_MS,    label: "Nærmer sig grænsen", bg: "#0a1f3d", accent: "#1565c0", timerColor: "#90caf9", barColor: "#1565c0", icon: "/images/lexi_icons/cooling-stressed-blue.svg"  },
     { upTo: Infinity,    label: "OVERSKREDET",        bg: "#6d0000", accent: "#ff1a1a", timerColor: "#fff",    barColor: "#ff1a1a", icon: "/images/lexi_icons/cooling-critical-red.svg"   }
 ];
 
@@ -198,7 +197,7 @@ function buildCardHTML(run) {
     const phase     = getPhase(elapsed);
     const pct       = Math.min(100, (elapsed / LIMIT_MS) * 100).toFixed(1);
     const remaining = Math.max(0, LIMIT_MS - elapsed);
-    const subText   = phase.index >= 4
+    const subText   = elapsed >= LIMIT_MS
         ? "\u274c " + formatElapsed(elapsed - LIMIT_MS) + " over graensen!"
         : formatElapsed(remaining) + " tilbage";
     const expanded  = expandedRunIds.has(run.runId);
@@ -261,7 +260,6 @@ function buildCardHTML(run) {
             <!-- Action buttons -->
             <div style="display:flex;gap:6px;">
                 <button class="mk-cr-finish" data-run-id="${esc(rid)}" id="mk-cr-finishbtn-${esc(rid)}" style="flex:1;padding:10px;background:${phase.accent};color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer;transition:background 0.8s;">\u2705 Afslut</button>
-                <button class="mk-cr-abort"  data-run-id="${esc(rid)}" title="Afbryd" style="padding:10px 12px;background:rgba(200,0,0,0.15);color:#ff8a80;border:1px solid rgba(200,0,0,0.2);border-radius:9px;font-size:14px;cursor:pointer;">\u2715</button>
             </div>
         </div>
     </div>`;
@@ -298,11 +296,11 @@ function buildPanelHTML(runs) {
         ">
             <div style="display:flex;align-items:center;gap:7px;">
                 <span style="font-size:14px;">\u{1F9CA}</span>
-                <span style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7ecf8a;">Nedк\u00f8ling</span>
+                <span style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7ecf8a;">Nedk\u00f8ling</span>
                 <span id="mk-panel-count" style="background:#2e9e4a;color:#fff;font-size:10px;font-weight:800;padding:1px 7px;border-radius:99px;">${runs.length}</span>
             </div>
             <div style="display:flex;align-items:center;gap:5px;">
-                <button id="mk-panel-minimize" title="Minimer" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;padding:0;">&mdash;</button>
+                <button id="mk-panel-minimize" title="Minimer til bundlinjen" aria-label="Minimer nedkølingsur" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;padding:0;">&mdash;</button>
                 <a href="/modules/egenkontrol/rutiner.html" title="G\u00e5 til rutiner" style="background:rgba(255,255,255,0.1);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;text-decoration:none;">&#x2197;</a>
             </div>
         </div>
@@ -349,7 +347,7 @@ function startPanelTimer() {
             const phase   = getPhase(elapsed);
             const pct     = Math.min(100, (elapsed / LIMIT_MS) * 100).toFixed(1);
             const rem     = Math.max(0, LIMIT_MS - elapsed);
-            const subTxt  = phase.index >= 4
+            const subTxt  = elapsed >= LIMIT_MS
                 ? "\u274c " + formatElapsed(elapsed - LIMIT_MS) + " over graensen!"
                 : formatElapsed(rem) + " tilbage";
 
@@ -377,7 +375,7 @@ function startPanelTimer() {
             const card = panel.querySelector(`.mk-cr[data-run-id="${rid}"]`);
             if (card) {
                 card.style.borderLeftColor = phase.accent;
-                card.style.animation = phase.index >= 4 ? "mk-pulse3 1s ease-in-out infinite" : "";
+                card.style.animation = elapsed >= LIMIT_MS ? "mk-pulse3 1s ease-in-out infinite" : "";
                 const rowIcon = card.querySelector(".mk-phase-icon");
                 if (rowIcon && rowIcon.src !== phase.icon) rowIcon.src = phase.icon;
                 const bigIcon = document.getElementById(`mk-cr-bigicon-${rid}`);
@@ -393,7 +391,7 @@ function startPanelTimer() {
             if (pill) {
                 pill.style.background  = phase.bg;
                 pill.style.borderColor = phase.accent + "88";
-                pill.style.animation   = phase.index >= 4 ? "mk-pulse3 1s ease-in-out infinite" : "";
+                pill.style.animation   = elapsed >= LIMIT_MS ? "mk-pulse3 1s ease-in-out infinite" : "";
                 const pillIcon = pill.querySelector(".mk-mpill-icon");
                 if (pillIcon && pillIcon.src !== phase.icon) pillIcon.src = phase.icon;
             }
@@ -454,7 +452,7 @@ function renderPanel() {
         makeDraggable(panel, handle);
     }
 
-    // Minimize
+    // The timer may be collapsed, but it remains visible as a live bottom bar.
     document.getElementById("mk-panel-minimize")?.addEventListener("click", () => {
         isPanelMin = true;
         renderPanel();
@@ -479,9 +477,6 @@ function renderPanel() {
         const finBtn = e.target.closest(".mk-cr-finish");
         if (finBtn) { handleFinish(finBtn.dataset.runId); return; }
 
-        // Abort run
-        const abortBtn = e.target.closest(".mk-cr-abort");
-        if (abortBtn) { handleAbort(abortBtn.dataset.runId); }
     });
 }
 
@@ -854,9 +849,10 @@ export function getActiveCoolingRuns() {
 export function initCoolingOverlay() {
     // 1. Render from localStorage immediately (fast, works offline)
     const runs = loadRuns();   // also migrates legacy single-run key
-    const fresh = runs.filter(r => getElapsedMs(r.startedAt) < 6 * 3600000);
-    if (fresh.length !== runs.length) saveRunsRaw(fresh);
-    if (fresh.length) renderPanel();
+    if (runs.length) {
+        isPanelMin = false;
+        renderPanel();
+    }
 
     // 2. Set up real-time Firestore sync for cross-device support
     const auth = getAuth(app);
@@ -888,19 +884,19 @@ export function initCoolingOverlay() {
 
             firestoreUnsub = onSnapshot(q, (snapshot) => {
                 const fsRuns  = snapshot.docs.map(d => d.data());
-                const fsRaw   = fsRuns.filter(r => r?.startedAt && r.active !== false && r.archived !== true && getElapsedMs(r.startedAt) < 6 * 3600000);
+                const fsRaw   = fsRuns.filter(r => r?.startedAt && r.active !== false && r.archived !== true);
                 console.log("[cooling] onSnapshot fired — docs:", snapshot.docs.length, "valid:", fsRaw.length);
 
-                // Merge: keep local runs that are <90s old and not yet confirmed by Firestore
-                // (Firestore write may still be in-flight when first snapshot arrives)
-                const fsRunIds    = new Set(fsRaw.map(r => r.runId));
+                // Keep every local run that Firestore has not seen yet. This makes the
+                // timer durable offline and when a sync write is delayed or rejected.
+                // A matching archived Firestore document still wins and removes it.
+                const allFsRunIds = new Set(fsRuns.map(r => r?.runId).filter(Boolean));
                 const localRuns   = loadRunsRaw();
-                const recentLocal = localRuns.filter(r =>
-                    r.runId && !fsRunIds.has(r.runId) &&
-                    r.startedAt && getElapsedMs(r.startedAt) < 90000
+                const unsyncedLocal = localRuns.filter(r =>
+                    r?.runId && r?.startedAt && !allFsRunIds.has(r.runId)
                 );
-                const merged = [...fsRaw, ...recentLocal];
-                console.log("[cooling] merged:", merged.length, "(fs:", fsRaw.length, "+ local pending:", recentLocal.length, ")");
+                const merged = [...fsRaw, ...unsyncedLocal];
+                console.log("[cooling] merged:", merged.length, "(fs:", fsRaw.length, "+ local pending:", unsyncedLocal.length, ")");
 
                 saveRunsRaw(merged);
 

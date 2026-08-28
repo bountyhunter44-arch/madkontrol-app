@@ -407,6 +407,36 @@ requiredBeforeEdit:
             line-height:1.5;
         }
 
+        .cooling-inline-timer{
+            grid-column:1 / -1;
+            padding:10px 12px;
+            border:1px solid #8fd39a;
+            border-radius:12px;
+            background:#edf9ef;
+            color:#174f24;
+        }
+
+        .cooling-inline-timer-row{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            font-size:13px;
+            font-weight:700;
+        }
+
+        .cooling-inline-timer-row + .cooling-inline-timer-row{
+            margin-top:7px;
+            padding-top:7px;
+            border-top:1px solid #cce9d1;
+        }
+
+        .cooling-inline-timer-row strong{
+            color:#0b6b22;
+            font-variant-numeric:tabular-nums;
+            white-space:nowrap;
+        }
+
         .routine-card-activity{
             margin-top:10px;
             padding:10px 12px;
@@ -2464,6 +2494,46 @@ requiredBeforeEdit:
         const processingTaskIds = new Set();
         const aiSuggestionsByInstance = new Map();
         const coolingSessionMap = new Map(); // { instanceId -> { runs: [{ runId, startedAt, status }] } }
+        let coolingInlineTimerId = null;
+
+        function formatCoolingElapsed(startedAt) {
+            const startedMs = new Date(startedAt).getTime();
+            if (!Number.isFinite(startedMs)) return "00:00";
+            const totalSeconds = Math.max(0, Math.floor((Date.now() - startedMs) / 1000));
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return hours > 0
+                ? `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+                : `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        }
+
+        function updateCoolingInlineTimers() {
+            const activeRuns = getActiveCoolingRuns();
+            document.querySelectorAll("[data-cooling-active-status]").forEach((statusEl) => {
+                const instanceId = statusEl.dataset.coolingActiveStatus;
+                const runs = activeRuns.filter((run) => run?.instanceId === instanceId && run?.startedAt);
+                if (!runs.length) {
+                    statusEl.hidden = true;
+                    statusEl.innerHTML = "";
+                    return;
+                }
+
+                statusEl.hidden = false;
+                statusEl.innerHTML = runs.map((run) => `
+                    <div class="cooling-inline-timer-row">
+                        <span>⏱ ${escapeHtml(run.productName || "Nedkøling")}</span>
+                        <strong>${formatCoolingElapsed(run.startedAt)}</strong>
+                    </div>
+                `).join("");
+            });
+        }
+
+        function ensureCoolingInlineTimer() {
+            updateCoolingInlineTimers();
+            if (coolingInlineTimerId) return;
+            coolingInlineTimerId = window.setInterval(updateCoolingInlineTimers, 1000);
+        }
         let coolingForecastIntervalId = null;
         let operatingButtonsBound = false;
         let selectedDateKey = null;
@@ -7865,6 +7935,12 @@ ${(() => {
                                                 <div style="grid-column:1 / -1;" class="task-action-note">
                                                     Brug <strong>+ Tilføj nedkøling</strong> for at starte den specialiserede nedkølingsmodal med timer og afslutningsmåling.
                                                 </div>
+                                                <div
+                                                    class="cooling-inline-timer"
+                                                    data-cooling-active-status="${escapeHtml(task.id)}"
+                                                    hidden
+                                                    aria-live="polite"
+                                                ></div>
                                             </div>
                                         `
                                         : (String(task.title || "").toLowerCase().includes("adskillelse") || String(task.category || "").toLowerCase().includes("separation"))
@@ -8536,6 +8612,7 @@ ${(() => {
                         completedByName: SETTINGS.employeeName,
                         deadlineAt: task?.deadlineAt || ""
                     });
+                    ensureCoolingInlineTimer();
 
                     startBtn.style.display = "none";
                     const finishBtn = runCard?.querySelector(".cooling-run-finish-btn");
@@ -11678,6 +11755,7 @@ const buildFryerRoutineCompletionEntry = () => {
                 performedByName: SETTINGS.employeeName,
                 deadlineAt: task?.deadlineAt || ""
             });
+            ensureCoolingInlineTimer();
 
             const taskCardEl = document.querySelector(`.task-item[data-instance-id="${CSS.escape(instanceId)}"]`);
             const finishAllBtn = taskCardEl?.querySelector('[data-action="cooling_finish_all"]');
@@ -14035,12 +14113,28 @@ function bindOperatingButtons() {
                 await loadAlerts();
                 await checkDailyRunStatus();
 
+                const activeRuns = getActiveCoolingRuns()
+                    .filter((run) => run?.startedAt)
+                    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+                const latestActiveRun = activeRuns[0] || null;
+                if (latestActiveRun && !hasActiveRoutineFilters()) {
+                    const openTasks = getOpenTasks();
+                    const activeRoutineIndex = openTasks.findIndex((task) => {
+                        const taskIds = [task?.id, task?.taskInstanceId, task?.linkedInstanceId].filter(Boolean);
+                        if (taskIds.includes(latestActiveRun.instanceId)) return true;
+                        const taskKeys = [task?.taskId, task?.templateId, task?.templateKey, task?.routineKey, task?.routineType].filter(Boolean);
+                        const runKeys = [latestActiveRun.taskId, latestActiveRun.templateId, latestActiveRun.templateKey, latestActiveRun.routineKey, latestActiveRun.routineType].filter(Boolean);
+                        return taskKeys.some((key) => runKeys.includes(key));
+                    });
+                    if (activeRoutineIndex >= 0) currentRoutinePage = activeRoutineIndex;
+                }
+
                 renderTasks();
+                ensureCoolingInlineTimer();
                 updateKpis();
                 updateRutinerLoaderProgress(92, "Færdiggør visning", "Vi afslutter det første overblik og gør siden klar.");
 
                 // Restore session state for active cooling runs from the shared timer overlay.
-                const activeRuns = getActiveCoolingRuns();
                 if (activeRuns.length > 0) {
                     setTimeout(() => {
                         activeRuns.forEach(activeRun => {
@@ -14069,6 +14163,8 @@ function bindOperatingButtons() {
                             const pillEl = taskCardEl?.querySelector('.task-pill');
                             if (pillEl) { pillEl.className = "task-pill is-active-run"; pillEl.textContent = "I gang"; }
                         });
+                        document.querySelector(`.task-item[data-instance-id="${CSS.escape(latestActiveRun?.instanceId || "")}"]`)
+                            ?.scrollIntoView({ behavior: "smooth", block: "start" });
                     }, 100);
                 }
 
