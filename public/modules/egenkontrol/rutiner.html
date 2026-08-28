@@ -6365,19 +6365,17 @@ function formatDeadlineLabel(task) {
         }
 
         function getTaskWorkCardKey(task = {}) {
-            const visibleRoutine = normalizePermanentRoutineKey(task.title || task.taskTitle || task.name || "");
+            const visibleRoutine = normalizePermanentRoutineKey(getVisibleTitle(task));
             const routineContext = normalizePermanentRoutineKey([
                 task.equipmentId || task.equipmentName || task.equipmentType || "",
                 task.areaId || task.areaName || ""
             ].filter(Boolean).join(" "));
-            const routineControl = normalizePermanentRoutineKey(task.controlType || task.controlPoint || task.category || "");
-            const routineFrequency = normalizeFrequencyValue(task.frequency || task.frequencyType || "daily");
 
             // A routine may exist under more than one legacy/template id after onboarding
             // migrations. The work list is a list of controls, so deduplicate by what the
             // user actually performs while keeping equipment/area-specific cards separate.
             if (visibleRoutine) {
-                return [visibleRoutine, routineContext, routineControl, routineFrequency].join("__");
+                return [visibleRoutine, routineContext].join("__");
             }
 
             return [
@@ -14091,9 +14089,6 @@ const buildFryerRoutineCompletionEntry = () => {
                         .join(" ");
                     return haystack.includes("closing") || haystack.includes("lukker") ? 1 : 0;
                 };
-
-                const dueRankDelta = getDueRank(a) - getDueRank(b);
-                if (dueRankDelta !== 0) return dueRankDelta;
 
                 const rankDelta = getClosingRank(a) - getClosingRank(b);
                 if (rankDelta !== 0) return rankDelta;

@@ -17,9 +17,6 @@ const LS_KEY        = "mk_active_cooling_runs";   // array
 const LS_KEY_LEGACY = "mk_active_cooling_run";    // old single-run key
 const PANEL_ID      = "mk-cooling-panel";
 const LIMIT_MS      = 4 * 60 * 60 * 1000;
-// One-time boundary for orphaned timers created before the persistent timer
-// release. It is fixed deliberately, so future overdue runs are never hidden.
-const LEGACY_ORPHAN_CUTOFF_MS = new Date("2026-08-27T22:00:00.000Z").getTime();
 
 const PHASES = [
     { upTo: 1 * 3600000, label: "I gang",           bg: "#0d3d1a", accent: "#2e9e4a", timerColor: "#a8f0b8", barColor: "#2e9e4a", icon: "/images/lexi_icons/cooling-happy-green.svg"   },
@@ -55,7 +52,9 @@ function getElapsedMs(startedAt) { return Date.now() - new Date(startedAt).getTi
 
 function isLegacyOrphan(run) {
     const startedMs = new Date(run?.startedAt).getTime();
-    return !Number.isFinite(startedMs) || startedMs < LEGACY_ORPHAN_CUTOFF_MS;
+    // A valid running timer must never disappear because it has become old or
+    // overdue. Finished timers are removed explicitly by their archived state.
+    return !Number.isFinite(startedMs);
 }
 
 function getPhase(ms) {
