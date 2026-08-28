@@ -561,6 +561,7 @@ requiredBeforeEdit:
         .routine-pager-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
         .routine-pager-actions .btn{width:100%;min-height:44px}
         @media(max-width:600px){.routine-pager-top{display:block}.routine-pager-count{margin-top:8px}}
+        .task-item{scroll-margin-top:16px}
 
         .routine-guide-open{width:100%;min-height:44px;margin-bottom:12px}
         .routine-guide-modal-backdrop{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(10,20,45,.62)}
@@ -574,6 +575,143 @@ requiredBeforeEdit:
             .routine-guide-modal-backdrop{padding:0;align-items:flex-end}
             .routine-guide-modal{max-height:88vh;border-radius:22px 22px 0 0}
             .routine-layout-grid .routine-form{padding:12px}
+        }
+
+        @media(max-width:480px){
+            html,
+            body{
+                max-width:100%;
+                overflow-x:hidden;
+            }
+
+            .task-list{
+                width:100%;
+                max-width:100%;
+                gap:8px;
+            }
+
+            .task-item,
+            .task-item.is-open,
+            .task-item:not(.is-open){
+                width:100%;
+                max-width:100%;
+                height:auto;
+                grid-template-columns:26px minmax(0,1fr);
+                gap:8px;
+                padding:10px;
+                box-sizing:border-box;
+                scroll-margin-top:8px;
+            }
+
+            .task-check,
+            .task-check.is-completed{
+                width:26px;
+                min-width:26px;
+                height:26px;
+                font-size:18px;
+            }
+
+            .task-item.is-open .task-content,
+            .task-item.is-open .task-action{
+                grid-column:2;
+                width:100%;
+                min-width:0;
+                max-width:100%;
+            }
+
+            .task-content h4{
+                gap:5px;
+                margin:0;
+                font-size:15px;
+                line-height:1.25;
+            }
+
+            .task-body > p{
+                margin:6px 0;
+                font-size:12px;
+                line-height:1.35;
+            }
+
+            .routine-audit-summary{
+                gap:3px 6px;
+                margin-top:3px;
+                font-size:10px;
+                line-height:1.3;
+            }
+
+            .routine-form,
+            .routine-layout-grid .routine-form{
+                gap:6px;
+                padding:8px;
+                box-sizing:border-box;
+            }
+
+            .routine-form-grid,
+            .routine-layout-grid .routine-form-grid{
+                grid-template-columns:minmax(0,1fr);
+                gap:8px;
+            }
+
+            .routine-form input,
+            .routine-form select,
+            .routine-form textarea,
+            .routine-form button{
+                max-width:100%;
+                box-sizing:border-box;
+            }
+
+            .routine-form input,
+            .routine-form select,
+            .routine-form textarea{
+                font-size:16px;
+            }
+
+            .routine-compact-tools{
+                gap:6px;
+            }
+
+            .routine-compact-tools .routine-card-activity,
+            .routine-compact-tools .task-docs-panel,
+            .routine-layout-grid .task-guide-panel{
+                padding:8px;
+            }
+
+            .routine-layout-grid{
+                gap:8px;
+                margin-top:8px;
+            }
+
+            .routine-assessment-option{
+                min-height:40px;
+                padding:7px 8px;
+                font-size:12px;
+            }
+
+            .routine-pager{
+                margin-bottom:8px;
+                padding:10px;
+                border-radius:12px;
+            }
+
+            .routine-pager-top{
+                margin-bottom:7px;
+            }
+
+            .routine-pager-next{
+                font-size:12px;
+                line-height:1.3;
+            }
+
+            .routine-pager-actions{
+                gap:7px;
+                margin-top:8px;
+            }
+
+            .routine-pager-actions .btn{
+                min-height:40px;
+                padding:8px 6px;
+                font-size:12px;
+            }
         }
 
         .task-guide-panel{
@@ -2234,13 +2372,26 @@ requiredBeforeEdit:
         }
 
         const taskListEl = document.getElementById("taskList");
+        function scrollToCurrentRoutine({ behavior = "smooth", delay = 0 } = {}) {
+            if (hasActiveRoutineFilters()) return;
+
+            window.setTimeout(() => {
+                const currentRoutineCard = taskListEl?.querySelector(".task-item");
+                if (!currentRoutineCard) return;
+
+                window.requestAnimationFrame(() => {
+                    currentRoutineCard.scrollIntoView({ behavior, block: "start" });
+                });
+            }, delay);
+        }
+
         taskListEl.addEventListener("click", (e) => {
             const pagerButton = e.target.closest("button[data-routine-page]");
             if (pagerButton) {
                 e.preventDefault();
                 currentRoutinePage += Number(pagerButton.dataset.routinePage || 0);
                 renderTasks();
-                taskListEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                scrollToCurrentRoutine();
                 return;
             }
             const head = e.target.closest(".task-collapse-head");
@@ -11423,7 +11574,7 @@ const buildFryerRoutineCompletionEntry = () => {
                             setTimeout(() => {
                                 currentRoutinePage += 1;
                                 renderTasks();
-                                taskListEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                                scrollToCurrentRoutine();
                             }, 650);
                         }
                     }
@@ -13944,6 +14095,9 @@ function bindOperatingButtons() {
                     updateKpis();
                 };
                 hideRutinerLoader();
+                // Spring direkte til den første aktuelle rutine, når siden er færdigindlæst.
+                // Forsinkelsen lader loaderens afsluttende overgang blive færdig først.
+                scrollToCurrentRoutine({ behavior: "smooth", delay: 340 });
 
             } catch (error) {
                 console.error("Fejl ved hentning:", error);

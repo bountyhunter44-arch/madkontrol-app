@@ -68,6 +68,13 @@
   `isColdTemperatureEntry()`, `shouldHideGenericColdTemperatureEntry()` — køl/frys-specific; kept as
   belt-and-suspenders alongside the broad filter + platform-admin "Kør equipment repair" warning.
 
+## Rutinevisning
+- Uden aktive filtre viser `rutiner.html` ét rutinekort ad gangen. Efter første indlæsning samt ved
+  frem/tilbage og automatisk skift efter gem flyttes visningen til det aktuelle rutinekort. Med aktive
+  filtre bevares den samlede, sammenklappede resultatvisning uden automatisk scroll.
+- Ved skærme på højst 480 px komprimeres det aktuelle kort til én indholdskolonne med mindre afstande,
+  fuld bredde på formularfelter og beskyttelse mod vandret scrolling; ingen rutinefelter skjules.
+
 ## Tools
 - `tools/audit-equipment-bound-routines-without-equipment.cjs` — READ-ONLY audit, **ALL** equipment-bound
   types (køleskab/fryser/køledisk/kølerum/frostrum/varmeskab/pålægsmaskine/komfur/ovn/friture/
