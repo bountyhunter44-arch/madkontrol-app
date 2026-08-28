@@ -41,16 +41,6 @@
         "source": "/funktioner/risikoanalyse-haccp.html",
         "destination": "/risikoanalyse-haccp/",
         "type": 301
-      },
-      {
-        "source": "/egenkontrol-restaurant",
-        "destination": "/egenkontrol-restaurant/",
-        "type": 301
-      },
-      {
-        "source": "/egenkontrol-takeaway",
-        "destination": "/egenkontrol-takeaway/",
-        "type": 301
       }
     ],
     "headers": [
