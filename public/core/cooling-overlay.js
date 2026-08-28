@@ -264,6 +264,12 @@ function buildCardHTML(run) {
             <input id="mk-cr-endtemp-${esc(rid)}" type="number" step="0.5" inputmode="decimal" placeholder="fx 8" style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.3);color:#fff;font-size:15px;outline:none;margin-bottom:8px;" />
             <label style="font-size:10px;color:rgba(255,255,255,0.45);display:block;margin-bottom:3px;">Bem\u00e6rkning (valgfri)</label>
             <input id="mk-cr-note-${esc(rid)}" type="text" placeholder="Tilf\u00f8j kommentar" style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.3);color:#fff;font-size:12px;outline:none;margin-bottom:10px;" />
+            <label style="font-size:10px;color:rgba(255,255,255,0.45);display:block;margin-bottom:3px;">Korrigerende handling ved afvigelse <span style="color:#ff8a80;">*</span></label>
+            <select id="mk-cr-corrective-${esc(rid)}" style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:#142719;color:#fff;font-size:12px;outline:none;margin-bottom:10px;">
+                <option value="">V\u00e6lg hvis nedk\u00f8lingen ikke godkendes</option>
+                <option value="reheat_75">Genopvarm straks til mindst 75 \u00b0C</option>
+                <option value="discard">Kass\u00e9r varen</option>
+            </select>
 
             <!-- Action buttons -->
             <div style="display:flex;gap:6px;">
@@ -489,7 +495,7 @@ function renderPanel() {
 }
 
 // ── Finish run (save to Firestore) ────────────────────────────────────────────
-async function finishRun(runData, endTemp, note) {
+async function finishRun(runData, endTemp, note, correctiveAction = "") {
     const finishedAt      = new Date();
     const finishedAtIso   = finishedAt.toISOString();
     const coolingDuration = Math.round((finishedAt - new Date(runData.startedAt)) / 60000);
@@ -499,6 +505,11 @@ async function finishRun(runData, endTemp, note) {
     const foodItem        = String(runData.foodItem || runData.productName || "").trim();
     const performedByUid  = String(runData.performedByUid || runData.completedBy || "").trim();
     const performedByName = String(runData.performedByName || runData.completedByName || performedByUid || "").trim();
+    const correctiveActionLabel = correctiveAction === "reheat_75"
+        ? "Genopvarm straks til mindst 75 \u00b0C"
+        : correctiveAction === "discard"
+            ? "Kass\u00e9r varen"
+            : "";
 
     let failureReason = null;
     if (!passed) {
@@ -511,7 +522,7 @@ async function finishRun(runData, endTemp, note) {
 
     const noteText = note || (passed
         ? `Kontrol udf\u00f8rt. Nedk\u00f8lingen overholder gr\u00e6nsev\u00e6rdierne (under 4 timer). Metode: ${methodLabel}.`
-        : `Nedk\u00f8ling fejlet. Metode: ${methodLabel}. ${failureReason}`);
+        : `Nedk\u00f8ling fejlet. Metode: ${methodLabel}. ${failureReason}. Korrigerende handling: ${correctiveActionLabel}`);
 
     const entryData = {
         entryType: "cooling_control",
@@ -556,8 +567,12 @@ async function finishRun(runData, endTemp, note) {
             startedAt: runData.startedAt,
             finishedAt: finishedAtIso,
             failureReason,
+            correctiveAction,
+            correctiveActionLabel,
             correctiveActionRequired: true
         };
+        entryData.correctiveAction = correctiveAction;
+        entryData.correctiveActionLabel = correctiveActionLabel;
     }
 
     const result = {
@@ -566,7 +581,7 @@ async function finishRun(runData, endTemp, note) {
         shouldCreateDeviation: !passed,
         deviationType: passed ? null : "cooling_failure",
         deviationTitle: passed ? null : `Nedk\u00f8ling fejlet: ${runData.productName}`,
-        deviationDescription: passed ? null : `Nedk\u00f8ling af ${runData.productName} overholder ikke 4-timers reglen. ${failureReason}`,
+        deviationDescription: passed ? null : `Nedk\u00f8ling af ${runData.productName} overholder ikke kravene. ${failureReason}. Korrigerende handling: ${correctiveActionLabel}`,
         documented: passed
     };
 
@@ -647,11 +662,24 @@ async function handleFinish(runId) {
 
     const endTempInput = document.getElementById(`mk-cr-endtemp-${runId}`);
     const noteInput    = document.getElementById(`mk-cr-note-${runId}`);
+    const correctiveInput = document.getElementById(`mk-cr-corrective-${runId}`);
     const endTemp      = parseFloat(endTempInput?.value ?? "");
     const note         = (noteInput?.value ?? "").trim();
+    const correctiveAction = correctiveInput?.value ?? "";
 
     if (isNaN(endTemp)) {
         if (endTempInput) { endTempInput.focus(); endTempInput.style.borderColor = "#f08080"; }
+        return;
+    }
+
+    const elapsedMinutes = Math.round((Date.now() - new Date(runData.startedAt).getTime()) / 60000);
+    const willPass = Number(runData.startTemp) >= 65 && endTemp <= 10 && elapsedMinutes <= 240;
+    if (!willPass && !correctiveAction) {
+        if (correctiveInput) {
+            correctiveInput.focus();
+            correctiveInput.style.borderColor = "#f08080";
+        }
+        alert("V\u00e6lg om varen skal genopvarmes til mindst 75 \u00b0C eller kasseres.");
         return;
     }
 
@@ -659,7 +687,7 @@ async function handleFinish(runId) {
     if (finBtn) { finBtn.disabled = true; finBtn.textContent = "Gemmer..."; }
 
     try {
-        const finishResult = await finishRun(runData, endTemp, note);
+        const finishResult = await finishRun(runData, endTemp, note, correctiveAction);
         const { passed, coolingDuration, endTemp: finalTemp } = finishResult;
         deleteRun(runId);
         expandedRunIds.delete(runId);
