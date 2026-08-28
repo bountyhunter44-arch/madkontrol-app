@@ -591,6 +591,7 @@ requiredBeforeEdit:
         .routine-pager-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
         .routine-pager-actions .btn{width:100%;min-height:44px}
         @media(max-width:600px){.routine-pager-top{display:block}.routine-pager-count{margin-top:8px}}
+        .task-list.routine-viewport-fit{transform-origin:top left}
         .task-item{scroll-margin-top:16px}
 
         .routine-guide-open{width:100%;min-height:44px;margin-bottom:12px}
@@ -741,6 +742,33 @@ requiredBeforeEdit:
                 min-height:40px;
                 padding:8px 6px;
                 font-size:12px;
+            }
+
+            /* Mobilflowet viser kun det, medarbejderen skal bruge her og nu.
+               Historik og dokumentation gemmes fortsat og vises på web/tablet og i rapporter. */
+            .task-item.is-open .routine-audit-summary,
+            .task-item.is-open .task-body > p,
+            .task-item.is-open .task-meta,
+            .task-item.is-open .routine-card-activity,
+            .task-item.is-open .recall-feed-panel,
+            .task-item.is-open .task-docs-panel,
+            .task-item.is-open .task-action-secondary{
+                display:none;
+            }
+
+            .task-item.is-open .routine-compact-tools{
+                display:block;
+            }
+
+            .task-item.is-open .routine-guide-open{
+                min-height:38px;
+                margin:0 0 7px;
+                padding:7px 10px;
+                font-size:12px;
+            }
+
+            .task-item.is-open .task-action{
+                margin-top:7px;
             }
         }
 
@@ -2402,18 +2430,62 @@ requiredBeforeEdit:
         }
 
         const taskListEl = document.getElementById("taskList");
+        let routineViewportFitTimer = 0;
+
+        function clearRoutineViewportFit() {
+            taskListEl?.classList.remove("routine-viewport-fit");
+            taskListEl?.style.removeProperty("zoom");
+        }
+
+        function fitCurrentRoutineToViewport() {
+            window.clearTimeout(routineViewportFitTimer);
+            routineViewportFitTimer = window.setTimeout(() => {
+                if (!taskListEl || hasActiveRoutineFilters()) {
+                    clearRoutineViewportFit();
+                    return;
+                }
+
+                clearRoutineViewportFit();
+                const pager = taskListEl.querySelector(".routine-pager");
+                const routineCard = taskListEl.querySelector(".task-item");
+                const pagerActions = taskListEl.querySelector(".routine-pager-actions");
+                if (!pager || !routineCard || !pagerActions) return;
+
+                const naturalHeight = taskListEl.scrollHeight;
+                const viewportPadding = window.innerWidth <= 480 ? 8 : 14;
+                const availableHeight = Math.max(320, window.innerHeight - (viewportPadding * 2));
+                const minimumScale = window.innerWidth <= 480 ? 0.68 : 0.62;
+                const scale = Math.min(1, Math.max(minimumScale, availableHeight / naturalHeight));
+
+                if (scale < 0.995) {
+                    taskListEl.classList.add("routine-viewport-fit");
+                    taskListEl.style.zoom = scale.toFixed(3);
+                }
+            }, 0);
+        }
+
+        function scheduleRoutineViewportFit() {
+            fitCurrentRoutineToViewport();
+            window.setTimeout(fitCurrentRoutineToViewport, 180);
+            window.setTimeout(fitCurrentRoutineToViewport, 650);
+        }
+
         function scrollToCurrentRoutine({ behavior = "smooth", delay = 0 } = {}) {
             if (hasActiveRoutineFilters()) return;
 
             window.setTimeout(() => {
-                const currentRoutineCard = taskListEl?.querySelector(".task-item");
-                if (!currentRoutineCard) return;
+                if (!taskListEl?.querySelector(".task-item")) return;
 
                 window.requestAnimationFrame(() => {
-                    currentRoutineCard.scrollIntoView({ behavior, block: "start" });
+                    taskListEl.scrollIntoView({ behavior, block: "start" });
+                    scheduleRoutineViewportFit();
                 });
             }, delay);
         }
+
+        window.addEventListener("resize", scheduleRoutineViewportFit, { passive: true });
+        window.addEventListener("orientationchange", scheduleRoutineViewportFit, { passive: true });
+        window.visualViewport?.addEventListener("resize", scheduleRoutineViewportFit, { passive: true });
 
         taskListEl.addEventListener("click", (e) => {
             const pagerButton = e.target.closest("button[data-routine-page]");
@@ -2539,6 +2611,53 @@ requiredBeforeEdit:
         let selectedDateKey = null;
         let currentRoutinePage = 0;
         let rutinerLoaderProgress = 0;
+
+        function getRoutineProgressStorageKey() {
+            return [
+                "mk_last_routine",
+                SETTINGS.companyId || "company",
+                SETTINGS.locationId || "location",
+                selectedDateKey || getTodayKey()
+            ].join("__");
+        }
+
+        function getRoutineProgressIdentity(task = {}) {
+            return {
+                id: task.id || task.taskInstanceId || task.linkedInstanceId || "",
+                taskId: task.taskId || "",
+                templateId: task.templateId || task.templateKey || "",
+                routineKey: task.routineKey || task.routineType || ""
+            };
+        }
+
+        function rememberCurrentRoutine(task) {
+            if (!task || hasActiveRoutineFilters()) return;
+            try {
+                localStorage.setItem(getRoutineProgressStorageKey(), JSON.stringify({
+                    ...getRoutineProgressIdentity(task),
+                    rememberedAt: new Date().toISOString()
+                }));
+            } catch (_) {}
+        }
+
+        function restoreLastKnownRoutine(openTasks = []) {
+            try {
+                const saved = JSON.parse(localStorage.getItem(getRoutineProgressStorageKey()) || "null");
+                if (!saved) return false;
+                const index = openTasks.findIndex((task) => {
+                    const identity = getRoutineProgressIdentity(task);
+                    if (saved.id) return identity.id === saved.id;
+                    if (saved.taskId) return identity.taskId === saved.taskId;
+                    if (saved.templateId) return identity.templateId === saved.templateId;
+                    return Boolean(saved.routineKey && identity.routineKey === saved.routineKey);
+                });
+                if (index < 0) return false;
+                currentRoutinePage = index;
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
 
         // Legacy answer buttons were intentionally removed from routine cards.
         // Keep this object empty so old save/restore hooks do not require the removed choices.
@@ -7593,6 +7712,7 @@ function generateFryerControlText({
             const filtersAreActive = hasActiveRoutineFilters();
             currentRoutinePage = Math.max(0, Math.min(currentRoutinePage, openTasks.length - 1));
             const visibleTasks = filtersAreActive ? openTasks : [openTasks[currentRoutinePage]];
+            if (!filtersAreActive) rememberCurrentRoutine(visibleTasks[0]);
             const nextTask = openTasks[currentRoutinePage + 1] || null;
             const progressPercent = Math.round(((currentRoutinePage + 1) / openTasks.length) * 100);
             console.log(filtersAreActive
@@ -8264,7 +8384,7 @@ ${(() => {
                                     data-instance-id="${escapeHtml(task.id)}"
                                     data-action="save"
                                 >
-                                    Tilføj registrering
+                                    ${isStandardTemperatureRoutine(task) ? "Registrer temperatur" : "Tilføj registrering"}
                                 </button>
                                 `}
                             </div>
@@ -8332,6 +8452,7 @@ ${(() => {
                 ${routineCardsHtml}
                 ${pagerActionsHtml}
             `;
+            scheduleRoutineViewportFit();
 
             bindCoolingNoActivityToggles();
             bindAnswerTextFields();
@@ -14117,16 +14238,19 @@ function bindOperatingButtons() {
                     .filter((run) => run?.startedAt)
                     .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
                 const latestActiveRun = activeRuns[0] || null;
-                if (latestActiveRun && !hasActiveRoutineFilters()) {
+                if (!hasActiveRoutineFilters()) {
                     const openTasks = getOpenTasks();
-                    const activeRoutineIndex = openTasks.findIndex((task) => {
-                        const taskIds = [task?.id, task?.taskInstanceId, task?.linkedInstanceId].filter(Boolean);
-                        if (taskIds.includes(latestActiveRun.instanceId)) return true;
-                        const taskKeys = [task?.taskId, task?.templateId, task?.templateKey, task?.routineKey, task?.routineType].filter(Boolean);
-                        const runKeys = [latestActiveRun.taskId, latestActiveRun.templateId, latestActiveRun.templateKey, latestActiveRun.routineKey, latestActiveRun.routineType].filter(Boolean);
-                        return taskKeys.some((key) => runKeys.includes(key));
-                    });
-                    if (activeRoutineIndex >= 0) currentRoutinePage = activeRoutineIndex;
+                    const restoredLastRoutine = restoreLastKnownRoutine(openTasks);
+                    if (!restoredLastRoutine && latestActiveRun) {
+                        const activeRoutineIndex = openTasks.findIndex((task) => {
+                            const taskIds = [task?.id, task?.taskInstanceId, task?.linkedInstanceId].filter(Boolean);
+                            if (taskIds.includes(latestActiveRun.instanceId)) return true;
+                            const taskKeys = [task?.taskId, task?.templateId, task?.templateKey, task?.routineKey, task?.routineType].filter(Boolean);
+                            const runKeys = [latestActiveRun.taskId, latestActiveRun.templateId, latestActiveRun.templateKey, latestActiveRun.routineKey, latestActiveRun.routineType].filter(Boolean);
+                            return taskKeys.some((key) => runKeys.includes(key));
+                        });
+                        if (activeRoutineIndex >= 0) currentRoutinePage = activeRoutineIndex;
+                    }
                 }
 
                 renderTasks();
