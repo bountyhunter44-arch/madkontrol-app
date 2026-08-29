@@ -61,7 +61,7 @@ function renderCoverPage(page, lang = "da") {
   return `
     <section class="risk-page risk-cover-page" data-page-type="cover">
       <div class="risk-cover-inner">
-        <p class="risk-kicker">${t("risk.kicker", lang) || "Madkontrollen Pro"}</p>
+        <p class="risk-kicker">${t("risk.kicker", lang) || "Madkontrollen EWCP Egenkontrol"}</p>
         <h1>${escapeHtml(title)}</h1>
         <p class="risk-cover-intro">${escapeHtml(intro)}</p>
 

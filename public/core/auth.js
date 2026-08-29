@@ -323,7 +323,7 @@ function ensureAuthStyles() {
 	document.head.appendChild(style);
 }
 
-function ensureAuthUi(appName = "Madkontrollen Pro") {
+function ensureAuthUi(appName = "Madkontrollen EWCP Egenkontrol") {
 	ensureAuthStyles();
 
 	let gate = document.getElementById("mkpAuthGate");
@@ -339,11 +339,11 @@ function ensureAuthUi(appName = "Madkontrollen Pro") {
 			<section class="mkp-auth-card" aria-label="Login">
 				<div class="product">
 					<div class="logo-wrapper">
-						<img src="/images/logo.svg" alt="Madkontrollen Pro logo">
+						<img src="/images/ewcp-logo.svg" alt="EWCP Egenkontrol logo">
 					</div>
 
 					<div class="description">
-						<h3>Velkommen til Madkontrollen Pro</h3>
+						<h3>Velkommen til Madkontrollen EWCP Egenkontrol</h3>
 						<p>Log ind for at håndtere din drift, egenkontrol og AI-bilag.</p>
 					</div>
 				</div>
@@ -702,7 +702,7 @@ async function getUserRoleProfile(user) {
 
 export async function setupAuthGate(options = {}) {
 	const {
-		appName = "Madkontrollen Pro",
+		appName = "Madkontrollen EWCP Egenkontrol",
 		onAuthenticated,
 		onSignedOut
 	} = options;

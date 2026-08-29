@@ -222,7 +222,7 @@
         }
 
         .brand-logo {
-            height: 52px;
+            height: 72px;
             width: auto;
             display: block;
         }
@@ -249,7 +249,7 @@
             .nav-links { display: none; }
             h1 { font-size: 2.2rem; }
             h2 { font-size: 1.8rem; }
-            .brand-logo { height: 46px; }
+            .brand-logo { height: 60px; }
 
             .navbar {
                 position: static;
@@ -288,11 +288,44 @@
             background: linear-gradient(135deg, #f7faf7 0%, var(--primary-light) 100%);
             padding: 80px 20px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before,
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: min(34vw, 460px);
+            aspect-ratio: 4 / 3;
+            pointer-events: none;
+            opacity: .18;
+            background-repeat: no-repeat;
+            background-size: cover;
+            filter: saturate(.8) contrast(.92);
+        }
+
+        .hero::before {
+            top: 0;
+            left: 0;
+            background-image: url('/images/app-corner-kitchen.webp');
+            -webkit-mask-image: radial-gradient(ellipse at top left, #000 0 40%, transparent 80%);
+            mask-image: radial-gradient(ellipse at top left, #000 0 40%, transparent 80%);
+        }
+
+        .hero::after {
+            right: 0;
+            bottom: 0;
+            background-image: url('/images/app-corner-activity.webp');
+            -webkit-mask-image: radial-gradient(ellipse at bottom right, #000 0 40%, transparent 80%);
+            mask-image: radial-gradient(ellipse at bottom right, #000 0 40%, transparent 80%);
         }
 
         .hero-inner {
             max-width: 1380px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         .hero-badge {

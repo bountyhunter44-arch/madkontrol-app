@@ -446,7 +446,7 @@ function ensureLayoutStyles() {
     }
 
     .mkp-layout-topbar-inner{
-      min-height:98px;
+      min-height:116px;
       display:flex;
       flex-direction:column;
       justify-content:center;
@@ -474,8 +474,9 @@ function ensureLayoutStyles() {
     .mkp-layout-brand-logo{
       display:block;
       width:auto;
-      max-width:300px;
-      max-height:64px;
+      height:84px;
+      max-width:380px;
+      max-height:84px;
       object-fit:contain;
     }
 

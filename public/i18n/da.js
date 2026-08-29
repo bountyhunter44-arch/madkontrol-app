@@ -183,7 +183,7 @@ export default {
     "dashboard.recent_deviations": "Seneste afvigelser",
 
     // Risk analysis — page structure
-    "risk.kicker": "Madkontrollen Pro",
+    "risk.kicker": "Madkontrollen EWCP Egenkontrol",
     "risk.page.cover.title": "Risikoanalyse",
     "risk.page.cover.intro": "I skemaet nedenfor er beskrevet de forhold der kan udgøre en sundhedsrisiko, og hvilke forholdsregler virksomheden skal tage for at modgå de forskellige risici.",
     "risk.page.microbiological.title": "Mikrobiologiske sundhedsfarer",

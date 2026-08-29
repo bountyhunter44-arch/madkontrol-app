@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow">
-  <title>Start dag | Madkontrollen Pro</title>
+  <title>Start dag | Madkontrollen EWCP Egenkontrol</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1207,7 +1207,7 @@
   renderStats([]);
 
   setupAuthGate({
-    appName: "Madkontrollen Pro",
+    appName: "Madkontrollen EWCP Egenkontrol",
     onAuthenticated: async ({ user, profile }) => {
       SETTINGS.currentUserName = String(
         profile?.displayName || user.displayName || user.email || user.uid

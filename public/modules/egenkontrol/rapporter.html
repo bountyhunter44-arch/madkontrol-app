@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="da">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow">
-    <title>Rapporter | Madkontrollen Pro</title>
+    <title>Rapporter | Madkontrollen EWCP Egenkontrol</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -644,7 +644,7 @@
 
                 <section class="report-preview" id="reportPreview">
                     <div id="reportPrintRoot">
-                        <div class="print-only"><strong>Madkontrollen Pro · Rapport og dokumentation</strong></div>
+                        <div class="print-only"><strong>Madkontrollen EWCP Egenkontrol · Rapport og dokumentation</strong></div>
                         <div id="reportFilterSummary" class="report-filter-summary"></div>
                         <div class="preview-head">
                             <div><h2 class="preview-title">Rapport over handlinger og dokumentation</h2><p class="preview-text" id="previewText">Viser alle registreringer, målinger, kommentarer og afvigelser for den valgte periode.</p><div class="preview-text" id="authority-report-loading-text" style="display:none;font-style:italic;color:#2e7d32;margin-top:6px;"></div></div>
@@ -3502,7 +3502,7 @@
                 <option value="all">Hele perioden</option>
             `;
             statusFilter.value = "all";
-            document.title = "Kontrolrapport til Myndighed | Madkontrollen Pro";
+            document.title = "Kontrolrapport til Myndighed | Madkontrollen EWCP Egenkontrol";
         }
 
         periodFilter.value = resolveInitialPeriodValue();
@@ -3510,7 +3510,7 @@
         renderSignedOutState();
 
         await setupAuthGate({
-            appName: "Madkontrollen Pro",
+            appName: "Madkontrollen EWCP Egenkontrol",
             onAuthenticated: async ({ user, profile }) => {
                 try {
                     const profileLocationIds = Array.isArray(profile?.locationIds)

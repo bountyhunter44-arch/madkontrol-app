@@ -2004,7 +2004,7 @@ Fødevarer mellem 5°C og 65°C skal sælges inden for 3 timer.`,
             ].filter(Boolean).slice(0, 3);
 
             return {
-                companyName: state.company.name || "Madkontrollen Pro kunde",
+                companyName: state.company.name || "Madkontrollen EWCP Egenkontrol kunde",
                 companyType: state.company.businessType || "Restaurant",
                 city: state.company.city || "Ikke angivet",
                 criticalPoints: criticalPoints.length ? criticalPoints : ["Køl", "Opvarmning", "Allergener"]

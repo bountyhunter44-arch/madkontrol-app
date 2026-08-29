@@ -1,4 +1,4 @@
-﻿
+
 <!DOCTYPE html>
 <html lang="da">
 <!--
@@ -30,7 +30,7 @@ requiredBeforeEdit:
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow">
-    <title id="pageTitle">Daglige rutiner | Madkontrollen Pro</title>
+    <title id="pageTitle">Daglige rutiner | Madkontrollen EWCP Egenkontrol</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14568,7 +14568,7 @@ function bindOperatingButtons() {
         }
 
         setupAuthGate({
-            appName: "Madkontrollen Pro",
+            appName: "Madkontrollen EWCP Egenkontrol",
             onAuthenticated: async ({ user, profile }) => {
                 // Store user and profile for audit fields
                 window.currentUser = user;
@@ -14818,7 +14818,7 @@ function bindOperatingButtons() {
             // Page title
             const pageTitle = document.getElementById('pageTitle');
             if (pageTitle) {
-                pageTitle.textContent = `${t('routine.daily', userLang)} | Madkontrollen Pro`;
+                pageTitle.textContent = `${t('routine.daily', userLang)} | Madkontrollen EWCP Egenkontrol`;
             }
 
             // Hero eyebrow + title

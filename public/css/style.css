@@ -1,5 +1,5 @@
 /* ========================================
-   Madkontrollen Pro - Global Platform CSS
+   Madkontrollen EWCP Egenkontrol - Global Platform CSS
    Fast struktur:
    - Kun logo + virksomhedsinfo i top
    - Ingen navigation i top
@@ -83,11 +83,16 @@ body::after{
   width:min(30vw, 420px);
   aspect-ratio:4 / 3;
   pointer-events:none;
-  z-index:-1;
-  opacity:.055;
+  z-index:0;
+  opacity:.14;
   background-repeat:no-repeat;
   background-size:cover;
-  filter:saturate(.72) contrast(.9);
+  filter:saturate(.78) contrast(.92);
+}
+
+body > :where(header,nav,main,footer,section,div){
+  position:relative;
+  z-index:1;
 }
 
 body::before{
@@ -242,7 +247,8 @@ img{
 
 .brand img,
 .brand-logo{
-  max-height:64px;
+  max-height:82px;
+  min-height:58px;
   width:auto;
   object-fit:contain;
   display:block;

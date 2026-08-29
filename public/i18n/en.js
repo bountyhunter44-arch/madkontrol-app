@@ -183,7 +183,7 @@ export default {
     "dashboard.recent_deviations": "Recent deviations",
 
     // Risk analysis — page structure
-    "risk.kicker": "Madkontrollen Pro",
+    "risk.kicker": "Madkontrollen EWCP Egenkontrol",
     "risk.page.cover.title": "Risk Analysis",
     "risk.page.cover.intro": "The table below describes conditions that may constitute a health risk, and the precautions the business must take to counter the various risks.",
     "risk.page.microbiological.title": "Microbiological hazards",

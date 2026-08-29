@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow">
-  <title>Daglig Rapport | Madkontrollen Pro</title>
+  <title>Daglig Rapport | Madkontrollen EWCP Egenkontrol</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@
     let currentUser = null;
 
     setupAuthGate({
-      appName: "Madkontrollen Pro - Rapport",
+      appName: "Madkontrollen EWCP Egenkontrol - Rapport",
       onAuthenticated: async ({ user, profile }) => {
         currentUser = user;
         
@@ -76,9 +76,9 @@
 
         <div class="print-header">
           <div class="print-logo">
-            <div class="logo-mark">🍽️</div>
+            <img class="logo-mark" src="/images/ewcp-logo.svg" alt="EWCP Egenkontrol logo">
             <div class="logo-text">
-              <div class="logo-title">Madkontrollen Pro</div>
+              <div class="logo-title">Madkontrollen EWCP Egenkontrol</div>
               <div class="logo-subtitle">Egenkontrol Rapport</div>
             </div>
           </div>
@@ -704,15 +704,10 @@
       }
 
       .logo-mark {
-        width: 48px;
-        height: 48px;
-        background: #111827;
-        color: #fff;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
+        width: 190px;
+        height: auto;
+        display: block;
+        object-fit: contain;
       }
 
       .logo-title {
