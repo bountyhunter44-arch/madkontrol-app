@@ -50,9 +50,8 @@
 ## Public module presentation
 - `public/modul.html?modul={egenkontrol|pos|accounting}` is the public, login-free presentation page.
 - Dashboard "Læs mere" links must open this page. Only owned-module "Åbn" links go directly to an app.
-- Every public module presentation includes a direct Stripe purchase CTA for an existing signed-in company.
-  Direct module purchases never route through onboarding; `createDirectModuleCheckoutSession` resolves
-  company/location from the authenticated user and `stripeWebhook` activates the purchased module.
-- Demo-bannerens aktivering går til Egenkontrol-præsentationen og direkte checkout til baseprisen 149 kr.
-  En gennemført demo-betaling konverterer demoens bruger, virksomhed og lokation til aktiv kundestatus,
-  så én-times udløbet ikke efterfølgende lukker den betalte konto. Forsidens Madkontrollen-køb bruger fortsat onboarding.
+- Egenkontrol/Madkontrollen kan ikke købes uden opsætning: alle "Køb nu"-knapper for `egenkontrol`
+  går til den ene aktive `quick-onboarding.html`, også fra demo (`from=demo`). Onboarding gennemfører
+  virksomhedsopsætning og starter derefter Stripe-betalingen.
+- Andre selvstændige moduler kan fortsat bruge direkte Stripe-køb for en eksisterende, indlogget
+  virksomhed via `createDirectModuleCheckoutSession`; `stripeWebhook` aktiverer det købte modul.

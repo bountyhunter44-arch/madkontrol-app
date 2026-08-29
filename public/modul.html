@@ -127,8 +127,26 @@
       `).join("");
       document.getElementById("moduleAudience").innerHTML = (module.audience || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("");
       const buyButtons = [document.getElementById("buyButton"), document.getElementById("finalBuyButton")];
+      const requiresOnboarding = checkoutKey === "egenkontrol";
+      const onboardingUrl = new URL("/quick-onboarding.html", window.location.origin);
+      onboardingUrl.searchParams.set("source", "module");
+      onboardingUrl.searchParams.set("modul", "egenkontrol");
+      const source = String(params.get("from") || "").trim();
+      if (source) onboardingUrl.searchParams.set("from", source);
+
+      if (requiresOnboarding) {
+        buyButtons.forEach((button) => { button.href = `${onboardingUrl.pathname}${onboardingUrl.search}`; });
+      }
+
       buyButtons.forEach((button) => button.addEventListener("click", async (event) => {
         event.preventDefault();
+        if (requiresOnboarding) {
+          buyButtons.forEach((item) => { item.style.pointerEvents = "none"; item.textContent = "Åbner onboarding..."; });
+          purchaseStatus.textContent = "Du sendes til Madkontrollens onboarding, hvor virksomheden opsættes før betaling.";
+          window.location.assign(onboardingUrl.href);
+          return;
+        }
+
         if (!signedInUser) {
           purchaseStatus.innerHTML = 'Du skal være logget ind for at købe direkte. <a href="/">Log ind her</a>.';
           return;

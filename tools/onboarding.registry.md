@@ -31,6 +31,9 @@
 → Stripe Checkout → `tak.html` → finalisering og dashboard.
 - Quick Onboarding provisions Madkontrollen Egenkontrol only; it has no module selector.
 - Checkout payload keeps `selectedModules: ["egenkontrol"]` for backend compatibility.
+- `public/modul.html?modul=egenkontrol` sender altid køb videre til Quick Onboarding før betaling.
+  Det gælder også demoens aktiveringslink (`from=demo`); demoen må ikke kræve et separat login
+  eller starte direkte Stripe-checkout uden virksomhedsopsætningen.
 
 ## No-go
 - No generic cold/freezer routines without equipment (see `egenkontrol.registry.md`).
