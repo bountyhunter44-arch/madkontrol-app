@@ -76,9 +76,10 @@
   fremdriftsknapper, Kamera · AI/OCR og Guide ved siden af hinanden, relevante registreringsfelter og
   kompakte frem/tilbage-knapper. Historik, frekvensadministration og sekundære kontroller skjules kun
   i mobilflowet og er fortsat tilgængelige på tablet/web og i rapporterne.
-- Kortets registreringsformular skal ligge uden for `.task-meta`. Mobilvisningen skjuler bevidst
-  `.task-meta`, men må aldrig skjule `.routine-layout-grid`, `.routine-form-grid`, indtastningsfelter
-  eller den primære registreringsknap. Denne DOM-grænse er en mobil-regressionskontrol.
+- Mobilvisningen må ikke skjule `.task-meta` som samlet container, fordi browserens genererede
+  rutinekort har registreringsformularen under denne container. Skjul kun de direkte metadata-piller
+  (`.task-meta > .task-pill`/`.task-action-note`), så `.routine-layout-grid`, felter og den primære
+  registreringsknap altid forbliver synlige og aktive. Dette er en mobil-regressionskontrol.
 - Rutineoversigten deduplikeres efter det synlige rutinenavn (som allerede indeholder konkret
   udstyrsnavn, hvor det er relevant), så parallelle legacy/template-id'er ikke viser samme kort flere gange.
   Kontrollen køres både før og efter samling af instances, templates, risikoanalyse og verification-kilder,

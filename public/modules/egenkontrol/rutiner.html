@@ -36,7 +36,7 @@ requiredBeforeEdit:
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="/css/style.css?v=20260829-mobile-routine-v3">
+    <link rel="stylesheet" href="/css/style.css?v=20260829-mobile-routine-v4">
     <link rel="stylesheet" href="/css/process-cards.css">
     <link rel="stylesheet" href="/i18n/rtl.css">
 
@@ -2120,10 +2120,12 @@ requiredBeforeEdit:
             .task-item.is-open .task-frequency-controls,
             .task-item.is-open .routine-audit-summary,
             .task-item.is-open .task-body > p,
-            .task-item.is-open .task-meta,
             .task-item.is-open .routine-card-activity,
             .task-item.is-open .recall-feed-panel,
             .task-item.is-open .task-action-secondary{display:none !important}
+            .task-item.is-open .task-meta{display:block !important;width:100%;max-width:100%;min-width:0}
+            .task-item.is-open .task-meta > .task-pill,
+            .task-item.is-open .task-meta > .task-action-note{display:none !important}
             .task-item.is-open .routine-compact-tools{display:grid !important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;gap:6px !important;margin:7px 0 0 !important}
             .task-item.is-open .task-docs-panel,.task-item.is-open .routine-guide-open{grid-column:auto !important;min-width:0}
             .task-item.is-open .task-docs-panel{padding:0 !important;border:0 !important;background:transparent !important}
@@ -2486,7 +2488,7 @@ requiredBeforeEdit:
 
     <script type="module">
         import { setupAuthGate } from "/core/auth.js";
-        import { loadLayout } from "/core/layout.js?v=20260829-mobile-routine-v3";
+        import { loadLayout } from "/core/layout.js?v=20260829-mobile-routine-v4";
         import app, { auth, db, storage } from "/core/firebase-config.js";
         import { 
             isImpersonating, 
@@ -2529,7 +2531,7 @@ requiredBeforeEdit:
         import { resolveRoutineCardsForLocation } from "/modules/egenkontrol/routineCardsResolver.js";
         import { resolveDocumentTypeFromRegistry } from "./config/document-type-registry.js";
         import { resolvePrettyCompanyInfo } from "/core/prettyName.js";
-        import { startCoolingRun, getActiveCoolingRun, getActiveCoolingRuns } from "/core/cooling-overlay.js?v=20260829-mobile-routine-v3";
+        import { startCoolingRun, getActiveCoolingRun, getActiveCoolingRuns } from "/core/cooling-overlay.js?v=20260829-mobile-routine-v4";
         import { createAuditCreateFields, createAuditUpdateFields, createAuditCompleteFields, resolveCurrentActor } from "/core/auditFields.js";
 
         const SETTINGS = {

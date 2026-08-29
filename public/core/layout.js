@@ -979,7 +979,7 @@ export async function loadLayout() {
 
   // Init persistent cooling overlay (shows on any page if a run is active)
   try {
-    const { initCoolingOverlay } = await import("/core/cooling-overlay.js?v=20260829-mobile-routine-v3");
+    const { initCoolingOverlay } = await import("/core/cooling-overlay.js?v=20260829-mobile-routine-v4");
     initCoolingOverlay();
   } catch (err) {
     console.warn("[layout] cooling-overlay init feil:", err);
