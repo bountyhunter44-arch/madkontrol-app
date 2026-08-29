@@ -66,10 +66,53 @@ html{
 
 body{
   margin:0;
+  position:relative;
+  isolation:isolate;
   font-family:"Inter", Arial, sans-serif;
   background:linear-gradient(180deg,#f7f9fd 0%, #edf2fb 100%);
   color:var(--text);
   padding-bottom:calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 14px);
+}
+
+/* Diskret køkkenaktivitet i appens yderste hjørner.
+   Billederne genbruges fra forsiden, så der ikke tilføjes nye tunge assets. */
+body::before,
+body::after{
+  content:"";
+  position:fixed;
+  width:min(30vw, 420px);
+  aspect-ratio:4 / 3;
+  pointer-events:none;
+  z-index:-1;
+  opacity:.055;
+  background-repeat:no-repeat;
+  background-size:cover;
+  filter:saturate(.72) contrast(.9);
+}
+
+body::before{
+  top:82px;
+  left:0;
+  background-image:url("/images/app-corner-kitchen.webp");
+  background-position:center;
+  -webkit-mask-image:radial-gradient(ellipse at top left, #000 0 34%, transparent 76%);
+  mask-image:radial-gradient(ellipse at top left, #000 0 34%, transparent 76%);
+}
+
+body::after{
+  right:0;
+  bottom:82px;
+  background-image:url("/images/app-corner-activity.webp");
+  background-position:center;
+  -webkit-mask-image:radial-gradient(ellipse at bottom right, #000 0 34%, transparent 76%);
+  mask-image:radial-gradient(ellipse at bottom right, #000 0 34%, transparent 76%);
+}
+
+@media (max-width: 900px), print{
+  body::before,
+  body::after{
+    display:none;
+  }
 }
 
 a{
@@ -2026,6 +2069,36 @@ textarea:focus{
 .hero-saas-content .eyebrow{ background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22); color:#fff; }
 .hero-saas-content .hero-title,
 .hero-saas-content h1{ color:#fff; }
+
+/* Print skal kun indeholde rapporten. Mobilnavigationen er fixed på små
+   skærme og skal derfor fjernes eksplicit fra alle printvisninger. */
+@media print{
+  body{
+    padding-bottom:0 !important;
+  }
+
+  #sidebarMount,
+  .app-layout > #sidebarMount,
+  #sidebarMount *,
+  .dashboard-sidebar,
+  .dashboard-sidebar *,
+  .sidebar,
+  .sidebar *,
+  .mkp-layout-sidebar,
+  .mkp-layout-sidebar *,
+  .mobile-bottom-nav,
+  .bottom-navigation,
+  .app-mobile-nav,
+  [data-mobile-nav]{
+    display:none !important;
+    visibility:hidden !important;
+  }
+
+  .app-layout{
+    display:block !important;
+    width:100% !important;
+  }
+}
 .hero-saas-content .hero-text,
 .hero-saas-content > p{ color:rgba(255,255,255,.9); }
 .hero-saas-content .hero-meta-pill,

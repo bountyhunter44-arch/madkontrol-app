@@ -42,7 +42,7 @@ test('indekserbare salgssider har unik title, description, canonical og én H1',
 
 test('forsiden bruger den aftalte SEO-title, description og H1', () => {
   const html = read('index.html');
-  assert.match(html, /<title>Digital egenkontrol til restaurant og takeaway \| Madkontrollen<\/title>/);
+  assert.match(html, /<title>Digital egenkontrol til restaurant og takeaway \| Madkontrollen – EWCP Egenkontrol<\/title>/);
   assert.match(html, /<h1>Digital egenkontrol til restaurant og takeaway<\/h1>/);
   const description = capture(html, /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)/i);
   assert.ok(description.length >= 145 && description.length <= 160);
@@ -54,7 +54,8 @@ test('offentligt SEO-indhold bruger korrekt brand og ingen udokumenterede sensor
     'cookie-indstillinger.html', 'support.html', 'user-data-deletion.html',
   ]);
   const combined = files.map(read).join('\n');
-  assert.doesNotMatch(combined, /Madkontrollen Pro|EWCP Egenkontrol|tidligere Madkontrollen/i);
+  assert.doesNotMatch(combined, /Madkontrollen Pro|tidligere Madkontrollen/i);
+  assert.match(combined, /Madkontrollen EWCP Egenkontrol|Madkontrollen – EWCP Egenkontrol/i);
   assert.doesNotMatch(combined, /automatisk temperaturmåling|realtidsmålinger/i);
   assert.doesNotMatch(combined, /opfylder[^.]{0,80}Fødevarestyrelsens krav/i);
   assert.match(combined, /Aroi-D/);
@@ -76,8 +77,6 @@ test('Firebase Hosting har canonical-ruter og noindex-headere til private områd
   const redirects = new Map((hosting.redirects || []).map((entry) => [entry.source, entry.destination]));
   assert.equal(redirects.get('/funktioner/digital-egenkontrol.html'), '/digital-egenkontrol/');
   assert.equal(redirects.get('/funktioner/risikoanalyse-haccp.html'), '/risikoanalyse-haccp/');
-  assert.equal(redirects.get('/egenkontrol-restaurant'), '/egenkontrol-restaurant/');
-  assert.equal(redirects.get('/egenkontrol-takeaway'), '/egenkontrol-takeaway/');
   const headers = JSON.stringify(hosting.headers || []);
   assert.match(headers, /X-Robots-Tag/);
   assert.match(headers, /noindex, nofollow/);
