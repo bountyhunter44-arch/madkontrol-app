@@ -796,49 +796,6 @@ function ensureLayoutStyles() {
         margin:0 auto !important;
       }
 
-      @media (max-width: 640px){
-        .mkp-layout-sidebar,
-        .mkp-layout-sidebar.sidebar{
-          left:8px !important;
-          right:8px !important;
-          bottom:calc(6px + env(safe-area-inset-bottom, 0px)) !important;
-          padding:4px 0 !important;
-        }
-
-        .mkp-layout-sidebar .sidebar-inner{
-          grid-template-columns:repeat(4, minmax(0, 1fr)) !important;
-          gap:3px !important;
-        }
-
-        .mkp-layout-sidebar .sidebar-link,
-        .mkp-layout-sidebar .sidebar-link:hover,
-        .mkp-layout-sidebar .sidebar-link.active{
-          min-height:44px !important;
-          padding:3px 2px !important;
-          gap:2px !important;
-          border-radius:10px !important;
-          font-size:8px !important;
-          line-height:1 !important;
-          overflow:hidden !important;
-        }
-
-        .mkp-layout-sidebar .sidebar-link > span:last-child{
-          display:block !important;
-          width:100% !important;
-          overflow:hidden !important;
-          text-overflow:ellipsis !important;
-          white-space:nowrap !important;
-        }
-
-        .mkp-layout-sidebar .sidebar-badge{
-          width:20px !important;
-          height:20px !important;
-          min-width:20px !important;
-          border-radius:6px !important;
-          font-size:12px !important;
-        }
-      }
-
       .mkp-layout-topbar{
         min-height:auto !important;
       }
@@ -883,6 +840,88 @@ function ensureLayoutStyles() {
     }
 
     @media (max-width: 640px){
+      :root{
+        --mobile-bottom-nav-height:54px;
+      }
+
+      .mkp-layout-topbar-inner{
+        min-height:44px !important;
+        padding:4px 8px !important;
+      }
+
+      .mkp-topbar-lang .language-btn{
+        min-height:32px !important;
+        padding:4px 8px !important;
+        font-size:12px !important;
+        line-height:1 !important;
+      }
+
+      .mkp-topbar-lang .language-flag{
+        font-size:14px !important;
+      }
+
+      .mkp-layout-sidebar,
+      .mkp-layout-sidebar.sidebar{
+        left:6px !important;
+        right:6px !important;
+        bottom:calc(5px + env(safe-area-inset-bottom, 0px)) !important;
+        padding:3px !important;
+        border-radius:14px !important;
+        background:rgba(255,255,255,.96) !important;
+        box-shadow:0 8px 24px rgba(20,45,90,.16) !important;
+      }
+
+      .mkp-layout-sidebar .sidebar-inner{
+        display:flex !important;
+        grid-template-columns:none !important;
+        gap:2px !important;
+        overflow-x:auto !important;
+        overflow-y:hidden !important;
+        padding:0 !important;
+        scrollbar-width:none;
+        scroll-snap-type:x proximity;
+      }
+
+      .mkp-layout-sidebar .sidebar-inner::-webkit-scrollbar{
+        display:none;
+      }
+
+      .mkp-layout-sidebar .sidebar-group{
+        display:contents !important;
+      }
+
+      .mkp-layout-sidebar .sidebar-link,
+      .mkp-layout-sidebar .sidebar-link:hover,
+      .mkp-layout-sidebar .sidebar-link.active{
+        flex:0 0 54px !important;
+        width:54px !important;
+        min-width:54px !important;
+        min-height:42px !important;
+        padding:3px 2px !important;
+        gap:2px !important;
+        border-radius:9px !important;
+        font-size:7px !important;
+        line-height:1 !important;
+        overflow:hidden !important;
+        scroll-snap-align:start;
+      }
+
+      .mkp-layout-sidebar .sidebar-link > span:last-child{
+        display:block !important;
+        width:100% !important;
+        overflow:hidden !important;
+        text-overflow:ellipsis !important;
+        white-space:nowrap !important;
+      }
+
+      .mkp-layout-sidebar .sidebar-badge{
+        width:19px !important;
+        height:19px !important;
+        min-width:19px !important;
+        border-radius:6px !important;
+        font-size:11px !important;
+      }
+
       .mkp-layout-topbar .topbar-info-item{
         width:100%;
         justify-content:flex-start;
@@ -940,7 +979,7 @@ export async function loadLayout() {
 
   // Init persistent cooling overlay (shows on any page if a run is active)
   try {
-    const { initCoolingOverlay } = await import("/core/cooling-overlay.js?v=20260829-durable-timer");
+    const { initCoolingOverlay } = await import("/core/cooling-overlay.js?v=20260829-mobile-routine-v3");
     initCoolingOverlay();
   } catch (err) {
     console.warn("[layout] cooling-overlay init feil:", err);

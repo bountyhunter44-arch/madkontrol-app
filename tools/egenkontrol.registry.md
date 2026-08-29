@@ -72,8 +72,20 @@
 - Uden aktive filtre viser `rutiner.html` ét rutinekort ad gangen. Efter første indlæsning samt ved
   frem/tilbage og automatisk skift efter gem flyttes visningen til det aktuelle rutinekort. Med aktive
   filtre bevares den samlede, sammenklappede resultatvisning uden automatisk scroll.
-- Ved skærme på højst 480 px komprimeres det aktuelle kort til én indholdskolonne med mindre afstande,
-  fuld bredde på formularfelter og beskyttelse mod vandret scrolling; ingen rutinefelter skjules.
+- Ved skærme på højst 640 px vises det aktuelle kort som et særskilt kompakt mobilflow med små
+  fremdriftsknapper, Kamera · AI/OCR og Guide ved siden af hinanden, relevante registreringsfelter og
+  kompakte frem/tilbage-knapper. Historik, frekvensadministration og sekundære kontroller skjules kun
+  i mobilflowet og er fortsat tilgængelige på tablet/web og i rapporterne.
+- Kortets registreringsformular skal ligge uden for `.task-meta`. Mobilvisningen skjuler bevidst
+  `.task-meta`, men må aldrig skjule `.routine-layout-grid`, `.routine-form-grid`, indtastningsfelter
+  eller den primære registreringsknap. Denne DOM-grænse er en mobil-regressionskontrol.
+- Rutineoversigten deduplikeres efter det synlige rutinenavn (som allerede indeholder konkret
+  udstyrsnavn, hvor det er relevant), så parallelle legacy/template-id'er ikke viser samme kort flere gange.
+  Kontrollen køres både før og efter samling af instances, templates, risikoanalyse og verification-kilder,
+  så resolveren ikke kan genindføre en dublet. Første forekomst bevarer sin oprindelige placering.
+- Det vedvarende nedkølingsur indlæses som én delt modulinstans fra rutiner og layout. Aktivt scope
+  findes først i den aktuelle session og derefter i `users`/`live_user_profiles`. På mobil vises aktive
+  nedkølinger som en lille farveskiftende smiley-pille over bundnavigationen; tryk åbner hele uret.
 
 ## Tools
 - `tools/audit-equipment-bound-routines-without-equipment.cjs` — READ-ONLY audit, **ALL** equipment-bound

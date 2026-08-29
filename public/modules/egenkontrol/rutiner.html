@@ -36,7 +36,7 @@ requiredBeforeEdit:
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="/css/style.css?v=20260829-compact-mobile-nav">
+    <link rel="stylesheet" href="/css/style.css?v=20260829-mobile-routine-v3">
     <link rel="stylesheet" href="/css/process-cards.css">
     <link rel="stylesheet" href="/i18n/rtl.css">
 
@@ -611,7 +611,7 @@ requiredBeforeEdit:
             .routine-layout-grid .routine-form{padding:12px}
         }
 
-        @media(max-width:480px){
+        @media(max-width:640px){
             html,
             body{
                 max-width:100%;
@@ -849,10 +849,28 @@ requiredBeforeEdit:
             }
 
             .task-item.is-open .task-save-btn{
-                min-height:48px;
+                width:100% !important;
+                min-height:42px;
+                height:42px;
+                padding:8px 12px;
                 border-radius:12px;
-                font-size:15px;
+                font-size:14px;
                 font-weight:850;
+            }
+
+            .task-item.is-open .task-action-primary{
+                grid-template-columns:repeat(2,minmax(0,1fr));
+                gap:8px;
+            }
+
+            .task-item.is-open .task-action-primary.is-single{
+                grid-template-columns:minmax(0,1fr);
+            }
+
+            .task-item.is-open .task-action-primary .btn{
+                min-width:0;
+                white-space:normal;
+                line-height:1.15;
             }
 
             .task-item.is-open .task-camera-btn{
@@ -2082,6 +2100,54 @@ requiredBeforeEdit:
             box-shadow:0 10px 22px rgba(28,126,214,0.24);
             transform:translateY(-1px);
         }
+
+        /* Final mobile contract: keep this last so desktop workspace rules cannot
+           turn the phone card back into a compressed desktop form. */
+        @media (max-width:640px){
+            .page-shell{padding-inline:8px}
+            .page-shell > .container,.app-layout,.app-main,.task-list{width:100%;max-width:100%;min-width:0}
+            .routine-pager{padding:8px 9px;margin-bottom:8px}
+            .routine-pager-top{display:flex;align-items:center;margin:0 0 6px;gap:8px}
+            .routine-pager-label{font-size:9px}
+            .routine-pager-next{font-size:11px;margin-top:1px}
+            .routine-pager-count{margin:0;font-size:10px;white-space:nowrap}
+            .routine-page-numbers{gap:4px;overflow:visible;padding:0}
+            .routine-page-number{flex:0 0 27px;width:27px;height:27px;font-size:10px;border-radius:8px}
+            .routine-page-ellipsis{font-size:11px}
+            .task-item.is-open{padding:9px 8px;gap:7px;border-radius:15px}
+            .task-item.is-open .task-content h4{font-size:16px;overflow-wrap:anywhere}
+            .task-item.is-open .task-content,.task-item.is-open .task-action{min-width:0;width:100%;max-width:100%}
+            .task-item.is-open .task-frequency-controls,
+            .task-item.is-open .routine-audit-summary,
+            .task-item.is-open .task-body > p,
+            .task-item.is-open .task-meta,
+            .task-item.is-open .routine-card-activity,
+            .task-item.is-open .recall-feed-panel,
+            .task-item.is-open .task-action-secondary{display:none !important}
+            .task-item.is-open .routine-compact-tools{display:grid !important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;gap:6px !important;margin:7px 0 0 !important}
+            .task-item.is-open .task-docs-panel,.task-item.is-open .routine-guide-open{grid-column:auto !important;min-width:0}
+            .task-item.is-open .task-docs-panel{padding:0 !important;border:0 !important;background:transparent !important}
+            .task-item.is-open .task-docs-copy,.task-item.is-open .task-docs-body{display:none !important}
+            .task-item.is-open .task-docs-head{display:block !important}
+            .task-item.is-open .task-camera-btn,.task-item.is-open .routine-guide-open{width:100% !important;height:38px !important;min-height:38px !important;margin:0 !important;padding:6px 5px !important;font-size:11px !important;line-height:1.1 !important;white-space:normal !important;border-radius:10px !important}
+            .task-item.is-open .task-camera-btn{font-size:0 !important}
+            .task-item.is-open .task-camera-btn::before{content:none}
+            .task-item.is-open .task-camera-btn::after{content:'📷 Kamera · AI/OCR';font-size:11px}
+            .task-item.is-open .routine-layout-grid,.task-item.is-open .routine-layout-grid.has-form-only{display:block;margin-top:7px}
+            .task-item.is-open .routine-layout-grid .routine-form{padding:0;border:0;background:transparent}
+            .task-item.is-open .routine-form-grid{display:grid;grid-template-columns:1fr;gap:6px}
+            .task-item.is-open .form-label{font-size:10px;margin-bottom:2px}
+            .task-item.is-open .task-input,.task-item.is-open input,.task-item.is-open select,.task-item.is-open textarea{width:100%;max-width:100%;min-height:39px;padding:8px 10px;font-size:16px;border-radius:10px;box-sizing:border-box}
+            .task-item.is-open textarea{min-height:44px;max-height:64px;resize:vertical}
+            .task-item.is-open .routine-assessment-options{grid-template-columns:1fr;gap:6px}
+            .task-item.is-open .routine-assessment-option{min-height:39px;padding:7px 8px;font-size:11px}
+            .task-item.is-open .task-action{margin-top:6px}
+            .task-item.is-open .task-action-primary,.task-item.is-open .task-action-primary.is-single{display:grid;grid-template-columns:1fr;gap:6px}
+            .task-item.is-open .task-action-primary:not(.is-single){grid-template-columns:1fr 1fr}
+            .task-item.is-open .task-save-btn,.task-item.is-open .task-action-primary .btn{width:100% !important;min-width:0 !important;height:40px !important;min-height:40px !important;padding:7px 6px !important;font-size:12px !important;line-height:1.1 !important;border-radius:10px !important;white-space:normal !important}
+            .routine-pager-actions{position:sticky;bottom:calc(var(--mobile-bottom-nav-height,58px) + 5px);z-index:25;gap:6px;margin-top:7px}
+            .routine-pager-actions .btn{height:38px;min-height:38px;padding:6px 5px;font-size:11px;border-radius:10px}
+        }
     </style>
 </head>
 <body data-page="rutiner">
@@ -2420,7 +2486,7 @@ requiredBeforeEdit:
 
     <script type="module">
         import { setupAuthGate } from "/core/auth.js";
-        import { loadLayout } from "/core/layout.js?v=20260829-compact-mobile-nav";
+        import { loadLayout } from "/core/layout.js?v=20260829-mobile-routine-v3";
         import app, { auth, db, storage } from "/core/firebase-config.js";
         import { 
             isImpersonating, 
@@ -2463,7 +2529,7 @@ requiredBeforeEdit:
         import { resolveRoutineCardsForLocation } from "/modules/egenkontrol/routineCardsResolver.js";
         import { resolveDocumentTypeFromRegistry } from "./config/document-type-registry.js";
         import { resolvePrettyCompanyInfo } from "/core/prettyName.js";
-        import { startCoolingRun, getActiveCoolingRun, getActiveCoolingRuns } from "/core/cooling-overlay.js";
+        import { startCoolingRun, getActiveCoolingRun, getActiveCoolingRuns } from "/core/cooling-overlay.js?v=20260829-mobile-routine-v3";
         import { createAuditCreateFields, createAuditUpdateFields, createAuditCompleteFields, resolveCurrentActor } from "/core/auditFields.js";
 
         const SETTINGS = {
@@ -2544,7 +2610,9 @@ requiredBeforeEdit:
         function fitCurrentRoutineToViewport() {
             window.clearTimeout(routineViewportFitTimer);
             routineViewportFitTimer = window.setTimeout(() => {
-                if (!taskListEl || hasActiveRoutineFilters()) {
+                // Mobile/tablet has its own compact card layout. Scaling the desktop
+                // list there made text and controls tiny instead of mobile friendly.
+                if (!taskListEl || hasActiveRoutineFilters() || window.innerWidth <= 640) {
                     clearRoutineViewportFit();
                     return;
                 }
@@ -6366,16 +6434,12 @@ function formatDeadlineLabel(task) {
 
         function getTaskWorkCardKey(task = {}) {
             const visibleRoutine = normalizePermanentRoutineKey(getVisibleTitle(task));
-            const routineContext = normalizePermanentRoutineKey([
-                task.equipmentId || task.equipmentName || task.equipmentType || "",
-                task.areaId || task.areaName || ""
-            ].filter(Boolean).join(" "));
 
             // A routine may exist under more than one legacy/template id after onboarding
-            // migrations. The work list is a list of controls, so deduplicate by what the
-            // user actually performs while keeping equipment/area-specific cards separate.
+            // migrations. getVisibleTitle() already contains the concrete equipment name
+            // where relevant, so one visible title must only produce one work card.
             if (visibleRoutine) {
-                return [visibleRoutine, routineContext].join("__");
+                return visibleRoutine;
             }
 
             return [
@@ -6406,6 +6470,31 @@ function formatDeadlineLabel(task) {
             const currentDate = normalizeDateKey(current.dateKey) || "";
             const candidateDate = normalizeDateKey(candidate.dateKey) || "";
             return candidateDate > currentDate ? candidate : current;
+        }
+
+        function dedupeResolvedWorkCards(tasks = [], todayKey = getTodayKey()) {
+            const deduped = [];
+            const indexByKey = new Map();
+
+            tasks.forEach((task) => {
+                const key = getTaskWorkCardKey(task);
+                if (!key || !indexByKey.has(key)) {
+                    if (key) indexByKey.set(key, deduped.length);
+                    deduped.push(task);
+                    return;
+                }
+
+                const index = indexByKey.get(key);
+                deduped[index] = choosePreferredWorkCard(deduped[index], task, todayKey);
+                console.log("[dedup resolved routine card removed]", {
+                    key,
+                    keptTaskId: deduped[index]?.id || deduped[index]?.instanceId || deduped[index]?.taskId,
+                    duplicateTaskId: task?.id || task?.instanceId || task?.taskId,
+                    title: getVisibleTitle(task)
+                });
+            });
+
+            return deduped;
         }
 
         function normalizePermanentRoutineKey(value = "") {
@@ -7931,7 +8020,6 @@ ${
                                     : ""
                             }
 
-            <div class="routine-form">
                                 <span class="task-pill">Kategori: ${escapeHtml(task.category || "Generel")}</span>
                                 <span class="task-pill">Dato: ${escapeHtml(task.dateKey || "-")}</span>
                                 <span class="task-pill">Oprettet: ${escapeHtml(createdAtLabel)}</span>
@@ -13912,6 +14000,12 @@ const buildFryerRoutineCompletionEntry = () => {
                 const controlPointGuide = findControlPointGuideForTask(hydratedTask);
                 return controlPointGuide ? { ...hydratedTask, controlPointGuide } : hydratedTask;
             });
+
+            // The resolver combines task instances, templates, risk-analysis controls and
+            // verification sources. A routine can therefore be reintroduced after the raw
+            // task-instance deduplication above. Deduplicate the final resolved cards by the
+            // exact visible work-card key while preserving the first position in the list.
+            allTasks = dedupeResolvedWorkCards(allTasks, todayKey);
 
             // Post-resolver dedup: the pre-resolver DEDUP_GENERIC_EQUIPMENT runs on task_instances
             // only, so a GENERIC temperature card sourced from risk_analysis (no equipmentId) slips

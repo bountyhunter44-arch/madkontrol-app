@@ -32,6 +32,46 @@ let remindersShown = new Set();   // e.g. "runId:h1"
 let isPanelMin     = false;       // whole panel is minimized to pills
 let firestoreUnsub = null;        // unsubscribe fn for Firestore onSnapshot
 
+function readSessionScope() {
+    try {
+        return {
+            companyId: String(sessionStorage.getItem("mkp_user_companyId") || "").trim(),
+            locationId: String(sessionStorage.getItem("mkp_selected_locationId") || "").trim()
+        };
+    } catch (_) {
+        return { companyId: "", locationId: "" };
+    }
+}
+
+function getProfileScope(profile = {}) {
+    const source = profile?.profile && typeof profile.profile === "object"
+        ? { ...profile.profile, ...profile }
+        : profile;
+    const locationIds = Array.isArray(source.locationIds) ? source.locationIds : [];
+    return {
+        companyId: String(source.companyId || source.organizationId || "").trim(),
+        locationId: String(source.primaryLocationId || source.locationId || locationIds[0] || "").trim()
+    };
+}
+
+async function resolveCoolingScope(db, user) {
+    const sessionScope = readSessionScope();
+    if (sessionScope.companyId && sessionScope.locationId) return sessionScope;
+
+    for (const collectionName of ["users", "live_user_profiles"]) {
+        try {
+            const snap = await getDoc(doc(db, collectionName, user.uid));
+            if (!snap.exists()) continue;
+            const scope = getProfileScope(snap.data() || {});
+            if (scope.companyId && scope.locationId) return scope;
+        } catch (error) {
+            console.warn(`[cooling] kunne ikke hente scope fra ${collectionName}:`, error);
+        }
+    }
+
+    return sessionScope;
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function esc(s) {
     return String(s ?? "")
@@ -287,10 +327,12 @@ function buildPanelHTML(runs) {
         @media (max-width: 600px) {
             #mk-cooling-panel {
                 left: 0 !important; right: 0 !important;
-                bottom: 0 !important; top: auto !important;
+                bottom: calc(var(--mobile-bottom-nav-height, 54px) + 8px) !important;
+                top: auto !important;
                 width: 100% !important; max-width: 100% !important;
-                border-radius: 18px 18px 0 0 !important;
-                max-height: 85vh; overflow-y: auto;
+                border-radius: 18px !important;
+                max-height: calc(100vh - var(--mobile-bottom-nav-height, 54px) - 20px);
+                overflow-y: auto;
             }
         }
     </style>
@@ -327,22 +369,30 @@ function buildPanelHTML(runs) {
 
 // ── Minimized pill bar ─────────────────────────────────────────────────────────
 function buildMinimizedHTML(runs) {
-    const pills = runs.map(r => {
-        const phase = getPhase(getElapsedMs(r.startedAt));
-        return `<div class="mk-minpill" data-run-id="${esc(r.runId)}" title="${esc(r.productName)}" style="display:inline-flex;align-items:center;gap:6px;background:${phase.bg};border:1px solid ${phase.accent}88;color:#fff;border-radius:99px;padding:4px 10px 4px 4px;font-size:11px;font-weight:700;cursor:pointer;user-select:none;transition:background 0.8s,border-color 0.8s;">
-            <img class="mk-mpill-icon" src="${phase.icon}" alt="${esc(phase.label)}" style="width:24px;height:24px;border-radius:50%;flex-shrink:0;transition:opacity 0.4s;" />
-            <span style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc((r.productName || "").substring(0, 14))}</span>
-            <span id="mk-minpill-t-${esc(r.runId)}" style="opacity:0.75;font-variant-numeric:tabular-nums;"></span>
-        </div>`;
-    }).join("");
+    const primaryRun = [...runs].sort((a, b) => getElapsedMs(b.startedAt) - getElapsedMs(a.startedAt))[0];
+    const phase = getPhase(getElapsedMs(primaryRun.startedAt));
+    const extraCount = Math.max(0, runs.length - 1);
+    const pills = `<button class="mk-minpill" data-run-id="${esc(primaryRun.runId)}" title="Vis nedkølingsur" aria-label="Vis aktiv nedkøling" style="display:inline-flex;align-items:center;gap:6px;background:${phase.bg};border:1px solid ${phase.accent};color:#fff;border-radius:99px;padding:4px 10px 4px 4px;font-size:11px;font-weight:800;cursor:pointer;user-select:none;box-shadow:0 7px 20px rgba(0,0,0,.28);transition:background .8s,border-color .8s;">
+        <img class="mk-mpill-icon" src="${phase.icon}" alt="${esc(phase.label)}" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;transition:opacity .4s;" />
+        <span style="max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc((primaryRun.productName || "Nedkøling").substring(0, 16))}</span>
+        <span id="mk-minpill-t-${esc(primaryRun.runId)}" style="opacity:.82;font-variant-numeric:tabular-nums;">${formatElapsed(getElapsedMs(primaryRun.startedAt))}</span>
+        ${extraCount ? `<span style="background:${phase.accent};border-radius:99px;padding:1px 5px;">+${extraCount}</span>` : ""}
+    </button>`;
 
     return `
     <style id="mk-cooling-style">
         @keyframes mk-pulse3 { 0%,100%{opacity:1} 50%{opacity:.45} }
+        @media (max-width:600px) {
+            #mk-cooling-panel {
+                left:auto !important;
+                right:8px !important;
+                bottom:calc(var(--mobile-bottom-nav-height, 54px) + 8px) !important;
+                max-width:calc(100vw - 16px) !important;
+            }
+        }
     </style>
     <div id="${PANEL_ID}" style="position:fixed;bottom:14px;right:14px;z-index:99999;display:flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:90vw;font-family:'Inter',system-ui,sans-serif;">
         ${pills}
-        <button id="mk-panel-restore" style="background:#172d1b;color:#7ecf8a;border:1px solid #2e9e4a44;border-radius:99px;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer;">\u{1F9CA} ${runs.length > 1 ? runs.length + " k\u00f8rende" : "Vis"}</button>
     </div>`;
 }
 
@@ -887,7 +937,7 @@ export function initCoolingOverlay() {
     const currentRuns = runs.filter(run => !isLegacyOrphan(run));
     if (currentRuns.length !== runs.length) saveRunsRaw(currentRuns);
     if (currentRuns.length) {
-        isPanelMin = false;
+        isPanelMin = window.matchMedia("(max-width: 640px)").matches;
         renderPanel();
     }
 
@@ -899,13 +949,7 @@ export function initCoolingOverlay() {
 
         try {
             const db = getFirestore(app);
-            const profileSnap = await getDoc(doc(db, "users", user.uid));
-            if (!profileSnap.exists()) return;
-            const profile    = profileSnap.data();
-            const companyId  = profile.companyId || profile.organizationId;
-            const locationId = profile.primaryLocationId
-                || (Array.isArray(profile.locationIds) ? profile.locationIds[0] : null)
-                || profile.locationId;
+            const { companyId, locationId } = await resolveCoolingScope(db, user);
             if (!companyId || !locationId) {
                 console.warn("[cooling] sync skipped — missing companyId or locationId", { companyId, locationId });
                 return;
