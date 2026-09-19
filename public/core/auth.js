@@ -186,21 +186,22 @@ function ensureAuthStyles() {
 			cursor: not-allowed;
 		}
 
+		/* Log ud hører nu til i drawerens brugerområde (/core/layout.js).
+		   Knappen findes stadig i DOM'en (som fallback og for den eksisterende
+		   auth-state-styring), men optager ingen permanent topbar-plads og
+		   vises ikke, når drawer'en ejer brugerområdet. */
 		.mkp-logout-btn {
-			position: fixed;
-			top: 14px;
-			right: 14px;
-			z-index: 1100;
-			min-height: 34px;
-			border-radius: 999px;
-			border: 1px solid #d9e4d9;
-			background: rgba(255, 255, 255, 0.95);
-			color: #1f5a23;
-			font-size: 12px;
-			font-weight: 800;
-			padding: 7px 12px;
-			box-shadow: 0 8px 18px rgba(16, 24, 16, 0.1);
-			cursor: pointer;
+			position: absolute !important;
+			width: 1px;
+			height: 1px;
+			min-height: 0;
+			margin: -1px;
+			padding: 0;
+			overflow: hidden;
+			clip: rect(0 0 0 0);
+			clip-path: inset(50%);
+			white-space: nowrap;
+			border: 0;
 		}
 
 		.mkp-logout-btn[hidden] {
@@ -213,15 +214,26 @@ function ensureAuthStyles() {
 			flex: 0 0 auto;
 		}
 
+		/* Kun når siden selv ejer et synligt mount (fx fremtidige sider uden
+		   drawer) skal knappen kunne ses igen. */
 		.mkp-logout-mount .mkp-logout-btn {
-			position: static;
+			position: static !important;
+			width: auto;
+			height: auto;
 			min-height: 38px;
-			border-color: #cbd7f4;
+			margin: 0;
+			padding: 8px 14px;
+			overflow: visible;
+			clip: auto;
+			clip-path: none;
+			border: 1px solid #cbd7f4;
+			border-radius: 999px;
 			background: #ffffff;
 			color: #142044;
 			box-shadow: none;
 			font-size: 13px;
-			padding: 8px 14px;
+			font-weight: 800;
+			cursor: pointer;
 		}
 
 		.mkp-logout-mount .mkp-logout-btn:hover {

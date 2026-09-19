@@ -17,11 +17,12 @@
       padding-top:20px;
     }
 
+    /* Ingen permanent sidebar: main content bruger hele skærmbredden.
+       #sidebarMount er tomt (display:contents), så layoutet er én kolonne. */
     .startday-layout{
-      display:grid;
-      grid-template-columns:280px minmax(0, 1fr);
-      gap:18px;
-      align-items:start;
+      display:block;
+      width:100%;
+      max-width:100%;
     }
 
     .startday-main{

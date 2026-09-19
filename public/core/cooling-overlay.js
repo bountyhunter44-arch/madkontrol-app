@@ -327,11 +327,11 @@ function buildPanelHTML(runs) {
         @media (max-width: 600px) {
             #mk-cooling-panel {
                 left: 0 !important; right: 0 !important;
-                bottom: calc(var(--mobile-bottom-nav-height, 54px) + 8px) !important;
+                bottom: 8px !important;
                 top: auto !important;
                 width: 100% !important; max-width: 100% !important;
                 border-radius: 18px !important;
-                max-height: calc(100vh - var(--mobile-bottom-nav-height, 54px) - 20px);
+                max-height: calc(100vh - 20px);
                 overflow-y: auto;
             }
         }
@@ -386,7 +386,7 @@ function buildMinimizedHTML(runs) {
             #mk-cooling-panel {
                 left:auto !important;
                 right:8px !important;
-                bottom:calc(var(--mobile-bottom-nav-height, 54px) + 8px) !important;
+                bottom:8px !important;
                 max-width:calc(100vw - 16px) !important;
             }
         }

@@ -55,3 +55,24 @@
   virksomhedsopsætning og starter derefter Stripe-betalingen.
 - Andre selvstændige moduler kan fortsat bruge direkte Stripe-køb for en eksisterende, indlogget
   virksomhed via `createDirectModuleCheckoutSession`; `stripeWebhook` aktiverer det købte modul.
+
+## App-shell navigation (drawer) — 2026-09-19
+- **Der findes ingen permanent sidebar.** Al app-navigation er ÉN skjult venstre-drawer, åbnet med ☰
+  i topbaren. Mønstret er hentet fra EWCP Regnskab (`madkontrollen-accounting/public/core/app-shell.js`:
+  hamburger + slide-in sidebar + overlay via body-klasse), men med Madkontrollens menupunkter.
+- **Eneste kilde til navigation:** `public/core/layout.js`
+  (`getNavItems()`, `isNavItemEnabled()`, `createHeaderMarkup()`, `createDrawerMarkup()`, `initDrawer()`).
+  Menupunkter, urls, permissions (`coreEnabled`/`addons`) og aktiv-markering (`is-active` +
+  `aria-current="page"`) bevares her. Tilføj/fjern menupunkter KUN her.
+- **Sider må ikke bygge deres egen navigation.** `dashboard.html` havde tidligere en hardkodet kopi af
+  både topbar og sidebar; den er fjernet og bruger nu `#headerMount` + `#sidebarMount` + `loadLayout()`.
+- `#sidebarMount` er tomt og har `display:contents` — det reserverer ingen bredde. `.app-layout`,
+  `.control-layout` (kontrol.html) og `.startday-layout` (start-dag.html) er `display:block` i fuld bredde.
+- `--sidebar-width` og `--mobile-bottom-nav-height` er 0 px. Bundnavigationen (den gamle sidebar-bjælke
+  ≤760 px) findes ikke længere.
+- Login/logout ejes fortsat af `public/core/auth.js` (`setupAuthGate`). Drawerens brugerområde viser
+  navn/e-mail/virksomhed + Log ind/Log ud og genbruger `signOut(auth)`; `.mkp-logout-btn` er visuelt
+  skjult, så den ikke optager permanent topbar-plads.
+- Regressionsdækning: `tests/drawer-navigation.test.mjs`.
+- `public/components/sidebar.html` og `public/components/header.html` er stadig døde/orphaned (ingen
+  aktiv side loader dem) og bruges ikke af draweren.

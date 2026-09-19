@@ -235,76 +235,16 @@
   </style>
 </head>
 <body data-page="dashboard">
-  <header class="topbar">
-    <div class="container topbar-inner">
-      <a href="dashboard.html" class="brand" aria-label="Madkontrollen EWCP Egenkontrol">
-        <img src="/images/ewcp-logo.svg" class="brand-logo" alt="EWCP Egenkontrol logo">
-      </a>
+  <!-- Fælles topbar (☰ + logo + sprog) og drawer-monteringer fra /core/layout.js.
+       Den gamle hardkodede topbar/sidebar er fjernet, så der kun findes én navigation. -->
+  <div id="headerMount"></div>
 
-      <div class="topbar-info" aria-label="Virksomhedsoplysninger">
-        <div class="topbar-info-item"><strong>Virksomhed:</strong> <span id="topbarCompanyName">…</span></div>
-        <div class="topbar-info-item"><strong>Adresse:</strong> <span id="topbarLocation">…</span></div>
-        <div class="topbar-info-item"><strong>Email:</strong> <span id="topbarEmail">…</span></div>
-        <div class="topbar-info-item"><strong>Tlf.:</strong> <span id="topbarPhone">…</span></div>
-      </div>
-      <!-- Location switcher skjult men funktionel -->
-      <select id="locationSwitcher" class="location-switcher" aria-label="Vælg lokation" style="display:none"></select>
-      <div id="languageSwitcherContainer" style="flex:0 0 auto;margin-left:auto;"></div>
-      <div id="mkpLogoutMount" class="mkp-logout-mount" aria-label="Brugermenu"></div>
-    </div>
-  </header>
+  <!-- Location switcher: skjult men funktionel (bruges af dashboardets JS). -->
+  <select id="locationSwitcher" class="location-switcher" aria-label="Vælg lokation" style="display:none"></select>
 
   <main class="page-shell dashboard-page">
     <div class="container app-layout">
-      <aside class="dashboard-sidebar">
-        <nav class="sidebar" aria-label="Egenkontrol navigation">
-          <div class="sidebar-inner">
-            <div class="sidebar-group">
-              <div class="sidebar-label">Egenkontrol</div>
-
-              <a href="dashboard.html" class="sidebar-link active" aria-current="page">
-                <span class="sidebar-badge" aria-hidden="true">📊</span>
-                <span>Dashboard</span>
-              </a>
-
-              <a href="modules/egenkontrol/rutiner.html" class="sidebar-link">
-                <span class="sidebar-badge" aria-hidden="true">📋</span>
-                <span>Rutiner</span>
-              </a>
-
-              <a href="modules/egenkontrol/afvigelser.html" class="sidebar-link">
-                <span class="sidebar-badge" aria-hidden="true">🚨</span>
-                <span>Afvigelser</span>
-              </a>
-
-              <a href="modules/egenkontrol/risikoanalyse.html" class="sidebar-link">
-                <span class="sidebar-badge" aria-hidden="true">🛡️</span>
-                <span>Risikoanalyse</span>
-              </a>
-
-              <a href="modules/egenkontrol/risikoanalyse-inspiration.html" class="sidebar-link">
-                <span class="sidebar-badge" aria-hidden="true">💡</span>
-                <span>Inspiration til risikoanalyse</span>
-              </a>
-
-              <a href="/modules/egenkontrol/rapporter.html?mode=authority" class="sidebar-link">
-                <span class="sidebar-badge" aria-hidden="true">📑</span>
-                <span>Myndighedsrapport</span>
-              </a>
-
-              <a href="/core/billed-arkiv.html" class="sidebar-link">
-                <span class="sidebar-badge" aria-hidden="true">🖼️</span>
-                <span>Billedarkiv</span>
-              </a>
-
-              <a href="kontrol.html" class="sidebar-link">
-                <span class="sidebar-badge" aria-hidden="true">🔎</span>
-                <span>Kontrol-mode</span>
-              </a>
-            </div>
-          </div>
-        </nav>
-      </aside>
+      <div id="sidebarMount"></div>
 
       <div class="dashboard-main">
         <section class="section section-keep-mobile">
@@ -566,6 +506,8 @@
   } from "./platform/module-showcase.js";
   import { getEffectiveActiveModules, formatModuleSources } from "./core/module-access.js";
   import { countPaidModules, nextModulePriceLabelExVat } from "./core/module-pricing.js";
+  // Fælles topbar + drawer (én navigation for hele appen — ingen permanent sidebar).
+  import { loadLayout } from "./core/layout.js?v=20260919-drawer-nav-v1";
   import { 
     isImpersonating, 
     getEffectiveCompanyId, 
@@ -3185,6 +3127,14 @@
     } finally {
       dashboardLoadInFlight = false;
     }
+  }
+
+  // Fælles topbar (☰ + logo) og drawer. Fejler den, fortsætter dashboardet uden
+  // navigation i stedet for at bryde hele siden.
+  try {
+    await loadLayout();
+  } catch (error) {
+    console.error("Layout load fejl:", error);
   }
 
   setupAuthGate({
