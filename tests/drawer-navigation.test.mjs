@@ -24,8 +24,14 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+// CRLF-KONTRAKT: git checkouter med core.autocrlf=true, så en frisk klon har CRLF.
+// Alle læsninger normaliseres til LF her, så assertionerne giver samme resultat
+// uanset checkout. Regexerne nedenfor er DERUDOVER skrevet \r?\n-robuste, så de
+// også holder hvis en fil læses uden om denne helper.
+const toLF = (text) => String(text).replace(/\r\n/g, "\n");
+
 function readPublic(rel) {
-  return readFileSync(fileURLToPath(new URL(`../public/${rel}`, import.meta.url)), "utf8");
+  return toLF(readFileSync(fileURLToPath(new URL(`../public/${rel}`, import.meta.url)), "utf8"));
 }
 
 const LAYOUT = readPublic("core/layout.js");
@@ -50,7 +56,7 @@ const SHELL_PAGES = [
 ];
 
 function has(source, needle, message) {
-  assert.ok(source.includes(needle), message || `mangler: ${needle}`);
+  assert.ok(toLF(source).includes(needle), message || `mangler: ${needle}`);
 }
 
 function hasRe(source, pattern, message) {
@@ -70,7 +76,7 @@ test("1. Menu er skjult som default — ingen reserveret sidebar-bredde", () => 
 
   // Ingen bredde reserveres længere.
   hasRe(LAYOUT, /#sidebarMount\{\s*display:contents !important;/, "#sidebarMount reserverer ingen bredde");
-  hasRe(STYLE, /#sidebarMount,\s*\n\.dashboard-sidebar\{\s*\n\s*display:contents !important;/, "style.css gør mountet pladsfrit");
+  hasRe(STYLE, /#sidebarMount,\s*\r?\n\.dashboard-sidebar\{\s*\r?\n\s*display:contents !important;/, "style.css gør mountet pladsfrit");
   has(STYLE, "--sidebar-width:0px", "--sidebar-width er 0");
   assert.ok(!/\.app-layout\{\s*display:grid;\s*grid-template-columns:var\(--sidebar-width\)/.test(STYLE),
     ".app-layout reserverer ikke længere en sidebar-kolonne");
@@ -78,7 +84,7 @@ test("1. Menu er skjult som default — ingen reserveret sidebar-bredde", () => 
 
 test("5. ESC lukker drawer'en", () => {
   hasRe(LAYOUT, /event\.key === "Escape" && isOpen\(\)/, "ESC håndteres kun når drawer'en er åben");
-  hasRe(LAYOUT, /event\.preventDefault\(\);\s*\n\s*closeDrawer\(\{ restoreFocus: true \}\)/, "ESC lukker og gendanner fokus");
+  hasRe(LAYOUT, /event\.preventDefault\(\);\s*\r?\n\s*closeDrawer\(\{ restoreFocus: true \}\)/, "ESC lukker og gendanner fokus");
   hasRe(LAYOUT, /document\.addEventListener\("keydown"/, "keydown-lytter er registreret");
 });
 
@@ -90,7 +96,7 @@ test("Drawer'en åbnes/lukkes via body.mkp-drawer-open (samme mønster som regns
 });
 
 test("7. Log ind vises når man ikke er logget ind", () => {
-  hasRe(LAYOUT, /signedIn\s*\n?\s*\? `<button type="button" class="mkp-drawer-auth-btn mkp-drawer-logout" id="mkpDrawerLogout" aria-label="Log ud">Log ud<\/button>`\s*\n?\s*: `<button type="button" class="mkp-drawer-auth-btn mkp-drawer-login" id="mkpDrawerLogin" aria-label="Log ind">Log ind<\/button>`/,
+  hasRe(LAYOUT, /signedIn\s*\r?\n?\s*\? `<button type="button" class="mkp-drawer-auth-btn mkp-drawer-logout" id="mkpDrawerLogout" aria-label="Log ud">Log ud<\/button>`\s*\r?\n?\s*: `<button type="button" class="mkp-drawer-auth-btn mkp-drawer-login" id="mkpDrawerLogin" aria-label="Log ind">Log ind<\/button>`/,
     "createDrawerAuthMarkup vælger Log ind når man ikke er logget ind");
   has(LAYOUT, '"Ikke logget ind"', "viser 'Ikke logget ind'");
   has(LAYOUT, "Log ind for at se dine data", "hjælpetekst for udlogget tilstand");
@@ -115,7 +121,7 @@ test("3. Luk-knappen (×) lukker drawer'en", () => {
 test("4. Klik på overlay lukker drawer'en", () => {
   hasRe(LAYOUT, /overlay\.addEventListener\("click", \(\) => closeDrawer\(\{ restoreFocus: true \}\)\)/, "overlay-klik lukker");
   hasRe(LAYOUT, /<div class="mkp-drawer-overlay" id="mkpDrawerOverlay" hidden><\/div>/, "overlay er et separat element");
-  hasRe(LAYOUT, /\.mkp-drawer-overlay\{\s*\n\s*position:fixed;\s*\n\s*inset:0;/, "overlay dækker hele viewporten");
+  hasRe(LAYOUT, /\.mkp-drawer-overlay\{\s*\r?\n\s*position:fixed;\s*\r?\n\s*inset:0;/, "overlay dækker hele viewporten");
 });
 
 test("Luk efter navigation: klik på et menupunkt lukker drawer'en", () => {
@@ -166,10 +172,10 @@ test("9. Den gamle permanente sidebar er væk", () => {
   assert.ok(!LAYOUT.includes("createSidebarMarkup"), "createSidebarMarkup er fjernet fra layout.js");
   assert.ok(!LAYOUT.includes("mkp-layout-sidebar"), "den gamle sidebar-klasse er fjernet fra layout.js");
   assert.ok(!STYLE.includes("mkp-layout-sidebar"), "den gamle sidebar-klasse er fjernet fra style.css");
-  assert.ok(!/position:fixed !important;\s*\n\s*left:12px !important;\s*\n\s*right:12px !important/.test(STYLE),
+  assert.ok(!/position:fixed !important;\s*\r?\n\s*left:12px !important;\s*\r?\n\s*right:12px !important/.test(STYLE),
     "den faste bundnavigation er fjernet fra style.css");
   assert.ok(!STYLE.includes("--mobile-bottom-nav-height:82px"), "bundnavigationens højde-reserve er væk");
-  assert.ok(!/\.sidebar\{\s*\n\s*border-radius:24px;/.test(STYLE), "den gamle sticky sidebar-regel er væk");
+  assert.ok(!/\.sidebar\{\s*\r?\n\s*border-radius:24px;/.test(STYLE), "den gamle sticky sidebar-regel er væk");
 
   for (const page of SHELL_PAGES) {
     const html = readPublic(page);
@@ -196,7 +202,8 @@ test("12. Ingen dobbelt navigation (én kilde til menupunkter)", () => {
   }
 
   // Menupunkterne defineres ét sted: getNavItems() i layout.js.
-  const navItemCount = (LAYOUT.match(/\n\s+key: "[a-z-]+",\n\s+labelKey?:/g) || []).length;
+  // Mønsteret er \r?\n-robust, så det også matcher en CRLF-checkout (core.autocrlf=true).
+  const navItemCount = (LAYOUT.match(/\r?\n\s+key: "[a-z-]+",\r?\n\s+labelKey?:/g) || []).length;
   assert.ok(navItemCount >= 7, `getNavItems() definerer menupunkterne ét sted (fandt ${navItemCount})`);
   assert.equal((STYLE.match(/sidebar-link/g) || []).length, 0, "style.css indeholder ingen sidebar-links");
 });
@@ -204,11 +211,11 @@ test("12. Ingen dobbelt navigation (én kilde til menupunkter)", () => {
 // ------------------------------------------------------------------------ 10
 
 test("10. Desktop: main content bruger hele bredden når menuen er lukket", () => {
-  hasRe(STYLE, /\.app-layout\{\s*\n\s*display:block;\s*\n\s*width:100%;\s*\n\s*max-width:100%;/, ".app-layout er fuld bredde");
-  hasRe(readPublic("kontrol.html"), /\.control-layout\{\s*\n\s*display:block;/, "kontrol.html reserverer ingen sidebar-kolonne");
-  hasRe(readPublic("modules/egenkontrol/start-dag.html"), /\.startday-layout\{\s*\n\s*display:block;/, "start-dag.html reserverer ingen sidebar-kolonne");
-  hasRe(LAYOUT, /\.mkp-drawer\{\s*\n\s*position:fixed;/, "drawer er fixed og skubber ikke indholdet");
-  hasRe(LAYOUT, /\.mkp-layout-topbar-inner\{\s*\n\s*min-height:64px;/, "topbaren er kompakt");
+  hasRe(STYLE, /\.app-layout\{\s*\r?\n\s*display:block;\s*\r?\n\s*width:100%;\s*\r?\n\s*max-width:100%;/, ".app-layout er fuld bredde");
+  hasRe(readPublic("kontrol.html"), /\.control-layout\{\s*\r?\n\s*display:block;/, "kontrol.html reserverer ingen sidebar-kolonne");
+  hasRe(readPublic("modules/egenkontrol/start-dag.html"), /\.startday-layout\{\s*\r?\n\s*display:block;/, "start-dag.html reserverer ingen sidebar-kolonne");
+  hasRe(LAYOUT, /\.mkp-drawer\{\s*\r?\n\s*position:fixed;/, "drawer er fixed og skubber ikke indholdet");
+  hasRe(LAYOUT, /\.mkp-layout-topbar-inner\{\s*\r?\n\s*min-height:64px;/, "topbaren er kompakt");
   // Drawer-bredde på desktop ligger i det krævede interval 280–320 px.
   const width = LAYOUT.match(/\.mkp-drawer\{[\s\S]*?width:(\d+)px/);
   assert.ok(width, "drawer har en fast bredde");
@@ -233,13 +240,13 @@ test("11. Mobil: drawer max 88vw, overlay bagved, scroll-lås og intern scroll",
   has(LAYOUT, "env(safe-area-inset-top", "safe-area top respekteres");
   hasRe(LAYOUT, /\.mkp-drawer\{[\s\S]*?padding-right:env\(safe-area-inset-right/, "safe-area højre respekteres (ingen horisontal scrolling)");
 
-  hasRe(LAYOUT, /html\.mkp-drawer-open,\s*\n\s*body\.mkp-drawer-open\{\s*\n\s*overflow:hidden !important;/, "body-scroll låses mens drawer er åben");
+  hasRe(LAYOUT, /html\.mkp-drawer-open,\s*\r?\n\s*body\.mkp-drawer-open\{\s*\r?\n\s*overflow:hidden !important;/, "body-scroll låses mens drawer er åben");
   has(LAYOUT, "function lockPageScroll()", "scroll-lås er implementeret");
   has(LAYOUT, "function unlockPageScroll()", "scroll-lås kan ophæves");
   hasRe(LAYOUT, /lockPageScroll\(\);/, "open låser scrollen");
   hasRe(LAYOUT, /unlockPageScroll\(\);/, "close (og fejl-vejen) låser op");
 
-  hasRe(STYLE, /html, body\{\s*\n\s*overflow-x:hidden;/, "ingen horisontal scrolling");
+  hasRe(STYLE, /html, body\{\s*\r?\n\s*overflow-x:hidden;/, "ingen horisontal scrolling");
 });
 
 // ------------------------------------------------------------------------ 13
@@ -262,7 +269,7 @@ test("13. Auth-flowet er uændret (samme Firebase Auth, ingen ny login-model)", 
   hasRe(AUTH, /gate\.hidden = true;[\s\S]*?logoutBtn\.hidden = false;/, "indlogget tilstand: gate skjules, logout vises");
 
   // Den flydende topbar-Log ud optager ikke længere permanent plads.
-  assert.ok(!/\.mkp-logout-btn \{\s*\n\s*position: fixed;/.test(AUTH), "Log ud ligger ikke fast i topbaren");
+  assert.ok(!/\.mkp-logout-btn \{\s*\r?\n\s*position: fixed;/.test(AUTH), "Log ud ligger ikke fast i topbaren");
   hasRe(AUTH, /\.mkp-logout-mount \.mkp-logout-btn \{[\s\S]*?position: static !important;/, "Log ud kan stadig vises hvis en side ejer et synligt mount");
 });
 
@@ -348,4 +355,46 @@ test("Print: drawer og gammel bundnavigation skjules", () => {
   has(printBlock, ".mkp-drawer,", "drawer skjules i print");
   has(printBlock, ".mkp-drawer-overlay", "overlay skjules i print");
   has(printBlock, ".mobile-bottom-nav", "gammel bundnavigation skjules i print");
+});
+
+// ------------------------------------------------------------- CRLF-kontrakt
+
+test("CRLF-kontrakt: regexerne giver samme resultat på LF og CRLF", () => {
+  // git checkouter med core.autocrlf=true → en frisk klon har CRLF.
+  // Denne test fejler hvis nogen genindfører en \n-følsom regex i denne fil.
+  const lf = [
+    'const items = [',
+    '  {',
+    '    key: "dashboard",',
+    '    labelKey: "nav.dashboard",',
+    '    label: "Dashboard"',
+    '  },',
+    '  {',
+    '    key: "rutiner",',
+    '    labelKey: "nav.rutiner",',
+    '    label: "Rutiner"',
+    '  }',
+    '];'
+  ].join("\n");
+  const crlf = lf.replace(/\n/g, "\r\n");
+
+  const NAV_ITEM_RE = /\r?\n\s+key: "[a-z-]+",\r?\n\s+labelKey?:/g;
+  const lfCount = (lf.match(NAV_ITEM_RE) || []).length;
+  const crlfCount = (crlf.match(NAV_ITEM_RE) || []).length;
+  assert.equal(lfCount, 2, "LF: forventer 2 menupunkter");
+  assert.equal(crlfCount, 2, "CRLF: forventer 2 menupunkter");
+  assert.equal(lfCount, crlfCount, "LF og CRLF skal give samme antal");
+
+  // Normaliseringen (toLF) skal gøre CRLF-indhold identisk med LF-indhold.
+  assert.equal(toLF(crlf), lf, "toLF() konverterer CRLF til LF");
+  assert.equal(toLF(lf), lf, "toLF() er idempotent på LF");
+
+  // has() bruger toLF, så et CRLF-emne matches af et LF-nål og omvendt.
+  assert.ok(toLF(crlf).includes("key: \"dashboard\","), "CRLF-indhold matcher LF-nål efter normalisering");
+
+  // De faktiske kildefiler må ikke have bevaret \r efter normalisering.
+  for (const [name, source] of [["layout.js", LAYOUT], ["style.css", STYLE], ["auth.js", AUTH]]) {
+    assert.ok(!source.includes("\r"), `${name} er normaliseret (ingen \\r tilbage)`);
+  }
+  assert.ok(!toLF(crlf).includes("\r"), "normaliseret CRLF-indhold har ingen \\r");
 });
