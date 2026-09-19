@@ -1618,13 +1618,33 @@ textarea:focus{
     gap:8px;
   }
 
-  /* Hide brand and company info on mobile */
-  .brand,
+  /* Skjul virksomhedsoplysningerne på mobil — men BEHOLD logoet.
+     Logoet er en del af den fælles topbar (☰ + logo + sprog) og skal være
+     synligt på alle størrelser. Det må ikke skubbe ☰ ud eller overlappe sproget. */
   .topbar-info,
   .topbar-info-item,
-  .brand-logo,
   .location-switcher{
     display:none !important;
+  }
+
+  .brand,
+  .brand-logo{
+    display:block !important;
+  }
+
+  .mkp-layout-brand{
+    display:flex !important;
+    align-items:center;
+    flex:0 1 auto;
+    min-width:0;
+  }
+
+  .mkp-layout-brand-logo{
+    height:34px !important;
+    max-height:34px !important;
+    max-width:42vw !important;
+    width:auto !important;
+    object-fit:contain;
   }
 
   /* Show only logout button and language switcher */

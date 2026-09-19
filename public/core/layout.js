@@ -2,7 +2,7 @@
 
 import { auth, db } from "./firebase-config.js";
 import { t } from "./i18n.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   collection,
   doc,
@@ -1222,6 +1222,12 @@ function bindDrawerAuthButton(drawer, closeDrawer) {
   }
 }
 
+function mountMarkup(selector, html) {
+  const el = document.querySelector(selector);
+  if (!el) return;
+  el.innerHTML = html;
+}
+
 function mountDrawer(html) {
   let mount = document.getElementById("mkpDrawerMount");
   if (!mount) {
@@ -1246,9 +1252,17 @@ export async function loadLayout() {
 
   ensureLayoutStyles();
 
-  mountMarkup("#headerMount", createHeaderMarkup(lang));
-  mountDrawer(createDrawerMarkup(currentPath, entitlements, lang));
-  initDrawer();
+  // Topbar + drawer er sidens ENESTE navigation. Fejler monteringen, må fejlen
+  // ikke forsvinde i tavshed — ellers ender siden uden topbar og uden ☰
+  // (præcis det der skete da mountMarkup() manglede). Derfor logges den højt.
+  try {
+    mountMarkup("#headerMount", createHeaderMarkup(lang));
+    mountDrawer(createDrawerMarkup(currentPath, entitlements, lang));
+    initDrawer();
+  } catch (error) {
+    console.error("[layout] kunne ikke montere topbar/drawer:", error);
+    throw error;
+  }
 
   // Drawerens bund viser først navn/e-mail når profilen er hentet. Vi henter den
   // asynkront, så layoutet ikke venter på Firestore. Uden login forbliver

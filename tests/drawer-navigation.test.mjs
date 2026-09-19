@@ -40,6 +40,22 @@ const DASHBOARD_CSS = readPublic("css/dashboard.css");
 const DASHBOARD_HTML = readPublic("dashboard.html");
 const AUTH = readPublic("core/auth.js");
 
+// Sider hvor loadLayout() kaldes UBETINGET i modulets topniveau, så skallen altid
+// rendres. (logbooks.html kalder bevidst loadLayout() inde i setupAuthGate's
+// onAuthenticated-callback og er derfor ikke med her — præ-eksisterende mønster.)
+const TOPLEVEL_SHELL_PAGES = [
+  "dashboard.html",
+  "kontrol.html",
+  "core/billed-arkiv.html",
+  "modules/egenkontrol/rutiner.html",
+  "modules/egenkontrol/start-dag.html",
+  "modules/egenkontrol/afvigelser.html",
+  "modules/egenkontrol/rapporter.html",
+  "modules/egenkontrol/risikoanalyse.html",
+  "modules/egenkontrol/risikoanalyse-inspiration.html",
+  "modules/egenkontrol/view-haccp.html"
+];
+
 // Alle sider der deler skallen (én navigation for hele appen).
 const SHELL_PAGES = [
   "core/billed-arkiv.html",
@@ -357,9 +373,194 @@ test("Print: drawer og gammel bundnavigation skjules", () => {
   has(printBlock, ".mobile-bottom-nav", "gammel bundnavigation skjules i print");
 });
 
+// ---------------------------------------------------- topbar/hamburger-regression
+
+test("shared topbar and hamburger are visible on dashboard", () => {
+  // Regression: 33f7711 fjernede sidebar-markup OG funktionen mountMarkup(), men
+  // loadLayout() kaldte den stadig. Det gav "ReferenceError: mountMarkup is not
+  // defined", #headerMount forblev tom, og dashboardet endte uden topbar og uden
+  // ☰ — så drawer'en ikke kunne åbnes. Denne test fanger begge dele.
+  const header = createHeaderMarkupSource();
+
+  // 1. Topbar-markup indeholder både topbar, hamburger og drawer-kontrakten.
+  has(header, 'class="topbar mkp-layout-topbar"', "topbar-elementet findes i createHeaderMarkup");
+  has(header, 'id="mkpMenuBtn"', "hamburgeren findes i createHeaderMarkup");
+  has(header, 'aria-label="Åbn menu"', 'hamburgeren har aria-label="Åbn menu"');
+  has(header, 'aria-controls="mkpDrawer"', "hamburgeren peger på drawer'en");
+  has(header, 'aria-expanded="false"', "hamburgeren starter sammenklappet");
+  has(header, "mkp-menu-btn", "hamburgeren har en synlig knap-klasse");
+  assert.ok(!/mkp-layout-topbar[^>]*hidden/.test(header), "topbaren er ikke hidden i markup");
+
+  // 2. loadLayout() monterer topbaren i #headerMount (ellers er der ingen trigger).
+  hasRe(LAYOUT, /mountMarkup\("#headerMount", createHeaderMarkup\(lang\)\)/, "loadLayout monterer topbaren i #headerMount");
+  hasRe(LAYOUT, /mountDrawer\(createDrawerMarkup\(currentPath, entitlements, lang\)\)/, "loadLayout monterer drawer'en");
+  hasRe(LAYOUT, /initDrawer\(\)/, "loadLayout kalder initDrawer()");
+
+  // 3. #headerMount skal findes i DOM'en på dashboardet, før scriptet kører.
+  has(DASHBOARD_HTML, 'id="headerMount"', "dashboard.html har #headerMount");
+  has(DASHBOARD_HTML, 'id="sidebarMount"', "dashboard.html har #sidebarMount");
+  const headerIdx = DASHBOARD_HTML.indexOf('id="headerMount"');
+  const mainIdx = DASHBOARD_HTML.indexOf('<main class="page-shell');
+  assert.ok(headerIdx !== -1 && mainIdx !== -1 && headerIdx < mainIdx, "#headerMount står før main-indholdet");
+
+  // 4. loadLayout() kaldes i modulets topniveau, så skallen rendres uanset auth-state.
+  for (const page of TOPLEVEL_SHELL_PAGES) {
+    const html = readPublic(page);
+    assert.ok(/^\s*await loadLayout\(\);/m.test(html), `${page}: loadLayout() kaldes i topniveau`);
+  }
+  // Dashboardets kald står ikke inde i onAuthenticated.
+  const dashCall = DASHBOARD_HTML.indexOf("await loadLayout()");
+  const dashAuth = DASHBOARD_HTML.indexOf("setupAuthGate({");
+  assert.ok(dashCall !== -1 && dashAuth !== -1 && dashCall < dashAuth,
+    "dashboard.html kalder loadLayout() FØR setupAuthGate()");
+
+  // 5. Topbar-CSS'en må ikke skjule den.
+  const topbarRules = LAYOUT.slice(LAYOUT.indexOf(".mkp-layout-topbar{"), LAYOUT.indexOf(".mkp-layout-topbar-right{"));
+  assert.ok(!/display\s*:\s*none/.test(topbarRules), "topbar-reglerne indeholder ikke display:none");
+  assert.ok(!/visibility\s*:\s*hidden/.test(topbarRules), "topbar-reglerne indeholder ikke visibility:hidden");
+  assert.ok(!/height\s*:\s*0/.test(topbarRules), "topbar-reglerne har ikke height:0");
+  has(LAYOUT, "position:sticky", "topbaren er sticky på desktop (☰ scroller ikke væk)");
+  has(DASHBOARD_CSS, ".topbar-inner", "dashboard.css har stadig topbar-inner-regler");
+
+  // 6. Ingen kald til en funktion der ikke er defineret i layout.js.
+  //    (Fanger præcis "mountMarkup is not defined"-klassen.)
+  for (const name of ["mountMarkup", "mountDrawer", "createHeaderMarkup", "createDrawerMarkup", "initDrawer"]) {
+    assert.ok(new RegExp(`function\\s+${name}\\s*\\(`).test(LAYOUT), `${name}() er defineret i layout.js`);
+  }
+  hasRe(LAYOUT, /mountMarkup\("#headerMount"/, "mountMarkup bruges også (definitionen må ikke fjernes)");
+});
+
+// Hjælper: kilden til createHeaderMarkup() (fra funktionsstart til næste top-level funktion).
+function createHeaderMarkupSource() {
+  const start = LAYOUT.indexOf("function createHeaderMarkup(");
+  const end = LAYOUT.indexOf("async function populateDrawerFromProfile(");
+  assert.ok(start !== -1 && end > start, "createHeaderMarkup() findes i layout.js");
+  return LAYOUT.slice(start, end);
+}
+
+// ------------------------------------------- mobil topbar: ☰ + logo + sprog
+
+test("mobile topbar shows hamburger + logo + language control", () => {
+  // Regression: style.css's mobile-blok skjulte .brand/.brand-logo med
+  // display:none !important, så mobil-topbaren kun havde ☰ + sprog.
+  const mobileCss = STYLE.slice(STYLE.indexOf("@media (max-width: 760px)"), STYLE.indexOf("@media (max-width: 640px)"));
+  assert.ok(mobileCss.length > 0, "mobil-blokken i style.css findes");
+
+  // Logoet må IKKE være i en display:none-liste i mobil-blokken.
+  const hideBlocks = mobileCss.match(/[^{}]*\{\s*display\s*:\s*none\s*!important;?\s*\}/g) || [];
+  for (const block of hideBlocks) {
+    assert.ok(!/(^|[\s,])\.brand\s*[,{]/.test(block), "mobil-CSS skjuler ikke .brand med display:none");
+    assert.ok(!/(^|[\s,])\.brand-logo\s*[,{]/.test(block), "mobil-CSS skjuler ikke .brand-logo med display:none");
+    assert.ok(!/mkp-layout-brand/.test(block), "mobil-CSS skjuler ikke .mkp-layout-brand");
+  }
+
+  // Logoet skal aktivt vises og være størrelsesbegrænset, så det ikke skubber ☰ ud.
+  hasRe(STYLE, /\.brand,\s*\r?\n\s*\.brand-logo\{\s*\r?\n\s*display:block !important;/, "mobil-CSS viser logoet eksplicit");
+  hasRe(STYLE, /\.mkp-layout-brand\{[\s\S]{0,160}?display:flex !important;/, "brand-links beholdes som flex");
+  hasRe(STYLE, /\.mkp-layout-brand-logo\{[\s\S]{0,200}?max-width:42vw !important;/, "logoet er breddebegrænset på mobil");
+  hasRe(STYLE, /\.mkp-layout-brand-logo\{[\s\S]{0,200}?object-fit:contain;/, "logoet bevarer aspect ratio");
+  assert.ok(!/\.brand-logo\{[^}]*display\s*:\s*none/.test(STYLE), "ingen display:none på .brand-logo i style.css");
+
+  // Topbaren har alle tre elementer i den rigtige rækkefølge.
+  const header = createHeaderMarkupSource();
+  const menuIdx = header.indexOf('id="mkpMenuBtn"');
+  const logoIdx = header.indexOf("${logoMarkup}");
+  const rightIdx = header.indexOf("mkp-layout-topbar-right");
+  assert.ok(menuIdx !== -1 && logoIdx !== -1 && rightIdx !== -1, "☰, logo og højre-område findes");
+  assert.ok(menuIdx < logoIdx, "☰ står til venstre for logoet");
+  assert.ok(logoIdx < rightIdx, "logoet står til venstre for sprog/kompakte controls");
+
+  // Hamburgeren må ikke kunne klemmes væk af logoet.
+  hasRe(LAYOUT, /\.mkp-menu-btn\{[\s\S]{0,400}?flex:0 0 auto;/, "☰ har flex:0 0 auto (kan ikke klemmes)");
+  hasRe(LAYOUT, /\.mkp-layout-brand-logo\{[\s\S]{0,200}?height:44px;/, "logoet har fast højde");
+  // Ingen ubetinget skjulning af brand i layout.js.
+  assert.ok(!/\.mkp-layout-brand[^{]*\{[^}]*display\s*:\s*none/.test(LAYOUT), "layout.js skjuler ikke brand");
+});
+
+// ------------------------------------ auth-shell overlever login (mobil)
+
+test("auth shell survives mobile login (topbar + ☰ efter gate lukkes)", () => {
+  // Gaten (core/auth.js) og skallen (core/layout.js) er to uafhængige moduler.
+  // Denne test fastholder kontrakten: gaten må ikke skjule skallen, og skallen
+  // skal kunne monteres uafhængigt af auth-state.
+  has(AUTH, "gate.hidden = true", "gaten skjules når brugeren er logget ind");
+  has(AUTH, "gate.hidden = false", "gaten vises når brugeren er logget ud");
+  assert.ok(!/mkp-layout-topbar|mkpMenuBtn|mkpDrawer/.test(AUTH),
+    "auth.js rører ikke topbar/drawer-markup (skallen ejes af layout.js)");
+
+  // loadLayout() kalder ikke setupAuthGate og venter ikke på auth.
+  const loadLayoutBody = LAYOUT.slice(LAYOUT.indexOf("export async function loadLayout()"));
+  assert.ok(!/setupAuthGate|onAuthStateChanged/.test(loadLayoutBody),
+    "loadLayout() venter ikke på auth — skallen monteres uanset login-state");
+
+  // ☰-triggeren og drawer'en er i DOM'en, også før login (gaten er et overlay).
+  has(LAYOUT, 'id="mkpMenuBtn"', "☰ findes i markup uafhængigt af auth");
+  has(LAYOUT, 'id="mkpDrawer"', "drawer findes i markup uafhængigt af auth");
+  has(LAYOUT, 'id="mkpDrawerLogin"', "Log ind-knap i drawerens bund");
+  has(LAYOUT, 'id="mkpDrawerLogout"', "Log ud-knap i drawerens bund");
+  hasRe(LAYOUT, /signOut\(auth\)/, "Log ud bruger signOut(auth)");
+});
+
+test("Log ud bruger en signOut der faktisk er importeret fra firebase-auth", () => {
+  // Regression: drawerens Log ud kaldte signOut(auth), men funktionen blev aldrig
+  // importeret → "ReferenceError: signOut is not defined" ved klik. Log ud virkede
+  // derfor ikke i produktion, mens testsuiten var grøn.
+  const authImport = LAYOUT.split(/\r?\n/).find((l) => /from "https:\/\/www\.gstatic\.com[^"]*firebase-auth\.js"/.test(l));
+  assert.ok(authImport, "layout.js importerer fra firebase-auth.js");
+  assert.ok(/\bsignOut\b/.test(authImport), "signOut er en del af import-listen: " + authImport.trim());
+  assert.ok(/\bonAuthStateChanged\b/.test(authImport), "onAuthStateChanged er stadig importeret");
+  hasRe(LAYOUT, /await signOut\(auth\)/, "signOut kaldes som importeret funktion");
+});
+
+// ------------------------------- company/location-context: skallen må ikke røre den
+
+test("company/location-context røres ikke af skallen (samme nøgler som koden bruger)", () => {
+  // De FAKTISKE nøgler fra den eksisterende model:
+  //   sessionStorage: mkp_user_uid, mkp_user_companyId, mkp_selected_locationId,
+  //                   mkp_user_locationIds, mkp_user_role   (skrives af core/auth.js)
+  //   localStorage:   selectedLocationId                    (skrives af core/session.js)
+  const CONTEXT_KEYS = [
+    "mkp_user_uid", "mkp_user_companyId", "mkp_selected_locationId",
+    "mkp_user_locationIds", "mkp_user_role", "selectedLocationId"
+  ];
+
+  // layout.js må ikke skrive eller slette context-nøgler.
+  for (const key of CONTEXT_KEYS) {
+    assert.ok(!new RegExp(`(setItem|removeItem)\\(\\s*["']${key}["']`).test(LAYOUT),
+      `layout.js skriver/sletter ikke ${key}`);
+  }
+  // Den må kun LÆSE dem (drawerens brugerområde + impersonation-visning).
+  assert.ok(/mkp_/.test(LAYOUT) || /getEffectiveCompanyId/.test(LAYOUT), "layout.js læser context via de eksisterende helpers");
+
+  // Sletningen sker fortsat kun i auth.js (ved sign-out) og i onboardingService.
+  hasRe(AUTH, /removeItem\("mkp_user_companyId"\)/, "auth.js rydder company ved sign-out (uændret)");
+  hasRe(AUTH, /removeItem\("mkp_selected_locationId"\)/, "auth.js rydder location ved sign-out (uændret)");
+  hasRe(AUTH, /setItem\("mkp_user_companyId"/, "auth.js skriver company ved login (uændret)");
+  hasRe(AUTH, /setItem\("mkp_selected_locationId"/, "auth.js skriver location ved login (uændret)");
+  hasRe(AUTH, /onAuthStateChanged\(auth, async \(user\)/, "session genoprettes ved refresh (uændret)");
+
+  // Context-provideren og session.js er urørte af drawer-arbejdet.
+  const ctxProvider = readPublic("platform/context-provider.js");
+  hasRe(ctxProvider, /readSession\("mkp_user_companyId"\)/, "context-provider læser company fra session (uændret)");
+  hasRe(ctxProvider, /readSession\("mkp_selected_locationId"\)/, "context-provider læser location fra session (uændret)");
+  const sessionJs = readPublic("core/session.js");
+  hasRe(sessionJs, /localStorage\.setItem\("selectedLocationId"/, "session.js husker valgt lokation i localStorage (uændret)");
+
+  // Drawerens logout må ikke rydde localStorage-preferencen (selectedLocationId),
+  // kun afslutte sessionen — ellers mister brugeren sin huskede lokation.
+  const logoutBlock = LAYOUT.slice(LAYOUT.indexOf('const logoutBtn = drawer.querySelector("#mkpDrawerLogout")'));
+  const logoutEnd = logoutBlock.indexOf("const loginBtn");
+  const logout = logoutEnd > 0 ? logoutBlock.slice(0, logoutEnd) : logoutBlock.slice(0, 800);
+  assert.ok(!/localStorage\.removeItem|localStorage\.clear/.test(logout),
+    "drawerens Log ud sletter ikke localStorage (bevarer husket lokation)");
+  assert.ok(!/mkp_selected_locationId|mkp_user_companyId/.test(logout),
+    "drawerens Log ud rører ikke context-nøglerne direkte");
+});
+
 // ------------------------------------------------------------- CRLF-kontrakt
 
 test("CRLF-kontrakt: regexerne giver samme resultat på LF og CRLF", () => {
+
   // git checkouter med core.autocrlf=true → en frisk klon har CRLF.
   // Denne test fejler hvis nogen genindfører en \n-følsom regex i denne fil.
   const lf = [
