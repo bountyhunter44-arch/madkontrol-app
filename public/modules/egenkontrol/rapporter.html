@@ -696,7 +696,8 @@
         ensureRiskAnalysisForLocation,
         loadOnboardingFromFirestore,
         loadRiskAnalysisFromFirestore
-    } from "./riskAnalysisService.js";
+    } from "./riskAnalysisService.js?v=equipment-config-6";
+    import { makeRoutineCardKey, resolveRoutineCardsForLocation } from "./routineCardsResolver.js?v=equipment-save-5";
     import {
         resolveTaskTitle,
         resolveTaskTitleWithContext
@@ -791,6 +792,7 @@
     const resetFiltersBtn = document.getElementById("resetFiltersBtn");
 
     function renderSignedOutState() {
+        document.body.dataset.reportLoadState = "signed-out";
         summaryEntriesEl.textContent = "0";
         summaryCompletedEl.textContent = "0";
         summaryFailedEl.textContent = "0";
@@ -932,7 +934,7 @@
 
                 const q = query(collection(db, collectionName), ...filters);
                 const snapshot = await getDocs(q);
-                snapshot.docs.forEach(d => { if (!merged.has(d.id)) merged.set(d.id, { id: d.id, ...d.data() }); });
+                snapshot.docs.forEach(d => { if (!merged.has(d.id)) merged.set(d.id, { ...d.data(), id: d.id }); });
             } catch (error) {
                 const isPermissionError =
                     error?.code === "permission-denied" ||
@@ -1502,6 +1504,7 @@
 
         const parts = [];
         const note = String(e.note || "").trim();
+        const comment = String(e.comment || "").trim();
         const ai = String(e.beskrivelse || "").trim();
         const risk = getEntryRiskReference(e);
         const areaType = String(e.areaType || "").trim();
@@ -1514,6 +1517,7 @@
         }
 
         if (note) parts.push(note);
+        if (comment && comment !== note) parts.push(comment);
         if (ai && ai !== note) parts.push(`AI: ${ai}`);
         if (areaType) parts.push(`Områdetype: ${areaType}`);
         if (risk) parts.push(`Risiko-reference: ${risk}`);
@@ -2115,8 +2119,8 @@
     }
 
     function isCleaningEntry(e) {
-        const s = [e.taskTitle, e.taskType, e.category].join(" ").toLowerCase();
-        return s.includes("rengøring") || s.includes("rengoring") || s.includes("cleaning") || s.includes("clean");
+        const s = [e.taskTitle, e.title, e.taskType, e.category, e.templateKey, e.routineType].join(" ").toLowerCase();
+        return /rengør|rengor|rengoer|clean/.test(s);
     }
 
     function isReceivingEntry(e) {
@@ -2240,27 +2244,61 @@
             authorityDeviationListEl.innerHTML = openHtml + resolvedHtml;
         }
 
+        // Operational instance status is not evidence of a performed control.
+        // Reuse the routines page's identity and equipment selection; keep every real entry.
+        const cleaningContext = { companyId: SETTINGS.companyId, locationId: SETTINGS.locationId };
+        const cleaningRows = cleaningEntries.map(item => ({ item, dateKey: resolveEntryDateKey(item), registered: true }));
+        const cleaningPlans = new Map();
+        const cleaningDates = new Set(cleaningPlanItems.map(item => item.dateKey).filter(Boolean));
+        for (const dateKey of cleaningDates) {
+            if (!entryMatchesPeriod({ dateKey }, periodFilter.value, "registration", fromDateFilter.value, toDateFilter.value)) continue;
+            const cards = resolveRoutineCardsForLocation({
+                ...cleaningContext,
+                selectedDate: dateKey,
+                riskAnalysis: { equipmentConfiguration: reportId ? null : activeHaccpSnapshot?.equipmentConfiguration },
+                taskInstances: cleaningPlanItems.filter(item => item.dateKey === dateKey)
+            });
+            for (const card of cards) {
+                const equip = document.getElementById("equipmentFilter")?.value || "all";
+                if (!matchesReportCategory(card, reportCategoryValue()) || (equip !== "all" && getEntryEquipmentKey(card) !== equip)) continue;
+                const key = makeRoutineCardKey(card, cleaningContext);
+                cleaningPlans.set(`${dateKey}|${key}`, card);
+                const instanceIds = new Set([card.id, card.instanceId, card.taskInstanceId, ...(card.relatedInstanceIds || [])].filter(Boolean));
+                const registered = cleaningRows.some(row => row.registered && row.dateKey === dateKey && (
+                    makeRoutineCardKey(row.item, cleaningContext) === key ||
+                    instanceIds.has(row.item.taskInstanceId) || instanceIds.has(row.item.task_instance_id)
+                ));
+                if (!registered) cleaningRows.push({ item: card, dateKey, registered: false });
+            }
+        }
+        cleaningRows.sort((a, b) => a.dateKey.localeCompare(b.dateKey) ||
+            String(getEntryHandledAt(a.item) || "").localeCompare(String(getEntryHandledAt(b.item) || "")));
         if (authorityCleaningMetaEl) {
-            const planCount = cleaningPlanItems.length;
-            // Count completions within the SAME filtered period as the rest of the report.
-            const doneInPeriod = cleaningEntries.filter(isCompletedReportEntry).length;
             authorityCleaningMetaEl.innerHTML = [
-                buildPill("Planpunkter", planCount),
-                buildPill("Rengøring registreret", cleaningEntries.length),
-                buildPill("Fuldført", doneInPeriod)
+                buildPill("Planpunkter", String(cleaningPlans.size)),
+                buildPill("Rengøring registreret", String(cleaningEntries.length)),
+                buildPill("Fuldført", String(cleaningEntries.filter(isCompletedReportEntry).length)),
+                buildPill("Afventer", String(cleaningRows.filter(row => !row.registered).length))
             ].join("");
         }
-
-        renderAuthorityList(
-            authorityCleaningListEl,
-            (cleaningPlanItems.length ? cleaningPlanItems : cleaningEntries),
-            (item) => {
-                const title = item.taskTitle || item.title || item.name || "Rengøringspunkt";
-                const area = getEntryAreaLabel(item) || item.equipmentName || item.areaName || "Område ikke angivet";
-                const status = item.status ? getEntryStatusLabel(item) : "Planpunkt";
-                return `${escapeHtml(title)} · ${escapeHtml(area)} · ${escapeHtml(status)}`;
-            }
-        );
+        renderAuthorityList(authorityCleaningListEl, cleaningRows, ({ item, dateKey, registered }) => {
+            const title = getTaskDisplayTitle(item);
+            const area = getEntryAreaLabel(item);
+            const areaLabel = area && area !== "Udstyr ikke angivet" && area !== "—" && !title.includes(area) ? ` · ${area}` : "";
+            if (!registered) return `${escapeHtml(dateKey)} · ${escapeHtml(title + areaLabel)} · Afventer · Ingen registrering`;
+            const status = isAuthorityDeviationEntry(item) ? "deviation" :
+                (["active", "pending", ""].includes(String(item.status || "").toLowerCase()) ? item.resultStatus || "Registreret" : item.status);
+            const entry = { ...item, status, taskInstance: { ...item.taskInstance, status } };
+            const details = getEntryProcessDetails(entry).split("<br>").filter(line =>
+                !line.startsWith("<strong>Rutine:</strong>") &&
+                !line.startsWith("<strong>Område/udstyr:</strong>")
+            ).join("<br>");
+            const performedAt = item.completedAt || item.documentedAt || item.handledAt || item.performedAt || item.finishedAt || null;
+            const deviation = String(item.deviationText || item.failureReason || "").trim();
+            const correction = getAlertCorrectiveText(item);
+            const followUp = String(item.followUp || item.followUpNote || item.resolutionNote || "").trim();
+            return `<strong>${escapeHtml(title + areaLabel)}</strong><br><strong>Dato:</strong> ${escapeHtml(dateKey)} · <strong>Registreret:</strong> ${escapeHtml(formatDateTime(item.createdAt || item.createdAtClient))} · <strong>Udført:</strong> ${escapeHtml(formatDateTime(performedAt))}<br>${details}${renderEntryMediaAssets(item)}${deviation ? `<br><strong>Afvigelse:</strong> ${escapeHtml(deviation)}` : ""}${correction !== "Ikke registreret endnu" ? `<br><strong>Korrigerende handling:</strong> ${escapeHtml(correction)}` : ""}${followUp ? `<br><strong>Opfølgning:</strong> ${escapeHtml(followUp)}` : ""}`;
+        });
 
         if (authorityReceivingMetaEl) {
             authorityReceivingMetaEl.innerHTML = [
@@ -2527,20 +2565,7 @@
         ].filter(Boolean);
 
         for (const instanceId of candidates) {
-            if (failedIds.has(instanceId)) continue;
             if (instanceCache.has(instanceId)) return instanceCache.get(instanceId);
-
-            try {
-                const snap = await getDoc(doc(db, "task_instances", instanceId));
-                if (snap.exists()) {
-                    const instance = { id: snap.id, ...snap.data() };
-                    instanceCache.set(instanceId, instance);
-                    return instance;
-                }
-                failedIds.add(instanceId);
-            } catch (err) {
-                failedIds.add(instanceId);
-            }
         }
 
         const taskId = entry.taskId || entry.taskID || "";
@@ -2549,26 +2574,6 @@
         const cacheKey = `taskId:${taskId}:${entry.dateKey || ""}`;
         if (failedIds.has(cacheKey)) return null;
         if (instanceCache.has(cacheKey)) return instanceCache.get(cacheKey);
-
-        try {
-            const filters = [
-                where("taskId", "==", taskId)
-            ];
-
-            if (SETTINGS.companyId) filters.push(where("companyId", "==", SETTINGS.companyId));
-            if (SETTINGS.locationId) filters.push(where("locationId", "==", SETTINGS.locationId));
-            if (entry.dateKey) filters.push(where("dateKey", "==", entry.dateKey));
-
-            const snap = await getDocs(query(collection(db, "task_instances"), ...filters, limit(1)));
-            if (!snap.empty) {
-                const docSnap = snap.docs[0];
-                const instance = { id: docSnap.id, ...docSnap.data() };
-                instanceCache.set(cacheKey, instance);
-                return instance;
-            }
-        } catch (err) {
-            console.warn("[loadEntries] task_instances lookup by taskId failed", { taskId, error: err });
-        }
 
         failedIds.add(cacheKey);
         return null;
@@ -2630,10 +2635,19 @@
     }
 
     async function loadEntries() {
-        const entries = await loadScopedCollection("task_entries");
+        const [entries, instances] = await Promise.all([
+            loadScopedCollection("task_entries"),
+            loadScopedCollection("task_instances")
+        ]);
         console.log(`[loadEntries] Loaded ${entries.length} entries`);
 
         const instanceCache = new Map();
+        for (const instance of instances) {
+            instanceCache.set(instance.id, instance);
+            if (instance.taskId) {
+                instanceCache.set(`taskId:${instance.taskId}:${instance.dateKey || ""}`, instance);
+            }
+        }
         const failedIds = new Set();
         let skipped = 0;
 
@@ -2741,6 +2755,7 @@
 
                 activeHaccpSnapshot = {
                     controlPoints,
+                    equipmentConfiguration: riskData.equipmentConfiguration || null,
                     onboardingSnapshot,
                     totalControlPoints,
                     riskAnalysisReport: riskData.riskAnalysisReport || snapshot?.riskAnalysisReport || null,
@@ -2857,11 +2872,12 @@
     }
 
     async function loadCleaningPlanItems() {
-        const scoped = await loadScopedCollection("task_instances", { includeDateKey: true });
-        cleaningPlanItems = scoped.filter(i => {
-            const s = [i.title, i.description, i.category, i.type, i.equipmentName].join(" ").toLowerCase();
-            return s.includes("rengør") || s.includes("rengor") || s.includes("clean");
-        });
+        const [scoped, riskData] = await Promise.all([
+            loadScopedCollection("task_instances"),
+            loadRiskAnalysisFromFirestore(SETTINGS.companyId, SETTINGS.locationId)
+        ]);
+        activeHaccpSnapshot = { ...activeHaccpSnapshot, equipmentConfiguration: riskData?.equipmentConfiguration || null };
+        cleaningPlanItems = scoped.filter(isCleaningEntry);
     }
 
     function getFilteredEntries() {
@@ -3321,6 +3337,10 @@
 
     // Print only the currently selected category (view is already gated). Restores after print.
     function printCurrentReportSelection() {
+        if (document.body.dataset.reportLoadState !== "ready") {
+            alert("Vent til rapportdata er indlæst. Ved en fejl skal rapporten hentes igen før udskrivning.");
+            return;
+        }
         const cat = reportCategoryValue();
         const prev = document.body.getAttribute("data-print-category");
         document.body.setAttribute("data-print-category", cat);
@@ -3353,6 +3373,10 @@
         resetFiltersBtn.addEventListener("click", resetFilters);
 
         function openPrintWindow() {
+            if (document.body.dataset.reportLoadState !== "ready") {
+                alert("Vent til rapportdata er indlæst. Ved en fejl skal rapporten hentes igen før udskrivning.");
+                return;
+            }
             const root = document.getElementById("reportPrintRoot");
             if (!root) {
                 alert("Rapport-indholdet blev ikke fundet.");
@@ -3389,8 +3413,9 @@
                 locationId: SETTINGS.locationId
             });
 
+            let snap;
             try {
-                const snap = await getDoc(doc(db, "daily_reports", reportId));
+                snap = await getDoc(doc(db, "daily_reports", reportId));
 
                 if (!snap.exists()) {
                     previewTextEl.textContent = "Rapport ikke fundet.";
@@ -3423,17 +3448,14 @@
             allDeviations = report.reportData?.deviations || [];
             allLogbookEntries = [];
             allMediaAssets = [];
-            cleaningPlanItems = (report.reportData?.taskInstances || []).filter(i => {
-                const s = [i.title, i.description, i.category, i.type, i.equipmentName].join(" ").toLowerCase();
-                return s.includes("rengør") || s.includes("rengor") || s.includes("clean");
-            });
+            cleaningPlanItems = (report.reportData?.taskInstances || []).filter(isCleaningEntry);
 
         } else {
             if (!SETTINGS.companyId || !SETTINGS.locationId) {
                 throw new Error("Brugerprofil mangler companyId eller locationId.");
             }
 
-            await Promise.allSettled([
+            const loads = await Promise.allSettled([
                 loadEntries(),
                 loadAlerts(),
                 loadDeviations(),
@@ -3441,6 +3463,8 @@
                 loadMediaAssets(),
                 loadCleaningPlanItems()
             ]);
+            const failed = loads.find(result => result.status === "rejected");
+            if (failed) throw failed.reason;
         }
 
         populateCategoryFilter();
@@ -3512,6 +3536,8 @@
         await setupAuthGate({
             appName: "Madkontrollen EWCP Egenkontrol",
             onAuthenticated: async ({ user, profile }) => {
+                document.body.dataset.reportLoadState = "loading";
+                previewTextEl.textContent = "Indlæser rapportdata og dokumentation…";
                 try {
                     const profileLocationIds = Array.isArray(profile?.locationIds)
                         ? profile.locationIds.map(i => String(i || "").trim()).filter(Boolean)
@@ -3528,7 +3554,9 @@
                     console.log("[rapporter scope resolved]", SETTINGS);
                     if (AUTHORITY_MODE) startAuthorityReportLoadingTexts();
                     await loadReportDataAfterAuth();
+                    document.body.dataset.reportLoadState = "ready";
                 } catch (err) {
+                    document.body.dataset.reportLoadState = "error";
                     console.error(err);
                     previewTextEl.textContent = "Rapporten kunne ikke hentes.";
                     entriesTableBody.innerHTML = `<div class="report-empty">Kunne ikke hente rapportdata.</div>`;

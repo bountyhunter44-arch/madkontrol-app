@@ -664,7 +664,10 @@ export async function loadRiskAnalysisFromFirestore(companyId, locationId) {
         // 3) Version comparison: Use haccp_snapshots if newer
         // -------------------------------------------------------------------
         const versionComparison = compareSemver(snapshotVersion, riskCurrentVersion);
-        const useSnapshot = versionComparison > 0 || (latestSnapshot && !riskCurrentData);
+        // An edited equipment configuration defines current work even when an
+        // older snapshot carries a higher schema version. Historical snapshots remain intact.
+        const hasCurrentEquipment = Array.isArray(riskCurrentData?.equipmentConfiguration?.units);
+        const useSnapshot = !hasCurrentEquipment && (versionComparison > 0 || (latestSnapshot && !riskCurrentData));
         
         let selectedSource = "none";
         let selectedData = null;
@@ -754,6 +757,7 @@ export async function loadRiskAnalysisFromFirestore(companyId, locationId) {
 
         return {
             controlPoints,
+            equipmentConfiguration: riskCurrentData?.equipmentConfiguration || selectedData.equipmentConfiguration || null,
             onboardingSnapshot,
             status: selectedData.status || null,
             source: selectedSource,

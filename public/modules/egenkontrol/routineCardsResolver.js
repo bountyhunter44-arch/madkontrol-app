@@ -1,3 +1,17 @@
+function equipmentConfigurationAllows(card, configuration, dateKey) {
+  if(!configuration || !dateKey || dateKey < configuration.effectiveDate)return true;
+  const routine=String(card.routineType||card.templateKey||card.routineKey||'').split('__')[0];
+  if(/^softice/.test(routine)&&!(configuration.units||[]).some(unit=>['softice','softice_machine','softiceMachines'].includes(unit.type)||/softice/i.test(unit.name||'')))return false;
+  const equipmentRoutines=/^(koeleskab_|fryser_|koledisk_|walkin_koeler_|walkin_fryser_|opvaskemaskine_|friture_rengoering|paalaegsmaskine_|softice_|ovn_rengoering|komfur_rengoering|varmeskab_|roegeovn_|blaesekoeler_|rasteskab_)/;
+  const ids=[card.equipmentId,card.unitId,card.equipmentKey,card.equipmentUnit,card.equipment?.id,card.unit?.id].filter(Boolean);
+  const units=configuration.units||[];
+  if(ids.some(id=>(configuration.retiredEquipmentIds||[]).includes(id)))return false;
+  if(!equipmentRoutines.test(routine) && !card.equipmentType)return true;
+  if(ids.length)return units.some(unit=>ids.includes(unit.id)||ids.includes(unit.onboardingUnitId));
+  const name=String(card.equipmentName||card.unitName||'').toLocaleLowerCase('da').replace(/\s+/g,'');
+  return Boolean(name)&&units.some(unit=>String(unit.name).toLocaleLowerCase('da').replace(/\s+/g,'')===name);
+}
+
 function clean(value) {
   return String(value || "").trim();
 }
@@ -40,7 +54,10 @@ function uniqueList(values = []) {
   return [...new Set(values.map(clean).filter(Boolean))];
 }
 
-function isActiveDefinition(item = {}) {
+function isActiveDefinition(item = {}, dateKey = '') {
+  if(item.effectiveFromDate && dateKey && dateKey < item.effectiveFromDate)return false;
+  // Retirement changes today's work, never the documented historical days.
+  if(item.retiredByOnboarding && item.retiredFromDate && dateKey && dateKey < item.retiredFromDate)return true;
   return item.archived !== true && item.disabled !== true;
 }
 
@@ -118,7 +135,7 @@ function parseScopedRoutineParts(item = {}, context = {}) {
 
 function getRoutineKey(item = {}, context = {}) {
   const parsed = parseScopedRoutineParts(item, context);
-  return clean(
+  const key = clean(
     item.routineKey ||
     item.routineType ||
     item.canonicalRoutineType ||
@@ -129,6 +146,7 @@ function getRoutineKey(item = {}, context = {}) {
     item.title ||
     item.name
   );
+  return ({cleaning_fridge_control:'koeleskab_rengoering',cleaning_freezer_control:'fryser_rengoering',cleaning_fryer_control:'friture_rengoering',cleaning_dishwasher_control:'opvaskemaskine_rengoering',genopvarmning:'opvarmning',heating_control:'opvarmning',reheating_control:'opvarmning'})[key] || key;
 }
 
 function getEquipmentKey(item = {}, context = {}) {
@@ -158,6 +176,7 @@ function isPlaceholderEquipmentKey(value = "") {
 }
 
 function getIdentityEquipmentKey(item = {}, context = {}) {
+  if(getRoutineKey(item,context)==='opvarmning')return '';
   const key = getEquipmentKey(item, context);
   return isPlaceholderEquipmentKey(key) ? "" : key;
 }
@@ -362,10 +381,11 @@ function toRoutineCard(source = {}, {
     templateId: clean(source.templateId || source.id || source.taskId),
     templateKey: clean(source.templateKey || routineKey),
     routineKey,
-    routineType: clean(source.routineType || routineKey),
+    routineType: routineKey==='opvarmning'||['cleaning_fridge_control','cleaning_freezer_control','cleaning_fryer_control','cleaning_dishwasher_control'].includes(source.routineType) ? routineKey : clean(source.routineType || routineKey),
     canonicalRoutineType: clean(source.canonicalRoutineType || source.routineType || routineKey),
-    title: clean(source.title || source.name || source.taskTitle || source.controlPoint || routineKey || "Rutine"),
-    name: clean(source.name || source.title || source.taskTitle || source.controlPoint || routineKey || "Rutine"),
+    title: routineKey==='opvarmning'?'Opvarmning':clean(source.title || source.name || source.taskTitle || source.controlPoint || routineKey || "Rutine"),
+    name: routineKey==='opvarmning'?'Opvarmning':clean(source.name || source.title || source.taskTitle || source.controlPoint || routineKey || "Rutine"),
+    ...(routineKey==='opvarmning'?{displayTitle:'Opvarmning',canonicalRoutineType:'opvarmning',repeatable:true}:{}),
     category: clean(source.category || source.type || "egenkontrol"),
     controlPoint: clean(source.controlPoint || source.category || source.type || ""),
     frequency: clean(source.frequency || source.frequencyType || source.interval_days || "daily"),
@@ -479,6 +499,7 @@ function mergeRoutineCards(existing, incoming) {
     ...secondary,
     ...base,
     sources: uniqueList([...sourceList(existing.sources), ...sourceList(incoming.sources), existing._routineCardSource, incoming._routineCardSource]),
+    relatedInstanceIds: uniqueList([...(existing.relatedInstanceIds||[]),...(incoming.relatedInstanceIds||[]),existing.id,existing.taskInstanceId,existing.linkedInstanceId,incoming.id,incoming.taskInstanceId,incoming.linkedInstanceId]),
     entryCount: Math.max(Number(existing.entryCount || 0), Number(incoming.entryCount || 0)),
     latestEntryId: pickLatestValue(existing.latestEntryId, incoming.latestEntryId),
     latestEntryAt: latestAt || null,
@@ -645,14 +666,14 @@ export function resolveRoutineCardsForLocation({
   const concreteGenericKeys = new Set();
 
   for (const instance of [...taskInstances, ...verificationInstances]) {
-    if (!isActiveDefinition(instance)) continue;
+    if (!isActiveDefinition(instance, dateKey)) continue;
     if (hasEquipmentScope(instance, context)) {
       concreteGenericKeys.add(getGenericRoutineKey(instance, context));
     }
   }
 
   for (const template of taskTemplates) {
-    if (!isActiveDefinition(template)) continue;
+    if (!isActiveDefinition(template, dateKey)) continue;
 
     const genericKey = getGenericRoutineKey(template, context);
     const skipGenericTemplate = !hasEquipmentScope(template, context) && concreteGenericKeys.has(genericKey);
@@ -680,7 +701,7 @@ export function resolveRoutineCardsForLocation({
   }
 
   for (const template of verificationTemplates) {
-    if (!isActiveDefinition(template)) continue;
+    if (!isActiveDefinition(template, dateKey)) continue;
 
     addRoutineCard(cards, toRoutineCard(template, {
       context,
@@ -693,7 +714,7 @@ export function resolveRoutineCardsForLocation({
 
   for (let index = 0; index < riskRoutineSources.length; index += 1) {
     const source = riskControlPointToRoutineSource(riskRoutineSources[index], index, context);
-    if (!isActiveDefinition(source)) continue;
+    if (!isActiveDefinition(source, dateKey)) continue;
 
     addRoutineCard(cards, toRoutineCard(source, {
       context,
@@ -705,7 +726,7 @@ export function resolveRoutineCardsForLocation({
   }
 
   for (const instance of taskInstances) {
-    if (!isActiveDefinition(instance)) continue;
+    if (!isActiveDefinition(instance, dateKey)) continue;
 
     const selectedDateInstance = normalizeDateKey(instance.dateKey) === dateKey;
     addRoutineCard(cards, toRoutineCard(instance, {
@@ -718,7 +739,7 @@ export function resolveRoutineCardsForLocation({
   }
 
   for (const instance of verificationInstances) {
-    if (!isActiveDefinition(instance)) continue;
+    if (!isActiveDefinition(instance, dateKey)) continue;
 
     const selectedDateInstance = normalizeDateKey(instance.dateKey) === dateKey;
     addRoutineCard(cards, toRoutineCard(instance, {
@@ -755,7 +776,7 @@ export function resolveRoutineCardsForLocation({
     addRoutineCard(cards, historyCard, { state, fallback: true });
   }
 
-  const resolved = [...cards.values()].map((card) => {
+  const resolved = [...cards.values()].filter(card => equipmentConfigurationAllows(card, riskAnalysis?.equipmentConfiguration, dateKey)).map((card) => {
     const selectedDateStatus = clean(card._selectedDateStatus || card.statusForSelectedDate);
     const effectiveStatus = selectedDateStatus || card.status || "pending";
 

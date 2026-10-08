@@ -137,3 +137,14 @@ equipment-bound-WITH-equipment + 106 process/other correctly NOT flagged; 0 proc
   (`#reportCategoryFilter`), equipment filter, pagination (25/50/100), filter-summary, print-per-category
   (`printCurrentReportSelection()` + `@media print`). Authority blocks tagged `data-report-category`.
 - `getAuthorityEntries()` uses the SAME report-category + equipment filter as the entries list.
+
+## Versionssikring af rettelser fra 7. oktober 2026
+
+- `riskAnalysisService.js` foretrækker den aktuelle risikoanalyse med gemt udstyrskonfiguration frem for et ældre snapshot med højere versionsnummer.
+- `routineCardsResolver.js` bruger aktuelle enheder og udelukker fravalgte enheder fra den aktuelle rutinevisning. Historiske registreringer bevares.
+- Myndighedsrapportens rengøringsplan og status bygger på samme resolver som rutinerne; parallelle legacy-rækker samles, og registreringstidspunkter holdes adskilt fra planstatus.
+- Rutinekortets tekst og kontroller har en regressionstest for normal desktop-visning.
+- Regressionstest: `scripts/test-authority-cleaning-report.cjs`, `test-report-instance-cache.cjs`, `test-risk-loader-equipment.cjs`, `test-routine-instance-identity.cjs`, `test-routine-viewport-size.cjs`.
+- Denne commit versionssikrer fire eksisterende arbejdsfiler; den udfører ikke et nyt deploy eller en datamigrering.
+
+- De seks eksisterende udstyrsspecifikke rengøringsguider i `public/core/*-cleaning-guide.js` samt scannerens `egenkontrol-scanner.js` og `vision-schema.js` er medtaget som nødvendige afhængigheder, fordi de manglede i GitHub-grenen. Indholdet er kopieret fra arbejdsudgaven uden nye guideændringer.

@@ -245,6 +245,75 @@ requiredBeforeEdit:
             flex-shrink:0;
         }
 
+        /* ---- AI-vision: markering af fund oven på dokumentationsbilledet ---- */
+        .task-docs-image-wrap{
+            position:relative;
+            flex-shrink:0;
+            line-height:0;
+        }
+
+        .task-vision-overlay{
+            position:absolute;
+            inset:0;
+            pointer-events:none;
+        }
+
+        .task-vision-box{
+            position:absolute;
+            border:2px solid #2f8d2f;
+            border-radius:3px;
+            box-shadow:0 0 0 1px rgba(255,255,255,.7);
+        }
+
+        .task-vision-box.is-observation{
+            border-color:#e0564f;
+            box-shadow:0 0 0 1px rgba(255,255,255,.7), 0 0 10px rgba(224,86,79,.55);
+        }
+
+        .task-vision-box em{
+            position:absolute;
+            left:-2px;
+            top:-15px;
+            background:#0b0f0c;
+            color:#fff;
+            font-size:9px;
+            font-style:normal;
+            font-weight:800;
+            padding:1px 4px;
+            border-radius:4px;
+            white-space:nowrap;
+            line-height:1.3;
+            max-width:120px;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+
+        .task-vision-summary{
+            margin-top:8px;
+            padding:8px 10px;
+            border:1px solid #d7e5d7;
+            border-radius:10px;
+            background:#f7fbf7;
+            font-size:12px;
+            line-height:1.45;
+            text-align:left;
+        }
+
+        .task-vision-scene{ font-weight:800; color:#1f5a23; }
+        .task-vision-list{ margin:6px 0 0; padding-left:16px; }
+        .task-vision-list li{ margin:2px 0; }
+        .task-vision-meta{ color:#5e6b5e; font-weight:600; }
+        .task-vision-desc{ color:#5e6b5e; font-size:11px; }
+        .task-vision-warning{
+            margin-top:6px; padding:6px 8px; border-radius:8px;
+            background:#fff6e5; border:1px solid #f0d9a8; color:#7a5410; font-weight:700;
+        }
+        .task-vision-actions{ margin-top:6px; color:#2d3c2e; }
+        .task-vision-routine{ margin-top:6px; color:#2d3c2e; }
+        .task-vision-disclaimer{
+            margin-top:6px; color:#77837a; font-size:10px; line-height:1.4;
+        }
+
         .task-docs-meta{
             flex:1;
             min-width:0;
@@ -594,7 +663,6 @@ requiredBeforeEdit:
         .routine-pager-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
         .routine-pager-actions .btn{width:100%;min-height:44px}
         @media(max-width:600px){.routine-pager-top{display:block}.routine-pager-count{margin-top:8px}}
-        .task-list.routine-viewport-fit{transform-origin:top left}
         .task-item{scroll-margin-top:16px}
 
         .routine-guide-open{width:100%;min-height:44px;margin-bottom:12px}
@@ -2150,6 +2218,53 @@ requiredBeforeEdit:
             .routine-pager-actions{position:sticky;bottom:5px;z-index:25;gap:6px;margin-top:7px}
             .routine-pager-actions .btn{height:38px;min-height:38px;padding:6px 5px;font-size:11px;border-radius:10px}
         }
+        /* All registration actions must remain available on touch screens. */
+        @media (max-width:640px){
+            .task-item.is-open .task-action-secondary,
+            .task-item.is-open .task-action-secondary.is-two-up{
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                gap:8px !important;
+                width:100%;
+            }
+            .task-item.is-open .task-action-secondary .btn{
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                width:100%;
+                min-height:44px;
+                padding:10px 12px;
+                white-space:normal;
+                touch-action:manipulation;
+            }
+        }
+        /* Readable routine workspace at normal browser zoom on laptops/tablets. */
+        @media (min-width:641px){
+            .task-content h4{font-size:22px !important;line-height:1.35}
+            .task-body > p,.task-guide-panel,.task-guide-panel p,.task-guide-panel li{font-size:16px !important;line-height:1.6}
+            .routine-audit-summary,.task-status-inline,.task-pill,
+            .task-docs-text,.task-docs-empty,.routine-card-activity,
+            .routine-card-activity-row,.task-action-note{font-size:14px !important;line-height:1.5}
+            .task-docs-title,.routine-card-activity-title,.task-guide-title,
+            .form-label,.task-frequency-controls label{font-size:16px !important;line-height:1.45}
+            .task-action .btn,.task-camera-btn,.task-frequency-save,
+            .routine-guide-open,.routine-card-activity .btn,
+            .routine-pager-actions .btn,.task-filter-reset{
+                font-size:16px !important;line-height:1.4;min-height:44px;
+                padding:10px 14px;white-space:normal;
+            }
+            .task-input,.routine-form input,.routine-form select,
+            .routine-form textarea,.task-frequency-select{
+                font-size:16px !important;line-height:1.5;min-height:44px;padding:10px 12px;
+            }
+            .routine-pager-label,.routine-pager-count{font-size:14px !important;line-height:1.5}
+            .routine-pager-next{font-size:18px !important;line-height:1.45}
+            .routine-page-number{font-size:16px !important;flex-basis:44px;width:44px;height:44px}
+            .routine-compact-tools{gap:14px}
+            .routine-card-activity,.task-docs-panel{padding:14px}
+            .routine-form-grid{gap:14px}
+            .task-meta{gap:8px}
+        }
     </style>
 </head>
 <body data-page="rutiner">
@@ -2488,6 +2603,12 @@ requiredBeforeEdit:
 
     <script type="module">
         import { setupAuthGate } from "/core/auth.js";
+        import { HOOD_CLEANING_GUIDE } from "/core/hood-cleaning-guide.js?v=1";
+        import { FRYER_CLEANING_GUIDE } from "/core/fryer-cleaning-guide.js?v=1";
+        import { FREEZER_CLEANING_GUIDE } from "/core/freezer-cleaning-guide.js?v=1";
+        import { GAS_STOVE_CLEANING_GUIDE, GAS_STOVE_GUIDE_INTRO } from "/core/gas-stove-cleaning-guide.js?v=1";
+        import { DISPLAY_COOLER_CLEANING_GUIDE, DISPLAY_COOLER_GUIDE_INTRO } from "/core/display-cooler-cleaning-guide.js?v=1";
+        import { FRIDGE_CLEANING_GUIDE, FRIDGE_GUIDE_INTRO } from "/core/fridge-cleaning-guide.js?v=1";
         import { loadLayout } from "/core/layout.js?v=20260829-mobile-routine-v4";
         import app, { auth, db, storage } from "/core/firebase-config.js";
         import { 
@@ -2523,12 +2644,29 @@ requiredBeforeEdit:
             getDownloadURL
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
         import { runEgenkontrolForToday } from "/modules/egenkontrol/runEgenkontrolForToday.js";
+        // Egenkontrol-kamera/scanner. OpenCV.js + jscanify lazy-loades FØRST når
+        // kameraet åbnes — importen her er let og gør ikke rutinesiden tungere.
+        import {
+            openEgenkontrolCamera,
+            forberedEgenkontrolScanner,
+            cancelActiveCameraSession,
+            getActiveCameraSession,
+            isCameraSessionValidFor,
+            SCANNER_STATUS
+        } from "/modules/egenkontrol/egenkontrol-scanner.js";
+        // Platformsneutral vision-normalisering (samme kode kan bruges af Android senere).
+        import {
+            normalizeAiAnalysisResult,
+            normalizeVisionAnalysis,
+            emptyVisionAnalysis,
+            VISION_SCHEMA_VERSION
+        } from "/modules/egenkontrol/vision-schema.js";
         import { 
             loadRiskAnalysisFromFirestore, 
             loadOnboardingFromFirestore, 
             ensureRiskAnalysisForLocation 
-        } from "/modules/egenkontrol/riskAnalysisService.js";
-        import { resolveRoutineCardsForLocation } from "/modules/egenkontrol/routineCardsResolver.js";
+        } from "/modules/egenkontrol/riskAnalysisService.js?v=equipment-config-6";
+        import { resolveRoutineCardsForLocation } from "/modules/egenkontrol/routineCardsResolver.js?v=equipment-save-5";
         import { resolveDocumentTypeFromRegistry } from "./config/document-type-registry.js";
         import { resolvePrettyCompanyInfo } from "/core/prettyName.js";
         import { startCoolingRun, getActiveCoolingRun, getActiveCoolingRuns } from "/core/cooling-overlay.js?v=20260829-mobile-routine-v4";
@@ -2602,7 +2740,6 @@ requiredBeforeEdit:
         }
 
         const taskListEl = document.getElementById("taskList");
-        let routineViewportFitTimer = 0;
 
         function clearRoutineViewportFit() {
             taskListEl?.classList.remove("routine-viewport-fit");
@@ -2610,38 +2747,12 @@ requiredBeforeEdit:
         }
 
         function fitCurrentRoutineToViewport() {
-            window.clearTimeout(routineViewportFitTimer);
-            routineViewportFitTimer = window.setTimeout(() => {
-                // Mobile/tablet has its own compact card layout. Scaling the desktop
-                // list there made text and controls tiny instead of mobile friendly.
-                if (!taskListEl || hasActiveRoutineFilters() || window.innerWidth <= 640) {
-                    clearRoutineViewportFit();
-                    return;
-                }
-
-                clearRoutineViewportFit();
-                const pager = taskListEl.querySelector(".routine-pager");
-                const routineCard = taskListEl.querySelector(".task-item");
-                const pagerActions = taskListEl.querySelector(".routine-pager-actions");
-                if (!pager || !routineCard || !pagerActions) return;
-
-                const naturalHeight = taskListEl.scrollHeight;
-                const viewportPadding = window.innerWidth <= 480 ? 8 : 14;
-                const availableHeight = Math.max(320, window.innerHeight - (viewportPadding * 2));
-                const minimumScale = window.innerWidth <= 480 ? 0.68 : 0.62;
-                const scale = Math.min(1, Math.max(minimumScale, availableHeight / naturalHeight));
-
-                if (scale < 0.995) {
-                    taskListEl.classList.add("routine-viewport-fit");
-                    taskListEl.style.zoom = scale.toFixed(3);
-                }
-            }, 0);
+            // Keep text and controls at their natural size. Tall routines scroll.
+            clearRoutineViewportFit();
         }
 
         function scheduleRoutineViewportFit() {
             fitCurrentRoutineToViewport();
-            window.setTimeout(fitCurrentRoutineToViewport, 180);
-            window.setTimeout(fitCurrentRoutineToViewport, 650);
         }
 
         function getCompactRoutinePageItems(total, currentIndex) {
@@ -2672,6 +2783,7 @@ requiredBeforeEdit:
             const directPagerButton = e.target.closest("button[data-routine-go]");
             if (directPagerButton) {
                 e.preventDefault();
+                if (invalidateCameraSessionOnRoutineChange()) return;
                 currentRoutinePage = Number(directPagerButton.dataset.routineGo || 0);
                 renderTasks();
                 scrollToCurrentRoutine();
@@ -2680,6 +2792,7 @@ requiredBeforeEdit:
             const pagerButton = e.target.closest("button[data-routine-page]");
             if (pagerButton) {
                 e.preventDefault();
+                if (invalidateCameraSessionOnRoutineChange()) return;
                 currentRoutinePage += Number(pagerButton.dataset.routinePage || 0);
                 renderTasks();
                 scrollToCurrentRoutine();
@@ -2800,6 +2913,59 @@ requiredBeforeEdit:
         let selectedDateKey = null;
         let currentRoutinePage = 0;
         let rutinerLoaderProgress = 0;
+
+        // ------------------------------------------------------------------
+        // KAMERA-SESSION ↔ RUTINE-BINDING
+        // ------------------------------------------------------------------
+        // Et foto må ALDRIG ende på en anden rutine end den, kameraet blev åbnet
+        // fra. Derfor bindes hver kameraåbning til et eksplicit instanceId, og
+        // sessionen ugyldiggøres så snart den aktive rutine skifter. Upload/gem
+        // validerer sessionen og afbryder hvis den ikke længere matcher.
+        let activeCameraSession = null;
+
+        function getActiveRoutineTask() {
+            if (hasActiveRoutineFilters()) return null;
+            const openTasks = getOpenTasks();
+            if (!openTasks.length) return null;
+            return openTasks[Math.max(0, Math.min(currentRoutinePage, openTasks.length - 1))] || null;
+        }
+
+        function getActiveRoutineInstanceId() {
+            return String(getActiveRoutineTask()?.id || "");
+        }
+
+        // Kaldes når den aktive rutine skifter. Lukker/ugyldiggør en åben session,
+        // så et igangværende foto ikke kan havne på den nye rutine.
+        function invalidateCameraSessionOnRoutineChange() {
+            const session = getActiveCameraSession() || activeCameraSession;
+            if (!session) return false;
+            const nowActive = getActiveRoutineInstanceId();
+            if (session.instanceId === nowActive) return false;
+            console.warn("[kamera] rutinen skiftede under en aktiv kamera-session — afbryder", {
+                sessionInstanceId: session.instanceId,
+                nowActive
+            });
+            cancelActiveCameraSession("routine_changed");
+            activeCameraSession = null;
+            notifyCameraSessionInvalidated();
+            return true;
+        }
+
+        function notifyCameraSessionInvalidated() {
+            const message = "Rutinen er skiftet. Tag billedet igen på den aktuelle rutine.";
+            try { alert(message); } catch { /* ignore */ }
+        }
+
+        // Er den session der kom retur fra kameraet stadig gyldig for den rutine
+        // der er aktiv NU? Returnerer en fejltekst hvis ikke, ellers "".
+        function validateCameraSession(session, result) {
+            if (!session) return "Ingen aktiv kamera-session. Tag billedet igen.";
+            const nowActive = getActiveRoutineInstanceId();
+            if (!nowActive) return "Ingen aktiv rutine. Åbn en rutine og tag billedet igen.";
+            if (session.instanceId !== nowActive) return "Rutinen er skiftet. Tag billedet igen på den aktuelle rutine.";
+            if (result && result.instanceId !== session.instanceId) return "Billedet tilhører en anden rutine. Tag billedet igen.";
+            return "";
+        }
 
         function getRoutineProgressStorageKey() {
             return [
@@ -3015,7 +3181,9 @@ requiredBeforeEdit:
         }
 
         function getTaskGuide(task = {}) {
-            return task.controlPointGuide || findControlPointGuideForTask(task) || null;
+            const riskGuide=task.controlPointGuide || findControlPointGuideForTask(task) || {};
+            if(!task.howToCheck && !task.longDescription)return Object.keys(riskGuide).length ? riskGuide : null;
+            return {...riskGuide,description:task.longDescription||riskGuide.description,howToCheck:task.howToCheck||riskGuide.howToCheck,controlRequirement:task.checklistItems?.join('\n')||task.howToCheck||riskGuide.controlRequirement,acceptCriteria:task.acceptCriteria||task.risk?.criticalLimit||riskGuide.acceptCriteria,criticalLimit:task.risk?.criticalLimit||riskGuide.criticalLimit,correctiveAction:task.standardCorrectiveActions?.join('\n')||task.risk?.defaultCorrectiveAction||riskGuide.correctiveAction,documentation:task.documentation||riskGuide.documentation,deviations:task.standardDeviationTexts?.join('\n')||task.risk?.deviationTrigger||'',risk:task.risk||riskGuide.risk};
         }
 
         function renderControlPointGuideHtml(task) {
@@ -3139,25 +3307,60 @@ requiredBeforeEdit:
 
             for (const key of keys) {
                 if (ROUTINE_PROFESSIONAL_TEXTS[key]) {
-                    return ROUTINE_PROFESSIONAL_TEXTS[key];
+                    return {...ROUTINE_PROFESSIONAL_TEXTS[key],documentation:task.documentation||'Registrér dato, ansvarlig, resultat og eventuelle afvigelser.',deviations:task.standardDeviationTexts?.join('\n')||task.risk?.deviationTrigger||''};
                 }
             }
 
             const guide = getTaskGuide(task) || {};
             return {
-                guide: guide.description || task.description || "Udfør rutinen efter virksomhedens procedure og den fastsatte frekvens.",
+                guide: guide.howToCheck || guide.description || task.longDescription || task.description || "Udfør rutinen efter virksomhedens procedure og den fastsatte frekvens.",
                 control: guide.controlRequirement || guide.control || guide.howToCheck || "Kontrollér at forholdet er i orden, og dokumentér observationen kort.",
                 deviationAction: guide.correctiveAction || guide.risk?.defaultCorrectiveAction || "Ved fejl eller usikkerhed stoppes relevant brug, forholdet korrigeres, og der oprettes afvigelse.",
+                documentation: guide.documentation || task.documentation || "Registrér dato, ansvarlig, resultat og eventuelle afvigelser.",
+                deviations: guide.deviations || task.risk?.deviationTrigger || "",
                 why: guide.risk?.hazard || guide.purpose || task.purpose || "Rutinen hjælper med at dokumentere egenkontrol og forebygge fødevaresikkerhedsrisici."
             };
         }
 
         function renderRoutineProfessionalTextHtml(task) {
+            const hoodKeys=[task.equipmentType,task.routineType,task.canonicalRoutineType,task.routineKey,task.templateKey];
+            const cleaningGuide=Boolean(task.cleaningPlanEntryId)||task.controlType==='cleaning'||hoodKeys.some(key=>/rengoering|cleaning/i.test(String(key||''))||['emhaette_kontrol','gaskomfur_kontrol'].includes(key));
+            const freezerCleaning=hoodKeys.some(key=>['fryser_rengoering','walkin_fryser_rengoering','freezer_cleaning'].includes(key))||['freezer','walk_in_freezer'].includes(task.equipmentType)&&task.controlType==='cleaning';
+            const displayCoolerCleaning=hoodKeys.some(key=>['koledisk_rengoering','refrigerated_display_cleaning'].includes(key))||task.equipmentType==='refrigerated_display'&&task.controlType==='cleaning';
+            const fridgeCleaning=hoodKeys.some(key=>['koeleskab_rengoering','fridge_cleaning'].includes(key))||task.equipmentType==='fridge'&&task.controlType==='cleaning';
+            const exactGuide=cleaningGuide?(fridgeCleaning?FRIDGE_CLEANING_GUIDE:displayCoolerCleaning?DISPLAY_COOLER_CLEANING_GUIDE:hoodKeys.some(key=>['gas_stove','gaskomfur_kontrol','gaskomfur_rengoering'].includes(key))?GAS_STOVE_CLEANING_GUIDE:hoodKeys.some(key=>['extractor_hood','emhaette_kontrol','emhaette_rengoering'].includes(key))?HOOD_CLEANING_GUIDE:hoodKeys.some(key=>['fryer','friture','friture_rengoering','fryer_cleaning'].includes(key))?FRYER_CLEANING_GUIDE:freezerCleaning?FREEZER_CLEANING_GUIDE:null):null;
+            if(exactGuide) {
+                const renderGuideBody=body=>{
+                    if(exactGuide===DISPLAY_COOLER_CLEANING_GUIDE||exactGuide===FRIDGE_CLEANING_GUIDE)return escapeHtml(body).replace('relevante og korrekte køletemperatur','<strong>relevante og korrekte køletemperatur</strong>');
+                    if(exactGuide!==FREEZER_CLEANING_GUIDE)return escapeHtml(body);
+                    const content=escapeHtml(body);
+                    return content.replace('relevante og korrekte frysetemperatur','<strong>relevante og korrekte frysetemperatur</strong>').replace(/(Kontrol af Fryser 1 skal ske før produktion, og den skal rengøres efter brug, ved synligt snavs samt mindst hver arbejdsdag for alle fødevarekontaktdele)$/,'<strong>$1</strong>');
+                };
+                const introParagraphs=exactGuide===GAS_STOVE_CLEANING_GUIDE?GAS_STOVE_GUIDE_INTRO:exactGuide===DISPLAY_COOLER_CLEANING_GUIDE?DISPLAY_COOLER_GUIDE_INTRO:exactGuide===FRIDGE_CLEANING_GUIDE?FRIDGE_GUIDE_INTRO:[];
+                const intro=introParagraphs.map((paragraph,index)=>`<p>${index===0?escapeHtml(paragraph).replace(/^([^.]+)\./,'<strong>$1</strong>.'):escapeHtml(paragraph)}</p>`).join('');
+                return `<div class="task-action-note task-guide-panel routine-professional-text">${intro}${exactGuide.map(section=>`<section><h4>${escapeHtml(section.title)}</h4><ul>${section.items.map(([label,body])=>`<li><strong>${escapeHtml(label)}:</strong> ${renderGuideBody(body)}</li>`).join('')}</ul></section>`).join('')}</div>`;
+            }
+            if(cleaningGuide) {
+                let preparation='Beskyt fødevarer. Stop og sikr udstyret efter fabrikantens anvisning.';
+                if(['fridge','refrigerated_display','walk_in_cooler','blast_chiller'].includes(task.equipmentType))preparation='Flyt varerne til egnet køleopbevaring. Stop og sikr udstyret efter fabrikantens anvisning.';
+                if(task.equipmentType==='pressure_cooker')preparation='Beskyt fødevarer. Stop, afkøl og fjern trykket efter fabrikantens anvisning før åbning.';
+                if(task.areaId&&!task.equipmentId)preparation='Flyt eller beskyt fødevarer. Hold rene og urene aktiviteter adskilt.';
+                const points=[
+                    ['Forbered',preparation],
+                    ['Rengør','Fjern snavs og rengør efter fabrikantens og midlets anvisning. Desinficér ved behov, skyl efter anvisningen og lad tørre.'],
+                    ['Kontrollér','Ingen snavs, middelrester eller skader. Udstyret er samlet korrekt og sikkert at bruge.'],
+                    ['Ved fejl','Stop brugen. Rengør igen eller udbedr fejlen, og kontrollér før genbrug.'],
+                    ['Registrér','Notér dato, tidspunkt, udfører, resultat og eventuelle afvigelser.']
+                ];
+                return `<div class="task-action-note task-guide-panel routine-professional-text"><ul>${points.map(([label,body])=>`<li><strong>${escapeHtml(label)}:</strong> ${escapeHtml(body)}</li>`).join('')}</ul></div>`;
+            }
             const text = getRoutineProfessionalText(task);
             const rows = [
                 ["Guide", text.guide],
                 ["Kontrol", text.control],
                 ["Handling ved afvigelse", text.deviationAction],
+                ["Afvigelser", text.deviations],
+                ["Dokumentation", text.documentation],
                 ["Hvorfor er dette vigtigt?", text.why]
             ].filter(([, value]) => String(value || "").trim());
 
@@ -3571,7 +3774,7 @@ requiredBeforeEdit:
             const dateKey = normalizeDateKey(dateKeyOverride) || getRoutineSaveDateKey(task);
             const instanceId = instanceIdOverride || getRoutineSelectedInstanceId(task, dateKey);
 
-            if (!task._needsLazyInstance) {
+            if (!task._needsLazyInstance && instanceId === (task.linkedInstanceId || task.taskInstanceId || task.id)) {
                 task.linkedInstanceId = instanceId;
                 task.taskInstanceId = task.taskInstanceId || instanceId;
                 task.dateKey = dateKey;
@@ -4289,7 +4492,7 @@ requiredBeforeEdit:
             );
             rtoTemplates = snap.docs
                 .filter(d => d.data().isActive !== false && d.data().templateSource !== "scenario_based_haccp")
-                .map(d => ({ id: d.id, ...d.data() }));
+                .map(d => ({ ...d.data(), id: d.id }));
             const overrideLookup = await loadRoutineFrequencyOverrides();
             rtoTemplates = rtoTemplates.map((template) => applyRoutineFrequencyOverride(template, overrideLookup));
             renderRtoGrid();
@@ -4572,7 +4775,7 @@ function setLocationLabel() {
         }
 
         function normalizeTaskInstanceDateInId(instanceId = "", dateKey = "") {
-            const id = sanitizeString(instanceId, 240);
+            const id = sanitizeString(instanceId, 1500);
             const normalizedDateKey = normalizeDateKey(dateKey);
             if (!id || !normalizedDateKey) return id;
             return id.replace(/\d{4}[-_]\d{2}[-_]\d{2}/, normalizedDateKey);
@@ -4587,7 +4790,8 @@ function setLocationLabel() {
 
         function getRoutineSelectedInstanceId(task = {}, dateKey = "") {
             const normalizedDateKey = normalizeDateKey(dateKey) || getRoutineSaveDateKey(task);
-            const existing = task.taskInstanceId || task.linkedInstanceId || task.id || "";
+            const existing = task.linkedInstanceId || task.taskInstanceId || task.id || "";
+            if (!task._needsLazyInstance && existing && !/\d{4}[-_]\d{2}[-_]\d{2}/.test(String(existing)) && normalizeDateKey(task.dateKey) === normalizedDateKey) return existing;
             const existingHasDate = /\d{4}[-_]\d{2}[-_]\d{2}/.test(String(existing || ""));
             if (existingHasDate) {
                 const normalizedExisting = normalizeTaskInstanceDateInId(existing, normalizedDateKey);
@@ -4595,7 +4799,8 @@ function setLocationLabel() {
             }
 
             const identity = task.routineKey || task.canonicalTaskKey || task.routineType || task.templateKey || task.templateId || task.taskId || "routine";
-            return `${SETTINGS.companyId}__${SETTINGS.locationId}__${normalizedDateKey}__${slugify(identity)}`.slice(0, 180);
+            const equipmentIdentity = task.equipmentId || task.equipmentKey || task.areaId || "";
+            return `${SETTINGS.companyId}__${SETTINGS.locationId}__${normalizedDateKey}__${slugify(identity)}${equipmentIdentity ? '__' + slugify(equipmentIdentity) : ''}`.slice(0, 1500);
         }
 
         function escapeHtml(value) {
@@ -7384,7 +7589,7 @@ function formatDeadlineLabel(task) {
                 entry.entryType ||
                 ""
             );
-            const taskEquipmentKey = getTaskEquipmentKey(task);
+            const taskEquipmentKey = getTaskHistoryRoutineKey(task)==='opvarmning'?'':getTaskEquipmentKey(task);
             const entryEquipmentKey = getEntryEquipmentKey(entry);
 
             if (taskRoutineKey && entryRoutineKey && taskRoutineKey !== entryRoutineKey && !entryRoutineKey.includes(taskRoutineKey) && !taskRoutineKey.includes(entryRoutineKey)) {
@@ -7585,6 +7790,7 @@ function formatDeadlineLabel(task) {
                 task.taskInstanceId,
                 task.linkedInstanceId,
                 task.sourceTaskInstanceId,
+                ...(task.relatedInstanceIds||[]),
                 getRoutineSelectedInstanceId(task, dateKey)
             ];
             return [...new Set(ids.map((id) => normalizeTaskInstanceDateInId(id, dateKey)).concat(ids).map((id) => sanitizeString(id, 240)).filter(Boolean))];
@@ -8109,10 +8315,18 @@ ${(() => {
                             </div>
                             <div class="task-docs-body">
                                 <div class="task-docs-preview">
-                                    <img src="${escapeHtml(imageUrl)}" alt="Dokumentation" class="task-docs-image" />
+                                    <div class="task-docs-image-wrap" data-vision-overlay-for="${escapeHtml(task.id)}">
+                                        <img src="${escapeHtml(imageUrl)}" alt="Dokumentation" class="task-docs-image" />
+                                    </div>
                                     <div class="task-docs-meta">
                                         <div class="task-docs-status">Seneste dokumentation</div>
                                         ${renderDocumentReview(reviewMedia)}
+                                        ${renderVisionSummaryHtml(
+                                            normalizeVisionAnalysis(
+                                                latestAsset?.egenkontrol || latestAsset?.aiAnalysis?.egenkontrol || task.egenkontrolVision || null
+                                            ),
+                                            getVisibleTitle(task)
+                                        )}
                                         ${aiDescription ? `<div class="task-docs-description">${escapeHtml(aiDescription)}</div>` : ""}
                                     </div>
                                 </div>
@@ -8644,6 +8858,7 @@ ${(() => {
                                     Marker som ikke relevant, hvis rutinen ikke er relevant for i dag.
                                 </p>
                             </div>
+
                         </div>
                     </article>
                 `;
@@ -8687,6 +8902,22 @@ ${(() => {
             `;
             taskListEl.querySelector(".routine-page-number.is-current")?.scrollIntoView({ block: "nearest", inline: "center" });
             scheduleRoutineViewportFit();
+
+            // Tegn AI-fund (bounding boxes) oven på dokumentationsbillederne.
+            // Kilden er de strukturerede detections fra AI-svaret — aldrig gætteri.
+            if (typeof renderVisionDetectionOverlay === "function") {
+                taskListEl.querySelectorAll("[data-vision-overlay-for]").forEach((wrap) => {
+                    const instanceId = wrap.dataset.visionOverlayFor;
+                    const t = allTasks.find((item) => item.id === instanceId);
+                    if (!t) return;
+                    const assets = Array.isArray(t.cloudinaryAssets) ? t.cloudinaryAssets : [];
+                    const latest = t.latestMediaAsset || (assets.length ? assets[assets.length - 1] : null);
+                    const vision = normalizeVisionAnalysis(
+                        latest?.egenkontrol || latest?.aiAnalysis?.egenkontrol || t.egenkontrolVision || null
+                    );
+                    if (vision.detections.length) renderVisionDetectionOverlay(wrap, vision.detections);
+                });
+            }
 
             bindCoolingNoActivityToggles();
             bindAnswerTextFields();
@@ -9389,6 +9620,7 @@ ${(() => {
                 });
             }
         }
+
 
         function getActionConfirmConfig(task, actionType) {
             const title = getVisibleTitle(task);
@@ -11107,6 +11339,9 @@ const buildFryerRoutineCompletionEntry = () => {
             const completedAtValue = auditFields.completedAt || savedAt.toISOString();
 
             const instanceUpdate = {
+                companyId: SETTINGS.companyId,
+                organizationId: SETTINGS.companyId,
+                locationId: SETTINGS.locationId,
                 status: instanceStatus,
                 statusForSelectedDate: instanceStatus,
                 dateKey,
@@ -11849,36 +12084,56 @@ const buildFryerRoutineCompletionEntry = () => {
                 panel.textContent = "Historik kunne ikke hentes lige nu.";
             }
         }
+        // AI-normalisering (normalizeAiAnalysisResult / normalizeVisionAnalysis) er
+        // flyttet til /modules/egenkontrol/vision-schema.js, så præcis samme schema-
+        // tolkning kan genbruges af en Android-klient senere.
 
-        function normalizeAiAnalysisResult(aiResult = {}) {
-            const confidence = Number(aiResult.confidenceScore ?? aiResult.confidence ?? 0);
-            const confidenceScore = Number.isFinite(confidence)
-                ? Math.max(0, Math.min(1, confidence))
-                : 0;
-            const suggestedIssue = String(
-                aiResult.suggestedIssue ||
-                aiResult.warning ||
-                aiResult.beskrivelse ||
-                ""
-            ).trim();
-            const labels = Array.isArray(aiResult.labels)
-                ? aiResult.labels.map((label) => String(label || "").trim()).filter(Boolean).slice(0, 12)
-                : [
-                    ...(Array.isArray(aiResult.observationer) ? aiResult.observationer : []),
-                    ...(Array.isArray(aiResult.risikoflag) ? aiResult.risikoflag : [])
-                ].map((label) => String(label || "").trim()).filter(Boolean).slice(0, 12);
+        // Markerer AI-fund oven på billedet, så brugeren kan se HVOR noget blev fundet.
+        function renderVisionDetectionOverlay(container, detections) {
+            if (!container) return;
+            container.querySelectorAll(".task-vision-overlay").forEach((el) => el.remove());
+            const boxes = (detections || []).filter((d) => d && d.boundingBox);
+            if (!boxes.length) return;
+            const wrap = document.createElement("div");
+            wrap.className = "task-vision-overlay";
+            wrap.setAttribute("aria-hidden", "true");
+            wrap.innerHTML = boxes.map((d) => {
+                const b = d.boundingBox;
+                const pct = Math.round(Number(d.confidence || 0) * 100);
+                const cls = d.type === "observation" ? "is-observation" : "is-object";
+                const title = `${escapeHtml(d.label)} ${pct}%`;
+                return `<span class="task-vision-box ${cls}" style="left:${(b.x * 100).toFixed(1)}%;top:${(b.y * 100).toFixed(1)}%;width:${(b.width * 100).toFixed(1)}%;height:${(b.height * 100).toFixed(1)}%"><em>${title}</em></span>`;
+            }).join("");
+            container.appendChild(wrap);
+        }
 
-            return {
-                confidence: confidenceScore,
-                confidenceScore,
-                severity: String(aiResult.severity || (aiResult.risikoflag?.length ? "medium" : "low")).toLowerCase(),
-                suggestedIssue,
-                labels,
-                warning: confidenceScore >= 0.4 && suggestedIssue
-                    ? `AI observerede mulig urenhed (${Math.round(confidenceScore * 100)}% sikkerhed). Bekræft manuelt.`
-                    : "",
-                createdAt: new Date().toISOString()
-            };
+        // Kort, læsbart resumé af den strukturerede analyse (vises efter godkendt foto).
+        function renderVisionSummaryHtml(egenkontrol, routineName = "") {
+            const scene = egenkontrol?.scene || { area: "", confidence: 0 };
+            const detections = Array.isArray(egenkontrol?.detections) ? egenkontrol.detections : [];
+            const actions = Array.isArray(egenkontrol?.suggestedActions) ? egenkontrol.suggestedActions : [];
+            const warning = String(egenkontrol?.warning || "").trim();
+            if (!scene.area && !detections.length && !warning) return "";
+
+            const rows = detections.slice(0, 8).map((d) => {
+                const pct = Math.round(Number(d.confidence || 0) * 100);
+                const typeLabel = {
+                    area: "Område", surface: "Flade", equipment: "Udstyr",
+                    storage: "Opbevaring", observation: "Observation", reading: "Aflæsning"
+                }[d.type] || d.type;
+                const uncertain = d.requiresHumanConfirmation ? " · kræver din kontrol" : "";
+                const desc = d.description ? `<div class="task-vision-desc">${escapeHtml(d.description)}</div>` : "";
+                return `<li><strong>${escapeHtml(d.label)}</strong> <span class="task-vision-meta">${escapeHtml(typeLabel)} · ${pct}%${uncertain}</span>${desc}</li>`;
+            }).join("");
+
+            return `<div class="task-vision-summary">
+                ${scene.area ? `<div class="task-vision-scene">Område: <strong>${escapeHtml(scene.area)}</strong>${scene.confidence ? ` <span class="task-vision-meta">(${Math.round(scene.confidence * 100)}%)</span>` : ""}</div>` : ""}
+                ${rows ? `<ul class="task-vision-list">${rows}</ul>` : ""}
+                ${warning ? `<div class="task-vision-warning">${escapeHtml(warning)}</div>` : ""}
+                ${actions.length ? `<div class="task-vision-actions"><strong>Forslag:</strong> ${actions.map((a) => escapeHtml(a)).join(" · ")}</div>` : ""}
+                ${routineName ? `<div class="task-vision-routine">Tilknyttet rutine: <strong>${escapeHtml(routineName)}</strong></div>` : ""}
+                <div class="task-vision-disclaimer">Kun synligt observerbare forhold. AI konkluderer aldrig skjulte tekniske fejl — mulig synlig afvigelse kræver manuel kontrol.</div>
+            </div>`;
         }
 
         function renderAiManualWarningCard(actionEl, { instanceId, imageUrl, aiAnalysis }) {
@@ -12203,14 +12458,77 @@ const buildFryerRoutineCompletionEntry = () => {
                 if (!instanceId) return;
                 const task = allTasks.find((item) => item.id === instanceId) || null;
 
+                // Kameraet må kun arbejde på DEN rutine brugeren ser nu.
+                const nowActiveId = getActiveRoutineInstanceId();
+                if (nowActiveId && nowActiveId !== instanceId) {
+                    alert("Rutinen er skiftet. Tag billedet igen på den aktuelle rutine.");
+                    return;
+                }
+
+                // ---- 1) Åbn egenkontrol-scanneren (live preview + preview + godkend) ----
+                let scanResult = null;
+                try {
+                    cameraButton.disabled = true;
+                    const originalLabel = cameraButton.textContent;
+                    cameraButton.textContent = "Åbner kamera…";
+                    scanResult = await openEgenkontrolCamera({
+                        instanceId,
+                        routineId: task?.taskId || instanceId,
+                        routineName: getVisibleTitle(task || {}) || "",
+                        title: "Dokumentér rutine",
+                        hint: task ? `Rutine: ${getVisibleTitle(task)}` : "Ret kameraet mod det, du vil dokumentere"
+                    });
+                    cameraButton.disabled = false;
+                    cameraButton.textContent = originalLabel;
+                } catch (camErr) {
+                    console.error("[kamera] kunne ikke åbne scanneren:", camErr);
+                    cameraButton.disabled = false;
+                    alert(camErr?.message || "Kunne ikke åbne kameraet.");
+                    return;
+                }
+
+                // Annulleret, eller der blev ikke godkendt et billede → intet gemmes.
+                if (!scanResult || !scanResult.file) return;
+
+                // ---- 2) VALIDÉR at sessionen stadig hører til den aktive rutine ----
+                const sessionError = validateCameraSession(
+                    { instanceId: scanResult.instanceId },
+                    scanResult
+                );
+                if (sessionError) {
+                    alert(sessionError);
+                    return;
+                }
+                activeCameraSession = null;
+
+                // ---- 3) Kør det EKSISTERENDE upload-/AI-flow på det godkendte billede ----
                 const input = document.createElement("input");
                 input.type = "file";
                 input.accept = "image/*";
                 input.capture = "environment";
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(scanResult.file);
+                    input.files = dt.files;
+                    if (!input.files || !input.files[0]) throw new Error("Kunne ikke læse det godkendte billede.");
+                } catch (transferErr) {
+                    console.error("[kamera] kunne ikke overføre det godkendte billede:", transferErr);
+                    alert("Kunne ikke overføre det godkendte billede. Prøv igen.");
+                    return;
+                }
 
                 input.addEventListener("change", async () => {
                     const file = input.files?.[0];
                     if (!file) return;
+
+                    // SIDSTE VÆRN før nogen skrivning: hvis den aktive rutine er skiftet
+                    // (fx via browserens tilbage-knap eller pageren), må billedet IKKE
+                    // gemmes på en anden rutine end den, kameraet blev åbnet fra.
+                    if (getActiveRoutineInstanceId() !== instanceId) {
+                        console.warn("[kamera] afbryder: aktiv rutine er ikke længere", instanceId);
+                        alert("Rutinen er skiftet. Tag billedet igen på den aktuelle rutine.");
+                        return;
+                    }
 
                     async function optimizeImageForUpload(rawFile, enhanceForDocumentScanning = true) {
                         const maxWidth = 1200;
@@ -13277,7 +13595,9 @@ const buildFryerRoutineCompletionEntry = () => {
                     }
                 });
 
-                input.click();
+                // Det godkendte billede ligger allerede på input.files — vi udløser
+                // derfor "change" manuelt i stedet for at åbne en filvælger.
+                input.dispatchEvent(new Event("change"));
                 return;
             }
 
@@ -13468,8 +13788,8 @@ const buildFryerRoutineCompletionEntry = () => {
                     if (!snapshot.empty) {
                         const item = snapshot.docs[0];
                         return {
-                            id: item.id,
-                            ...item.data()
+                            ...item.data(),
+                            id: item.id
                         };
                     }
                 } catch (error) {

@@ -41,7 +41,8 @@
         "public/modules/egenkontrol/afvigelser.html",
         "public/modules/egenkontrol/luk-dag.html",
         "public/core/canonicalRoutines.js",
-        "public/modules/egenkontrol/routineCardsResolver.js"
+        "public/modules/egenkontrol/routineCardsResolver.js",
+        "public/modules/egenkontrol/riskAnalysisService.js"
       ],
       "backendFunctions": [
         "functions/canonicalTaskEngine.js:generateCanonicalTaskTemplates",
@@ -73,7 +74,7 @@
         "Actor fields must not be '—' (use 'Ikke registreret')",
         "Old bad rows: soft-archive only, never delete"
       ],
-      "lastKnownStatus": "active; equipment-guard added in canonicalTaskEngine; report center + generic-cold filters live in working tree (not deployed)"
+      "lastKnownStatus": "Current equipment selection, routine identity, authority cleaning status and desktop readability preserved from the 2026-10-07 working files; versioned on 2026-10-08; no new deploy performed by this commit."
     },
     "quick_onboarding": {
       "activeFiles": [

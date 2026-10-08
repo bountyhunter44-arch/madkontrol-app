@@ -1,0 +1,11 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync(require('node:path').join(__dirname, '../public/modules/egenkontrol/rutiner.html'),'utf8');
+const start=html.indexOf('        function normalizeTaskInstanceDateInId('),end=html.indexOf('        function escapeHtml(',start);
+const context={SETTINGS:{companyId:'company',locationId:'location'},selectedDateKey:'2026-10-06',normalizeDateKey:x=>/^\d{4}-\d{2}-\d{2}$/.test(x||'')?x:'',getTodayKey:()=> '2026-10-06',sanitizeString:(x,n)=>String(x||'').trim().slice(0,n),slugify:x=>String(x).toLowerCase().replace(/[^a-z0-9_-]/g,'_')};
+vm.createContext(context);vm.runInContext(html.slice(start,end),context);
+const longId='company__location__canonical__'+ 'equipment_identity_'.repeat(17)+'__2026-10-06';
+assert.equal(context.getRoutineSelectedInstanceId({_needsLazyInstance:false,linkedInstanceId:longId,dateKey:'2026-10-06'}),longId,'Existing long document ID must survive without truncation');
+assert.equal(context.getRoutineSelectedInstanceId({_needsLazyInstance:false,linkedInstanceId:longId,dateKey:'2026-10-07'}),longId.replace('2026-10-06','2026-10-07'));
+assert.equal(context.getRoutineSelectedInstanceId({_needsLazyInstance:false,linkedInstanceId:'legacy_document',dateKey:'2026-10-06'}),'legacy_document');
+const first=context.getRoutineSelectedInstanceId({_needsLazyInstance:true,routineType:'koledisk_rengoering',equipmentId:'display1'}),second=context.getRoutineSelectedInstanceId({_needsLazyInstance:true,routineType:'koledisk_rengoering',equipmentId:'display2'});assert.notEqual(first,second,'Equipment must have separate instance IDs');
+console.log('Routine save identity: long IDs, legacy IDs, changed dates and separate units passed.');
